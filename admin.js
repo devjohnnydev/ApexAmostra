@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const labelTd = `<td class="excel-label-cell"${inlineStyle}>${lbl}</td>`;
                 const valTds = vc.map(c => {
                     const fmtToUse = c.k === 'dolar' && row.dolFmt ? row.dolFmt : row.fmt;
-                    return `<td${inlineStyle}>${formatVal(vals[c.k], fmtToUse)}</td>`;
+                    return `<td class="excel-col-${c.k}">${formatVal(vals[c.k], fmtToUse)}</td>`;
                 }).join('');
                 html += `<tr class="${row.cls}">${labelTd}${valTds}</tr>`;
             });
@@ -309,14 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const labelTd = `<td class="excel-label-cell">${row.lbl}</td>`;
                 const valTds = vc.map(c => {
                     const fmtToUse = c.k === 'dolar' && row.dolFmt ? row.dolFmt : row.fmt;
-                    return `<td>${formatVal(vals[c.k], fmtToUse)}</td>`;
+                    return `<td class="excel-col-${c.k}">${formatVal(vals[c.k], fmtToUse)}</td>`;
                 }).join('');
                 html += `<tr class="excel-row-summary">${labelTd}${valTds}</tr>`;
             });
 
             // Oscillation row (with arrows)
             const osc = comp['OSCILAÇÃO R$'] || {};
-            const oscTds = vc.map(c => `<td>${renderOscilacao(osc[c.k], false)}</td>`).join('');
+            const oscTds = vc.map(c => `<td class="excel-col-${c.k}">${renderOscilacao(osc[c.k], false)}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
                     <td class="excel-label-cell" style="font-style:italic;">Oscilação R$/kg</td>
