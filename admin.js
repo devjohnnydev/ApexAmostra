@@ -197,7 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const isUp = v >= 0;
             const arrow = isUp ? '▲' : '▼';
             const cls = isUp ? 'excel-up' : 'excel-down';
-            const prefix = '$ '; // Metais LME s\u00e3o cotados em d\u00f3lar
+            // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
+            const prefix = isDolar ? '$ ' : 'R$ ';
             const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
         };
@@ -259,13 +260,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Computed rows config
             const COMP_ROWS = [
-                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-media',         fmt: 'normal',    dolFmt: 'dolar'     },
-                { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3', dolFmt: 'dolar'     },
-                { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3', dolFmt: 'dolar' },
-                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',   dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO %',                      key: 'OSCILAÇÃO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',   dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO R$',                     key: 'OSCILAÇÃO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4', dolFmt: 'dolar' },
-                { lbl: 'MÉDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-media',         fmt: 'currency_usd', dolFmt: 'dolar'     },
+                { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3',    dolFmt: 'dolar'     },
+                { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3',    dolFmt: 'dolar'     },
+                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',      dolFmt: 'percent'   },
+                { lbl: 'OSCILAÇÃO %',                      key: 'OSCILAÇÃO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',      dolFmt: 'percent'   },
+                { lbl: 'OSCILAÇÃO R$',                     key: 'OSCILAÇÃO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4',    dolFmt: 'dolar'     },
+                { lbl: 'MÉDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3',    dolFmt: 'dolar'     },
             ];
 
             COMP_ROWS.forEach(row => {
@@ -2278,8 +2279,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const isUp = oscRs >= 0;
             const arrowIcon = isUp ? '<i class="fa-solid fa-arrow-up" style="color:#2ecc71"></i>' : '<i class="fa-solid fa-arrow-down" style="color:#e74c3c"></i>';
+            // OSCILAÇÃO R$ é a variação convertida em reais — usar prefixo R$
+            const fmtOscBrl = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
-            if (elOscRs) elOscRs.innerHTML = `${arrowIcon} ${formatMoney(Math.abs(oscRs), isDolar)}`;
+            if (elOscRs) elOscRs.innerHTML = `${arrowIcon} ${fmtOscBrl(oscRs)}`;
 
             const elMensal = document.getElementById('rel-mensal-' + m);
             if (elMensal) elMensal.textContent = formatMoney(comp['MEDIA MENSAL']?.[m], isDolar);
@@ -2289,7 +2292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
             if (elCompAtu) elCompAtu.textContent = formatMoney(comp['MEDIA SEMANAL']?.[m], isDolar);
             const elCompOsc = document.getElementById('rel-comp-osc-' + m);
-            if (elCompOsc) elCompOsc.innerHTML = `${arrowIcon} ${formatMoney(Math.abs(oscRs), isDolar)}`;
+            if (elCompOsc) elCompOsc.innerHTML = `${arrowIcon} ${fmtOscBrl(oscRs)}`;
         });
 
         renderRelatorioCharts(week);
