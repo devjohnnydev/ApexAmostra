@@ -786,7 +786,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         // ── Estilos ──
         const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
         const METAL_LABELS = ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL', 'DÓLAR'];
-        const HDR_COLORS   = ['FF0000', 'E6B8B7', 'A6A6A6', 'D9D9D9', 'B5B059', 'FFFFFF', '70AD47'];
+        const HDR_COLORS   = ['FF0000', 'E6B8B7', 'BFBFBF', 'BFBFBF', 'B5B059', 'FFFFFF', '70AD47'];
 
         const fontBase = { name: 'Calibri', size: 11 };
         const bold = { ...fontBase, bold: true };
@@ -852,6 +852,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
                 const v = day[m];
                 c.value     = (v !== null && v !== undefined) ? v : '—';
                 c.font      = fontBase;
+                c.fill      = fill(HDR_COLORS[mi]);
                 c.alignment = centerAlign;
                 c.border    = border;
                 if (typeof v === 'number') {
@@ -902,7 +903,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
             METALS.forEach((m, mi) => {
                 const c  = r.getCell(mi + 3);
                 const v  = vals[m];
-                c.fill      = fill(row.bg);
+                c.fill      = fill(HDR_COLORS[mi]);
                 c.font      = bold;
                 c.alignment = centerAlign;
                 c.border    = border;
@@ -940,7 +941,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         METALS.forEach((_, i) => {
             const c = sumHdr.getCell(i + 3);
             c.value     = METAL_LABELS[i];
-            c.fill      = fill('A6A6A6');
+            c.fill      = fill(HDR_COLORS[i]);
             c.font      = bold;
             c.alignment = centerAlign;
             c.border    = border;
@@ -963,7 +964,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
             METALS.forEach((m, mi) => {
                 const c = r.getCell(mi + 3);
                 const v = vals[m];
-                c.fill      = fill(row.bg);
+                c.fill      = fill(HDR_COLORS[mi]);
                 c.font      = fontBase;
                 c.alignment = centerAlign;
                 c.border    = border;
@@ -989,6 +990,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         METALS.forEach((m, mi) => {
             const c = oscRow.getCell(mi + 3);
             const v = oscVals[m];
+            c.fill      = fill(HDR_COLORS[mi]);
             c.alignment = centerAlign;
             c.border    = border;
             if (v !== null && v !== undefined) {
