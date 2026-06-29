@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
             if (formatType === 'dolar') {
-                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
+                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
             return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const arrow = isUp ? '▲' : '▼';
             const cls = isUp ? 'excel-up' : 'excel-down';
             // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
-            const prefix = isDolar ? '$ ' : 'R$ ';
+            const prefix = 'R$ ';
             const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
         };
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'currency_usd', dolFmt: null       },
             { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'currency_usd', dolFmt: null       },
             { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
-            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'dolar',        dolFmt: 'dolar'    },
+            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'currency4',    dolFmt: 'currency4' },
         ];
 
         function visibleCols() {
@@ -228,7 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const comp = block.computed || {};
 
             const thHeaders = vc.map(c => `<th class="${c.hcls}">${c.lbl}</th>`).join('');
-            const thSummary = vc.map(c => `<th class="${c.hcls}">${c.lbl}</th>`).join('');
+            const thSummary = vc.map(c => {
+                const suffix = c.k === 'dolar' ? ' (R$)' : ' (R$/kg)';
+                return `<th class="${c.hcls}">${c.lbl}${suffix}</th>`;
+            }).join('');
 
             const firstDate = d[0]?.data || headerVal;
             const lastDate  = d[d.length - 1]?.data || '—';
@@ -298,8 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Mini-tabela resumo: SEMANA ANTERIOR e LME ATUAL em R$/kg
             const SUMMARY_ROWS = [
-                { lbl: 'SEMANA ANTERIOR (R$/kg)', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'dolar' },
-                { lbl: 'LME ATUAL (R$/kg)',       key: '100% LME',        fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'SEMANA ANTERIOR (R$/kg)', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'currency4' },
+                { lbl: 'LME ATUAL (R$/kg)',       key: '100% LME',        fmt: 'currency3', dolFmt: 'currency4' },
             ];
             SUMMARY_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
@@ -313,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Oscillation row (with arrows)
             const osc = comp['OSCILAÇÃO R$'] || {};
-            const oscTds = vc.map(c => `<td>${renderOscilacao(osc[c.k], c.k === 'dolar')}</td>`).join('');
+            const oscTds = vc.map(c => `<td>${renderOscilacao(osc[c.k], false)}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
                     <td class="excel-label-cell" style="font-style:italic;">Oscilação R$/kg</td>
@@ -2243,25 +2246,26 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
         
-        const formatMoney = (val, isDolar) => {
+        const formatUsd = (val) => {
             if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
-            // Metais LME são cotados em dólar (U$/t); apenas o dólar usa 4 casas decimais
-            const prefix = '$ ';
-            const maxF = isDolar ? 4 : 2;
-            return prefix + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: maxF, maximumFractionDigits: maxF });
+            return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+        const formatBrl = (val, dec = 2) => {
+            if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
+            return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
         };
         const formatPct = (val) => {
             if (val === null || val === undefined || isNaN(val)) return '-';
             return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
         };
 
-        // Fix 1: Indicar feriado na label da m\u00e9dia semanal se semana teve < 5 dias \u00fateis
+        // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias úteis
         const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
             if (week.numDias !== undefined && week.numDias < 5) {
-                mediaLabelEl.innerHTML = `M\u00c9DIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias \u00fateis)</span>`;
+                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
             } else {
-                mediaLabelEl.textContent = 'M\u00c9DIA SEMANAL';
+                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
             }
         }
 
@@ -2270,7 +2274,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             let colsHtml = `<td class="font-bold rel-label-col">${day.data}</td>`;
             metals.forEach(m => {
-                colsHtml += `<td>${formatMoney(day[m], m === 'dolar')}</td>`;
+                const val = day[m];
+                if (m === 'dolar') {
+                    colsHtml += `<td>${formatBrl(val, 4)}</td>`;
+                } else {
+                    colsHtml += `<td>${formatUsd(val)}</td>`;
+                }
             });
             tr.innerHTML = colsHtml;
             tbody.appendChild(tr);
@@ -2279,13 +2288,25 @@ document.addEventListener('DOMContentLoaded', () => {
         metals.forEach(m => {
             const isDolar = (m === 'dolar');
             const elMedia = document.getElementById('rel-media-' + m);
-            if (elMedia) elMedia.textContent = formatMoney(comp['MEDIA SEMANAL']?.[m], isDolar);
+            if (elMedia) {
+                if (isDolar) {
+                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                } else {
+                    elMedia.textContent = formatUsd(comp['MEDIA SEMANAL']?.[m]);
+                }
+            }
             if (m !== 'dolar') {
                 const elLme = document.getElementById('rel-lme-' + m);
-                if (elLme) elLme.textContent = formatMoney(comp['100% LME']?.[m], isDolar);
+                if (elLme) elLme.textContent = formatBrl(comp['100% LME']?.[m], 2);
             }
             const elAnt = document.getElementById('rel-ant-' + m);
-            if (elAnt) elAnt.textContent = formatMoney(comp['SEMANA ANTERIOR']?.[m], isDolar);
+            if (elAnt) {
+                if (isDolar) {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                } else {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 2);
+                }
+            }
             const elFech = document.getElementById('rel-fech-' + m);
             if (elFech) elFech.textContent = formatPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m]);
             const elOscPct = document.getElementById('rel-osc-pct-' + m);
@@ -2294,18 +2315,39 @@ document.addEventListener('DOMContentLoaded', () => {
             const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const isUp = oscRs >= 0;
             const arrowIcon = isUp ? '<i class="fa-solid fa-arrow-up" style="color:#2ecc71"></i>' : '<i class="fa-solid fa-arrow-down" style="color:#e74c3c"></i>';
-            // OSCILAÇÃO R$ é a variação convertida em reais — usar prefixo R$
-            const fmtOscBrl = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            // OSCILAÇÃO R$ é a variação convertida em reais — usar prefixo R$ e 4 decimais para dólar e 2 para metais
+            const decOsc = isDolar ? 4 : 2;
+            const fmtOscBrl = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: decOsc, maximumFractionDigits: decOsc });
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
             if (elOscRs) elOscRs.innerHTML = `${arrowIcon} ${fmtOscBrl(oscRs)}`;
 
             const elMensal = document.getElementById('rel-mensal-' + m);
-            if (elMensal) elMensal.textContent = formatMoney(comp['MEDIA MENSAL']?.[m], isDolar);
+            if (elMensal) {
+                if (isDolar) {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 4);
+                } else {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 2);
+                }
+            }
 
             const elCompAnt = document.getElementById('rel-comp-ant-' + m);
-            if (elCompAnt) elCompAnt.textContent = formatMoney(comp['SEMANA ANTERIOR']?.[m], isDolar);
+            if (elCompAnt) {
+                if (isDolar) {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                } else {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 2);
+                }
+            }
+            
+            // CORREÇÃO CRÍTICA: LME ATUAL é o valor de '100% LME' (R$/kg) da semana em curso, não a média semanal bruta em US$/t!
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
-            if (elCompAtu) elCompAtu.textContent = formatMoney(comp['MEDIA SEMANAL']?.[m], isDolar);
+            if (elCompAtu) {
+                if (isDolar) {
+                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                } else {
+                    elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 2);
+                }
+            }
             const elCompOsc = document.getElementById('rel-comp-osc-' + m);
             if (elCompOsc) elCompOsc.innerHTML = `${arrowIcon} ${fmtOscBrl(oscRs)}`;
         });
@@ -2457,7 +2499,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="rel-card-metal-prev">era ${fmtR(anterior)}</div>
                     <div class="rel-card-metal-diff" style="color:${color};">
-                        ${isUp ? '+' : isDown ? '' : ''}${fmtR(diff)}
+                        ${isUp ? '+' : isDown ? '-' : ''}${fmtR(diff)}
                     </div>
                 </div>`;
             }).join('');
@@ -2489,7 +2531,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     colsHtml += `<td>-</td>`;
                 } else {
                     const baseVal = lme * (p / 100);
-                    const fmt = '$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const fmt = 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     colsHtml += `<td>${fmt}</td>`;
                 }
             });
