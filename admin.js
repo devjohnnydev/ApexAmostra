@@ -177,6 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cls = v >= 0 ? 'excel-up' : 'excel-down';
                 return `<span class="${cls}">${pct}%</span>`;
             }
+            if (formatType === 'currency_usd') {
+                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
             if (formatType === 'currency3') {
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
@@ -194,20 +197,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const isUp = v >= 0;
             const arrow = isUp ? '▲' : '▼';
             const cls = isUp ? 'excel-up' : 'excel-down';
-            const prefix = isDolar ? '$ ' : 'R$ ';
+            const prefix = '$ '; // Metais LME s\u00e3o cotados em d\u00f3lar
             const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
         };
 
         // Metal column config: key, header text, header CSS class, cell CSS class, default format, dollar format
         const COLS = [
-            { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'normal',    dolFmt: null       },
-            { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'normal',    dolFmt: null       },
-            { k: 'aluminio', lbl: 'ALUMÍNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'normal',    dolFmt: null       },
-            { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'normal',    dolFmt: null       },
-            { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'normal',    dolFmt: null       },
-            { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'normal',    dolFmt: null       },
-            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'dolar',     dolFmt: 'dolar'    },
+            { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'currency_usd', dolFmt: null       },
+            { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'currency_usd', dolFmt: null       },
+            { k: 'aluminio', lbl: 'ALUMÍNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'currency_usd', dolFmt: null       },
+            { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'currency_usd', dolFmt: null       },
+            { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'currency_usd', dolFmt: null       },
+            { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
+            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'dolar',        dolFmt: 'dolar'    },
         ];
 
         function visibleCols() {
@@ -2236,7 +2239,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const formatMoney = (val, isDolar) => {
             if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
-            const prefix = isDolar ? '$ ' : 'R$ ';
+            // Metais LME são cotados em dólar (U$/t); apenas o dólar usa 4 casas decimais
+            const prefix = '$ ';
             const maxF = isDolar ? 4 : 2;
             return prefix + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: maxF, maximumFractionDigits: maxF });
         };
@@ -2463,7 +2467,7 @@ document.addEventListener('DOMContentLoaded', () => {
             metals.forEach(m => {
                 const lme = comp['SEMANA ANTERIOR']?.[m] || comp['100% LME']?.[m] || 0;
                 const baseVal = lme * (p / 100);
-                const fmt = lme === 0 ? '-' : 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const fmt = lme === 0 ? '-' : '$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 colsHtml += `<td>${fmt}</td>`;
             });
 
