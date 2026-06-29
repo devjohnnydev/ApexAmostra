@@ -273,7 +273,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const vals = comp[row.key] || {};
                 const isAnterior = row.cls === 'excel-row-anterior';
                 const inlineStyle = isAnterior ? ' style="background-color:#1a1a1a;color:#ffffff;"' : '';
-                const labelTd = `<td class="excel-label-cell"${inlineStyle}>${row.lbl}</td>`;
+                // Indicar feriado: se a semana teve menos de 5 dias úteis, mostrar no label da média
+                let lbl = row.lbl;
+                if (row.key === 'MEDIA SEMANAL' && block.numDias !== undefined && block.numDias < 5) {
+                    lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias úteis)</span>`;
+                }
+                const labelTd = `<td class="excel-label-cell"${inlineStyle}>${lbl}</td>`;
                 const valTds = vc.map(c => {
                     const fmtToUse = c.k === 'dolar' && row.dolFmt ? row.dolFmt : row.fmt;
                     return `<td${inlineStyle}>${formatVal(vals[c.k], fmtToUse)}</td>`;
@@ -2250,6 +2255,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
         };
 
+        // Fix 1: Indicar feriado na label da m\u00e9dia semanal se semana teve < 5 dias \u00fateis
+        const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
+        if (mediaLabelEl) {
+            if (week.numDias !== undefined && week.numDias < 5) {
+                mediaLabelEl.innerHTML = `M\u00c9DIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias \u00fateis)</span>`;
+            } else {
+                mediaLabelEl.textContent = 'M\u00c9DIA SEMANAL';
+            }
+        }
+
         d.forEach(day => {
             if (!day.data) return;
             const tr = document.createElement('tr');
@@ -2468,10 +2483,15 @@ document.addEventListener('DOMContentLoaded', () => {
             let colsHtml = `<td>${pLabel}</td>`;
 
             metals.forEach(m => {
-                const lme = comp['SEMANA ANTERIOR']?.[m] || comp['100% LME']?.[m] || 0;
-                const baseVal = lme * (p / 100);
-                const fmt = lme === 0 ? '-' : '$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                colsHtml += `<td>${fmt}</td>`;
+                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1ª semana do mês — exibe '-'
+                const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
+                if (lme === null) {
+                    colsHtml += `<td>-</td>`;
+                } else {
+                    const baseVal = lme * (p / 100);
+                    const fmt = '$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    colsHtml += `<td>${fmt}</td>`;
+                }
             });
 
             tr.innerHTML = colsHtml;

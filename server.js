@@ -621,8 +621,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
             weekMap.get(wk).push(row);
         });
 
-        // 5. Calcula média mensal de 100% LME (para usar em cada semana)
-        // Calcula todas as semanas primeiro para ter a média mensal
+        // 5. Pré-calcula 100% LME de cada semana (necessário para semanaAnterior e mediaMensal)
         const allWeekLME = {}; // wk -> {metal: valor100pct}
         weekMap.forEach((days, wk) => {
             const entry = {};
@@ -635,14 +634,8 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
             entry.dolar = avg(days.map(d => d.dolar));
             allWeekLME[wk] = entry;
         });
-
-        // Média mensal de 100% LME por metal
-        const mediaMensalLME = {};
-        METALS.forEach(m => {
-            const vals = Object.values(allWeekLME).map(e => e[m]).filter(v => v !== null);
-            mediaMensalLME[m] = vals.length ? avg(vals) : null;
-        });
-        mediaMensalLME.dolar = avg(dailyRows.map(d => d.dolar).filter(v => v !== null));
+        // A média mensal é calculada individualmente por semana (apenas semanas fechadas
+        // anteriores), dentro do loop weekBlocks abaixo.
 
         // 6. Monta blocos semanais com todos os cálculos
         const sortedWeekKeys = [...weekMap.keys()].sort();
@@ -720,12 +713,29 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
 
             const firstDate = days[0].data;
             const lastDate  = days[days.length - 1].data;
+            // numDias: dias úteis reais nesta semana (< 5 indica feriado)
+            const numDias = days.length;
+
+            // Média Mensal: apenas semanas FECHADAS anteriores à atual
+            // Garante que a semana em andamento não contamina a média do mês
+            const mediaMensal = {};
+            METALS.forEach(m => {
+                const vals = sortedWeekKeys.slice(0, idx)
+                    .map(k => allWeekLME[k][m])
+                    .filter(v => v !== null);
+                mediaMensal[m] = vals.length ? avg(vals) : null;
+            });
+            const prevDailyDolar = sortedWeekKeys.slice(0, idx)
+                .flatMap(k => weekMap.get(k).map(d => d.dolar))
+                .filter(v => v !== null);
+            mediaMensal.dolar = prevDailyDolar.length ? avg(prevDailyDolar) : null;
 
             return {
                 weekKey: wk,
                 header:  firstDate,
                 lastDay: lastDate,
                 label:   `${firstDate} → ${lastDate}`,
+                numDias,
                 days:    daysDisplay,
                 computed: {
                     'MEDIA SEMANAL':                    mediaSemanal,
@@ -734,7 +744,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
                     'FECHAMENTO % ( SEMANA ANTERIOR )': fechamentoPct,
                     'OSCILAÇÃO %':                      oscPct,
                     'OSCILAÇÃO R$':                     oscRS,
-                    'MEDIA MENSAL':                     mediaMensalLME,
+                    'MEDIA MENSAL':                     mediaMensal,
                 }
             };
         });
@@ -845,7 +855,8 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
                 c.alignment = centerAlign;
                 c.border    = border;
                 if (typeof v === 'number') {
-                    c.numFmt = m === 'dolar' ? '0.0000' : 'R$ #,##0.00';
+                    // Valores diários: US$/tonelada (sem prefixo R$)
+                    c.numFmt = m === 'dolar' ? '0.0000' : '#,##0.00';
                 }
             });
         }
@@ -855,18 +866,21 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         // ── Linhas Computadas (10–19) ──
         const comp = semana.computed || {};
         const COMP_ROWS = [
-            { lbl: 'MEDIA SEMANAL',                   key: 'MEDIA SEMANAL',                    bg: 'E7E6E6', lblFont: bold, fmt: 'R$ #,##0.00',   dolFmt: '$ 0.0000'    },
+            // MEDIA SEMANAL: US$/ton (preço bruto scraped) — sem prefixo R$
+            { lbl: 'MEDIA SEMANAL (US$/t)',            key: 'MEDIA SEMANAL',                    bg: 'E7E6E6', lblFont: bold, fmt: '#,##0.00',      dolFmt: '0.0000'      },
             { space: true },
-            { lbl: '100% LME',                        key: '100% LME',                         bg: 'FFFF00', lblFont: bold, fmt: 'R$ #,##0.00', dolFmt: '$ 0.0000'   },
+            // 100% LME: R$/kg (média_metal × média_dólar / 1000)
+            { lbl: '100% LME (R$/kg)',                 key: '100% LME',                         bg: 'FFFF00', lblFont: bold, fmt: 'R$ #,##0.000',  dolFmt: '0.0000'      },
             { space: true },
-            { lbl: 'SEMANA ANTERIOR',                 key: 'SEMANA ANTERIOR',                  bg: '000000', lblFont: boldWhite, fmt: 'R$ #,##0.00', dolFmt: '$ #,##0.0000' },
-            { lbl: 'FECHAMENTO % ( SEMANA ANTERIOR )',  key: 'FECHAMENTO % ( SEMANA ANTERIOR )', bg: 'FFFFFF', lblFont: { ...bold, color: {argb:'FF00B050'} }, fmt: '0.00%', dolFmt: '0.00%'    },
+            { lbl: 'SEMANA ANTERIOR (R$/kg)',          key: 'SEMANA ANTERIOR',                  bg: '000000', lblFont: boldWhite, fmt: 'R$ #,##0.000', dolFmt: '$ #,##0.0000' },
+            { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', bg: 'FFFFFF', lblFont: { ...bold, color: {argb:'FF00B050'} }, fmt: '0.00%', dolFmt: '0.00%' },
             { space: true },
-            { lbl: 'OSCILAÇÃO %',                     key: 'OSCILAÇÃO %',                      bg: '00B0F0', lblFont: bold, fmt: '0.00%',      dolFmt: '0.00%'    },
+            { lbl: 'OSCILAÇÃO %',                     key: 'OSCILAÇÃO %',                      bg: '00B0F0', lblFont: bold, fmt: '0.00%',         dolFmt: '0.00%'       },
             { space: true },
             { lbl: 'OSCILAÇÃO R$',                    key: 'OSCILAÇÃO R$',                     bg: 'E2EFDA', lblFont: bold, fmt: 'R$ #,##0.0000', dolFmt: '$ #,##0.0000' },
             { space: true },
-            { lbl: 'MEDIA MENSAL',                    key: 'MEDIA MENSAL',                     bg: 'A6A6A6', lblFont: bold, fmt: 'R$ #,##0.00',  dolFmt: '$ #,##0.00' },
+            // MEDIA MENSAL: R$/kg (média das semanas fechadas do mês)
+            { lbl: 'MEDIA MENSAL (R$/kg)',             key: 'MEDIA MENSAL',                     bg: 'A6A6A6', lblFont: bold, fmt: 'R$ #,##0.000',  dolFmt: '$ #,##0.00'  },
         ];
 
         let curRow = 10;
