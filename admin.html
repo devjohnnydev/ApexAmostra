@@ -6,7 +6,7 @@
     <title>Painel Admin - Apex Tech Metais</title>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;800&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="admin.css?v=10">
+    <link rel="stylesheet" href="admin.css?v=11">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -423,13 +423,13 @@
                             <thead>
                                 <tr class="header-colors">
                                     <th style="background:#000; color:#fff; width: 120px;">DATA</th>
-                                    <th style="background:#ff0000; color:#fff;">Cobre U$/t</th>
-                                    <th style="background:#ffb6c1; color:#000;">Zinco U$/t</th>
-                                    <th style="background:#a6a6a6; color:#fff;">Alumínio U$/t</th>
-                                    <th style="background:#d9d9d9; color:#000;">Chumbo U$/t</th>
-                                    <th style="background:#808000; color:#fff;">Estanho U$/t</th>
-                                    <th style="background:#e6e6e6; color:#000;">Níquel U$/t</th>
-                                    <th style="background:#528040; color:#fff;">Dólar US$</th>
+                                    <th style="background:#ff0000; color:#000;">Cobre U$/t</th>
+                                    <th style="background:#e6b8b7; color:#000;">Zinco U$/t</th>
+                                    <th style="background:#bfbfbf; color:#000;">Alumínio U$/t</th>
+                                    <th style="background:#bfbfbf; color:#000;">Chumbo U$/t</th>
+                                    <th style="background:#b5b059; color:#000;">Estanho U$/t</th>
+                                    <th style="background:#ffffff; color:#000;">Níquel U$/t</th>
+                                    <th style="background:#70ad47; color:#000;">Dólar US$</th>
                                 </tr>
                             </thead>
                             <tbody id="rel-tbody">
@@ -438,67 +438,123 @@
                             <tbody class="rel-summary-body">
                                 <tr class="bg-gray">
                                     <td class="font-bold rel-label-col">MÉDIA SEMANAL</td>
-                                    <td id="rel-media-cobre"></td><td id="rel-media-zinco"></td><td id="rel-media-aluminio"></td>
-                                    <td id="rel-media-chumbo"></td><td id="rel-media-estanho"></td><td id="rel-media-niquel"></td><td id="rel-media-dolar"></td>
+                                    <td id="rel-media-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-media-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-media-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-media-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-media-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-media-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-media-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="bg-yellow font-bold">
                                     <td class="rel-label-col">100% LME</td>
-                                    <td id="rel-lme-cobre"></td><td id="rel-lme-zinco"></td><td id="rel-lme-aluminio"></td>
-                                    <td id="rel-lme-chumbo"></td><td id="rel-lme-estanho"></td><td id="rel-lme-niquel"></td><td class="bg-white"></td>
+                                    <td id="rel-lme-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-lme-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-lme-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-lme-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-lme-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-lme-niquel" class="rel-col-niquel"></td>
+                                    <td class="bg-white"></td>
                                 </tr>
                                 <tr class="bg-blue text-white font-bold">
                                     <td class="rel-label-col">SEMANA ANTERIOR</td>
-                                    <td id="rel-ant-cobre"></td><td id="rel-ant-zinco"></td><td id="rel-ant-aluminio"></td>
-                                    <td id="rel-ant-chumbo"></td><td id="rel-ant-estanho"></td><td id="rel-ant-niquel"></td><td id="rel-ant-dolar"></td>
+                                    <td id="rel-ant-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-ant-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-ant-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-ant-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-ant-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-ant-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-ant-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="bg-lightgreen text-xs">
                                     <td class="rel-label-col">FECHAMENTO % <span style="font-size:0.6rem">(SEMANA ANTERIOR)</span></td>
-                                    <td id="rel-fech-cobre" class="text-red"></td><td id="rel-fech-zinco" class="text-red"></td><td id="rel-fech-aluminio" class="text-red"></td>
-                                    <td id="rel-fech-chumbo" class="text-red"></td><td id="rel-fech-estanho" class="text-green"></td><td id="rel-fech-niquel" class="text-red"></td><td id="rel-fech-dolar" class="text-red"></td>
+                                    <td id="rel-fech-cobre" class="rel-col-cobre text-red"></td>
+                                    <td id="rel-fech-zinco" class="rel-col-zinco text-red"></td>
+                                    <td id="rel-fech-aluminio" class="rel-col-aluminio text-red"></td>
+                                    <td id="rel-fech-chumbo" class="rel-col-chumbo text-red"></td>
+                                    <td id="rel-fech-estanho" class="rel-col-estanho text-green"></td>
+                                    <td id="rel-fech-niquel" class="rel-col-niquel text-red"></td>
+                                    <td id="rel-fech-dolar" class="rel-col-dolar text-red"></td>
                                 </tr>
                                 <tr class="bg-blue text-xs text-white">
                                     <td class="rel-label-col">OSCILAÇÃO %</td>
-                                    <td id="rel-osc-pct-cobre"></td><td id="rel-osc-pct-zinco"></td><td id="rel-osc-pct-aluminio"></td>
-                                    <td id="rel-osc-pct-chumbo"></td><td id="rel-osc-pct-estanho"></td><td id="rel-osc-pct-niquel"></td><td id="rel-osc-pct-dolar"></td>
+                                    <td id="rel-osc-pct-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-osc-pct-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-osc-pct-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-osc-pct-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-osc-pct-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-osc-pct-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-osc-pct-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="bg-green text-xs text-black font-bold">
                                     <td class="rel-label-col">OSCILAÇÃO R$</td>
-                                    <td id="rel-osc-rs-cobre"></td><td id="rel-osc-rs-zinco"></td><td id="rel-osc-rs-aluminio"></td>
-                                    <td id="rel-osc-rs-chumbo"></td><td id="rel-osc-rs-estanho"></td><td id="rel-osc-rs-niquel"></td><td id="rel-osc-rs-dolar"></td>
+                                    <td id="rel-osc-rs-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-osc-rs-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-osc-rs-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-osc-rs-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-osc-rs-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-osc-rs-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-osc-rs-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="bg-darkgray text-black font-bold">
                                     <td class="rel-label-col">MÉDIA MENSAL</td>
-                                    <td id="rel-mensal-cobre"></td><td id="rel-mensal-zinco"></td><td id="rel-mensal-aluminio"></td>
-                                    <td id="rel-mensal-chumbo"></td><td id="rel-mensal-estanho"></td><td id="rel-mensal-niquel"></td><td id="rel-mensal-dolar"></td>
+                                    <td id="rel-mensal-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-mensal-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-mensal-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-mensal-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-mensal-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-mensal-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-mensal-dolar" class="rel-col-dolar"></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-
+ 
                     <!-- Pequena tabela comparativa (TIPO) -->
                     <div class="rel-comparativo-container">
                         <table class="rel-table rel-comparativo">
                             <thead>
                                 <tr class="bg-darkgray text-black">
                                     <th style="width: 120px;">TIPO</th>
-                                    <th>Cobre R$/kg</th><th>Zinco R$/kg</th><th>Alumínio R$/kg</th><th>Chumbo R$/kg</th><th>Estanho R$/kg</th><th>Níquel R$/kg</th><th>Dólar R$</th>
+                                    <th style="background:#ff0000; color:#000;">Cobre R$/kg</th>
+                                    <th style="background:#e6b8b7; color:#000;">Zinco R$/kg</th>
+                                    <th style="background:#bfbfbf; color:#000;">Alumínio R$/kg</th>
+                                    <th style="background:#bfbfbf; color:#000;">Chumbo R$/kg</th>
+                                    <th style="background:#b5b059; color:#000;">Estanho R$/kg</th>
+                                    <th style="background:#ffffff; color:#000;">Níquel R$/kg</th>
+                                    <th style="background:#70ad47; color:#000;">Dólar R$</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr class="text-xs text-blue">
                                     <td>SEMANA ANTERIOR</td>
-                                    <td id="rel-comp-ant-cobre"></td><td id="rel-comp-ant-zinco"></td><td id="rel-comp-ant-aluminio"></td>
-                                    <td id="rel-comp-ant-chumbo"></td><td id="rel-comp-ant-estanho"></td><td id="rel-comp-ant-niquel"></td><td id="rel-comp-ant-dolar"></td>
+                                    <td id="rel-comp-ant-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-comp-ant-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-comp-ant-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-comp-ant-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-comp-ant-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-comp-ant-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-comp-ant-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="font-bold">
                                     <td>LME ATUAL</td>
-                                    <td id="rel-comp-atu-cobre"></td><td id="rel-comp-atu-zinco"></td><td id="rel-comp-atu-aluminio"></td>
-                                    <td id="rel-comp-atu-chumbo"></td><td id="rel-comp-atu-estanho"></td><td id="rel-comp-atu-niquel"></td><td id="rel-comp-atu-dolar"></td>
+                                    <td id="rel-comp-atu-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-comp-atu-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-comp-atu-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-comp-atu-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-comp-atu-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-comp-atu-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-comp-atu-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="font-bold">
                                     <td>Osilaçao</td>
-                                    <td id="rel-comp-osc-cobre"></td><td id="rel-comp-osc-zinco"></td><td id="rel-comp-osc-aluminio"></td>
-                                    <td id="rel-comp-osc-chumbo"></td><td id="rel-comp-osc-estanho"></td><td id="rel-comp-osc-niquel"></td><td id="rel-comp-osc-dolar"></td>
+                                    <td id="rel-comp-osc-cobre" class="rel-col-cobre"></td>
+                                    <td id="rel-comp-osc-zinco" class="rel-col-zinco"></td>
+                                    <td id="rel-comp-osc-aluminio" class="rel-col-aluminio"></td>
+                                    <td id="rel-comp-osc-chumbo" class="rel-col-chumbo"></td>
+                                    <td id="rel-comp-osc-estanho" class="rel-col-estanho"></td>
+                                    <td id="rel-comp-osc-niquel" class="rel-col-niquel"></td>
+                                    <td id="rel-comp-osc-dolar" class="rel-col-dolar"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -866,6 +922,6 @@
         </main>
     </div>
 
-    <script src="admin.js?v=20"></script>
+    <script src="admin.js?v=21"></script>
 </body>
 </html>

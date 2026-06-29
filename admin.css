@@ -1081,25 +1081,25 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 
 /* Metal columns and cells styling - cada coluna com a cor do seu cabeçalho */
 /* COBRE — vermelho */
-.excel-col-cobre    { background-color: #FF0000 !important; font-weight: bold; color: #000; }
+.rel-col-cobre, .excel-col-cobre    { background-color: #FF0000 !important; font-weight: bold; color: #000 !important; }
 .excel-hdr-cobre    { background-color: #FF0000; color: #fff !important; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 /* ZINCO — rosa */
-.excel-col-zinco    { background-color: #E6B8B7 !important; font-weight: bold; color: #3d1a1a; }
+.rel-col-zinco, .excel-col-zinco    { background-color: #E6B8B7 !important; font-weight: bold; color: #3d1a1a !important; }
 .excel-hdr-zinco    { background-color: #E6B8B7; color: #3d1a1a !important; font-weight: bold; }
 /* ALUMÍNIO — cinza escuro */
-.excel-col-aluminio { background-color: #BFBFBF !important; font-weight: bold; color: #111; }
+.rel-col-aluminio, .excel-col-aluminio { background-color: #BFBFBF !important; font-weight: bold; color: #111 !important; }
 .excel-hdr-aluminio { background-color: #BFBFBF; color: #111 !important; font-weight: bold; }
 /* CHUMBO — cinza médio */
-.excel-col-chumbo   { background-color: #BFBFBF !important; font-weight: bold; color: #222; }
+.rel-col-chumbo, .excel-col-chumbo   { background-color: #BFBFBF !important; font-weight: bold; color: #222 !important; }
 .excel-hdr-chumbo   { background-color: #BFBFBF; color: #111 !important; font-weight: bold; }
 /* ESTANHO — dourado/oliva */
-.excel-col-estanho  { background-color: #B5B059 !important; font-weight: bold; color: #3a3000; }
+.rel-col-estanho, .excel-col-estanho  { background-color: #B5B059 !important; font-weight: bold; color: #3a3000 !important; }
 .excel-hdr-estanho  { background-color: #B5B059; color: #fff !important; font-weight: bold; }
 /* NÍQUEL — cinza claro */
-.excel-col-niquel   { background-color: #FFFFFF !important; font-weight: bold; color: #222; }
+.rel-col-niquel, .excel-col-niquel   { background-color: #FFFFFF !important; font-weight: bold; color: #222 !important; }
 .excel-hdr-niquel   { background-color: #FFFFFF; color: #222 !important; font-weight: bold; border: 1px solid #aaa; }
 /* DÓLAR — verde */
-.excel-col-dolar    { background-color: #70AD47 !important; font-weight: bold; color: #1a4000; }
+.rel-col-dolar, .excel-col-dolar    { background-color: #70AD47 !important; font-weight: bold; color: #1a4000 !important; }
 .excel-hdr-dolar    { background-color: #70AD47; color: #fff !important; font-weight: bold; }
 
 /* Special computed rows */

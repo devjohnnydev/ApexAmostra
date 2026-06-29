@@ -2275,10 +2275,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let colsHtml = `<td class="font-bold rel-label-col">${day.data}</td>`;
             metals.forEach(m => {
                 const val = day[m];
+                const colClass = `rel-col-${m}`;
                 if (m === 'dolar') {
-                    colsHtml += `<td>${formatBrl(val, 4)}</td>`;
+                    colsHtml += `<td class="${colClass}">${formatBrl(val, 4)}</td>`;
                 } else {
-                    colsHtml += `<td>${formatUsd(val)}</td>`;
+                    colsHtml += `<td class="${colClass}">${formatUsd(val)}</td>`;
                 }
             });
             tr.innerHTML = colsHtml;
