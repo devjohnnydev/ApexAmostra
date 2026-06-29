@@ -296,10 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
 
-            // Summary rows
+            // Mini-tabela resumo: SEMANA ANTERIOR e LME ATUAL em R$/kg
             const SUMMARY_ROWS = [
-                { lbl: 'SEMANA ANTERIOR', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'dolar' },
-                { lbl: 'LME ATUAL',       key: '100% LME',        fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'SEMANA ANTERIOR (R$/kg)', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'LME ATUAL (R$/kg)',       key: '100% LME',        fmt: 'currency3', dolFmt: 'dolar' },
             ];
             SUMMARY_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const oscTds = vc.map(c => `<td>${renderOscilacao(osc[c.k], c.k === 'dolar')}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
-                    <td class="excel-label-cell" style="font-style:italic;">Oscilação</td>
+                    <td class="excel-label-cell" style="font-style:italic;">Oscilação R$/kg</td>
                     ${oscTds}
                 </tr>
             `;
