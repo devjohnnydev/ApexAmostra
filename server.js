@@ -786,7 +786,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         // ── Estilos ──
         const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
         const METAL_LABELS = ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL', 'DÓLAR'];
-        const HDR_COLORS   = ['FF0000', 'E6B8B7', 'BFBFBF', 'BFBFBF', 'B5B059', 'FFFFFF', '70AD47'];
+        const HDR_COLORS   = ['db1f1f', 'E6B8B7', 'BFBFBF', 'BFBFBF', 'B5B059', 'FFFFFF', '70AD47'];
 
         const fontBase = { name: 'Calibri', size: 11 };
         const bold = { ...fontBase, bold: true };

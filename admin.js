@@ -2528,12 +2528,13 @@ document.addEventListener('DOMContentLoaded', () => {
             metals.forEach(m => {
                 // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1ª semana do mês — exibe '-'
                 const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
+                const colClass = `rel-col-${m}`;
                 if (lme === null) {
-                    colsHtml += `<td>-</td>`;
+                    colsHtml += `<td class="${colClass}">-</td>`;
                 } else {
                     const baseVal = lme * (p / 100);
                     const fmt = 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                    colsHtml += `<td>${fmt}</td>`;
+                    colsHtml += `<td class="${colClass}">${fmt}</td>`;
                 }
             });
 

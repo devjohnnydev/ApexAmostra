@@ -1081,8 +1081,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 
 /* Metal columns and cells styling - cada coluna com a cor do seu cabeçalho */
 /* COBRE — vermelho */
-.rel-col-cobre, .excel-col-cobre    { background-color: #FF0000 !important; font-weight: bold; color: #000 !important; }
-.excel-hdr-cobre    { background-color: #FF0000; color: #fff !important; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+.rel-col-cobre, .excel-col-cobre    { background-color: #db1f1f !important; font-weight: bold; color: #000 !important; }
+.excel-hdr-cobre    { background-color: #db1f1f; color: #fff !important; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 /* ZINCO — rosa */
 .rel-col-zinco, .excel-col-zinco    { background-color: #E6B8B7 !important; font-weight: bold; color: #3d1a1a !important; }
 .excel-hdr-zinco    { background-color: #E6B8B7; color: #3d1a1a !important; font-weight: bold; }
