@@ -1542,28 +1542,28 @@ tr.bg-darkgray .rel-label-col {
 
 /* PASTEL COLUMN COLORS (approx 20-30% saturation) */
 /* Cobre (Light Red) */
-#rel-tbody td:nth-child(2), .rel-comparativo tbody td:nth-child(2), .rel-base-table tbody td:nth-child(2) { background-color: #ffe6e6 !important; }
+#rel-tbody td:nth-child(2), .rel-comparativo tbody td:nth-child(2), .rel-base-table tbody td:nth-child(2) { background-color: #db1f1f !important; }
 /* Zinco (Light Pink) */
-#rel-tbody td:nth-child(3), .rel-comparativo tbody td:nth-child(3), .rel-base-table tbody td:nth-child(3) { background-color: #f9e6e9 !important; }
+#rel-tbody td:nth-child(3), .rel-comparativo tbody td:nth-child(3), .rel-base-table tbody td:nth-child(3) { background-color: #E6B8B7 !important; }
 /* Alumínio (Light Gray) */
-#rel-tbody td:nth-child(4), .rel-comparativo tbody td:nth-child(4), .rel-base-table tbody td:nth-child(4) { background-color: #f2f2f2 !important; }
+#rel-tbody td:nth-child(4), .rel-comparativo tbody td:nth-child(4), .rel-base-table tbody td:nth-child(4) { background-color: #BFBFBF !important; }
 /* Chumbo (Medium-Light Gray) */
-#rel-tbody td:nth-child(5), .rel-comparativo tbody td:nth-child(5), .rel-base-table tbody td:nth-child(5) { background-color: #e6e6e6 !important; }
+#rel-tbody td:nth-child(5), .rel-comparativo tbody td:nth-child(5), .rel-base-table tbody td:nth-child(5) { background-color: #BFBFBF !important; }
 /* Estanho (Light Gold) */
-#rel-tbody td:nth-child(6), .rel-comparativo tbody td:nth-child(6), .rel-base-table tbody td:nth-child(6) { background-color: #f2f0d9 !important; }
+#rel-tbody td:nth-child(6), .rel-comparativo tbody td:nth-child(6), .rel-base-table tbody td:nth-child(6) { background-color: #B5B059 !important; }
 /* Níquel (White/Light Gray) */
 #rel-tbody td:nth-child(7), .rel-comparativo tbody td:nth-child(7), .rel-base-table tbody td:nth-child(7) { background-color: #ffffff !important; }
 /* Dólar (Light Green) - not in base table */
-#rel-tbody td:nth-child(8), .rel-comparativo tbody td:nth-child(8) { background-color: #eaf5e1 !important; }
+#rel-tbody td:nth-child(8), .rel-comparativo tbody td:nth-child(8) { background-color: #70AD47 !important; }
 
 /* Apply to summary body, EXCLUDING specific colored rows */
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(2) { background-color: #ffe6e6 !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(3) { background-color: #f9e6e9 !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(4) { background-color: #f2f2f2 !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(5) { background-color: #e6e6e6 !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(6) { background-color: #f2f0d9 !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(2) { background-color: #db1f1f !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(3) { background-color: #E6B8B7 !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(4) { background-color: #BFBFBF !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(5) { background-color: #BFBFBF !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(6) { background-color: #B5B059 !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(7) { background-color: #ffffff !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(8) { background-color: #eaf5e1 !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(8) { background-color: #70AD47 !important; }
 
 /* Ensure text in specific functional rows remains readable (like FECHAMENTO which has text-red / text-green classes) */
 .rel-summary-body tr.bg-lightgreen td, .rel-summary-body tr.bg-blue td {
