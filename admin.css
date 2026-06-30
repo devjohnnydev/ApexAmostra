@@ -1089,9 +1089,9 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 /* ALUMÍNIO — cinza escuro */
 .rel-col-aluminio, .excel-col-aluminio { background-color: #BFBFBF !important; font-weight: bold; color: #111 !important; }
 .excel-hdr-aluminio { background-color: #BFBFBF; color: #111 !important; font-weight: bold; }
-/* CHUMBO — cinza médio */
-.rel-col-chumbo, .excel-col-chumbo   { background-color: #BFBFBF !important; font-weight: bold; color: #222 !important; }
-.excel-hdr-chumbo   { background-color: #BFBFBF; color: #111 !important; font-weight: bold; }
+/* CHUMBO — roxo claro */
+.rel-col-chumbo, .excel-col-chumbo   { background-color: #C9A8E8 !important; font-weight: bold; color: #2d0060 !important; }
+.excel-hdr-chumbo   { background-color: #C9A8E8; color: #2d0060 !important; font-weight: bold; }
 /* ESTANHO — dourado/oliva */
 .rel-col-estanho, .excel-col-estanho  { background-color: #B5B059 !important; font-weight: bold; color: #3a3000 !important; }
 .excel-hdr-estanho  { background-color: #B5B059; color: #fff !important; font-weight: bold; }
@@ -1164,7 +1164,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
     .excel-hdr-cobre    { background-color: #FF0000 !important; color: #fff !important; }
     .excel-hdr-zinco    { background-color: #E6B8B7 !important; }
     .excel-hdr-aluminio { background-color: #808080 !important; color: #fff !important; }
-    .excel-hdr-chumbo   { background-color: #BFBFBF !important; }
+    .excel-hdr-chumbo   { background-color: #C9A8E8 !important; color: #2d0060 !important; }
     .excel-hdr-estanho  { background-color: #948A54 !important; color: #fff !important; }
     .excel-hdr-niquel   { background-color: #FFFFFF !important; color: #000 !important; }
     .excel-hdr-dolar    { background-color: #70AD47 !important; color: #fff !important; }
@@ -1342,7 +1342,7 @@ tr.bg-darkgray .rel-label-col {
 .rel-base-table th:nth-child(2) { background: #ff0000 !important; color: #fff !important; }
 .rel-base-table th:nth-child(3) { background: #e6b8b7 !important; color: #000 !important; }
 .rel-base-table th:nth-child(4) { background: #a6a6a6 !important; color: #000 !important; }
-.rel-base-table th:nth-child(5) { background: #d9d9d9 !important; color: #000 !important; }
+.rel-base-table th:nth-child(5) { background: #C9A8E8 !important; color: #2d0060 !important; }
 .rel-base-table th:nth-child(6) { background: #b5b059 !important; color: #fff !important; }
 .rel-base-table th:nth-child(7) { background: #f2f2f2 !important; color: #000 !important; }
 
@@ -1351,7 +1351,7 @@ tr.bg-darkgray .rel-label-col {
 .rel-base-table tr.row-below td:nth-child(2) { background: #ffbcbc; color: #000; }
 .rel-base-table tr.row-below td:nth-child(3) { background: #f5e6e6; color: #000; }
 .rel-base-table tr.row-below td:nth-child(4) { background: #d6d6d6; color: #000; }
-.rel-base-table tr.row-below td:nth-child(5) { background: #ececec; color: #000; }
+.rel-base-table tr.row-below td:nth-child(5) { background: #e8d5f8; color: #2d0060; }
 .rel-base-table tr.row-below td:nth-child(6) { background: #d4cfa0; color: #000; }
 .rel-base-table tr.row-below td:nth-child(7) { background: #f2f2f2; color: #000; }
 
@@ -1359,11 +1359,11 @@ tr.bg-darkgray .rel-label-col {
 .rel-base-table tr.row-100pct td { background: #000 !important; color: #fff !important; font-size: 0.95rem; }
 
 /* Above-100% row column colors (slightly darker) */
-.rel-base-table tr.row-above td:nth-child(1) { background: #b8cce4; color: #000; }
+.rel-base-table tr.row-above td:nth-child(1) { background: #e0f7fa; color: #000; }
 .rel-base-table tr.row-above td:nth-child(2) { background: #ff6b6b; color: #fff; }
 .rel-base-table tr.row-above td:nth-child(3) { background: #e8b4b4; color: #000; }
 .rel-base-table tr.row-above td:nth-child(4) { background: #bfbfbf; color: #000; }
-.rel-base-table tr.row-above td:nth-child(5) { background: #d9d9d9; color: #000; }
+.rel-base-table tr.row-above td:nth-child(5) { background: #d4b8f0; color: #2d0060; }
 .rel-base-table tr.row-above td:nth-child(6) { background: #b8b06a; color: #000; }
 .rel-base-table tr.row-above td:nth-child(7) { background: #e0e0e0; color: #000; }
 
@@ -1503,7 +1503,7 @@ tr.bg-darkgray .rel-label-col {
 .rel-base-table th:nth-child(2) { background: #ff0000 !important; color: #fff !important; }
 .rel-base-table th:nth-child(3) { background: #e6b8b7 !important; color: #000 !important; }
 .rel-base-table th:nth-child(4) { background: #a6a6a6 !important; color: #000 !important; }
-.rel-base-table th:nth-child(5) { background: #d9d9d9 !important; color: #000 !important; }
+.rel-base-table th:nth-child(5) { background: #C9A8E8 !important; color: #2d0060 !important; }
 .rel-base-table th:nth-child(6) { background: #b5b059 !important; color: #fff !important; }
 .rel-base-table th:nth-child(7) { background: #ffffff !important; color: #000 !important; }
 
@@ -1547,8 +1547,9 @@ tr.bg-darkgray .rel-label-col {
 #rel-tbody td:nth-child(3), .rel-comparativo tbody td:nth-child(3), .rel-base-table tbody td:nth-child(3) { background-color: #E6B8B7 !important; }
 /* Alumínio (Light Gray) */
 #rel-tbody td:nth-child(4), .rel-comparativo tbody td:nth-child(4), .rel-base-table tbody td:nth-child(4) { background-color: #BFBFBF !important; }
-/* Chumbo (Medium-Light Gray) */
-#rel-tbody td:nth-child(5), .rel-comparativo tbody td:nth-child(5), .rel-base-table tbody td:nth-child(5) { background-color: #BFBFBF !important; }
+/* Chumbo (Roxo Claro) */
+#rel-tbody td:nth-child(5), .rel-comparativo tbody td:nth-child(5) { background-color: #C9A8E8 !important; color: #2d0060 !important; }
+.rel-base-table tbody td:nth-child(5) { background-color: #C9A8E8 !important; color: #2d0060 !important; }
 /* Estanho (Light Gold) */
 #rel-tbody td:nth-child(6), .rel-comparativo tbody td:nth-child(6), .rel-base-table tbody td:nth-child(6) { background-color: #B5B059 !important; }
 /* Níquel (White/Light Gray) */
@@ -1560,7 +1561,7 @@ tr.bg-darkgray .rel-label-col {
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(2) { background-color: #db1f1f !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(3) { background-color: #E6B8B7 !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(4) { background-color: #BFBFBF !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(5) { background-color: #BFBFBF !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(5) { background-color: #C9A8E8 !important; color: #2d0060 !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(6) { background-color: #B5B059 !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(7) { background-color: #ffffff !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(8) { background-color: #70AD47 !important; }
