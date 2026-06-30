@@ -1484,7 +1484,7 @@ tr.bg-darkgray .rel-label-col {
 /* Column colors for base table data */
 .rel-base-table td:nth-child(2) { background: #ffcccc; color: #000; }
 .rel-base-table td:nth-child(3) { background: #f2dcdd; color: #000; }
-.rel-base-table td:nth-child(4) { background: #d9d9d9; color: #000; }
+.rel-base-table td:nth-child(4) { background: #EDE9ED; color: #000; }
 .rel-base-table td:nth-child(5) { background: #f2f2f2; color: #000; }
 .rel-base-table td:nth-child(6) { background: #d9d4a8; color: #000; }
 .rel-base-table td:nth-child(7) { background: #ffffff; color: #000; }
