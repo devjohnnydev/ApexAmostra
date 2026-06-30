@@ -436,7 +436,7 @@
                                 <!-- Preenchido via JS com as datas da semana -->
                             </tbody>
                             <tbody class="rel-summary-body">
-                                <tr class="bg-gray">
+                                <tr class="bg-darkgray text-black font-bold">
                                     <td class="font-bold rel-label-col">MÉDIA SEMANAL</td>
                                     <td id="rel-media-cobre" class="rel-col-cobre"></td>
                                     <td id="rel-media-zinco" class="rel-col-zinco"></td>
@@ -468,7 +468,7 @@
                                 </tr>
                                 <tr class="bg-lightgreen text-xs">
                                     <td class="rel-label-col">FECHAMENTO % <span style="font-size:0.6rem">(SEMANA ANTERIOR)</span></td>
-                                    <td id="rel-fech-cobre" class="rel-col-cobre text-red"></td>
+                                    <td id="rel-fech-cobre" class="rel-col-cobre text-white"></td>
                                     <td id="rel-fech-zinco" class="rel-col-zinco text-red"></td>
                                     <td id="rel-fech-aluminio" class="rel-col-aluminio text-red"></td>
                                     <td id="rel-fech-chumbo" class="rel-col-chumbo text-red"></td>
@@ -586,8 +586,8 @@
 
                         <!-- Gráfico 1: Cobre · Zinco · Alumínio · Chumbo -->
                         <div class="rel-chart-section-title">
-                            <span class="rel-legend-box" style="background:#9e9e9e;"></span> Semana Anterior &nbsp;
-                            <span class="rel-legend-box" style="background:#0070c0;"></span> Semana Atual
+                            <span class="rel-legend-box" style="background:#e74c3c;"></span> Semana Anterior &nbsp;
+                            <span class="rel-legend-box" style="background:#27ae60;"></span> Semana Atual
                             &nbsp;·&nbsp; Cobre · Zinco · Alumínio · Chumbo
                         </div>
                         <div class="rel-chart-wrap">
@@ -598,8 +598,8 @@
 
                         <!-- Gráfico 2: Estanho · Níquel -->
                         <div class="rel-chart-section-title" style="margin-top:14px;">
-                            <span class="rel-legend-box" style="background:#9e9e9e;"></span> Semana Anterior &nbsp;
-                            <span class="rel-legend-box" style="background:#0070c0;"></span> Semana Atual
+                            <span class="rel-legend-box" style="background:#e74c3c;"></span> Semana Anterior &nbsp;
+                            <span class="rel-legend-box" style="background:#27ae60;"></span> Semana Atual
                             &nbsp;·&nbsp; Estanho · Níquel
                         </div>
                         <div class="rel-chart-wrap">
@@ -609,6 +609,10 @@
                         <div id="rel-cards-group2" class="rel-compare-cards"></div>
 
                     </div>
+
+                    <!-- Rodapé do relatório (timestamp de geração) -->
+                    <div id="rel-rodape" class="rel-rodape" style="display:none; border-top:1px solid #ccc; margin-top:10px; padding-top:6px; font-size:8.5pt; color:#555; font-family:Calibri,Arial,sans-serif; text-align:right;"></div>
+
                 </div>
             </section>
 

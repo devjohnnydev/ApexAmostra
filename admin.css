@@ -1103,7 +1103,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 .excel-hdr-dolar    { background-color: #70AD47; color: #fff !important; font-weight: bold; }
 
 /* Special computed rows */
-.excel-row-media         { background-color: #F2F2F2; font-weight: bold; color: #333; }
+.excel-row-media         { background-color: #A6A6A6; font-weight: bold; color: #333; }
 .excel-row-lme100        { background-color: #FFFF00; font-weight: bold; color: #333; }
 .excel-row-anterior      { background-color: #1a1a1a; font-weight: bold; color: #fff; }
 .excel-row-anterior td.excel-label-cell { background-color: #1a1a1a !important; color: #fff !important; }
@@ -1250,7 +1250,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 .rel-table th:nth-child(2) { background: #ff0000 !important; color: #fff !important; }
 .rel-table th:nth-child(3) { background: #e6b8b7 !important; color: #000 !important; }
 .rel-table th:nth-child(4) { background: #a6a6a6 !important; color: #fff !important; }
-.rel-table th:nth-child(5) { background: #d9d9d9 !important; color: #000 !important; }
+.rel-table th:nth-child(5) { background: #bfbfbf !important; color: #000 !important; }
 .rel-table th:nth-child(6) { background: #b5b059 !important; color: #fff !important; }
 .rel-table th:nth-child(7) { background: #ffffff !important; color: #000 !important; }
 .rel-table th:nth-child(8) { background: #70ad47 !important; color: #fff !important; }
@@ -1469,7 +1469,7 @@ tr.bg-darkgray .rel-label-col {
 .rel-table th:nth-child(2) { background: #ff0000 !important; color: #fff !important; }
 .rel-table th:nth-child(3) { background: #e6b8b7 !important; color: #000 !important; }
 .rel-table th:nth-child(4) { background: #a6a6a6 !important; color: #fff !important; }
-.rel-table th:nth-child(5) { background: #d9d9d9 !important; color: #000 !important; }
+.rel-table th:nth-child(5) { background: #bfbfbf !important; color: #000 !important; }
 .rel-table th:nth-child(6) { background: #b5b059 !important; color: #fff !important; }
 .rel-table th:nth-child(7) { background: #ffffff !important; color: #000 !important; }
 .rel-table th:nth-child(8) { background: #70ad47 !important; color: #fff !important; }

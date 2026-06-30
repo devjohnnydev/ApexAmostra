@@ -178,18 +178,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `<span class="${cls}">${pct}%</span>`;
             }
             if (formatType === 'currency_usd') {
-                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
             if (formatType === 'currency3') {
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
             if (formatType === 'currency4') {
-                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
+                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
             if (formatType === 'dolar') {
-                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
+                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
-            return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         };
 
         const renderOscilacao = (v, isDolar) => {
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cls = isUp ? 'excel-up' : 'excel-down';
             // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
             const prefix = 'R$ ';
-            const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+            const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
         };
 
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Computed rows config
             const COMP_ROWS = [
-                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-media',         fmt: 'currency_usd', dolFmt: 'dolar'     },
+                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-mensal',         fmt: 'currency_usd', dolFmt: 'dolar'     },
                 { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3',    dolFmt: 'dolar'     },
                 { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3',    dolFmt: 'dolar'     },
                 { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',      dolFmt: 'percent'   },
@@ -2064,12 +2064,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnGerar.addEventListener('click', () => {
             const captureArea = document.getElementById('capture-area');
-            html2canvas(captureArea, { scale: 2 }).then(canvas => {
+            // Mostrar rodapé com timestamp
+            const now = new Date();
+            const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                + ' às '
+                + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const rodape = document.getElementById('rel-rodape');
+            if (rodape) {
+                rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
+                rodape.style.display = 'block';
+            }
+            html2canvas(captureArea, { scale: 2, useCORS: true, allowTaint: false, scrollY: 0, windowHeight: captureArea.scrollHeight }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = 'Relatorio_LME_ApexTech.png';
                 link.href = imgData;
                 link.click();
+                // Ocultar rodapé após download
+                if (rodape) rodape.style.display = 'none';
             });
         });
 
@@ -2110,7 +2122,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnPdf) {
             btnPdf.addEventListener('click', async () => {
                 const captureArea = document.getElementById('capture-area');
-                
+
+                // Mostrar rodapé com timestamp
+                const nowTs = new Date();
+                const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    + ' às '
+                    + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const rodape = document.getElementById('rel-rodape');
+                if (rodape) {
+                    rodape.textContent = `Relatório gerado em: ${tsStr} — Apex Tech Metais`;
+                    rodape.style.display = 'block';
+                }
+
                 // Correção do Bug do SVG Preto:
                 // O html2canvas não renderiza SVGs complexos corretamente e eles viram blocos pretos.
                 // Solução: Converter a logo para Base64 PNG nativamente via Canvas antes de gerar o PDF.
@@ -2129,20 +2152,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    const canvas = await html2canvas(captureArea, { scale: 3, backgroundColor: '#ffffff' });
+                    // Captura a altura TOTAL do conteúdo (sem corte)
+                    const canvas = await html2canvas(captureArea, {
+                        scale: 3,
+                        backgroundColor: '#ffffff',
+                        useCORS: true,
+                        allowTaint: false,
+                        scrollY: 0,
+                        windowHeight: captureArea.scrollHeight,
+                        height: captureArea.scrollHeight,
+                        width: captureArea.scrollWidth
+                    });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+                    // Calcular dimensões: usar largura A4, mas altura proporcional ao conteúdo total
+                    const pdfWidthMm = 210; // A4 largura em mm
+                    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+                    // Criar PDF com altura exata do conteúdo (sem quebra de página que corta)
+                    const pdf = new jsPDF({
+                        orientation: pdfHeightMm > pdfWidthMm ? 'p' : 'l',
+                        unit: 'mm',
+                        format: [pdfWidthMm, pdfHeightMm]
+                    });
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
                     pdf.save('Relatorio_LME_ApexTech.pdf');
                 } finally {
                     // Restaura o SVG original após gerar o PDF
                     if (originalSrc) {
                         logoImg.src = originalSrc;
                     }
+                    // Ocultar rodapé após exportação
+                    if (rodape) rodape.style.display = 'none';
                 }
             });
         }
@@ -2248,15 +2290,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const formatUsd = (val) => {
             if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
-            return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         };
-        const formatBrl = (val, dec = 2) => {
+        const formatBrl = (val, dec = 3) => {
             if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
             return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
         };
         const formatPct = (val) => {
             if (val === null || val === undefined || isNaN(val)) return '-';
-            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
         };
 
         // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias úteis
@@ -2291,21 +2333,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const elMedia = document.getElementById('rel-media-' + m);
             if (elMedia) {
                 if (isDolar) {
-                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 3);
                 } else {
                     elMedia.textContent = formatUsd(comp['MEDIA SEMANAL']?.[m]);
                 }
             }
             if (m !== 'dolar') {
                 const elLme = document.getElementById('rel-lme-' + m);
-                if (elLme) elLme.textContent = formatBrl(comp['100% LME']?.[m], 2);
+                if (elLme) elLme.textContent = formatBrl(comp['100% LME']?.[m], 3);
             }
             const elAnt = document.getElementById('rel-ant-' + m);
             if (elAnt) {
                 if (isDolar) {
-                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
                 } else {
-                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 2);
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
                 }
             }
             const elFech = document.getElementById('rel-fech-' + m);
@@ -2316,27 +2358,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const isUp = oscRs >= 0;
             const arrowIcon = isUp ? '<i class="fa-solid fa-arrow-up" style="color:#2ecc71"></i>' : '<i class="fa-solid fa-arrow-down" style="color:#e74c3c"></i>';
-            // OSCILAÇÃO R$ é a variação convertida em reais — usar prefixo R$ e 4 decimais para dólar e 2 para metais
-            const decOsc = isDolar ? 4 : 2;
-            const fmtOscBrl = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: decOsc, maximumFractionDigits: decOsc });
+            // OSCILAÇÃO R$ é a variação convertida em reais — usar prefixo R$ e 3 decimais
+            const fmtOscBrl = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
             if (elOscRs) elOscRs.innerHTML = `${arrowIcon} ${fmtOscBrl(oscRs)}`;
 
             const elMensal = document.getElementById('rel-mensal-' + m);
             if (elMensal) {
                 if (isDolar) {
-                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 4);
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
                 } else {
-                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 2);
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
                 }
             }
 
             const elCompAnt = document.getElementById('rel-comp-ant-' + m);
             if (elCompAnt) {
                 if (isDolar) {
-                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
                 } else {
-                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 2);
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
                 }
             }
             
@@ -2344,9 +2385,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
             if (elCompAtu) {
                 if (isDolar) {
-                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 3);
                 } else {
-                    elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 2);
+                    elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 3);
                 }
             }
             const elCompOsc = document.getElementById('rel-comp-osc-' + m);
@@ -2362,7 +2403,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ── helpers ──────────────────────────────────────────────────────────
         const fmtR = v =>
-            'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
         // Plugin inline de rótulos acima das barras
         const datalabelPlugin = {
@@ -2403,8 +2444,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             label: 'Semana Anterior',
                             data: dataAnt,
-                            backgroundColor: '#9e9e9e',
-                            borderColor: '#757575',
+                            backgroundColor: '#e74c3c',
+                            borderColor: '#c0392b',
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,
@@ -2413,8 +2454,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             label: 'Semana Atual',
                             data: dataAtu,
-                            backgroundColor: '#0070c0',
-                            borderColor: '#005599',
+                            backgroundColor: '#27ae60',
+                            borderColor: '#1e8449',
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,
@@ -2533,7 +2574,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     colsHtml += `<td class="${colClass}">-</td>`;
                 } else {
                     const baseVal = lme * (p / 100);
-                    const fmt = 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const fmt = 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
                     colsHtml += `<td class="${colClass}">${fmt}</td>`;
                 }
             });
