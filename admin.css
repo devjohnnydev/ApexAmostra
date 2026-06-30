@@ -1081,7 +1081,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 
 /* Metal columns and cells styling - cada coluna com a cor do seu cabeçalho */
 /* COBRE — vermelho */
-.rel-col-cobre, .excel-col-cobre    { background-color: #db1f1f !important; font-weight: bold; color: #000 !important; }
+.rel-col-cobre, .excel-col-cobre    { background-color: #FF8B9B !important; font-weight: bold; color: #000 !important; }
 .excel-hdr-cobre    { background-color: #db1f1f; color: #fff !important; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 /* ZINCO — rosa */
 .rel-col-zinco, .excel-col-zinco    { background-color: #E6B8B7 !important; font-weight: bold; color: #3d1a1a !important; }
@@ -1500,7 +1500,7 @@ tr.bg-darkgray .rel-label-col {
 }
 
 /* Base table headers */
-.rel-base-table th:nth-child(2) { background: #ff0000 !important; color: #fff !important; }
+.rel-base-table th:nth-child(2) { background: #FF8B9B !important; color: #fff !important; }
 .rel-base-table th:nth-child(3) { background: #e6b8b7 !important; color: #000 !important; }
 .rel-base-table th:nth-child(4) { background: #a6a6a6 !important; color: #000 !important; }
 .rel-base-table th:nth-child(5) { background: #C9A8E8 !important; color: #2d0060 !important; }
@@ -1558,7 +1558,7 @@ tr.bg-darkgray .rel-label-col {
 #rel-tbody td:nth-child(8), .rel-comparativo tbody td:nth-child(8) { background-color: #70AD47 !important; }
 
 /* Apply to summary body, EXCLUDING specific colored rows */
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(2) { background-color: #db1f1f !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(2) { background-color: #FF8B9B !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(3) { background-color: #E6B8B7 !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(4) { background-color: #BFBFBF !important; }
 .rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray) td:nth-child(5) { background-color: #C9A8E8 !important; color: #2d0060 !important; }
