@@ -742,10 +742,24 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
         const tableBox = document.getElementById('boxtabela');
         if (!tableBox || !cotacoes || cotacoes.length === 0) return;
 
-        // Troca "US$" por "$" nas células dos metais scrapados (mantém valor em dólar)
-        function toDolar(str) {
-            if (!str) return str;
-            return str.replace(/US\$\s*/g, '$ ').replace(/R\$\s*/g, '$ ');
+        // Formata os metais adicionando o prefixo "$" aos valores numéricos
+        function formatMetalValue(val) {
+            if (!val) return '';
+            let clean = val.replace(/(US\$|R\$|\$)\s*/gi, '').trim();
+            if (/\d/.test(clean)) {
+                return `$ ${clean}`;
+            }
+            return val;
+        }
+
+        // Formata o dólar adicionando o prefixo "R$" aos valores numéricos
+        function formatDolarValue(val) {
+            if (!val) return '';
+            let clean = val.replace(/(US\$|R\$|\$)\s*/gi, '').trim();
+            if (/\d/.test(clean)) {
+                return `R$ ${clean}`;
+            }
+            return val;
         }
 
         let tableHtml = `
@@ -778,13 +792,13 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
             tableHtml += `
                 <tr class="${rowClass}">
                     <td class="${cellClass}">${row.dia}</td>
-                    <td class="${cellClass}">${toDolar(row.cobre)}</td>
-                    <td class="${cellClass}">${toDolar(row.zinco)}</td>
-                    <td class="${cellClass}">${toDolar(row.aluminio)}</td>
-                    <td class="${cellClass}">${toDolar(row.chumbo)}</td>
-                    <td class="${cellClass}">${toDolar(row.estanho)}</td>
-                    <td class="${cellClass}">${toDolar(row.niquel)}</td>
-                    <td class="${dolarCellClass}">${row.dolar}</td>
+                    <td class="${cellClass}">${formatMetalValue(row.cobre)}</td>
+                    <td class="${cellClass}">${formatMetalValue(row.zinco)}</td>
+                    <td class="${cellClass}">${formatMetalValue(row.aluminio)}</td>
+                    <td class="${cellClass}">${formatMetalValue(row.chumbo)}</td>
+                    <td class="${cellClass}">${formatMetalValue(row.estanho)}</td>
+                    <td class="${cellClass}">${formatMetalValue(row.niquel)}</td>
+                    <td class="${dolarCellClass}">${formatDolarValue(row.dolar)}</td>
                 </tr>
             `;
         });

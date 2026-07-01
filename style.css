@@ -24,6 +24,17 @@
     --font-xg: 1.875rem;
     --font-cor: 2.8125rem;
     --header-height: 110px;
+
+    /* Tabela de Cotações LME */
+    --color-cobre-bg: #FADBD8;      /* vermelho pastel claro */
+    --color-zinco-bg: #FCE4EC;      /* rosa pastel mais claro */
+    --color-aluminio-bg: #ECECEC;   /* cinza claro neutro */
+    --color-chumbo-bg: #E8E8E8;     /* cinza claro neutro */
+    --color-estanho-bg: #ECECEC;    /* cinza claro neutro */
+    --color-niquel-bg: #D5F5E3;     /* verde pastel claro */
+    --color-dolar-bg: #E2F0E5;      /* verde pastel claro/cinza */
+    --color-media-bg: #E8DFF5;      /* roxo lavanda claro/pastel */
+    --color-text-tabela: #1A1A1A;   /* texto em preto suave para contraste */
 }
 
 /* ============================================================
@@ -3334,7 +3345,7 @@ p.mb-0 { margin-bottom: 0; }
 
 
 #boxtabela tbody tr.row-mensal {
-    background-color: rgba(42, 208, 122, 0.1) !important;
+    background-color: var(--color-media-bg) !important;
 }
 
 .lme-variation-loading {
@@ -3344,33 +3355,52 @@ p.mb-0 { margin-bottom: 0; }
     font-style: italic;
 }
 
+/* Padronização do texto em preto suave na tabela de dados */
+#boxtabela td {
+    padding: 10px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--color-text-tabela);
+    text-align: center;
+}
+
+#boxtabela th:nth-child(n+2) {
+    color: var(--color-text-tabela) !important;
+}
+
+/* Coluna Dia (1) mantém o texto claro original para contraste no fundo escuro */
+#boxtabela table td:nth-child(1) {
+    color: rgba(255, 255, 255, 0.85);
+}
+
 /* Custom Colors for LME Table Columns (As requested) */
 #boxtabela table th:nth-child(1) { background-color: #000000 !important; color: #FFFFFF !important; }
 
 #boxtabela table th:nth-child(2),
-#boxtabela table td:nth-child(2) { background-color: #FF0000 !important; color: #FFFFFF !important; }
+#boxtabela table td:nth-child(2) { background-color: var(--color-cobre-bg) !important; }
 
 #boxtabela table th:nth-child(3),
-#boxtabela table td:nth-child(3) { background-color: #F4CCCC !important; color: #000000 !important; }
+#boxtabela table td:nth-child(3) { background-color: var(--color-zinco-bg) !important; }
 
 #boxtabela table th:nth-child(4),
-#boxtabela table td:nth-child(4) { background-color: #A6A6A6 !important; color: #FFFFFF !important; }
+#boxtabela table td:nth-child(4) { background-color: var(--color-aluminio-bg) !important; }
 
 #boxtabela table th:nth-child(5),
-#boxtabela table td:nth-child(5) { background-color: #D9D9D9 !important; color: #000000 !important; }
+#boxtabela table td:nth-child(5) { background-color: var(--color-chumbo-bg) !important; }
 
 #boxtabela table th:nth-child(6),
-#boxtabela table td:nth-child(6) { background-color: #A9B059 !important; color: #FFFFFF !important; }
+#boxtabela table td:nth-child(6) { background-color: var(--color-estanho-bg) !important; }
 
 #boxtabela table th:nth-child(7),
-#boxtabela table td:nth-child(7) { background-color: #FFFFFF !important; color: #000000 !important; }
+#boxtabela table td:nth-child(7) { background-color: var(--color-niquel-bg) !important; }
 
 #boxtabela table th:nth-child(8),
-#boxtabela table td:nth-child(8) { background-color: #6AA84F !important; color: #FFFFFF !important; }
+#boxtabela table td:nth-child(8) { background-color: var(--color-dolar-bg) !important; }
 
-/* MÉDIA SEMANAL — cinza total, sobrescreve cores de coluna */
-#boxtabela table tbody tr.row-semanal td:nth-child(n) {
-    background-color: #A6A6A6 !important;
-    color: #FFFFFF !important;
+/* LINHAS DE MÉDIA (Média Semanal, Média Mensal) — roxo pastel de ponta a ponta */
+#boxtabela table tbody tr.row-semanal td:nth-child(n),
+#boxtabela table tbody tr.row-mensal td:nth-child(n) {
+    background-color: var(--color-media-bg) !important;
+    color: var(--color-text-tabela) !important;
     font-weight: 700 !important;
 }
