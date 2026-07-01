@@ -2130,7 +2130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relatório gerado em: ${tsStr} — Apex Tech Metais`;
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
@@ -2174,35 +2174,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
 
-                    // Criar PDF em formato A4 Paisagem (Landscape)
+                    // Calcular dimensões: usar largura A4, mas altura proporcional ao conteúdo total para não quebrar a página
+                    const pdfWidthMm = 210; // A4 largura em mm
+                    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+                    // Criar PDF vertical de página única sem cortes
                     const pdf = new jsPDF({
-                        orientation: 'landscape',
+                        orientation: 'portrait',
                         unit: 'mm',
-                        format: 'a4'
+                        format: [pdfWidthMm, pdfHeightMm]
                     });
-
-                    const pageWidth = 297;
-                    const pageHeight = 210;
-
-                    const canvasRatio = canvas.width / canvas.height;
-                    const pageRatio = pageWidth / pageHeight;
-
-                    let imgWidth, imgHeight;
-                    let x = 0, y = 0;
-
-                    if (canvasRatio > pageRatio) {
-                        // Canvas é mais largo que a proporção da página A4
-                        imgWidth = pageWidth;
-                        imgHeight = pageWidth / canvasRatio;
-                        y = (pageHeight - imgHeight) / 2;
-                    } else {
-                        // Canvas é mais alto que a proporção da página A4
-                        imgHeight = pageHeight;
-                        imgWidth = pageHeight * canvasRatio;
-                        x = (pageWidth - imgWidth) / 2;
-                    }
-
-                    pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
 
                     // Nome de arquivo dinâmico (ex: relatorio-lme-DD-MM-AAAA.pdf)
                     let dateStr = '';
