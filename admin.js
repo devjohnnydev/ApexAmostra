@@ -2042,17 +2042,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const schedHorario  = document.getElementById('sched-horario');
         const formScheduler = document.getElementById('form-scheduler-config');
 
-        const smtpHost      = document.getElementById('smtp-host');
-        const smtpPort      = document.getElementById('smtp-port');
-        const smtpSsl       = document.getElementById('smtp-ssl');
-        const smtpUser      = document.getElementById('smtp-user');
-        const smtpPass      = document.getElementById('smtp-pass');
-        const smtpFrom      = document.getElementById('smtp-from');
-        const formSmtp      = document.getElementById('form-smtp-config');
-
+        const resendApiKey  = document.getElementById('resend-api-key');
+        const resendFrom    = document.getElementById('resend-from');
+        const formResend    = document.getElementById('form-resend-config');
+ 
         const btnEnviarTest = document.getElementById('btn-enviar-teste-lme');
         const testEmailMsg  = document.getElementById('test-email-msg');
-
+ 
         const formDest      = document.getElementById('form-destinatario');
         const destId        = document.getElementById('dest-id');
         const destNome      = document.getElementById('dest-nome');
@@ -2060,29 +2056,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const destFormTitle = document.getElementById('destinatario-form-title');
         const btnCancelDest = document.getElementById('btn-cancel-destinatario');
         const listDest      = document.getElementById('lme-destinatarios-list');
-
+ 
         if (!schedAtivo) return;
-
+ 
         // 1. Carrega configurações do servidor
         async function loadConfig() {
             try {
                 const res = await fetch('/api/settings');
                 const settings = await res.json();
-
+ 
                 schedAtivo.checked  = settings.lme_envio_ativo === 'true';
                 schedHorario.value  = settings.lme_envio_horario || '14:00';
-
-                smtpHost.value      = settings.lme_smtp_host || '';
-                smtpPort.value      = settings.lme_smtp_port || '';
-                smtpSsl.checked     = settings.lme_smtp_ssl === 'true';
-                smtpUser.value      = settings.lme_smtp_user || '';
-                smtpPass.value      = settings.lme_smtp_pass || '';
-                smtpFrom.value      = settings.lme_smtp_from || '';
+ 
+                resendApiKey.value  = settings.lme_resend_api_key || '';
+                resendFrom.value    = settings.lme_resend_from || '';
             } catch (err) {
                 console.error('Erro ao carregar configurações de e-mail:', err);
             }
         }
-
+ 
         // 2. Salva agendamento
         if (formScheduler) {
             formScheduler.addEventListener('submit', async (e) => {
@@ -2091,7 +2083,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     lme_envio_ativo: schedAtivo.checked ? 'true' : 'false',
                     lme_envio_horario: schedHorario.value
                 };
-
+ 
                 try {
                     const res = await fetch('/api/settings', {
                         method: 'PUT',
@@ -2110,17 +2102,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // 3. Salva SMTP
-        if (formSmtp) {
-            formSmtp.addEventListener('submit', async (e) => {
+        // 3. Salva Resend
+        if (formResend) {
+            formResend.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const data = {
-                    lme_smtp_host: smtpHost.value.trim(),
-                    lme_smtp_port: smtpPort.value.trim(),
-                    lme_smtp_ssl:  smtpSsl.checked ? 'true' : 'false',
-                    lme_smtp_user: smtpUser.value.trim(),
-                    lme_smtp_pass: smtpPass.value,
-                    lme_smtp_from: smtpFrom.value.trim()
+                    lme_resend_api_key: resendApiKey.value.trim(),
+                    lme_resend_from:    resendFrom.value.trim()
                 };
 
                 try {
@@ -2130,13 +2118,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: JSON.stringify(data)
                     });
                     if (res.ok) {
-                        alert('✅ Configurações de SMTP salvas com sucesso!');
+                        alert('✅ Configurações do Resend salvas com sucesso!');
                     } else {
-                        alert('❌ Erro ao salvar configurações de SMTP.');
+                        alert('❌ Erro ao salvar configurações do Resend.');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('❌ Erro de rede ao salvar SMTP.');
+                    alert('❌ Erro de rede ao salvar configurações do Resend.');
                 }
             });
         }

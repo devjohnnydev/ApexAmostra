@@ -48,12 +48,8 @@ const memStore = {
         show_galeria: 'true',
         lme_envio_ativo: 'false',
         lme_envio_horario: '14:00',
-        lme_smtp_host: '',
-        lme_smtp_port: '587',
-        lme_smtp_ssl: 'false',
-        lme_smtp_user: '',
-        lme_smtp_pass: '',
-        lme_smtp_from: ''
+        lme_resend_api_key: '',
+        lme_resend_from: 'josetiago@fapexmetais.com.br'
     },
     lme_destinatarios: [],
     galeria: [
@@ -987,7 +983,7 @@ const fmtVar = (val, type) => {
     return `<span style="${style}">${arrow}${txt}</span>`;
 };
 
-async function getEmailConfig() {
+async function getResendConfig() {
     const settings = {};
     if (dbAvailable) {
         try {
@@ -1000,20 +996,16 @@ async function getEmailConfig() {
         Object.assign(settings, memStore.settings);
     }
 
-    const host = settings.lme_smtp_host || process.env.SMTP_HOST;
-    const port = parseInt(settings.lme_smtp_port || process.env.SMTP_PORT || '587', 10);
-    const ssl  = (settings.lme_smtp_ssl === 'true') || (process.env.SMTP_SSL === 'true');
-    const user = settings.lme_smtp_user || process.env.SMTP_USER;
-    const pass = settings.lme_smtp_pass || process.env.SMTP_PASS;
-    const from = settings.lme_smtp_from || process.env.SMTP_FROM || user;
+    const apiKey = settings.lme_resend_api_key || process.env.RESEND_API_KEY;
+    const from   = settings.lme_resend_from || process.env.RESEND_FROM || 'josetiago@fapexmetais.com.br';
 
-    return { host, port, ssl, user, pass, from };
+    return { apiKey, from };
 }
 
 async function enviarRelatorioEmail(weekBlock) {
-    const config = await getEmailConfig();
-    if (!config.host || !config.user || !config.pass) {
-        throw new Error('Configurações de SMTP incompletas. Preencha o host, usuário e senha.');
+    const config = await getResendConfig();
+    if (!config.apiKey) {
+        throw new Error('API Key do Resend não configurada. Preencha a chave no painel.');
     }
 
     let recipients = [];
@@ -1028,18 +1020,7 @@ async function enviarRelatorioEmail(weekBlock) {
         throw new Error('Nenhum destinatário cadastrado.');
     }
 
-    const emailsList = recipients.map(r => r.email).join(', ');
-
-    const transporter = nodemailer.createTransport({
-        host: config.host,
-        port: config.port,
-        secure: config.ssl,
-        auth: {
-            user: config.user,
-            pass: config.pass
-        },
-        family: 4
-    });
+    const emailsList = recipients.map(r => r.email);
 
     const label = weekBlock.label;
     const days = weekBlock.days;
@@ -1229,16 +1210,21 @@ async function enviarRelatorioEmail(weekBlock) {
     </html>
     `;
 
-    const mailOptions = {
+    // Send using Resend API via axios POST request
+    const response = await axios.post('https://api.resend.com/emails', {
         from: config.from,
         to: emailsList,
         subject: `📊 Relatório Diário Cotações LME - Apex Tech - ${label}`,
         html: html
-    };
+    }, {
+        headers: {
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json'
+        }
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Relatório enviado por e-mail para [${emailsList}]:`, info.messageId);
-    return info;
+    console.log(`✅ Relatório enviado por e-mail via Resend para [${emailsList.join(', ')}]:`, response.data.id);
+    return response.data;
 }
 
 // ─── Agendador Automático de E-mails ──────────────────────────────────────────

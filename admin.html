@@ -958,36 +958,18 @@
                             <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Agendamento</button>
                         </form>
 
-                        <h3><i class="fa-solid fa-server"></i> Servidor de E-mail (SMTP)</h3>
-                        <form id="form-smtp-config">
+                        <h3><i class="fa-solid fa-server"></i> Servidor de E-mail (Resend API)</h3>
+                        <form id="form-resend-config">
                             <div class="form-group">
-                                <label for="smtp-host">Host SMTP *</label>
-                                <input type="text" id="smtp-host" required placeholder="Ex: smtp.hostinger.com">
-                            </div>
-                            <div class="form-row" style="display: flex; gap: 15px;">
-                                <div class="form-group" style="flex: 1;">
-                                    <label for="smtp-port">Porta *</label>
-                                    <input type="number" id="smtp-port" required placeholder="Ex: 587">
-                                </div>
-                                <div class="form-group" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 20px; cursor: pointer; color: #fff;">
-                                        <input type="checkbox" id="smtp-ssl"> Utiliza SSL/TLS
-                                    </label>
-                                </div>
+                                <label for="resend-api-key">Chave de API do Resend (API Key) *</label>
+                                <input type="password" id="resend-api-key" required placeholder="re_...">
                             </div>
                             <div class="form-group">
-                                <label for="smtp-user">Usuário / E-mail de Envio *</label>
-                                <input type="email" id="smtp-user" required placeholder="Ex: financeiro@apextech.com">
+                                <label for="resend-from">E-mail do Remetente (De) *</label>
+                                <input type="email" id="resend-from" required placeholder="Ex: josetiago@fapexmetais.com.br">
+                                <small style="display: block; color: #aaa; margin-top: 4px;">Este e-mail deve pertencer a um domínio verificado no seu painel do Resend.</small>
                             </div>
-                            <div class="form-group">
-                                <label for="smtp-pass">Senha *</label>
-                                <input type="password" id="smtp-pass" required placeholder="Sua senha do SMTP">
-                            </div>
-                            <div class="form-group">
-                                <label for="smtp-from">E-mail de Remetente (De) <small>(Opcional)</small></label>
-                                <input type="email" id="smtp-from" placeholder="Ex: Apex Tech <financeiro@apextech.com>">
-                            </div>
-                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Servidor SMTP</button>
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Configurações Resend</button>
                         </form>
 
                         <div class="smtp-test-box" style="margin-top: 25px; padding: 15px; background: #2a2a2a; border-radius: 6px; border: 1px solid #444;">
