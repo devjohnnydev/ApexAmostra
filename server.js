@@ -1032,7 +1032,8 @@ async function enviarRelatorioEmail(weekBlock) {
         auth: {
             user: config.user,
             pass: config.pass
-        }
+        },
+        family: 4
     });
 
     const label = weekBlock.label;
