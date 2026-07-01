@@ -49,7 +49,7 @@ const memStore = {
         lme_envio_ativo: 'false',
         lme_envio_horario: '14:00',
         lme_resend_api_key: '',
-        lme_resend_from: 'josetiago@fapexmetais.com.br'
+        lme_resend_from: 'josetiago@lme.lat'
     },
     lme_destinatarios: [],
     galeria: [
@@ -997,7 +997,7 @@ async function getResendConfig() {
     }
 
     const apiKey = settings.lme_resend_api_key || process.env.RESEND_API_KEY;
-    const from   = settings.lme_resend_from || process.env.RESEND_FROM || 'josetiago@fapexmetais.com.br';
+    const from   = settings.lme_resend_from || process.env.RESEND_FROM || 'josetiago@lme.lat';
 
     return { apiKey, from };
 }
