@@ -2140,21 +2140,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const logoImg = captureArea.querySelector('.rel-logo img');
                 let originalSrc = '';
                 if (logoImg && logoImg.src.endsWith('.svg')) {
-                    originalSrc = logoImg.src;
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = logoImg.naturalWidth || 400;
-                    tempCanvas.height = logoImg.naturalHeight || 133;
-                    const tCtx = tempCanvas.getContext('2d');
-                    tCtx.fillStyle = '#ffffff'; // Fundo branco p/ segurança
-                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
-                    logoImg.src = tempCanvas.toDataURL('image/png');
+                    try {
+                        originalSrc = logoImg.src;
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = logoImg.naturalWidth || 400;
+                        tempCanvas.height = logoImg.naturalHeight || 133;
+                        const tCtx = tempCanvas.getContext('2d');
+                        tCtx.fillStyle = '#ffffff'; // Fundo branco p/ segurança
+                        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                        tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                        logoImg.src = tempCanvas.toDataURL('image/png');
+                    } catch (svgErr) {
+                        console.warn('Erro ao converter logo SVG para PNG (CORS/Taint fallback):', svgErr);
+                        if (originalSrc) {
+                            logoImg.src = originalSrc;
+                            originalSrc = '';
+                        }
+                    }
                 }
 
                 try {
-                    // Captura a altura TOTAL do conteúdo (sem corte)
+                    // Captura a altura TOTAL do conteúdo
                     const canvas = await html2canvas(captureArea, {
-                        scale: 3,
+                        scale: 2,
                         backgroundColor: '#ffffff',
                         useCORS: true,
                         allowTaint: false,
@@ -2166,18 +2174,67 @@ document.addEventListener('DOMContentLoaded', () => {
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
 
-                    // Calcular dimensões: usar largura A4, mas altura proporcional ao conteúdo total
-                    const pdfWidthMm = 210; // A4 largura em mm
-                    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-
-                    // Criar PDF com altura exata do conteúdo (sem quebra de página que corta)
+                    // Criar PDF em formato A4 Paisagem (Landscape)
                     const pdf = new jsPDF({
-                        orientation: pdfHeightMm > pdfWidthMm ? 'p' : 'l',
+                        orientation: 'landscape',
                         unit: 'mm',
-                        format: [pdfWidthMm, pdfHeightMm]
+                        format: 'a4'
                     });
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
-                    pdf.save('Relatorio_LME_ApexTech.pdf');
+
+                    const pageWidth = 297;
+                    const pageHeight = 210;
+
+                    const canvasRatio = canvas.width / canvas.height;
+                    const pageRatio = pageWidth / pageHeight;
+
+                    let imgWidth, imgHeight;
+                    let x = 0, y = 0;
+
+                    if (canvasRatio > pageRatio) {
+                        // Canvas é mais largo que a proporção da página A4
+                        imgWidth = pageWidth;
+                        imgHeight = pageWidth / canvasRatio;
+                        y = (pageHeight - imgHeight) / 2;
+                    } else {
+                        // Canvas é mais alto que a proporção da página A4
+                        imgHeight = pageHeight;
+                        imgWidth = pageHeight * canvasRatio;
+                        x = (pageWidth - imgWidth) / 2;
+                    }
+
+                    pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
+
+                    // Nome de arquivo dinâmico (ex: relatorio-lme-DD-MM-AAAA.pdf)
+                    let dateStr = '';
+                    if (weeksData && weeksData.length > 0) {
+                        const week = weeksData[0];
+                        const d = week.days || [];
+                        if (d.length > 0 && d[0].data) {
+                            const parts = d[0].data.split('/');
+                            if (parts.length >= 2) {
+                                const day = parts[0].padStart(2, '0');
+                                const month = parts[1].padStart(2, '0');
+                                let year = parts[2] || '';
+                                if (!year) {
+                                    const filterMes = document.getElementById('lme-filter-mes');
+                                    year = new Date().getFullYear();
+                                    if (filterMes && filterMes.value && filterMes.value.includes('-')) {
+                                        year = filterMes.value.split('-')[0];
+                                    }
+                                }
+                                dateStr = `${day}-${month}-${year}`;
+                            }
+                        }
+                    }
+                    if (!dateStr) {
+                        const now = new Date();
+                        const day = String(now.getDate()).padStart(2, '0');
+                        const month = String(now.getMonth() + 1).padStart(2, '0');
+                        const year = now.getFullYear();
+                        dateStr = `${day}-${month}-${year}`;
+                    }
+                    const filename = `relatorio-lme-${dateStr}.pdf`;
+                    pdf.save(filename);
                 } finally {
                     // Restaura o SVG original após gerar o PDF
                     if (originalSrc) {
@@ -2301,6 +2358,37 @@ document.addEventListener('DOMContentLoaded', () => {
             return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
         };
 
+        // Função reutilizável para formatar indicadores de variação
+        function formatVariacaoCell(element, value, type) {
+            if (!element) return;
+            if (value === null || value === undefined || isNaN(value)) {
+                element.textContent = '-';
+                element.style.setProperty('color', '#000000', 'important');
+                return;
+            }
+            
+            const numVal = Number(value);
+            let formattedText = '';
+            
+            if (type === 'percent') {
+                formattedText = (numVal * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+            } else if (type === 'currency') {
+                formattedText = 'R$ ' + Math.abs(numVal).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            } else {
+                formattedText = numVal.toLocaleString('pt-BR');
+            }
+
+            let arrow = '';
+            if (numVal > 0) {
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
+            } else if (numVal < 0) {
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
+            }
+            
+            element.innerHTML = `${arrow}${formattedText}`;
+            element.style.setProperty('color', '#000000', 'important'); // Texto sempre em preto
+        }
+
         // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias úteis
         const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
@@ -2351,17 +2439,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             const elFech = document.getElementById('rel-fech-' + m);
-            if (elFech) elFech.textContent = formatPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m]);
+            formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
             const elOscPct = document.getElementById('rel-osc-pct-' + m);
-            if (elOscPct) elOscPct.textContent = formatPct(comp['OSCILAÇÃO %']?.[m]);
+            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
 
             const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-            const isUp = oscRs >= 0;
-            const arrowIcon = isUp ? '<i class="fa-solid fa-arrow-up" style="color:#2ecc71"></i>' : '<i class="fa-solid fa-arrow-down" style="color:#e74c3c"></i>';
-            // OSCILAÇÃO R$ é a variação convertida em reais — usar prefixo R$ e 3 decimais
-            const fmtOscBrl = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
-            if (elOscRs) elOscRs.innerHTML = `${arrowIcon} ${fmtOscBrl(oscRs)}`;
+            formatVariacaoCell(elOscRs, oscRs, 'currency');
 
             const elMensal = document.getElementById('rel-mensal-' + m);
             if (elMensal) {
@@ -2391,7 +2475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             const elCompOsc = document.getElementById('rel-comp-osc-' + m);
-            if (elCompOsc) elCompOsc.innerHTML = `${arrowIcon} ${fmtOscBrl(oscRs)}`;
+            formatVariacaoCell(elCompOsc, oscRs, 'currency');
         });
 
         renderRelatorioCharts(week);
