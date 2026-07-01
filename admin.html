@@ -76,6 +76,10 @@
                     <i class="fa-solid fa-newspaper"></i>
                     <span>Notícias</span>
                 </a>
+                <a href="#" class="nav-item" data-target="lme-email-config">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>Configurar E-mail LME</span>
+                </a>
                 <a href="/" class="nav-item return-site">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span>Voltar ao Site</span>
@@ -919,6 +923,120 @@
                     <div class="list-container">
                         <h3>Notícias Publicadas</h3>
                         <div id="noticias-admin-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 CONFIGURAÇÃO DE E-MAIL LME
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="lme-email-config" class="view-section">
+                <header class="section-header">
+                    <h1><i class="fa-solid fa-envelope"></i> Configuração de Envio de E-mail (LME)</h1>
+                    <p>Gerencie quem recebe o relatório diário da LME, o horário do envio automático e as credenciais de SMTP.</p>
+                </header>
+
+                <div class="materiais-layout">
+                    <!-- Coluna da Esquerda: Configurações Gerais e Agendamento -->
+                    <div class="form-container">
+                        <h3><i class="fa-solid fa-gear"></i> Parâmetros do Agendador</h3>
+                        <form id="form-scheduler-config" style="margin-bottom: 25px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #222; padding: 12px; border-radius: 6px; border: 1px solid #444;">
+                                <label style="margin-bottom: 0; cursor: pointer; color: #fff;" for="sched-ativo">
+                                    <strong>Envio Automático Ativo</strong>
+                                    <small style="display: block; color: #888; margin-top: 2px;">Ativa/desativa o disparo diário</small>
+                                </label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="sched-ativo" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="sched-horario">Horário do Disparo Diário *</label>
+                                <input type="time" id="sched-horario" required value="14:00">
+                            </div>
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Agendamento</button>
+                        </form>
+
+                        <h3><i class="fa-solid fa-server"></i> Servidor de E-mail (SMTP)</h3>
+                        <form id="form-smtp-config">
+                            <div class="form-group">
+                                <label for="smtp-host">Host SMTP *</label>
+                                <input type="text" id="smtp-host" required placeholder="Ex: smtp.hostinger.com">
+                            </div>
+                            <div class="form-row" style="display: flex; gap: 15px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="smtp-port">Porta *</label>
+                                    <input type="number" id="smtp-port" required placeholder="Ex: 587">
+                                </div>
+                                <div class="form-group" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 20px; cursor: pointer; color: #fff;">
+                                        <input type="checkbox" id="smtp-ssl"> Utiliza SSL/TLS
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="smtp-user">Usuário / E-mail de Envio *</label>
+                                <input type="email" id="smtp-user" required placeholder="Ex: financeiro@apextech.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="smtp-pass">Senha *</label>
+                                <input type="password" id="smtp-pass" required placeholder="Sua senha do SMTP">
+                            </div>
+                            <div class="form-group">
+                                <label for="smtp-from">E-mail de Remetente (De) <small>(Opcional)</small></label>
+                                <input type="email" id="smtp-from" placeholder="Ex: Apex Tech <financeiro@apextech.com>">
+                            </div>
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Servidor SMTP</button>
+                        </form>
+
+                        <div class="smtp-test-box" style="margin-top: 25px; padding: 15px; background: #2a2a2a; border-radius: 6px; border: 1px solid #444;">
+                            <h4 style="margin-top: 0; color: #fff;"><i class="fa-solid fa-paper-plane"></i> Ação Rápida</h4>
+                            <p style="font-size: 0.85rem; color: #bbb; margin-bottom: 15px;">Envie o relatório diário mais recente imediatamente para todos os destinatários cadastrados.</p>
+                            <button id="btn-enviar-teste-lme" class="btn-secondary" style="width: 100%;"><i class="fa-solid fa-paper-plane"></i> Enviar Relatório Diário Agora</button>
+                            <div id="test-email-msg" style="margin-top: 10px; font-size: 0.85rem; display: none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna da Direita: Gerenciamento de Destinatários -->
+                    <div class="list-container">
+                        <h3><i class="fa-solid fa-users"></i> Destinatários do Relatório</h3>
+                        
+                        <!-- Form de inclusão/edição inline na lista -->
+                        <div id="destinatario-form-box" style="background: #2a2a2a; padding: 15px; border-radius: 6px; border: 1px solid #444; margin-bottom: 20px;">
+                            <h4 id="destinatario-form-title" style="margin-top: 0; color: #fff; border-bottom: 1px solid #444; padding-bottom: 8px;"><i class="fa-solid fa-user-plus"></i> Novo Destinatário</h4>
+                            <form id="form-destinatario">
+                                <input type="hidden" id="dest-id" value="">
+                                <div class="form-group">
+                                    <label for="dest-nome">Nome *</label>
+                                    <input type="text" id="dest-nome" required placeholder="Ex: João da Silva">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dest-email">E-mail *</label>
+                                    <input type="email" id="dest-email" required placeholder="Ex: joao@cliente.com">
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="submit" class="btn-primary" style="flex: 1;"><i class="fa-solid fa-save"></i> Salvar</button>
+                                    <button type="button" id="btn-cancel-destinatario" class="btn-secondary" style="display: none;"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Lista de destinatários cadastrados -->
+                        <div class="destinatarios-list-wrapper">
+                            <table class="admin-table" style="width: 100%; border-collapse: collapse; color: #fff;">
+                                <thead>
+                                    <tr style="background: #333; text-align: left;">
+                                        <th style="padding: 10px;">Nome</th>
+                                        <th style="padding: 10px;">E-mail</th>
+                                        <th style="padding: 10px; text-align: center; width: 100px;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lme-destinatarios-list">
+                                    <!-- Preenchido via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>

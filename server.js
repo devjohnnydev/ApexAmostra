@@ -40,8 +40,17 @@ const memStore = {
         show_onde_encontramos: 'true',
         show_cotacoes: 'true',
         show_noticias: 'true',
-        show_galeria: 'true'
+        show_galeria: 'true',
+        lme_envio_ativo: 'false',
+        lme_envio_horario: '14:00',
+        lme_smtp_host: '',
+        lme_smtp_port: '587',
+        lme_smtp_ssl: 'false',
+        lme_smtp_user: '',
+        lme_smtp_pass: '',
+        lme_smtp_from: ''
     },
+    lme_destinatarios: [],
     galeria: [
         { id: 1, url: 'https://images.unsplash.com/photo-1595246140625-573b715d11dc?auto=format&fit=crop&w=800&q=80', titulo: 'Triagem de Sucata Eletrônica', ordem: 1 },
         { id: 2, url: 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?auto=format&fit=crop&w=800&q=80', titulo: 'Processamento de Placas de Circuito', ordem: 2 },
@@ -97,6 +106,13 @@ async function initDatabase() {
                 url       TEXT NOT NULL,
                 titulo    TEXT NOT NULL,
                 ordem     INTEGER DEFAULT 0,
+                criado_em TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS lme_destinatarios (
+                id        SERIAL PRIMARY KEY,
+                nome      TEXT NOT NULL,
+                email     TEXT NOT NULL UNIQUE,
                 criado_em TIMESTAMP DEFAULT NOW()
             );
         `);
@@ -581,235 +597,701 @@ function getPreviousMonthStr(mesStr) {
     return `${m}-${y}`;
 }
 
+function getPreviousMonthStr(mesStr) {
+    const parts = mesStr.split('-');
+    if (parts.length !== 2) return null;
+    let m = parseInt(parts[0], 10);
+    let y = parseInt(parts[1], 10);
+    if (m === 1) {
+        m = 12;
+        y = y - 1;
+    } else {
+        m = m - 1;
+    }
+    return `${m}-${y}`;
+}
+
+async function generateRelatorioSemanas(mes) {
+    // 1. Busca dados do mês atual
+    const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+    const { data: html } = await axios.get(targetUrl, { timeout: 15000 });
+    const $ = cheerio.load(html);
+
+    // 2. Extrai opções de meses disponíveis
+    const mesesDisponiveis = [];
+    $('#meslme option').each((i, el) => {
+        mesesDisponiveis.push({ valor: $(el).val(), texto: $(el).text().trim() });
+    });
+
+    const reqParts = mes.split('-');
+    const reqMonth = parseInt(reqParts[0], 10);
+    const reqYearNum = parseInt(reqParts[1], 10);
+
+    // Helper to extract rows
+    function extractRows($, year) {
+        const rows = [];
+        $('#boxtabela table tbody tr').each((i, el) => {
+            const tds = $(el).find('td');
+            if (tds.length < 8) return;
+            const isMedia   = $(tds[0]).hasClass('lmemedia');
+            const isMensal  = $(tds[0]).hasClass('lmemensal');
+            if (isMedia || isMensal) return;
+
+            const diaStr = $(tds[0]).text().trim();
+            const dateObj = parseDate(diaStr, year);
+            if (!dateObj) return;
+
+            rows.push({
+                data:     diaStr,
+                dateObj,
+                cobre:    parseNum($(tds[1]).text()),
+                zinco:    parseNum($(tds[2]).text()),
+                aluminio: parseNum($(tds[3]).text()),
+                chumbo:   parseNum($(tds[4]).text()),
+                estanho:  parseNum($(tds[5]).text()),
+                niquel:   parseNum($(tds[6]).text()),
+                dolar:    parseNum($(tds[7]).text()),
+            });
+        });
+        return rows;
+    }
+
+    const mainRows = extractRows($, reqYearNum);
+
+    // Fetch previous month to get the preceding weeks for historical calculations
+    let dailyRows = [...mainRows];
+    const prevMes = getPreviousMonthStr(mes);
+    if (prevMes) {
+        try {
+            const prevUrl = `https://shockmetais.com.br/lme/${prevMes}`;
+            const { data: prevHtml } = await axios.get(prevUrl, { timeout: 10000 });
+            const $prev = cheerio.load(prevHtml);
+            const prevYearNum = parseInt(prevMes.split('-')[1], 10);
+            const prevRows = extractRows($prev, prevYearNum);
+
+            const existingTimes = new Set(mainRows.map(r => r.dateObj.getTime()));
+            prevRows.forEach(r => {
+                if (!existingTimes.has(r.dateObj.getTime())) {
+                    dailyRows.push(r);
+                }
+            });
+        } catch (err) {
+            console.warn(`Could not fetch previous month ${prevMes}:`, err.message);
+        }
+    }
+
+    // Sort chronologically
+    dailyRows.sort((a, b) => a.dateObj - b.dateObj);
+
+    const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
+
+    // 4. Agrupa por semana
+    const weekMap = new Map();
+    dailyRows.forEach(row => {
+        const wk = weekKey(row.dateObj);
+        if (!weekMap.has(wk)) weekMap.set(wk, []);
+        weekMap.get(wk).push(row);
+    });
+
+    // 5. Pré-calcula 100% LME de cada semana (necessário para semanaAnterior e mediaMensal)
+    const allWeekLME = {}; // wk -> {metal: valor100pct}
+    weekMap.forEach((days, wk) => {
+        const entry = {};
+        METALS.forEach(m => {
+            const mediaMetal = avg(days.map(d => d[m]));
+            const mediaDolar = avg(days.map(d => d.dolar));
+            entry[m] = (mediaMetal !== null && mediaDolar !== null)
+                ? (mediaMetal * mediaDolar) / 1000 : null;
+        });
+        entry.dolar = avg(days.map(d => d.dolar));
+        allWeekLME[wk] = entry;
+    });
+
+    // 6. Monta blocos semanais com todos os cálculos
+    const sortedWeekKeys = [...weekMap.keys()].sort();
+    const weekBlocks = sortedWeekKeys.map((wk, idx) => {
+        const days = weekMap.get(wk);
+        const prevWk = idx > 0 ? sortedWeekKeys[idx - 1] : null;
+        const prevLME = prevWk ? allWeekLME[prevWk] : null;
+        const prevPrevWk = idx > 1 ? sortedWeekKeys[idx - 2] : null;
+
+        // Médias semanais
+        const mediaSemanal = {};
+        METALS.forEach(m => { mediaSemanal[m] = avg(days.map(d => d[m])); });
+        mediaSemanal.dolar = avg(days.map(d => d.dolar));
+
+        // 100% LME = (média_metal * média_dolar) / 1000
+        const lme100 = {};
+        METALS.forEach(m => {
+            lme100[m] = (mediaSemanal[m] !== null && mediaSemanal.dolar !== null)
+                ? (mediaSemanal[m] * mediaSemanal.dolar) / 1000 : null;
+        });
+        lme100.dolar = mediaSemanal.dolar;
+
+        // SEMANA ANTERIOR = 100% LME da semana anterior
+        const semanaAnterior = {};
+        METALS.forEach(m => { semanaAnterior[m] = prevLME ? prevLME[m] : null; });
+        semanaAnterior.dolar = prevLME ? prevLME.dolar : null;
+
+        // OSCILAÇÃO R$ = 100% LME - SEMANA ANTERIOR
+        const oscRS = {};
+        METALS.forEach(m => {
+            oscRS[m] = (lme100[m] !== null && semanaAnterior[m] !== null)
+                ? lme100[m] - semanaAnterior[m] : null;
+        });
+        oscRS.dolar = (lme100.dolar !== null && semanaAnterior.dolar !== null)
+            ? lme100.dolar - semanaAnterior.dolar : null;
+
+        // OSCILAÇÃO % = oscRS / semanaAnterior
+        const oscPct = {};
+        METALS.forEach(m => {
+            oscPct[m] = (oscRS[m] !== null && semanaAnterior[m] !== null && semanaAnterior[m] !== 0)
+                ? oscRS[m] / semanaAnterior[m] : null;
+        });
+        oscPct.dolar = (oscRS.dolar !== null && semanaAnterior.dolar !== null && semanaAnterior.dolar !== 0)
+            ? oscRS.dolar / semanaAnterior.dolar : null;
+
+        // FECHAMENTO % (SEMANA ANTERIOR) = OSCILAÇÃO % da semana anterior
+        const fechamentoPct = {};
+        if (prevPrevWk) {
+            const prevPrevLME = allWeekLME[prevPrevWk];
+            METALS.forEach(m => {
+                const osc = (prevLME && prevPrevLME && prevLME[m] !== null && prevPrevLME[m] !== null && prevPrevLME[m] !== 0)
+                    ? (prevLME[m] - prevPrevLME[m]) / prevPrevLME[m] : null;
+                fechamentoPct[m] = osc;
+            });
+            fechamentoPct.dolar = (prevLME && prevPrevLME && prevLME.dolar !== null && prevPrevLME.dolar !== null && prevPrevLME.dolar !== 0)
+                ? (prevLME.dolar - prevPrevLME.dolar) / prevPrevLME.dolar : null;
+        } else {
+            [...METALS, 'dolar'].forEach(m => { fechamentoPct[m] = null; });
+        }
+
+        // Formata dias para exibição (pad até 5 dias)
+        const daysDisplay = [];
+        for (let i = 0; i < 5; i++) {
+            daysDisplay.push(days[i] ? {
+                data:     days[i].data,
+                cobre:    days[i].cobre,
+                zinco:    days[i].zinco,
+                aluminio: days[i].aluminio,
+                chumbo:   days[i].chumbo,
+                estanho:  days[i].estanho,
+                niquel:   days[i].niquel,
+                dolar:    days[i].dolar,
+            } : { data: '—', cobre: null, zinco: null, aluminio: null, chumbo: null, estanho: null, niquel: null, dolar: null });
+        }
+
+        const firstDate = days[0].data;
+        const lastDate  = days[days.length - 1].data;
+        const numDias = days.length;
+
+        // Média Mensal: apenas semanas FECHADAS anteriores à atual
+        const mediaMensal = {};
+        METALS.forEach(m => {
+            const vals = sortedWeekKeys.slice(0, idx)
+                .map(k => allWeekLME[k][m])
+                .filter(v => v !== null);
+            mediaMensal[m] = vals.length ? avg(vals) : null;
+        });
+        const prevDailyDolar = sortedWeekKeys.slice(0, idx)
+            .flatMap(k => weekMap.get(k).map(d => d.dolar))
+            .filter(v => v !== null);
+        mediaMensal.dolar = prevDailyDolar.length ? avg(prevDailyDolar) : null;
+
+        return {
+            weekKey: wk,
+            header:  firstDate,
+            lastDay: lastDate,
+            label:   `${firstDate} a ${lastDate}`,
+            numDias,
+            days:    daysDisplay,
+            computed: {
+                'MEDIA SEMANAL':                    mediaSemanal,
+                '100% LME':                         lme100,
+                'SEMANA ANTERIOR':                  semanaAnterior,
+                'FECHAMENTO % ( SEMANA ANTERIOR )': fechamentoPct,
+                'OSCILAÇÃO %':                      oscPct,
+                'OSCILAÇÃO R$':                     oscRS,
+                'MEDIA MENSAL':                     mediaMensal,
+            }
+        };
+    });
+
+    const filteredBlocks = weekBlocks.filter(block => {
+        const days = weekMap.get(block.weekKey);
+        return days.some(d => {
+            const m = d.dateObj.getMonth() + 1;
+            const y = d.dateObj.getFullYear();
+            return m === reqMonth && y === reqYearNum;
+        });
+    });
+
+    return { semanas: filteredBlocks, mesesDisponiveis };
+}
+
 app.get('/api/lme/relatorio-semanal', async (req, res) => {
     try {
         const mes = req.query.mes; // ex: "6-2026"
         if (!mes) return res.status(400).json({ error: 'Parâmetro mes obrigatório. Ex: ?mes=6-2026' });
 
-        // 1. Busca dados do mês atual
-        const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
-        const { data: html } = await axios.get(targetUrl, { timeout: 15000 });
-        const $ = cheerio.load(html);
-
-        // 2. Extrai opções de meses disponíveis
-        const mesesDisponiveis = [];
-        $('#meslme option').each((i, el) => {
-            mesesDisponiveis.push({ valor: $(el).val(), texto: $(el).text().trim() });
-        });
-
-        const reqParts = mes.split('-');
-        const reqMonth = parseInt(reqParts[0], 10);
-        const reqYearNum = parseInt(reqParts[1], 10);
-
-        // Helper to extract rows
-        function extractRows($, year) {
-            const rows = [];
-            $('#boxtabela table tbody tr').each((i, el) => {
-                const tds = $(el).find('td');
-                if (tds.length < 8) return;
-                const isMedia   = $(tds[0]).hasClass('lmemedia');
-                const isMensal  = $(tds[0]).hasClass('lmemensal');
-                if (isMedia || isMensal) return;
-
-                const diaStr = $(tds[0]).text().trim();
-                const dateObj = parseDate(diaStr, year);
-                if (!dateObj) return;
-
-                rows.push({
-                    data:     diaStr,
-                    dateObj,
-                    cobre:    parseNum($(tds[1]).text()),
-                    zinco:    parseNum($(tds[2]).text()),
-                    aluminio: parseNum($(tds[3]).text()),
-                    chumbo:   parseNum($(tds[4]).text()),
-                    estanho:  parseNum($(tds[5]).text()),
-                    niquel:   parseNum($(tds[6]).text()),
-                    dolar:    parseNum($(tds[7]).text()),
-                });
-            });
-            return rows;
-        }
-
-        const mainRows = extractRows($, reqYearNum);
-
-        // Fetch previous month to get the preceding weeks for historical calculations
-        let dailyRows = [...mainRows];
-        const prevMes = getPreviousMonthStr(mes);
-        if (prevMes) {
-            try {
-                const prevUrl = `https://shockmetais.com.br/lme/${prevMes}`;
-                const { data: prevHtml } = await axios.get(prevUrl, { timeout: 10000 });
-                const $prev = cheerio.load(prevHtml);
-                const prevYearNum = parseInt(prevMes.split('-')[1], 10);
-                const prevRows = extractRows($prev, prevYearNum);
-
-                const existingTimes = new Set(mainRows.map(r => r.dateObj.getTime()));
-                prevRows.forEach(r => {
-                    if (!existingTimes.has(r.dateObj.getTime())) {
-                        dailyRows.push(r);
-                    }
-                });
-            } catch (err) {
-                console.warn(`Could not fetch previous month ${prevMes}:`, err.message);
-            }
-        }
-
-        // Sort chronologically
-        dailyRows.sort((a, b) => a.dateObj - b.dateObj);
-
-        const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
-
-        // 4. Agrupa por semana
-        const weekMap = new Map();
-        dailyRows.forEach(row => {
-            const wk = weekKey(row.dateObj);
-            if (!weekMap.has(wk)) weekMap.set(wk, []);
-            weekMap.get(wk).push(row);
-        });
-
-        // 5. Pré-calcula 100% LME de cada semana (necessário para semanaAnterior e mediaMensal)
-        const allWeekLME = {}; // wk -> {metal: valor100pct}
-        weekMap.forEach((days, wk) => {
-            const entry = {};
-            METALS.forEach(m => {
-                const mediaMetal = avg(days.map(d => d[m]));
-                const mediaDolar = avg(days.map(d => d.dolar));
-                entry[m] = (mediaMetal !== null && mediaDolar !== null)
-                    ? (mediaMetal * mediaDolar) / 1000 : null;
-            });
-            entry.dolar = avg(days.map(d => d.dolar));
-            allWeekLME[wk] = entry;
-        });
-        // A média mensal é calculada individualmente por semana (apenas semanas fechadas
-        // anteriores), dentro do loop weekBlocks abaixo.
-
-        // 6. Monta blocos semanais com todos os cálculos
-        const sortedWeekKeys = [...weekMap.keys()].sort();
-        const weekBlocks = sortedWeekKeys.map((wk, idx) => {
-            const days = weekMap.get(wk);
-            const prevWk = idx > 0 ? sortedWeekKeys[idx - 1] : null;
-            const prevLME = prevWk ? allWeekLME[prevWk] : null;
-            const prevPrevWk = idx > 1 ? sortedWeekKeys[idx - 2] : null;
-
-            // Médias semanais
-            const mediaSemanal = {};
-            METALS.forEach(m => { mediaSemanal[m] = avg(days.map(d => d[m])); });
-            mediaSemanal.dolar = avg(days.map(d => d.dolar));
-
-            // 100% LME = (média_metal * média_dolar) / 1000
-            const lme100 = {};
-            METALS.forEach(m => {
-                lme100[m] = (mediaSemanal[m] !== null && mediaSemanal.dolar !== null)
-                    ? (mediaSemanal[m] * mediaSemanal.dolar) / 1000 : null;
-            });
-            lme100.dolar = mediaSemanal.dolar;
-
-            // SEMANA ANTERIOR = 100% LME da semana anterior
-            const semanaAnterior = {};
-            METALS.forEach(m => { semanaAnterior[m] = prevLME ? prevLME[m] : null; });
-            semanaAnterior.dolar = prevLME ? prevLME.dolar : null;
-
-            // OSCILAÇÃO R$ = 100% LME - SEMANA ANTERIOR
-            const oscRS = {};
-            METALS.forEach(m => {
-                oscRS[m] = (lme100[m] !== null && semanaAnterior[m] !== null)
-                    ? lme100[m] - semanaAnterior[m] : null;
-            });
-            oscRS.dolar = (lme100.dolar !== null && semanaAnterior.dolar !== null)
-                ? lme100.dolar - semanaAnterior.dolar : null;
-
-            // OSCILAÇÃO % = oscRS / semanaAnterior
-            const oscPct = {};
-            METALS.forEach(m => {
-                oscPct[m] = (oscRS[m] !== null && semanaAnterior[m] !== null && semanaAnterior[m] !== 0)
-                    ? oscRS[m] / semanaAnterior[m] : null;
-            });
-            oscPct.dolar = (oscRS.dolar !== null && semanaAnterior.dolar !== null && semanaAnterior.dolar !== 0)
-                ? oscRS.dolar / semanaAnterior.dolar : null;
-
-            // FECHAMENTO % (SEMANA ANTERIOR) = OSCILAÇÃO % da semana anterior
-            const fechamentoPct = {};
-            if (prevPrevWk) {
-                const prevPrevLME = allWeekLME[prevPrevWk];
-                METALS.forEach(m => {
-                    const osc = (prevLME && prevPrevLME && prevLME[m] !== null && prevPrevLME[m] !== null && prevPrevLME[m] !== 0)
-                        ? (prevLME[m] - prevPrevLME[m]) / prevPrevLME[m] : null;
-                    fechamentoPct[m] = osc;
-                });
-                fechamentoPct.dolar = (prevLME && prevPrevLME && prevLME.dolar !== null && prevPrevLME.dolar !== null && prevPrevLME.dolar !== 0)
-                    ? (prevLME.dolar - prevPrevLME.dolar) / prevPrevLME.dolar : null;
-            } else {
-                [...METALS, 'dolar'].forEach(m => { fechamentoPct[m] = null; });
-            }
-
-            // Formata dias para exibição (pad até 5 dias)
-            const daysDisplay = [];
-            for (let i = 0; i < 5; i++) {
-                daysDisplay.push(days[i] ? {
-                    data:     days[i].data,
-                    cobre:    days[i].cobre,
-                    zinco:    days[i].zinco,
-                    aluminio: days[i].aluminio,
-                    chumbo:   days[i].chumbo,
-                    estanho:  days[i].estanho,
-                    niquel:   days[i].niquel,
-                    dolar:    days[i].dolar,
-                } : { data: '—', cobre: null, zinco: null, aluminio: null, chumbo: null, estanho: null, niquel: null, dolar: null });
-            }
-
-            const firstDate = days[0].data;
-            const lastDate  = days[days.length - 1].data;
-            // numDias: dias úteis reais nesta semana (< 5 indica feriado)
-            const numDias = days.length;
-
-            // Média Mensal: apenas semanas FECHADAS anteriores à atual
-            // Garante que a semana em andamento não contamina a média do mês
-            const mediaMensal = {};
-            METALS.forEach(m => {
-                const vals = sortedWeekKeys.slice(0, idx)
-                    .map(k => allWeekLME[k][m])
-                    .filter(v => v !== null);
-                mediaMensal[m] = vals.length ? avg(vals) : null;
-            });
-            const prevDailyDolar = sortedWeekKeys.slice(0, idx)
-                .flatMap(k => weekMap.get(k).map(d => d.dolar))
-                .filter(v => v !== null);
-            mediaMensal.dolar = prevDailyDolar.length ? avg(prevDailyDolar) : null;
-
-            return {
-                weekKey: wk,
-                header:  firstDate,
-                lastDay: lastDate,
-                label:   `${firstDate} → ${lastDate}`,
-                numDias,
-                days:    daysDisplay,
-                computed: {
-                    'MEDIA SEMANAL':                    mediaSemanal,
-                    '100% LME':                         lme100,
-                    'SEMANA ANTERIOR':                  semanaAnterior,
-                    'FECHAMENTO % ( SEMANA ANTERIOR )': fechamentoPct,
-                    'OSCILAÇÃO %':                      oscPct,
-                    'OSCILAÇÃO R$':                     oscRS,
-                    'MEDIA MENSAL':                     mediaMensal,
-                }
-            };
-        });
-
-        const filteredBlocks = weekBlocks.filter(block => {
-            const days = weekMap.get(block.weekKey);
-            return days.some(d => {
-                const m = d.dateObj.getMonth() + 1;
-                const y = d.dateObj.getFullYear();
-                return m === reqMonth && y === reqYearNum;
-            });
-        });
-
-        res.json({ semanas: filteredBlocks.reverse(), mesesDisponiveis });
+        const data = await generateRelatorioSemanas(mes);
+        res.json({ semanas: [...data.semanas].reverse(), mesesDisponiveis: data.mesesDisponiveis });
     } catch (err) {
         console.error('Erro GET /api/lme/relatorio-semanal:', err.message);
         res.status(500).json({ error: 'Erro ao gerar relatório semanal LME: ' + err.message });
     }
 });
+
+// ─── API: LME Destinatários (CRUD) ─────────────────────────────────────────────
+app.get('/api/lme/destinatarios', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM lme_destinatarios ORDER BY nome ASC');
+            return res.json(result.rows);
+        }
+        res.json([...memStore.lme_destinatarios].sort((a, b) => a.nome.localeCompare(b.nome)));
+    } catch (err) {
+        console.error('Erro GET /api/lme/destinatarios:', err);
+        res.status(500).json({ error: 'Erro ao buscar destinatários.' });
+    }
+});
+
+app.post('/api/lme/destinatarios', async (req, res) => {
+    try {
+        const { nome, email } = req.body;
+        if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
+        if (dbAvailable) {
+            const result = await pool.query(
+                'INSERT INTO lme_destinatarios (nome, email) VALUES ($1, $2) RETURNING *',
+                [nome, email]
+            );
+            return res.status(201).json(result.rows[0]);
+        }
+        if (memStore.lme_destinatarios.some(d => d.email.toLowerCase() === email.toLowerCase())) {
+            return res.status(400).json({ error: 'E-mail já cadastrado.' });
+        }
+        const item = { id: nextId++, nome, email, criado_em: new Date().toISOString() };
+        memStore.lme_destinatarios.push(item);
+        res.status(201).json(item);
+    } catch (err) {
+        console.error('Erro POST /api/lme/destinatarios:', err);
+        if (err.code === '23505') {
+            return res.status(400).json({ error: 'E-mail já cadastrado.' });
+        }
+        res.status(500).json({ error: 'Erro ao criar destinatário.' });
+    }
+});
+
+app.put('/api/lme/destinatarios/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, email } = req.body;
+        if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
+        if (dbAvailable) {
+            const result = await pool.query(
+                'UPDATE lme_destinatarios SET nome=$1, email=$2 WHERE id=$3 RETURNING *',
+                [nome, email, id]
+            );
+            if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
+            return res.json(result.rows[0]);
+        }
+        const idx = memStore.lme_destinatarios.findIndex(d => d.id == id);
+        if (idx === -1) return res.status(404).json({ error: 'Destinatário não encontrado.' });
+        if (memStore.lme_destinatarios.some(d => d.id != id && d.email.toLowerCase() === email.toLowerCase())) {
+            return res.status(400).json({ error: 'E-mail já cadastrado.' });
+        }
+        Object.assign(memStore.lme_destinatarios[idx], { nome, email });
+        res.json(memStore.lme_destinatarios[idx]);
+    } catch (err) {
+        console.error('Erro PUT /api/lme/destinatarios:', err);
+        if (err.code === '23505') {
+            return res.status(400).json({ error: 'E-mail já cadastrado.' });
+        }
+        res.status(500).json({ error: 'Erro ao atualizar destinatário.' });
+    }
+});
+
+app.delete('/api/lme/destinatarios/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (dbAvailable) {
+            const result = await pool.query('DELETE FROM lme_destinatarios WHERE id=$1', [id]);
+            if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
+            return res.json({ success: true });
+        }
+        const idx = memStore.lme_destinatarios.findIndex(d => d.id == id);
+        if (idx === -1) return res.status(404).json({ error: 'Destinatário não encontrado.' });
+        memStore.lme_destinatarios.splice(idx, 1);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro DELETE /api/lme/destinatarios:', err);
+        res.status(500).json({ error: 'Erro ao remover destinatário.' });
+    }
+});
+
+// ─── API: LME Enviar Relatório Manual ──────────────────────────────────────────
+app.post('/api/lme/enviar-email-manual', async (req, res) => {
+    try {
+        const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+        const dObj = new Date(localTimeStr);
+        const month = dObj.getMonth() + 1;
+        const year = dObj.getFullYear();
+        const mes = `${month}-${year}`;
+
+        const data = await generateRelatorioSemanas(mes);
+        if (!data || !data.semanas || data.semanas.length === 0) {
+            return res.status(404).json({ error: 'Nenhuma semana encontrada para enviar.' });
+        }
+
+        const latestWeek = data.semanas[0];
+        await enviarRelatorioEmail(latestWeek);
+
+        res.json({ success: true, message: 'Relatório enviado com sucesso!' });
+    } catch (err) {
+        console.error('Erro no envio manual de e-mail:', err);
+        res.status(500).json({ error: 'Erro ao enviar e-mail: ' + err.message });
+    }
+});
+
+// ─── Helpers de Formatação e Envio de E-mail ──────────────────────────────────
+const nodemailer = require('nodemailer');
+
+const fmtUSD = (val) => {
+    if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '—';
+    return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+};
+const fmtBRL = (val, dec = 3) => {
+    if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '—';
+    return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+};
+const fmtPct = (val) => {
+    if (val === null || val === undefined || isNaN(val)) return '—';
+    return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+};
+const fmtVar = (val, type) => {
+    if (val === null || val === undefined || isNaN(val)) return '—';
+    const num = Number(val);
+    const arrow = num > 0 ? '▲ ' : num < 0 ? '▼ ' : '';
+    const style = num > 0 ? 'color: #2E7D32;' : num < 0 ? 'color: #D32F2F;' : '';
+    let txt = '';
+    if (type === 'pct') {
+        txt = (num * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+    } else {
+        txt = 'R$ ' + Math.abs(num).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    }
+    return `<span style="${style}">${arrow}${txt}</span>`;
+};
+
+async function getEmailConfig() {
+    const settings = {};
+    if (dbAvailable) {
+        try {
+            const result = await pool.query('SELECT * FROM settings');
+            result.rows.forEach(r => { settings[r.key] = r.value; });
+        } catch (e) {
+            console.error('Error reading settings from DB:', e);
+        }
+    } else {
+        Object.assign(settings, memStore.settings);
+    }
+
+    const host = settings.lme_smtp_host || process.env.SMTP_HOST;
+    const port = parseInt(settings.lme_smtp_port || process.env.SMTP_PORT || '587', 10);
+    const ssl  = (settings.lme_smtp_ssl === 'true') || (process.env.SMTP_SSL === 'true');
+    const user = settings.lme_smtp_user || process.env.SMTP_USER;
+    const pass = settings.lme_smtp_pass || process.env.SMTP_PASS;
+    const from = settings.lme_smtp_from || process.env.SMTP_FROM || user;
+
+    return { host, port, ssl, user, pass, from };
+}
+
+async function enviarRelatorioEmail(weekBlock) {
+    const config = await getEmailConfig();
+    if (!config.host || !config.user || !config.pass) {
+        throw new Error('Configurações de SMTP incompletas. Preencha o host, usuário e senha.');
+    }
+
+    let recipients = [];
+    if (dbAvailable) {
+        const result = await pool.query('SELECT * FROM lme_destinatarios');
+        recipients = result.rows;
+    } else {
+        recipients = memStore.lme_destinatarios;
+    }
+
+    if (recipients.length === 0) {
+        throw new Error('Nenhum destinatário cadastrado.');
+    }
+
+    const emailsList = recipients.map(r => r.email).join(', ');
+
+    const transporter = nodemailer.createTransport({
+        host: config.host,
+        port: config.port,
+        secure: config.ssl,
+        auth: {
+            user: config.user,
+            pass: config.pass
+        }
+    });
+
+    const label = weekBlock.label;
+    const days = weekBlock.days;
+    const comp = weekBlock.computed;
+
+    const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
+
+    let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: Calibri, Arial, sans-serif; color: #333; margin: 0; padding: 20px; background-color: #f5f5f5; }
+            .container { max-width: 800px; margin: 0 auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+            .header { background: #000; color: #fff; padding: 20px; text-align: center; }
+            .header h2 { margin: 0; font-size: 18pt; font-weight: normal; color: #fff; }
+            .content { padding: 20px; }
+            .period-title { font-size: 14pt; font-weight: bold; margin-bottom: 20px; text-align: center; color: #000; border-bottom: 2px solid #db1f1f; padding-bottom: 8px; }
+            .lme-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; }
+            .lme-table th, .lme-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
+            .lme-table th { font-weight: bold; color: #000; }
+            .bg-orange { background-color: #fde9d9 !important; font-weight: bold; }
+            .bg-yellow { background-color: #ffff00 !important; font-weight: bold; }
+            .section-title { font-size: 12pt; font-weight: bold; margin: 20px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; }
+            .footer { background: #f9f9f9; padding: 15px; text-align: center; font-size: 9pt; color: #666; border-top: 1px solid #eee; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>Cotação Diária LME - Apex Tech Metais</h2>
+            </div>
+            <div class="content">
+                <div class="period-title">COTAÇÃO VÁLIDA PARA A SEMANA: ${label}</div>
+
+                <table class="lme-table">
+                    <thead>
+                        <tr style="background:#db1f1f; color:#000;">
+                            <th style="background:#000; color:#fff; width:120px;">DATA</th>
+                            <th>Cobre U$/t</th>
+                            <th>Zinco U$/t</th>
+                            <th>Alumínio U$/t</th>
+                            <th>Chumbo U$/t</th>
+                            <th>Estanho U$/t</th>
+                            <th>Níquel U$/t</th>
+                            <th style="background:#70ad47; color:#000;">Dólar US$</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    days.forEach(d => {
+        html += `
+            <tr>
+                <td style="font-weight:bold;">${d.data}</td>
+                <td>${fmtUSD(d.cobre)}</td>
+                <td>${fmtUSD(d.zinco)}</td>
+                <td>${fmtUSD(d.aluminio)}</td>
+                <td>${fmtUSD(d.chumbo)}</td>
+                <td>${fmtUSD(d.estanho)}</td>
+                <td>${fmtUSD(d.niquel)}</td>
+                <td style="background:#e2efda; font-weight:bold;">${fmtBRL(d.dolar, 4)}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+        <tr class="bg-orange">
+            <td>MÉDIA SEMANAL</td>
+            <td>${fmtUSD(comp['MEDIA SEMANAL'].cobre)}</td>
+            <td>${fmtUSD(comp['MEDIA SEMANAL'].zinco)}</td>
+            <td>${fmtUSD(comp['MEDIA SEMANAL'].aluminio)}</td>
+            <td>${fmtUSD(comp['MEDIA SEMANAL'].chumbo)}</td>
+            <td>${fmtUSD(comp['MEDIA SEMANAL'].estanho)}</td>
+            <td>${fmtUSD(comp['MEDIA SEMANAL'].niquel)}</td>
+            <td style="background:#c6e0b4;">${fmtBRL(comp['MEDIA SEMANAL'].dolar, 4)}</td>
+        </tr>
+        <tr class="bg-yellow">
+            <td>100% LME</td>
+            <td>${fmtBRL(comp['100% LME'].cobre)}</td>
+            <td>${fmtBRL(comp['100% LME'].zinco)}</td>
+            <td>${fmtBRL(comp['100% LME'].aluminio)}</td>
+            <td>${fmtBRL(comp['100% LME'].chumbo)}</td>
+            <td>${fmtBRL(comp['100% LME'].estanho)}</td>
+            <td>${fmtBRL(comp['100% LME'].niquel)}</td>
+            <td style="background:#fff2cc;">-</td>
+        </tr>
+        <tr style="background:#eaeaea;">
+            <td>SEMANA ANTERIOR</td>
+            <td>${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
+            <td>${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
+            <td>${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
+            <td>${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
+            <td>${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
+            <td>${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
+            <td style="background:#c6e0b4;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
+        </tr>
+        <tr style="background:#eaeaea;">
+            <td>FECHAMENTO %</td>
+            <td>${fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].cobre)}</td>
+            <td>${fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].zinco)}</td>
+            <td>${fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].aluminio)}</td>
+            <td>${fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].chumbo)}</td>
+            <td>${fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].estanho)}</td>
+            <td>${fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].niquel)}</td>
+            <td style="background:#c6e0b4;">${fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].dolar)}</td>
+        </tr>
+        <tr style="background:#e2f0d9;">
+            <td>OSCILAÇÃO %</td>
+            <td>${fmtPct(comp['OSCILAÇÃO %'].cobre)}</td>
+            <td>${fmtPct(comp['OSCILAÇÃO %'].zinco)}</td>
+            <td>${fmtPct(comp['OSCILAÇÃO %'].aluminio)}</td>
+            <td>${fmtPct(comp['OSCILAÇÃO %'].chumbo)}</td>
+            <td>${fmtPct(comp['OSCILAÇÃO %'].estanho)}</td>
+            <td>${fmtPct(comp['OSCILAÇÃO %'].niquel)}</td>
+            <td style="background:#c6e0b4;">${fmtPct(comp['OSCILAÇÃO %'].dolar)}</td>
+        </tr>
+        <tr style="background:#fce4d6;">
+            <td>OSCILAÇÃO R$</td>
+            <td>${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl')}</td>
+            <td>${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl')}</td>
+            <td>${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl')}</td>
+            <td>${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl')}</td>
+            <td>${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl')}</td>
+            <td>${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl')}</td>
+            <td style="background:#c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl')}</td>
+        </tr>
+        <tr style="background:#eaeaea;">
+            <td>MÉDIA MENSAL</td>
+            <td>${fmtBRL(comp['MEDIA MENSAL'].cobre)}</td>
+            <td>${fmtBRL(comp['MEDIA MENSAL'].zinco)}</td>
+            <td>${fmtBRL(comp['MEDIA MENSAL'].aluminio)}</td>
+            <td>${fmtBRL(comp['MEDIA MENSAL'].chumbo)}</td>
+            <td>${fmtBRL(comp['MEDIA MENSAL'].estanho)}</td>
+            <td>${fmtBRL(comp['MEDIA MENSAL'].niquel)}</td>
+            <td style="background:#c6e0b4;">${fmtBRL(comp['MEDIA MENSAL'].dolar, 4)}</td>
+        </tr>
+                    </tbody>
+                </table>
+
+                <div class="section-title">VALORES BASE DE 90% A 110% X LME DA SEMANA X DOLAR</div>
+                <table class="lme-table" style="font-size:9pt;">
+                    <thead>
+                        <tr style="background:#db1f1f; color:#000;">
+                            <th style="width:50px; background:#000; color:#fff;">%</th>
+                            <th>COBRE</th>
+                            <th>ZINCO</th>
+                            <th>ALUMÍNIO</th>
+                            <th>CHUMBO</th>
+                            <th>ESTANHO</th>
+                            <th>NÍQUEL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    for (let p = 90; p <= 110; p++) {
+        let rowStyle = '';
+        if (p < 100) rowStyle = 'background-color: #fdecea;';
+        else if (p === 100) rowStyle = 'background-color: #ffff00; font-weight: bold;';
+        else rowStyle = 'background-color: #e9f7f0;';
+
+        html += `<tr style="${rowStyle}"><td>${p}%</td>`;
+        metals.forEach(m => {
+            const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
+            if (lme === null) {
+                html += `<td>—</td>`;
+            } else {
+                const baseVal = lme * (p / 100);
+                html += `<td>${fmtBRL(baseVal, 3)}</td>`;
+            }
+        });
+        html += `</tr>`;
+    }
+
+    html += `
+                    </tbody>
+                </table>
+            </div>
+            <div class="footer">
+                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} — Apex Tech Metais</p>
+                <p style="font-size: 8pt; color: #999; margin-top: 10px;">Este e-mail é enviado de forma automática conforme as configurações do painel administrativo.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+
+    const mailOptions = {
+        from: config.from,
+        to: emailsList,
+        subject: `📊 Relatório Diário Cotações LME - Apex Tech - ${label}`,
+        html: html
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Relatório enviado por e-mail para [${emailsList}]:`, info.messageId);
+    return info;
+}
+
+// ─── Agendador Automático de E-mails ──────────────────────────────────────────
+let lastSentDateStr = '';
+
+function startEmailScheduler() {
+    console.log('⏰ Inicializando o agendador de e-mails da LME...');
+    setInterval(async () => {
+        try {
+            const settings = {};
+            if (dbAvailable) {
+                const result = await pool.query('SELECT * FROM settings');
+                result.rows.forEach(r => { settings[r.key] = r.value; });
+            } else {
+                Object.assign(settings, memStore.settings);
+            }
+
+            const active = settings.lme_envio_ativo === 'true';
+            const scheduledTime = settings.lme_envio_horario || '14:00';
+
+            if (!active) return;
+
+            // Hora atual em São Paulo
+            const localTimeStr = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+            const cleanedStr = localTimeStr.replace(',', '').trim();
+            const parts = cleanedStr.split(' ');
+            if (parts.length < 2) return;
+            const dateParts = parts[0].split('/');
+            const timeParts = parts[1].split(':');
+
+            const year = dateParts[2];
+            const month = dateParts[1];
+            const day = dateParts[0];
+
+            const hour = timeParts[0];
+            const minute = timeParts[1];
+
+            const todayDateStr = `${year}-${month}-${day}`;
+            const currentTimeStr = `${hour}:${minute}`;
+
+            if (currentTimeStr === scheduledTime && lastSentDateStr !== todayDateStr) {
+                console.log(`⏰ Horário de envio atingido (${currentTimeStr}). Enviando relatório LME por e-mail...`);
+                
+                const mes = `${parseInt(month, 10)}-${year}`;
+                const data = await generateRelatorioSemanas(mes);
+                if (data && data.semanas && data.semanas.length > 0) {
+                    const latestWeek = data.semanas[0];
+                    await enviarRelatorioEmail(latestWeek);
+                    lastSentDateStr = todayDateStr;
+                    console.log(`✅ Relatório enviado automaticamente para a data ${todayDateStr}.`);
+                } else {
+                    console.warn(`⚠️ Nenhuma semana LME encontrada para a data ${todayDateStr}. Envio abortado.`);
+                }
+            }
+        } catch (err) {
+            console.error('❌ Erro no agendador automático de e-mails:', err.message);
+        }
+    }, 60000);
+}
 
 // ─── API: LME Meses Disponíveis ───────────────────────────────────────────────
 app.get('/api/lme/meses', async (req, res) => {
@@ -1158,6 +1640,7 @@ initDatabase().then(() => {
     app.listen(PORT, () => {
         console.log(`🌿 Servidor da Apex Tech Metais rodando em http://localhost:${PORT}`);
         console.log(`📦 Modo de dados: ${dbAvailable ? 'PostgreSQL' : 'Memória (local)'}`);
+        startEmailScheduler();
     });
 });
 

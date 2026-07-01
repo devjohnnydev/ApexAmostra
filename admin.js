@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initMateriais();
         initSolucoes();
         initNoticias();
+        initLMEEmailConfig();
     }
 
     // =========================================================================
@@ -2031,6 +2032,251 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderNoticiasAdmin();
+    }
+
+    // =========================================================================
+    // CONFIGURAÇÃO DE E-MAIL LME
+    // =========================================================================
+    async function initLMEEmailConfig() {
+        const schedAtivo    = document.getElementById('sched-ativo');
+        const schedHorario  = document.getElementById('sched-horario');
+        const formScheduler = document.getElementById('form-scheduler-config');
+
+        const smtpHost      = document.getElementById('smtp-host');
+        const smtpPort      = document.getElementById('smtp-port');
+        const smtpSsl       = document.getElementById('smtp-ssl');
+        const smtpUser      = document.getElementById('smtp-user');
+        const smtpPass      = document.getElementById('smtp-pass');
+        const smtpFrom      = document.getElementById('smtp-from');
+        const formSmtp      = document.getElementById('form-smtp-config');
+
+        const btnEnviarTest = document.getElementById('btn-enviar-teste-lme');
+        const testEmailMsg  = document.getElementById('test-email-msg');
+
+        const formDest      = document.getElementById('form-destinatario');
+        const destId        = document.getElementById('dest-id');
+        const destNome      = document.getElementById('dest-nome');
+        const destEmail     = document.getElementById('dest-email');
+        const destFormTitle = document.getElementById('destinatario-form-title');
+        const btnCancelDest = document.getElementById('btn-cancel-destinatario');
+        const listDest      = document.getElementById('lme-destinatarios-list');
+
+        if (!schedAtivo) return;
+
+        // 1. Carrega configurações do servidor
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+
+                schedAtivo.checked  = settings.lme_envio_ativo === 'true';
+                schedHorario.value  = settings.lme_envio_horario || '14:00';
+
+                smtpHost.value      = settings.lme_smtp_host || '';
+                smtpPort.value      = settings.lme_smtp_port || '';
+                smtpSsl.checked     = settings.lme_smtp_ssl === 'true';
+                smtpUser.value      = settings.lme_smtp_user || '';
+                smtpPass.value      = settings.lme_smtp_pass || '';
+                smtpFrom.value      = settings.lme_smtp_from || '';
+            } catch (err) {
+                console.error('Erro ao carregar configurações de e-mail:', err);
+            }
+        }
+
+        // 2. Salva agendamento
+        if (formScheduler) {
+            formScheduler.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = {
+                    lme_envio_ativo: schedAtivo.checked ? 'true' : 'false',
+                    lme_envio_horario: schedHorario.value
+                };
+
+                try {
+                    const res = await fetch('/api/settings', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        alert('✅ Configuração de agendamento salva com sucesso!');
+                    } else {
+                        alert('❌ Erro ao salvar agendamento.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('❌ Erro de rede ao salvar agendamento.');
+                }
+            });
+        }
+
+        // 3. Salva SMTP
+        if (formSmtp) {
+            formSmtp.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = {
+                    lme_smtp_host: smtpHost.value.trim(),
+                    lme_smtp_port: smtpPort.value.trim(),
+                    lme_smtp_ssl:  smtpSsl.checked ? 'true' : 'false',
+                    lme_smtp_user: smtpUser.value.trim(),
+                    lme_smtp_pass: smtpPass.value,
+                    lme_smtp_from: smtpFrom.value.trim()
+                };
+
+                try {
+                    const res = await fetch('/api/settings', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        alert('✅ Configurações de SMTP salvas com sucesso!');
+                    } else {
+                        alert('❌ Erro ao salvar configurações de SMTP.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('❌ Erro de rede ao salvar SMTP.');
+                }
+            });
+        }
+
+        // 4. Envio de Teste Manual
+        if (btnEnviarTest) {
+            btnEnviarTest.addEventListener('click', async () => {
+                testEmailMsg.style.display = 'block';
+                testEmailMsg.style.color = '#fff';
+                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando e-mail...';
+                btnEnviarTest.disabled = true;
+
+                try {
+                    const res = await fetch('/api/lme/enviar-email-manual', { method: 'POST' });
+                    const result = await res.json();
+                    if (res.ok) {
+                        testEmailMsg.style.color = '#2AD07A';
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório enviado com sucesso!');
+                    } else {
+                        testEmailMsg.style.color = '#ff4d4d';
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro desconhecido.');
+                    }
+                } catch (err) {
+                    testEmailMsg.style.color = '#ff4d4d';
+                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro ao conectar ao servidor.';
+                } finally {
+                    btnEnviarTest.disabled = false;
+                }
+            });
+        }
+
+        // 5. CRUD Destinatários
+        async function loadDestinatarios() {
+            if (!listDest) return;
+            listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#888;">Carregando destinatários...</td></tr>';
+
+            try {
+                const res = await fetch('/api/lme/destinatarios');
+                const items = await res.json();
+                listDest.innerHTML = '';
+
+                if (!items.length) {
+                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
+                    return;
+                }
+
+                items.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #444';
+                    tr.innerHTML = `
+                        <td style="padding: 10px;">${d.nome}</td>
+                        <td style="padding: 10px; color:#bbb;">${d.email}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <button class="btn-edit-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 10px; font-size:1.1rem;" title="Editar"><i class="fa-solid fa-edit"></i></button>
+                            <button class="btn-delete-dest" data-id="${d.id}" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size:1.1rem;" title="Remover"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    listDest.appendChild(tr);
+                });
+
+                // Eventos de deletar
+                listDest.querySelectorAll('.btn-delete-dest').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.id;
+                        if (!confirm('Deseja realmente remover este destinatário?')) return;
+                        try {
+                            const res = await fetch(`/api/lme/destinatarios/${id}`, { method: 'DELETE' });
+                            if (res.ok) {
+                                loadDestinatarios();
+                            } else {
+                                alert('Erro ao deletar destinatário.');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    });
+                });
+
+                // Eventos de editar
+                listDest.querySelectorAll('.btn-edit-dest').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        destId.value = btn.dataset.id;
+                        destNome.value = btn.dataset.nome;
+                        destEmail.value = btn.dataset.email;
+                        destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
+                        btnCancelDest.style.display = 'inline-block';
+                        destNome.focus();
+                    });
+                });
+
+            } catch (err) {
+                listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#ff4d4d;">Erro ao carregar lista.</td></tr>';
+            }
+        }
+
+        // Submit destinatário
+        if (formDest) {
+            formDest.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = destId.value;
+                const nome = destNome.value.trim();
+                const email = destEmail.value.trim();
+
+                const url = id ? `/api/lme/destinatarios/${id}` : '/api/lme/destinatarios';
+                const method = id ? 'PUT' : 'POST';
+
+                try {
+                    const res = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nome, email })
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        resetDestForm();
+                        loadDestinatarios();
+                    } else {
+                        alert(result.error || 'Erro ao salvar destinatário.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Erro de rede ao salvar destinatário.');
+                }
+            });
+        }
+
+        if (btnCancelDest) {
+            btnCancelDest.addEventListener('click', resetDestForm);
+        }
+
+        function resetDestForm() {
+            formDest.reset();
+            destId.value = '';
+            destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
+            btnCancelDest.style.display = 'none';
+        }
+
+        // Executa inicialização da aba
+        await loadConfig();
+        await loadDestinatarios();
     }
 
     // =========================================================================

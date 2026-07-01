@@ -1643,3 +1643,53 @@ tr.bg-orange-light .rel-label-col {
 .rel-summary-body tr.bg-green td:not(.rel-label-col) {
     color: #000000 !important;
 }
+
+/* ─── LME Email Config Section Styles ─── */
+#lme-email-config .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+#lme-email-config .admin-table th {
+    background: #262626;
+    color: #fff;
+    font-weight: 700;
+    padding: 12px 10px;
+    border-bottom: 2px solid #333;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+#lme-email-config .admin-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #333;
+    font-size: 0.85rem;
+}
+
+#lme-email-config .admin-table tr:hover {
+    background: #222;
+}
+
+#lme-email-config .admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.smtp-test-box button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.smtp-test-box {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.destinatarios-list-wrapper {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid #333;
+}
