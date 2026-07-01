@@ -1511,11 +1511,11 @@ tr.bg-orange-light .rel-label-col {
 }
 
 /* Base table headers */
-.rel-base-table th:nth-child(2) { background: #FF8B9B !important; color: #fff !important; }
+.rel-base-table th:nth-child(2) { background: #FF8B9B !important; color: #000 !important; }
 .rel-base-table th:nth-child(3) { background: #e6b8b7 !important; color: #000 !important; }
 .rel-base-table th:nth-child(4) { background: #a6a6a6 !important; color: #000 !important; }
-.rel-base-table th:nth-child(5) { background: #C9A8E8 !important; color: #2d0060 !important; }
-.rel-base-table th:nth-child(6) { background: #b5b059 !important; color: #fff !important; }
+.rel-base-table th:nth-child(5) { background: #C9A8E8 !important; color: #000 !important; }
+.rel-base-table th:nth-child(6) { background: #b5b059 !important; color: #000 !important; }
 .rel-base-table th:nth-child(7) { background: #ffffff !important; color: #000 !important; }
 
 /* --- APPLIED FORMATTING FROM PROMPT --- */
