@@ -567,6 +567,20 @@ function avg(arr) {
     return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
+function getPreviousMonthStr(mesStr) {
+    const parts = mesStr.split('-');
+    if (parts.length !== 2) return null;
+    let m = parseInt(parts[0], 10);
+    let y = parseInt(parts[1], 10);
+    if (m === 1) {
+        m = 12;
+        y = y - 1;
+    } else {
+        m = m - 1;
+    }
+    return `${m}-${y}`;
+}
+
 app.get('/api/lme/relatorio-semanal', async (req, res) => {
     try {
         const mes = req.query.mes; // ex: "6-2026"
@@ -583,33 +597,65 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
             mesesDisponiveis.push({ valor: $(el).val(), texto: $(el).text().trim() });
         });
 
-        const reqYear = mes.split('-')[1];
+        const reqParts = mes.split('-');
+        const reqMonth = parseInt(reqParts[0], 10);
+        const reqYearNum = parseInt(reqParts[1], 10);
 
-        // 3. Extrai linhas diárias
-        const dailyRows = [];
-        $('#boxtabela table tbody tr').each((i, el) => {
-            const tds = $(el).find('td');
-            if (tds.length < 8) return;
-            const isMedia   = $(tds[0]).hasClass('lmemedia');
-            const isMensal  = $(tds[0]).hasClass('lmemensal');
-            if (isMedia || isMensal) return; // pula médias do site externo
+        // Helper to extract rows
+        function extractRows($, year) {
+            const rows = [];
+            $('#boxtabela table tbody tr').each((i, el) => {
+                const tds = $(el).find('td');
+                if (tds.length < 8) return;
+                const isMedia   = $(tds[0]).hasClass('lmemedia');
+                const isMensal  = $(tds[0]).hasClass('lmemensal');
+                if (isMedia || isMensal) return;
 
-            const diaStr = $(tds[0]).text().trim();
-            const dateObj = parseDate(diaStr, reqYear);
-            if (!dateObj) return;
+                const diaStr = $(tds[0]).text().trim();
+                const dateObj = parseDate(diaStr, year);
+                if (!dateObj) return;
 
-            dailyRows.push({
-                data:     diaStr,
-                dateObj,
-                cobre:    parseNum($(tds[1]).text()),
-                zinco:    parseNum($(tds[2]).text()),
-                aluminio: parseNum($(tds[3]).text()),
-                chumbo:   parseNum($(tds[4]).text()),
-                estanho:  parseNum($(tds[5]).text()),
-                niquel:   parseNum($(tds[6]).text()),
-                dolar:    parseNum($(tds[7]).text()),
+                rows.push({
+                    data:     diaStr,
+                    dateObj,
+                    cobre:    parseNum($(tds[1]).text()),
+                    zinco:    parseNum($(tds[2]).text()),
+                    aluminio: parseNum($(tds[3]).text()),
+                    chumbo:   parseNum($(tds[4]).text()),
+                    estanho:  parseNum($(tds[5]).text()),
+                    niquel:   parseNum($(tds[6]).text()),
+                    dolar:    parseNum($(tds[7]).text()),
+                });
             });
-        });
+            return rows;
+        }
+
+        const mainRows = extractRows($, reqYearNum);
+
+        // Fetch previous month to get the preceding weeks for historical calculations
+        let dailyRows = [...mainRows];
+        const prevMes = getPreviousMonthStr(mes);
+        if (prevMes) {
+            try {
+                const prevUrl = `https://shockmetais.com.br/lme/${prevMes}`;
+                const { data: prevHtml } = await axios.get(prevUrl, { timeout: 10000 });
+                const $prev = cheerio.load(prevHtml);
+                const prevYearNum = parseInt(prevMes.split('-')[1], 10);
+                const prevRows = extractRows($prev, prevYearNum);
+
+                const existingTimes = new Set(mainRows.map(r => r.dateObj.getTime()));
+                prevRows.forEach(r => {
+                    if (!existingTimes.has(r.dateObj.getTime())) {
+                        dailyRows.push(r);
+                    }
+                });
+            } catch (err) {
+                console.warn(`Could not fetch previous month ${prevMes}:`, err.message);
+            }
+        }
+
+        // Sort chronologically
+        dailyRows.sort((a, b) => a.dateObj - b.dateObj);
 
         const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
 
@@ -749,7 +795,16 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
             };
         });
 
-        res.json({ semanas: weekBlocks.reverse(), mesesDisponiveis });
+        const filteredBlocks = weekBlocks.filter(block => {
+            const days = weekMap.get(block.weekKey);
+            return days.some(d => {
+                const m = d.dateObj.getMonth() + 1;
+                const y = d.dateObj.getFullYear();
+                return m === reqMonth && y === reqYearNum;
+            });
+        });
+
+        res.json({ semanas: filteredBlocks.reverse(), mesesDisponiveis });
     } catch (err) {
         console.error('Erro GET /api/lme/relatorio-semanal:', err.message);
         res.status(500).json({ error: 'Erro ao gerar relatório semanal LME: ' + err.message });

@@ -2201,7 +2201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const filterMes = document.getElementById('lme-filter-mes');
                                     year = new Date().getFullYear();
                                     if (filterMes && filterMes.value && filterMes.value.includes('-')) {
-                                        year = filterMes.value.split('-')[0];
+                                        year = filterMes.value.split('-')[1];
                                     }
                                 }
                                 dateStr = `${day}-${month}-${year}`;
@@ -2293,7 +2293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const filterMes = document.getElementById('lme-filter-mes');
             let year = new Date().getFullYear();
             if (filterMes && filterMes.value && filterMes.value.includes('-')) {
-                year = parseInt(filterMes.value.split('-')[0]);
+                year = parseInt(filterMes.value.split('-')[1]);
             }
             
             const parts = firstDate.split('/');
