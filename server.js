@@ -1485,6 +1485,22 @@ async function gerarPdfRelatorioViaHeadless(weekBlock) {
         await page.goto(`http://localhost:${port}/admin.html`, { waitUntil: 'networkidle0', timeout: 30000 });
         
         // Wait for the report to be generated on the page
+        await page.evaluate(() => {
+            const overlay = document.getElementById('login-overlay');
+            if (overlay) overlay.style.display = 'none';
+            const dashboard = document.getElementById('admin-dashboard-container');
+            if (dashboard) dashboard.style.display = 'flex';
+            
+            const relatorioSection = document.getElementById('relatorio-diario');
+            if (relatorioSection) {
+                relatorioSection.style.display = 'block';
+                relatorioSection.classList.add('active');
+            }
+            
+            const captureArea = document.getElementById('capture-area');
+            if (captureArea) captureArea.style.display = 'block';
+        });
+
         await page.waitForSelector('#capture-area', { visible: true });
         
         const base64Pdf = await page.evaluate(async () => {
