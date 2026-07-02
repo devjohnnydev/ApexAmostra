@@ -2045,6 +2045,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const resendApiKey  = document.getElementById('resend-api-key');
         const resendFrom    = document.getElementById('resend-from');
         const formResend    = document.getElementById('form-resend-config');
+        const btnToggleKey  = document.getElementById('btn-toggle-resend-key');
+        
+        if (btnToggleKey && resendApiKey) {
+            btnToggleKey.addEventListener('click', () => {
+                if (resendApiKey.type === 'password') {
+                    resendApiKey.type = 'text';
+                    btnToggleKey.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                } else {
+                    resendApiKey.type = 'password';
+                    btnToggleKey.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                }
+            });
+        }
  
         const btnEnviarTest = document.getElementById('btn-enviar-teste-lme');
         const testEmailMsg  = document.getElementById('test-email-msg');

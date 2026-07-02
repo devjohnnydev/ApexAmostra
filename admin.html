@@ -959,14 +959,19 @@
                         </form>
 
                         <h3><i class="fa-solid fa-server"></i> Servidor de E-mail (Resend API)</h3>
-                        <form id="form-resend-config">
-                            <div class="form-group">
+                        <form id="form-resend-config" autocomplete="off">
+                            <div class="form-group" style="position: relative;">
                                 <label for="resend-api-key">Chave de API do Resend (API Key) *</label>
-                                <input type="password" id="resend-api-key" required placeholder="re_...">
+                                <div style="display: flex; align-items: center; position: relative;">
+                                    <input type="password" id="resend-api-key" required placeholder="re_..." autocomplete="new-password" style="width: 100%; padding-right: 40px;">
+                                    <button type="button" id="btn-toggle-resend-key" style="position: absolute; right: 10px; background: none; border: none; color: #aaa; cursor: pointer;">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="resend-from">E-mail do Remetente (De) *</label>
-                                <input type="email" id="resend-from" required placeholder="Ex: josetiago@lme.lat">
+                                <input type="email" id="resend-from" required placeholder="Ex: josetiago@lme.lat" autocomplete="off">
                                 <small style="display: block; color: #aaa; margin-top: 4px;">Este e-mail deve pertencer a um domínio verificado no seu painel do Resend.</small>
                             </div>
                             <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Configurações Resend</button>
