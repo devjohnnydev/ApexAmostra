@@ -1002,6 +1002,71 @@ async function getResendConfig() {
     return { apiKey, from };
 }
 
+function hexToRgb(hex) {
+    const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    const fullHex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0,0,0';
+}
+
+function generateQuickChartUrl(days, metal, color, title) {
+    const labels = days.map(d => d.data.substring(0, 5));
+    const values = days.map(d => d[metal] || 0);
+
+    const chartConfig = {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: title,
+                data: values,
+                borderColor: color,
+                backgroundColor: 'rgba(' + hexToRgb(color) + ', 0.08)',
+                borderWidth: 3,
+                pointBackgroundColor: color,
+                pointRadius: 4,
+                fill: true,
+                lineTension: 0.15
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: title + ' - Evolução Semanal',
+                fontColor: '#ffffff',
+                fontSize: 14,
+                fontFamily: 'Calibri'
+            },
+            legend: {
+                display: false
+            },
+            scales: {
+                xAxes: [{
+                    gridLines: {
+                        color: 'rgba(255, 255, 255, 0.08)'
+                    },
+                    ticks: {
+                        fontColor: '#bbbbbb',
+                        fontFamily: 'Calibri'
+                    }
+                }],
+                yAxes: [{
+                    gridLines: {
+                        color: 'rgba(255, 255, 255, 0.08)'
+                    },
+                    ticks: {
+                        fontColor: '#bbbbbb',
+                        fontFamily: 'Calibri'
+                    }
+                }]
+            }
+        }
+    };
+
+    const encodedConfig = encodeURIComponent(JSON.stringify(chartConfig));
+    return `https://quickchart.io/chart?w=500&h=250&bkg=%23111111&c=${encodedConfig}`;
+}
+
 async function enviarRelatorioEmail(weekBlock) {
     const config = await getResendConfig();
     if (!config.apiKey) {
@@ -1028,6 +1093,12 @@ async function enviarRelatorioEmail(weekBlock) {
 
     const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
 
+    // Gerar URLs dos gráficos de tendência usando QuickChart
+    const chartCobre = generateQuickChartUrl(days, 'cobre', '#e07b39', 'Cobre (U$/t)');
+    const chartAluminio = generateQuickChartUrl(days, 'aluminio', '#7eb3d5', 'Alumínio (U$/t)');
+    const chartZinco = generateQuickChartUrl(days, 'zinco', '#a8c5a0', 'Zinco (U$/t)');
+    const chartDolar = generateQuickChartUrl(days, 'dolar', '#70ad47', 'Dólar (R$)');
+
     let html = `
     <!DOCTYPE html>
     <html>
@@ -1052,7 +1123,7 @@ async function enviarRelatorioEmail(weekBlock) {
     <body>
         <div class="container">
             <div class="header">
-                <h2>Cotação Diária LME - Apex Tech Metais</h2>
+                <h2>Cotação Diária LME - Apextech Metais</h2>
             </div>
             <div class="content">
                 <div class="period-title">COTAÇÃO VÁLIDA PARA A SEMANA: ${label}</div>
@@ -1162,6 +1233,22 @@ async function enviarRelatorioEmail(weekBlock) {
                     </tbody>
                 </table>
 
+                <div class="section-title">Evolução Semanal dos Indicadores</div>
+                <div style="text-align: center; margin: 15px 0 25px 0;">
+                    <div style="display: inline-block; margin: 8px; max-width: 100%;">
+                        <img src="${chartCobre}" width="340" height="170" style="border-radius: 6px; border: 1px solid #333; display: block;" alt="Gráfico Cobre" />
+                    </div>
+                    <div style="display: inline-block; margin: 8px; max-width: 100%;">
+                        <img src="${chartAluminio}" width="340" height="170" style="border-radius: 6px; border: 1px solid #333; display: block;" alt="Gráfico Alumínio" />
+                    </div>
+                    <div style="display: inline-block; margin: 8px; max-width: 100%;">
+                        <img src="${chartZinco}" width="340" height="170" style="border-radius: 6px; border: 1px solid #333; display: block;" alt="Gráfico Zinco" />
+                    </div>
+                    <div style="display: inline-block; margin: 8px; max-width: 100%;">
+                        <img src="${chartDolar}" width="340" height="170" style="border-radius: 6px; border: 1px solid #333; display: block;" alt="Gráfico Dólar" />
+                    </div>
+                </div>
+
                 <div class="section-title">VALORES BASE DE 90% A 110% X LME DA SEMANA X DOLAR</div>
                 <table class="lme-table" style="font-size:9pt;">
                     <thead>
@@ -1202,7 +1289,7 @@ async function enviarRelatorioEmail(weekBlock) {
                 </table>
             </div>
             <div class="footer">
-                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} — Apex Tech Metais</p>
+                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} — Apextech Metais</p>
                 <p style="font-size: 8pt; color: #999; margin-top: 10px;">Este e-mail é enviado de forma automática conforme as configurações do painel administrativo.</p>
             </div>
         </div>
