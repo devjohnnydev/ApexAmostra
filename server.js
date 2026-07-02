@@ -956,6 +956,20 @@ app.post('/api/lme/enviar-email-manual', async (req, res) => {
     }
 });
 
+app.post('/api/lme/html-relatorio', (req, res) => {
+    try {
+        const { weekBlock } = req.body;
+        if (!weekBlock) {
+            return res.status(400).json({ error: 'weekBlock is required' });
+        }
+        const html = gerarHtmlRelatorio(weekBlock);
+        res.send(html);
+    } catch (err) {
+        console.error('Error generating HTML report:', err);
+        res.status(500).json({ error: 'Error generating report: ' + err.message });
+    }
+});
+
 // ─── Helpers de Formatação e Envio de E-mail ──────────────────────────────────
 const nodemailer = require('nodemailer');
 
@@ -971,38 +985,23 @@ const fmtPct = (val) => {
     if (val === null || val === undefined || isNaN(val)) return '—';
     return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
 };
-const fmtVar = (val, type) => {
+const fmtVar = (val, type, textColor = '#000000') => {
     if (val === null || val === undefined || isNaN(val)) return '—';
     const num = Number(val);
-    const arrow = num > 0 ? '▲ ' : num < 0 ? '▼ ' : '';
-    const style = num > 0 ? 'color: #2E7D32;' : num < 0 ? 'color: #D32F2F;' : '';
+    let arrow = '';
+    if (num > 0) {
+        arrow = `<span style="color: #00B050 !important; font-weight: bold; margin-right: 4px;">▲</span>`;
+    } else if (num < 0) {
+        arrow = `<span style="color: #FF0000 !important; font-weight: bold; margin-right: 4px;">▼</span>`;
+    }
     let txt = '';
     if (type === 'pct') {
         txt = (num * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
     } else {
         txt = 'R$ ' + Math.abs(num).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
     }
-    return `<span style="${style}">${arrow}${txt}</span>`;
+    return `${arrow}<span style="color: ${textColor} !important;">${txt}</span>`;
 };
-
-async function getResendConfig() {
-    const settings = {};
-    if (dbAvailable) {
-        try {
-            const result = await pool.query('SELECT * FROM settings');
-            result.rows.forEach(r => { settings[r.key] = r.value; });
-        } catch (e) {
-            console.error('Error reading settings from DB:', e);
-        }
-    } else {
-        Object.assign(settings, memStore.settings);
-    }
-
-    const apiKey = settings.lme_resend_api_key || process.env.RESEND_API_KEY;
-    const from   = settings.lme_resend_from || process.env.RESEND_FROM || 'josetiago@lme.lat';
-
-    return { apiKey, from };
-}
 
 function getISOWeek(date) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -1076,12 +1075,25 @@ function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
                 position: 'top',
                 labels: { fontColor: '#222' }
             },
+            plugins: {
+                datalabels: {
+                    display: true,
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#111111',
+                    font: {
+                        weight: 'bold',
+                        size: 9
+                    },
+                    formatter: 'datalabels_formatter'
+                }
+            },
             scales: {
                 yAxes: [{
                     ticks: {
                         beginAtZero: true,
                         fontColor: '#444',
-                        callback: function(v) { return 'R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 }); }
+                        callback: 'callback_y'
                     },
                     gridLines: { color: 'rgba(0,0,0,0.06)' }
                 }],
@@ -1093,7 +1105,11 @@ function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
         }
     };
 
-    const encodedConfig = encodeURIComponent(JSON.stringify(chartConfig));
+    const configStr = JSON.stringify(chartConfig)
+        .replace('"callback_y"', 'function(v) { return "R$ " + v.toLocaleString("pt-BR", { maximumFractionDigits: 0 }); }')
+        .replace('"datalabels_formatter"', 'function(value) { return "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }');
+
+    const encodedConfig = encodeURIComponent(configStr);
     return `https://quickchart.io/chart?w=500&h=250&bkg=%23ffffff&c=${encodedConfig}`;
 }
 
@@ -1113,7 +1129,7 @@ function generateKpiCard(metalName, key, comp) {
     };
 
     return `
-    <div style="display: inline-block; width: 140px; margin: 6px; padding: 10px; border: 1px solid ${border}; background-color: ${bg}; border-radius: 6px; text-align: center; vertical-align: top; font-family: Calibri, Arial, sans-serif; box-sizing: border-box;">
+    <div style="display: inline-block; width: 140px; margin: 6px; padding: 10px; border: 1.5px solid ${border}; background-color: ${bg}; border-radius: 6px; text-align: center; vertical-align: top; font-family: Calibri, Arial, sans-serif; box-sizing: border-box;">
         <div style="font-size: 8pt; font-weight: bold; color: #555; text-transform: uppercase; margin-bottom: 2px;">${metalName}</div>
         <div style="font-size: 10pt; font-weight: bold; color: ${color}; margin: 4px 0;">
             ${arrow} ${fmtR(atual)}
@@ -1124,6 +1140,337 @@ function generateKpiCard(metalName, key, comp) {
         </div>
     </div>
     `;
+}
+
+function gerarHtmlRelatorio(weekBlock) {
+    const label = weekBlock.label;
+    const days = weekBlock.days;
+    const comp = weekBlock.computed;
+
+    const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
+    const headerInfo = getWeekHeaderInfo(days[0]?.data);
+
+    const numDias = weekBlock.numDias !== undefined ? weekBlock.numDias : days.filter(d => d.cobre !== null && d.cobre !== undefined && d.cobre !== 'feriado').length;
+
+    const chartGroup1 = generateQuickChartUrl(
+        ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO'],
+        [comp['100% LME'].cobre || 0, comp['100% LME'].zinco || 0, comp['100% LME'].aluminio || 0, comp['100% LME'].chumbo || 0],
+        [comp['SEMANA ANTERIOR'].cobre || 0, comp['SEMANA ANTERIOR'].zinco || 0, comp['SEMANA ANTERIOR'].aluminio || 0, comp['SEMANA ANTERIOR'].chumbo || 0],
+        'Cobre · Zinco · Alumínio · Chumbo'
+    );
+
+    const chartGroup2 = generateQuickChartUrl(
+        ['ESTANHO', 'NÍQUEL'],
+        [comp['100% LME'].estanho || 0, comp['100% LME'].niquel || 0],
+        [comp['SEMANA ANTERIOR'].estanho || 0, comp['SEMANA ANTERIOR'].niquel || 0],
+        'Estanho · Níquel'
+    );
+
+    const logoUrl = 'https://apextechmetais.com.br/assets/img/apexlogo.png';
+
+    const metalColStyles = {
+        cobre: 'background-color: #FF8B9B; color: #000000;',
+        zinco: 'background-color: #E6B8B7; color: #3d1a1a;',
+        aluminio: 'background-color: #BFBFBF; color: #111111;',
+        chumbo: 'background-color: #C9A8E8; color: #2d0060;',
+        estanho: 'background-color: #B5B059; color: #3a3000;',
+        niquel: 'background-color: #FFFFFF; color: #222222; border: 1px solid #ddd;',
+        dolar: 'background-color: #70AD47; color: #1a4000;'
+    };
+
+    let html = `
+    <div id="capture-area" class="capture-area" style="width: 800px; margin: 0 auto; background: #ffffff; padding: 20px; font-family: Calibri, Arial, sans-serif; color: #333333; box-sizing: border-box; border: 1px solid #ddd;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <tr>
+                <td style="width: 40%; vertical-align: middle; text-align: left; padding: 5px;">
+                    <img src="${logoUrl}" alt="Apextech Metais" style="max-height: 48px; max-width: 100%; display: block;">
+                </td>
+                <td style="width: 60%; vertical-align: middle; padding: 5px;">
+                    <div style="background: #ffff00; border: 2px solid #000000; padding: 10px; text-align: center; font-family: Arial, sans-serif; border-radius: 4px;">
+                        <div style="font-size: 7.5pt; font-weight: bold; color: #000000; letter-spacing: 0.8px; margin-bottom: 2px; text-transform: uppercase;">COTAÇÃO VÁLIDA PARA A SEMANA</div>
+                        <div style="font-size: 13.5pt; font-weight: bold; color: #000000;">${headerInfo.dateText} &mdash; Semana ${headerInfo.weekNum}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; font-family: Calibri, Arial, sans-serif; border: 1px solid #ddd;">
+            <thead>
+                <tr>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #000000; color: #ffffff;">DATA</th>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #db1f1f; color: #000000;">Cobre U$/t</th>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #e6b8b7; color: #000000;">Zinco U$/t</th>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #bfbfbf; color: #000000;">Alumínio U$/t</th>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #C9A8E8; color: #2d0060;">Chumbo U$/t</th>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #b5b059; color: #000000;">Estanho U$/t</th>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #ffffff; color: #000000;">Níquel U$/t</th>
+                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #70ad47; color: #000000;">Dólar US$</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    days.forEach(d => {
+        html += `
+            <tr>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000;">${d.data || '—'}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtUSD(d.cobre)}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtUSD(d.zinco)}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtUSD(d.aluminio)}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtUSD(d.chumbo)}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtUSD(d.estanho)}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtUSD(d.niquel)}</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #e2efda; color: #000000;">${fmtBRL(d.dolar, 4)}</td>
+            </tr>
+        `;
+    });
+
+    for (let i = days.length; i < 5; i++) {
+        html += `
+            <tr style="color: #999;">
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #999;">—</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">-</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">-</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">-</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">-</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">-</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">-</td>
+                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #e2efda; color: #999;">-</td>
+            </tr>
+        `;
+    }
+
+    const mediaLabelText = numDias < 5 ? `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${numDias} dias úteis)</span>` : 'MÉDIA SEMANAL';
+
+    html += `
+        <tr style="background-color: #fde9d9; font-weight: bold; color: #000000;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #fde9d9;">${mediaLabelText}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtUSD(comp['MEDIA SEMANAL'].cobre)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtUSD(comp['MEDIA SEMANAL'].zinco)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtUSD(comp['MEDIA SEMANAL'].aluminio)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtUSD(comp['MEDIA SEMANAL'].chumbo)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtUSD(comp['MEDIA SEMANAL'].estanho)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtUSD(comp['MEDIA SEMANAL'].niquel)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #c6e0b4; color: #000000;">${fmtBRL(comp['MEDIA SEMANAL'].dolar, 4)}</td>
+        </tr>
+        <tr style="background-color: #ffff00; font-weight: bold; color: #000000;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #ffff00;">100% LME</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].cobre)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].zinco)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].aluminio)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].chumbo)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].estanho)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].niquel)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffffff; color: #000000;"></td>
+        </tr>
+        <tr style="background-color: #0070c0; font-weight: bold; color: #ffffff;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #ffffff; background-color: #0070c0;">SEMANA ANTERIOR</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #c6e0b4; color: #000000;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
+        </tr>
+        <tr style="background-color: #ebf1e4; font-size: 9pt; color: #000000;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #ebf1e4;">FECHAMENTO % (SEMANA ANTERIOR)</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].cobre, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].zinco, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].aluminio, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].chumbo, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].estanho, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].niquel, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #c6e0b4; color: #000000;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].dolar, 'pct', '#000000')}</td>
+        </tr>
+        <tr style="background-color: #0070c0; font-weight: bold; font-size: 9pt; color: #ffffff;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #ffffff; background-color: #0070c0;">OSCILAÇÃO %</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].cobre, 'pct', '#ffffff')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].zinco, 'pct', '#ffffff')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].aluminio, 'pct', '#ffffff')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].chumbo, 'pct', '#ffffff')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].estanho, 'pct', '#ffffff')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].niquel, 'pct', '#ffffff')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO %'].dolar, 'pct', '#000000')}</td>
+        </tr>
+        <tr style="background-color: #c6e0b4; font-weight: bold; font-size: 9pt; color: #000000;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #c6e0b4;">OSCILAÇÃO R$</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000')}</td>
+        </tr>
+        <tr style="background-color: #fde9d9; font-weight: bold; color: #000000;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #fde9d9;">MÉDIA MENSAL</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtBRL(comp['MEDIA MENSAL'].cobre)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtBRL(comp['MEDIA MENSAL'].zinco)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtBRL(comp['MEDIA MENSAL'].aluminio)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtBRL(comp['MEDIA MENSAL'].chumbo)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtBRL(comp['MEDIA MENSAL'].estanho)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtBRL(comp['MEDIA MENSAL'].niquel)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #c6e0b4; color: #000000;">${fmtBRL(comp['MEDIA MENSAL'].dolar, 4)}</td>
+        </tr>
+                </tbody>
+            </table>
+
+            <div style="font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif;">Tabela Comparativa (R$/kg)</div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; font-family: Calibri, Arial, sans-serif; border: 1px solid #ddd;">
+                <thead>
+                    <tr style="background:#595959; color:#ffffff;">
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#000000; color:#ffffff; width: 120px;">TIPO</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#db1f1f; color:#000000;">Cobre R$/kg</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#e6b8b7; color:#000000;">Zinco R$/kg</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#bfbfbf; color:#000000;">Alumínio R$/kg</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#C9A8E8; color:#2d0060;">Chumbo R$/kg</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#b5b059; color:#000000;">Estanho R$/kg</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#ffffff; color:#000000;">Níquel R$/kg</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#70ad47; color:#000000;">Dólar R$</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background:#eaeaea; color:#0070c0;">
+                        <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">SEMANA ANTERIOR</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
+                    </tr>
+                    <tr style="font-weight:bold; color: #000000;">
+                        <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000;">LME ATUAL</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtBRL(comp['100% LME'].cobre)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtBRL(comp['100% LME'].zinco)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtBRL(comp['100% LME'].aluminio)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtBRL(comp['100% LME'].chumbo)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtBRL(comp['100% LME'].estanho)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtBRL(comp['100% LME'].niquel)}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color:#c6e0b4; color: #000000;">${fmtBRL(comp['100% LME'].dolar, 4)}</td>
+                    </tr>
+                    <tr style="font-weight:bold; color: #000000;">
+                        <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000;">Oscilaçao</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl', '#000000')}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl', '#000000')}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl', '#000000')}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color:#c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000')}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif;">VALORES BASE DE 90% A 110% X LME DA SEMANA X DOLAR</div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; font-family: Calibri, Arial, sans-serif; border: 1px solid #ddd;">
+                <thead>
+                    <tr>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; width:50px; background:#000000; color:#ffffff;">%</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#db1f1f; color:#000000;">COBRE</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#e6b8b7; color:#000000;">ZINCO</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#bfbfbf; color:#000000;">ALUMÍNIO</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#C9A8E8; color:#2d0060;">CHUMBO</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#b5b059; color:#000000;">ESTANHO</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#ffffff; color:#000000;">NÍQUEL</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    for (let p = 90; p <= 110; p++) {
+        let pStyle = '';
+        if (p < 100) {
+            pStyle = 'background-color: #fdecea;';
+        } else if (p === 100) {
+            pStyle = 'background-color: #000000; color: #ffffff;';
+        } else {
+            pStyle = 'background-color: #e9f7f0;';
+        }
+
+        html += `<tr><td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${pStyle}">${p === 100 ? '<strong>100%</strong>' : p + '%'}</td>`;
+        metals.forEach(m => {
+            const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
+            let cellStyle = '';
+            
+            if (p === 100) {
+                cellStyle = 'background-color: #000000; color: #ffffff;';
+            } else {
+                if (m === 'cobre') cellStyle = 'background-color: #ffcccc; color: #000000;';
+                else if (m === 'zinco') cellStyle = 'background-color: #f2dcdd; color: #000000;';
+                else if (m === 'aluminio') cellStyle = 'background-color: #EDE9ED; color: #000000;';
+                else if (m === 'chumbo') cellStyle = 'background-color: #f2f2f2; color: #000000;';
+                else if (m === 'estanho') cellStyle = 'background-color: #d9d4a8; color: #000000;';
+                else if (m === 'niquel') cellStyle = 'background-color: #ffffff; color: #000000;';
+            }
+
+            if (lme === null) {
+                html += `<td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${cellStyle}">-</td>`;
+            } else {
+                const baseVal = lme * (p / 100);
+                html += `<td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${cellStyle}">${fmtBRL(baseVal, 3)}</td>`;
+            }
+        });
+        html += `</tr>`;
+    }
+
+    html += `
+                </tbody>
+            </table>
+
+            <div style="font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif;">Gráficos de Comparação de Cotações</div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <div style="margin-bottom: 25px;">
+                    <img src="${chartGroup1}" width="480" height="240" style="border-radius: 6px; border: 1px solid #ddd; max-width: 100%; display: inline-block;" alt="Cobre, Zinco, Alumínio, Chumbo" />
+                    <div style="margin-top: 10px; text-align: center;">
+                        ${generateKpiCard('Cobre', 'cobre', comp)}
+                        ${generateKpiCard('Zinco', 'zinco', comp)}
+                        ${generateKpiCard('Alumínio', 'aluminio', comp)}
+                        ${generateKpiCard('Chumbo', 'chumbo', comp)}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <img src="${chartGroup2}" width="480" height="240" style="border-radius: 6px; border: 1px solid #ddd; max-width: 100%; display: inline-block;" alt="Estanho, Níquel" />
+                    <div style="margin-top: 10px; text-align: center;">
+                        ${generateKpiCard('Estanho', 'estanho', comp)}
+                        ${generateKpiCard('Níquel', 'niquel', comp)}
+                    </div>
+                </div>
+            </div>
+
+            <div id="rel-rodape" style="display: none; text-align: center; font-size: 8pt; color: #666; margin-top: 15px; font-family: Calibri, Arial, sans-serif;"></div>
+
+            <div style="background: #f9f9f9; padding: 15px; text-align: center; font-size: 9pt; color: #666; border-top: 1px solid #eee; margin-top: 20px;">
+                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} &mdash; Apextech Metais</p>
+                <p style="font-size: 8pt; color: #999; margin-top: 8px;">Este e-mail é enviado de forma automática conforme as configurações do painel administrativo.</p>
+            </div>
+        </div>
+    `;
+
+    return html;
+}
+
+async function getResendConfig() {
+    const settings = {};
+    if (dbAvailable) {
+        try {
+            const result = await pool.query('SELECT * FROM settings');
+            result.rows.forEach(r => { settings[r.key] = r.value; });
+        } catch (e) {
+            console.error('Error reading settings from DB:', e);
+        }
+    } else {
+        Object.assign(settings, memStore.settings);
+    }
+
+    const apiKey = settings.lme_resend_api_key || process.env.RESEND_API_KEY || 're_gSuwx1Uv_PgBixykLg7UTBDqgGPqc6xD6';
+    const from   = settings.lme_resend_from || process.env.RESEND_FROM || 'josetiago@lme.lat';
+
+    return { apiKey, from };
 }
 
 async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
@@ -1145,318 +1492,18 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     }
 
     const emailsList = recipients.map(r => r.email);
-
     const label = weekBlock.label;
-    const days = weekBlock.days;
-    const comp = weekBlock.computed;
 
-    const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
-
-    // Obter data formatada e número da semana para o cabeçalho amarelo
-    const headerInfo = getWeekHeaderInfo(days[0]?.data);
-
-    // Gerar gráficos pareados de barras (Semana Anterior vs Semana Atual em R$/kg) estilo PDF
-    const chartGroup1 = generateQuickChartUrl(
-        ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO'],
-        [comp['100% LME'].cobre || 0, comp['100% LME'].zinco || 0, comp['100% LME'].aluminio || 0, comp['100% LME'].chumbo || 0],
-        [comp['SEMANA ANTERIOR'].cobre || 0, comp['SEMANA ANTERIOR'].zinco || 0, comp['SEMANA ANTERIOR'].aluminio || 0, comp['SEMANA ANTERIOR'].chumbo || 0],
-        'Cobre · Zinco · Alumínio · Chumbo'
-    );
-
-    const chartGroup2 = generateQuickChartUrl(
-        ['ESTANHO', 'NÍQUEL'],
-        [comp['100% LME'].estanho || 0, comp['100% LME'].niquel || 0],
-        [comp['SEMANA ANTERIOR'].estanho || 0, comp['SEMANA ANTERIOR'].niquel || 0],
-        'Estanho · Níquel'
-    );
-
-    // Resolvendo endereço absoluto da logo Apextech
-    const logoUrl = 'https://apextechmetais.com.br/assets/img/apexlogo.png';
+    const htmlContent = gerarHtmlRelatorio(weekBlock);
 
     let html = `
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="utf-8">
-        <style>
-            body { font-family: Calibri, Arial, sans-serif; color: #333; margin: 0; padding: 20px; background-color: #f5f5f5; }
-            .container { max-width: 800px; margin: 0 auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-            .lme-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; }
-            .lme-table th, .lme-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
-            .lme-table th { font-weight: bold; }
-            .section-title { font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif; }
-            .footer { background: #f9f9f9; padding: 15px; text-align: center; font-size: 9pt; color: #666; border-top: 1px solid #eee; margin-top: 20px; }
-            
-            /* Classes de cores de cabeçalho idênticas ao PDF */
-            .th-data { background: #000000; color: #ffffff; }
-            .th-cobre { background: #db1f1f; color: #000000; }
-            .th-zinco { background: #e6b8b7; color: #000000; }
-            .th-aluminio { background: #bfbfbf; color: #000000; }
-            .th-chumbo { background: #C9A8E8; color: #2d0060; }
-            .th-estanho { background: #b5b059; color: #000000; }
-            .th-niquel { background: #ffffff; color: #000000; }
-            .th-dolar { background: #70ad47; color: #000000; }
-        </style>
     </head>
-    <body>
-        <div class="container">
-            
-            <!-- Cabeçalho Idêntico ao PDF (Logo + Banner Amarelo) -->
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <tr>
-                    <td style="width: 40%; vertical-align: middle; text-align: left; padding: 5px;">
-                        <img src="${logoUrl}" alt="Apextech Metais" style="max-height: 48px; max-width: 100%; display: block;">
-                    </td>
-                    <td style="width: 60%; vertical-align: middle; padding: 5px;">
-                        <div style="background: #ffff00; border: 2px solid #000; padding: 10px; text-align: center; font-family: Arial, sans-serif; border-radius: 4px;">
-                            <div style="font-size: 7.5pt; font-weight: bold; color: #000; letter-spacing: 0.8px; margin-bottom: 2px; text-transform: uppercase;">COTAÇÃO VÁLIDA PARA A SEMANA</div>
-                            <div style="font-size: 13.5pt; font-weight: bold; color: #000;">${headerInfo.dateText} &mdash; Semana ${headerInfo.weekNum}</div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-
-            <table class="lme-table">
-                <thead>
-                    <tr>
-                        <th class="th-data">DATA</th>
-                        <th class="th-cobre">Cobre U$/t</th>
-                        <th class="th-zinco">Zinco U$/t</th>
-                        <th class="th-aluminio">Alumínio U$/t</th>
-                        <th class="th-chumbo">Chumbo U$/t</th>
-                        <th class="th-estanho">Estanho U$/t</th>
-                        <th class="th-niquel">Níquel U$/t</th>
-                        <th class="th-dolar">Dólar US$</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    days.forEach(d => {
-        html += `
-            <tr>
-                <td style="font-weight:bold;">${d.data}</td>
-                <td>${fmtUSD(d.cobre)}</td>
-                <td>${fmtUSD(d.zinco)}</td>
-                <td>${fmtUSD(d.aluminio)}</td>
-                <td>${fmtUSD(d.chumbo)}</td>
-                <td>${fmtUSD(d.estanho)}</td>
-                <td>${fmtUSD(d.niquel)}</td>
-                <td style="background:#e2efda; font-weight:bold;">${fmtBRL(d.dolar, 4)}</td>
-            </tr>
-        `;
-    });
-
-    // Adiciona linhas extras se houver menos de 5 dias úteis (idêntico ao PDF que mostra '-' nas linhas vazias)
-    for (let i = days.length; i < 5; i++) {
-        html += `
-            <tr style="color: #999;">
-                <td style="font-weight:bold;">—</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td style="background:#e2efda;">-</td>
-            </tr>
-        `;
-    }
-
-    html += `
-        <!-- Médias e Oscilações no formato exato do PDF -->
-        <tr style="background-color: #fde9d9 !important; font-weight: bold; color: #000;">
-            <td style="text-align: left; padding-left: 8px;">MÉDIA SEMANAL</td>
-            <td>${fmtUSD(comp['MEDIA SEMANAL'].cobre)}</td>
-            <td>${fmtUSD(comp['MEDIA SEMANAL'].zinco)}</td>
-            <td>${fmtUSD(comp['MEDIA SEMANAL'].aluminio)}</td>
-            <td>${fmtUSD(comp['MEDIA SEMANAL'].chumbo)}</td>
-            <td>${fmtUSD(comp['MEDIA SEMANAL'].estanho)}</td>
-            <td>${fmtUSD(comp['MEDIA SEMANAL'].niquel)}</td>
-            <td style="background:#c6e0b4;">${fmtBRL(comp['MEDIA SEMANAL'].dolar, 4)}</td>
-        </tr>
-        <tr style="background-color: #ffff00 !important; font-weight: bold; color: #000;">
-            <td style="text-align: left; padding-left: 8px;">100% LME</td>
-            <td>${fmtBRL(comp['100% LME'].cobre)}</td>
-            <td>${fmtBRL(comp['100% LME'].zinco)}</td>
-            <td>${fmtBRL(comp['100% LME'].aluminio)}</td>
-            <td>${fmtBRL(comp['100% LME'].chumbo)}</td>
-            <td>${fmtBRL(comp['100% LME'].estanho)}</td>
-            <td>${fmtBRL(comp['100% LME'].niquel)}</td>
-            <td style="background:#ffffff;"></td>
-        </tr>
-        <tr style="background-color: #0070c0 !important; font-weight: bold; color: #ffffff;">
-            <td style="text-align: left; padding-left: 8px; color: #ffffff;">SEMANA ANTERIOR</td>
-            <td style="color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
-            <td style="color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
-            <td style="color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
-            <td style="color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
-            <td style="color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
-            <td style="color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
-            <td style="background:#c6e0b4; color:#000;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
-        </tr>
-        <tr style="background-color: #ebf1e4; font-size: 9pt;">
-            <td style="text-align: left; padding-left: 8px;">FECHAMENTO % (SEMANA ANTERIOR)</td>
-            <td>${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].cobre, 'pct')}</td>
-            <td>${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].zinco, 'pct')}</td>
-            <td>${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].aluminio, 'pct')}</td>
-            <td>${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].chumbo, 'pct')}</td>
-            <td>${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].estanho, 'pct')}</td>
-            <td>${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].niquel, 'pct')}</td>
-            <td style="background:#c6e0b4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].dolar, 'pct')}</td>
-        </tr>
-        <tr style="background-color: #0070c0 !important; color: #ffffff !important; font-weight: bold; font-size: 9pt;">
-            <td style="text-align: left; padding-left: 8px; color: #ffffff;">OSCILAÇÃO %</td>
-            <td style="color: #ffffff;">${fmtVar(comp['OSCILAÇÃO %'].cobre, 'pct')}</td>
-            <td style="color: #ffffff;">${fmtVar(comp['OSCILAÇÃO %'].zinco, 'pct')}</td>
-            <td style="color: #ffffff;">${fmtVar(comp['OSCILAÇÃO %'].aluminio, 'pct')}</td>
-            <td style="color: #ffffff;">${fmtVar(comp['OSCILAÇÃO %'].chumbo, 'pct')}</td>
-            <td style="color: #ffffff;">${fmtVar(comp['OSCILAÇÃO %'].estanho, 'pct')}</td>
-            <td style="color: #ffffff;">${fmtVar(comp['OSCILAÇÃO %'].niquel, 'pct')}</td>
-            <td style="background:#c6e0b4; color:#000;">${fmtVar(comp['OSCILAÇÃO %'].dolar, 'pct')}</td>
-        </tr>
-        <tr style="background-color: #c6e0b4; font-weight: bold; font-size: 9pt; color: #000;">
-            <td style="text-align: left; padding-left: 8px;">OSCILAÇÃO R$</td>
-            <td>${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl')}</td>
-            <td>${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl')}</td>
-            <td>${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl')}</td>
-            <td>${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl')}</td>
-            <td>${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl')}</td>
-            <td>${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl')}</td>
-            <td style="background:#c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl')}</td>
-        </tr>
-        <tr style="background-color: #fde9d9 !important; font-weight: bold; color: #000;">
-            <td style="text-align: left; padding-left: 8px;">MÉDIA MENSAL</td>
-            <td>${fmtBRL(comp['MEDIA MENSAL'].cobre)}</td>
-            <td>${fmtBRL(comp['MEDIA MENSAL'].zinco)}</td>
-            <td>${fmtBRL(comp['MEDIA MENSAL'].aluminio)}</td>
-            <td>${fmtBRL(comp['MEDIA MENSAL'].chumbo)}</td>
-            <td>${fmtBRL(comp['MEDIA MENSAL'].estanho)}</td>
-            <td>${fmtBRL(comp['MEDIA MENSAL'].niquel)}</td>
-            <td style="background:#c6e0b4;">${fmtBRL(comp['MEDIA MENSAL'].dolar, 4)}</td>
-        </tr>
-                </tbody>
-            </table>
-
-            <!-- Tabela Comparativa (R$/kg) - NOVIDADE NO E-MAIL (Exata ao PDF) -->
-            <div class="section-title">Tabela Comparativa (R$/kg)</div>
-            <table class="lme-table" style="font-size: 9pt;">
-                <thead>
-                    <tr style="background:#595959; color:#fff;">
-                        <th style="width: 120px; background:#000; color:#fff;">TIPO</th>
-                        <th class="th-cobre">Cobre R$/kg</th>
-                        <th class="th-zinco">Zinco R$/kg</th>
-                        <th class="th-aluminio">Alumínio R$/kg</th>
-                        <th class="th-chumbo">Chumbo R$/kg</th>
-                        <th class="th-estanho">Estanho R$/kg</th>
-                        <th class="th-niquel">Níquel R$/kg</th>
-                        <th class="th-dolar">Dólar R$</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="background:#eaeaea; color:#0070c0;">
-                        <td style="font-weight:bold;">SEMANA ANTERIOR</td>
-                        <td>${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
-                        <td>${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
-                        <td>${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
-                        <td>${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
-                        <td>${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
-                        <td>${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
-                        <td>${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
-                    </tr>
-                    <tr style="font-weight:bold; color: #000;">
-                        <td>LME ATUAL</td>
-                        <td>${fmtBRL(comp['100% LME'].cobre)}</td>
-                        <td>${fmtBRL(comp['100% LME'].zinco)}</td>
-                        <td>${fmtBRL(comp['100% LME'].aluminio)}</td>
-                        <td>${fmtBRL(comp['100% LME'].chumbo)}</td>
-                        <td>${fmtBRL(comp['100% LME'].estanho)}</td>
-                        <td>${fmtBRL(comp['100% LME'].niquel)}</td>
-                        <td style="background:#c6e0b4;">${fmtBRL(comp['100% LME'].dolar, 4)}</td>
-                    </tr>
-                    <tr style="font-weight:bold; color: #000;">
-                        <td>Oscilação</td>
-                        <td>${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl')}</td>
-                        <td>${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl')}</td>
-                        <td>${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl')}</td>
-                        <td>${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl')}</td>
-                        <td>${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl')}</td>
-                        <td>${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl')}</td>
-                        <td style="background:#c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl')}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Tabela de Valores Base (90% a 110%) estilo PDF -->
-            <div class="section-title">VALORES BASE DE 90% A 110% X LME DA SEMANA X DOLAR</div>
-            <table class="lme-table" style="font-size:8.5pt;">
-                <thead>
-                    <tr>
-                        <th style="width:50px; background:#000; color:#fff;">%</th>
-                        <th class="th-cobre">COBRE</th>
-                        <th class="th-zinco">ZINCO</th>
-                        <th class="th-aluminio">ALUMÍNIO</th>
-                        <th class="th-chumbo">CHUMBO</th>
-                        <th class="th-estanho">ESTANHO</th>
-                        <th class="th-niquel">NÍQUEL</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    for (let p = 90; p <= 110; p++) {
-        let rowStyle = '';
-        if (p < 100) rowStyle = 'background-color: #fdecea;';
-        else if (p === 100) rowStyle = 'background-color: #ffff00; font-weight: bold;';
-        else rowStyle = 'background-color: #e9f7f0;';
-
-        html += `<tr style="${rowStyle}"><td>${p}%</td>`;
-        metals.forEach(m => {
-            const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
-            if (lme === null) {
-                html += `<td>-</td>`;
-            } else {
-                const baseVal = lme * (p / 100);
-                html += `<td>${fmtBRL(baseVal, 3)}</td>`;
-            }
-        });
-        html += `</tr>`;
-    }
-
-    html += `
-                </tbody>
-            </table>
-
-            <!-- Gráficos de Tendência Idênticos aos do PDF (QuickChart com fundo branco) -->
-            <div class="section-title">Gráficos de Comparação de Cotações</div>
-            
-            <div style="text-align: center; margin-top: 15px;">
-                <!-- Grupo 1 -->
-                <div style="margin-bottom: 25px;">
-                    <img src="${chartGroup1}" width="480" height="240" style="border-radius: 6px; border: 1px solid #ddd; max-width: 100%; display: inline-block;" alt="Cobre, Zinco, Alumínio, Chumbo" />
-                    <div style="margin-top: 10px; text-align: center;">
-                        ${generateKpiCard('Cobre', 'cobre', comp)}
-                        ${generateKpiCard('Zinco', 'zinco', comp)}
-                        ${generateKpiCard('Alumínio', 'aluminio', comp)}
-                        ${generateKpiCard('Chumbo', 'chumbo', comp)}
-                    </div>
-                </div>
-
-                <!-- Grupo 2 -->
-                <div style="margin-bottom: 10px;">
-                    <img src="${chartGroup2}" width="480" height="240" style="border-radius: 6px; border: 1px solid #ddd; max-width: 100%; display: inline-block;" alt="Estanho, Níquel" />
-                    <div style="margin-top: 10px; text-align: center;">
-                        ${generateKpiCard('Estanho', 'estanho', comp)}
-                        ${generateKpiCard('Níquel', 'niquel', comp)}
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer">
-                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} &mdash; Apextech Metais</p>
-                <p style="font-size: 8pt; color: #999; margin-top: 8px;">Este e-mail é enviado de forma automática conforme as configurações do painel administrativo.</p>
-            </div>
-        </div>
+    <body style="background-color: #f5f5f5; padding: 20px; margin: 0;">
+        ${htmlContent}
     </body>
     </html>
     `;
