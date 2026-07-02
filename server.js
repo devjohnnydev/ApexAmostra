@@ -1501,7 +1501,25 @@ async function gerarPdfRelatorioViaHeadless(weekBlock) {
             if (captureArea) captureArea.style.display = 'block';
         });
 
-        await page.waitForSelector('#capture-area', { visible: true });
+        // Wait for the report to be populated (the date will stop being "...")
+        await page.waitForFunction(() => {
+            const el = document.getElementById('rel-date-range');
+            return el && el.textContent && el.textContent !== '...';
+        }, { timeout: 30000 });
+
+        // Wait for all images (QuickCharts) to load completely before capturing
+        await page.evaluate(async () => {
+            const images = Array.from(document.querySelectorAll('#capture-area img'));
+            await Promise.all(images.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+            }));
+            // Pequeno delay extra de garantia para renderização de SVG/DOM
+            await new Promise(r => setTimeout(r, 1500));
+        });
         
         const base64Pdf = await page.evaluate(async () => {
             const captureArea = document.getElementById('capture-area');
