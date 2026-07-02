@@ -1481,7 +1481,15 @@ async function gerarPdfRelatorioViaHeadless(weekBlock) {
     });
     try {
         const page = await browser.newPage();
+        
+        // Mock authentication for the headless browser so admin.js runs initAdmin()
+        await page.evaluateOnNewDocument(() => {
+            sessionStorage.setItem('apex_admin_logged_in', 'true');
+        });
+
+        // Set viewport and go to page
         const port = process.env.PORT || 3000;
+        await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
         await page.goto(`http://localhost:${port}/admin.html`, { waitUntil: 'networkidle0', timeout: 30000 });
         
         // Wait for the report to be generated on the page
