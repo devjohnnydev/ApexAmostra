@@ -8,6 +8,7 @@ const dotenv  = require('dotenv');
 const path    = require('path');
 const axios   = require('axios');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -1473,6 +1474,79 @@ async function getResendConfig() {
     return { apiKey, from };
 }
 
+async function gerarPdfRelatorioViaHeadless(weekBlock) {
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true
+    });
+    try {
+        const page = await browser.newPage();
+        const port = process.env.PORT || 3000;
+        await page.goto(`http://localhost:${port}/admin.html`, { waitUntil: 'networkidle0', timeout: 30000 });
+        
+        // Wait for the report to be generated on the page
+        await page.waitForSelector('#capture-area', { visible: true });
+        
+        const base64Pdf = await page.evaluate(async () => {
+            const captureArea = document.getElementById('capture-area');
+            if (!captureArea) return null;
+
+            // Wait for any html2canvas scripts or external assets if needed, but they should be loaded by now.
+            // Correção do Bug do SVG Preto
+            const logoImg = captureArea.querySelector('.rel-logo img');
+            let originalSrc = '';
+            if (logoImg && logoImg.src.endsWith('.svg')) {
+                try {
+                    originalSrc = logoImg.src;
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = logoImg.naturalWidth || 400;
+                    tempCanvas.height = logoImg.naturalHeight || 133;
+                    const tCtx = tempCanvas.getContext('2d');
+                    tCtx.fillStyle = '#ffffff';
+                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                    tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                    logoImg.src = tempCanvas.toDataURL('image/png');
+                } catch (svgErr) {
+                    console.warn(svgErr);
+                }
+            }
+            
+            // Use html2canvas and jsPDF (which are loaded in admin.html)
+            const canvas = await html2canvas(captureArea, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: false,
+                scrollY: 0,
+                windowHeight: captureArea.scrollHeight,
+                height: captureArea.scrollHeight,
+                width: captureArea.scrollWidth
+            });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf;
+
+            const pdfWidthMm = 210;
+            const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: [pdfWidthMm, pdfHeightMm]
+            });
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+
+            return pdf.output('datauristring').split(',')[1];
+        });
+        
+        return base64Pdf;
+    } catch (e) {
+        console.error('Erro ao gerar PDF via Puppeteer:', e);
+        return null;
+    } finally {
+        await browser.close();
+    }
+}
+
 async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     const config = await getResendConfig();
     if (!config.apiKey) {
@@ -1494,16 +1568,17 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     const emailsList = recipients.map(r => r.email);
     const label = weekBlock.label;
 
-    const htmlContent = gerarHtmlRelatorio(weekBlock);
-
     let html = `
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="utf-8">
     </head>
-    <body style="background-color: #f5f5f5; padding: 20px; margin: 0;">
-        ${htmlContent}
+    <body style="background-color: #ffffff; padding: 20px; margin: 0; font-family: Arial, sans-serif; color: #333333;">
+        <p>Olá,</p>
+        <p>Segue em anexo o Relatório Diário LME — <strong>${label}</strong>.</p>
+        <br>
+        <p>Atenciosamente,<br>Apextech Metais</p>
     </body>
     </html>
     `;
@@ -1513,18 +1588,26 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
         from: config.from,
         to: emailsList,
         subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${label}`,
-        html: html
+        html: html,
+        attachments: []
     };
 
-    // Anexar o PDF gerado pelo cliente se disponível
-    if (pdfBase64) {
-        emailPayload.attachments = [
-            {
-                filename: `relatorio_lme_${label.replace(/\s+/g, '_')}.pdf`,
-                content: pdfBase64
-            }
-        ];
-        console.log('📎 PDF recebido do cliente anexado com sucesso ao e-mail.');
+    // Anexar o PDF gerado pelo cliente ou gerar via Puppeteer
+    let finalPdfBase64 = pdfBase64;
+    
+    if (!finalPdfBase64) {
+        console.log('📄 Gerando PDF via Puppeteer no backend para envio automático...');
+        finalPdfBase64 = await gerarPdfRelatorioViaHeadless(weekBlock);
+    }
+
+    if (finalPdfBase64) {
+        emailPayload.attachments.push({
+            filename: `relatorio_lme_${label.replace(/\s+/g, '_')}.pdf`,
+            content: finalPdfBase64
+        });
+        console.log('📎 PDF anexado com sucesso ao e-mail.');
+    } else {
+        console.warn('⚠️ Não foi possível anexar o PDF ao e-mail.');
     }
 
     // Send using Resend API via axios POST request

@@ -2130,92 +2130,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 4. Envio de Teste Manual
-        async function generatePDFBase64() {
-            const captureArea = document.getElementById('capture-area');
-            if (!captureArea) return null;
-
-            // Mostrar rodapé com timestamp
-            const nowTs = new Date();
-            const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                + ' às '
-                + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const rodape = document.getElementById('rel-rodape');
-            if (rodape) {
-                rodape.textContent = `Relatório gerado em: ${tsStr}`;
-                rodape.style.display = 'block';
-            }
-
-            const logoImg = captureArea.querySelector('.rel-logo img');
-            let originalSrc = '';
-            if (logoImg && logoImg.src.endsWith('.svg')) {
-                try {
-                    originalSrc = logoImg.src;
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = logoImg.naturalWidth || 400;
-                    tempCanvas.height = logoImg.naturalHeight || 133;
-                    const tCtx = tempCanvas.getContext('2d');
-                    tCtx.fillStyle = '#ffffff';
-                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
-                    logoImg.src = tempCanvas.toDataURL('image/png');
-                } catch (svgErr) {
-                    console.warn('Erro ao converter logo para PNG no envio de e-mail:', svgErr);
-                }
-            }
-
-            try {
-                const canvas = await html2canvas(captureArea, {
-                    scale: 2,
-                    backgroundColor: '#ffffff',
-                    useCORS: true,
-                    allowTaint: false,
-                    scrollY: 0,
-                    windowHeight: captureArea.scrollHeight,
-                    height: captureArea.scrollHeight,
-                    width: captureArea.scrollWidth
-                });
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const { jsPDF } = window.jspdf;
-
-                const pdfWidthMm = 210;
-                const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: [pdfWidthMm, pdfHeightMm]
-                });
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
-                
-                return pdf.output('datauristring').split(',')[1];
-            } catch (err) {
-                console.error('Erro ao gerar PDF para o e-mail:', err);
-                return null;
-            } finally {
-                if (logoImg && originalSrc) {
-                    logoImg.src = originalSrc;
-                }
-            }
-        }
-
         if (btnEnviarTest) {
             btnEnviarTest.addEventListener('click', async () => {
                 testEmailMsg.style.display = 'block';
                 testEmailMsg.style.color = '#fff';
-                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF e enviando...';
+                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando e-mail...';
                 btnEnviarTest.disabled = true;
 
                 try {
-                    // Gerar o PDF na hora
-                    const pdfBase64 = await generatePDFBase64();
-
-                    const res = await fetch('/api/lme/enviar-email-manual', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ pdfBase64 })
-                    });
+                    const res = await fetch('/api/lme/enviar-email-manual', { method: 'POST' });
                     const result = await res.json();
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';
@@ -2577,27 +2500,202 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function renderRelatorioDiario(week) {
-        try {
-            const res = await fetch('/api/lme/html-relatorio', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ weekBlock: week })
-            });
-            if (res.ok) {
-                const html = await res.text();
-                const captureArea = document.getElementById('capture-area');
-                if (captureArea) {
-                    captureArea.outerHTML = html;
-                }
-            } else {
-                console.error('Erro ao buscar HTML do relatório:', res.statusText);
-            }
-        } catch (err) {
-            console.error('Erro de rede ao buscar HTML do relatório:', err);
+    function renderRelatorioDiario(week) {
+        const d = week.days || [];
+        const comp = week.computed || {};
+        
+        const firstDate = d[0]?.data || '';
+        const lastDate = d[d.length - 1]?.data || '';
+        
+        // Helper to get ISO week
+        function getISOWeek(date) {
+            const dObj = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = dObj.getUTCDay() || 7;
+            dObj.setUTCDate(dObj.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(dObj.getUTCFullYear(), 0, 1));
+            return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
+
+        let weekNum = '...';
+        let dataTexto = `${firstDate} a ${lastDate}`;
+        
+        if (firstDate) {
+            const ptMonths = { 'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'set': 8, 'out': 9, 'nov': 10, 'dez': 11 };
+            const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+            
+            // Try to get year from filter, otherwise use current year
+            const filterMes = document.getElementById('lme-filter-mes');
+            let year = new Date().getFullYear();
+            if (filterMes && filterMes.value && filterMes.value.includes('-')) {
+                year = parseInt(filterMes.value.split('-')[1]);
+            }
+            
+            const parts = firstDate.split('/');
+            if (parts.length >= 2) {
+                const day = parseInt(parts[0]);
+                const monthPart = parts[1].toLowerCase().trim();
+                let monthIndex = 0;
+                
+                if (isNaN(monthPart)) {
+                    monthIndex = ptMonths[monthPart] !== undefined ? ptMonths[monthPart] : 0;
+                } else {
+                    monthIndex = parseInt(monthPart) - 1;
+                }
+                
+                // If parts has 3, it's DD/MM/YYYY
+                if (parts.length === 3) {
+                    year = parseInt(parts[2]);
+                }
+                
+                const dateObj = new Date(year, monthIndex, day);
+                weekNum = getISOWeek(dateObj);
+                dataTexto = `${day} de ${monthNames[monthIndex]}`;
+            }
+        }
+        
+        document.getElementById('rel-date-range').textContent = dataTexto;
+        document.getElementById('rel-week-number').textContent = weekNum;
+
+        const tbody = document.getElementById('rel-tbody');
+        tbody.innerHTML = '';
+        
+        const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
+        
+        const formatUsd = (val) => {
+            if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
+            return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        };
+        const formatBrl = (val, dec = 3) => {
+            if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
+            return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+        };
+        const formatPct = (val) => {
+            if (val === null || val === undefined || isNaN(val)) return '-';
+            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+        };
+
+        // Função reutilizável para formatar indicadores de variação
+        function formatVariacaoCell(element, value, type) {
+            if (!element) return;
+            if (value === null || value === undefined || isNaN(value)) {
+                element.textContent = '-';
+                element.style.setProperty('color', '#000000', 'important');
+                return;
+            }
+            
+            const numVal = Number(value);
+            let formattedText = '';
+            
+            if (type === 'percent') {
+                formattedText = (numVal * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+            } else if (type === 'currency') {
+                formattedText = 'R$ ' + Math.abs(numVal).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            } else {
+                formattedText = numVal.toLocaleString('pt-BR');
+            }
+
+            let arrow = '';
+            if (numVal > 0) {
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
+            } else if (numVal < 0) {
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
+            }
+            
+            element.innerHTML = `${arrow}${formattedText}`;
+            element.style.setProperty('color', '#000000', 'important'); // Texto sempre em preto
+        }
+
+        // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias úteis
+        const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
+        if (mediaLabelEl) {
+            if (week.numDias !== undefined && week.numDias < 5) {
+                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
+            } else {
+                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
+            }
+        }
+
+        d.forEach(day => {
+            if (!day.data) return;
+            const tr = document.createElement('tr');
+            let colsHtml = `<td class="font-bold rel-label-col">${day.data}</td>`;
+            metals.forEach(m => {
+                const val = day[m];
+                const colClass = `rel-col-${m}`;
+                if (m === 'dolar') {
+                    colsHtml += `<td class="${colClass}">${formatBrl(val, 4)}</td>`;
+                } else {
+                    colsHtml += `<td class="${colClass}">${formatUsd(val)}</td>`;
+                }
+            });
+            tr.innerHTML = colsHtml;
+            tbody.appendChild(tr);
+        });
+
+        metals.forEach(m => {
+            const isDolar = (m === 'dolar');
+            const elMedia = document.getElementById('rel-media-' + m);
+            if (elMedia) {
+                if (isDolar) {
+                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 3);
+                } else {
+                    elMedia.textContent = formatUsd(comp['MEDIA SEMANAL']?.[m]);
+                }
+            }
+            if (m !== 'dolar') {
+                const elLme = document.getElementById('rel-lme-' + m);
+                if (elLme) elLme.textContent = formatBrl(comp['100% LME']?.[m], 3);
+            }
+            const elAnt = document.getElementById('rel-ant-' + m);
+            if (elAnt) {
+                if (isDolar) {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                } else {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                }
+            }
+            const elFech = document.getElementById('rel-fech-' + m);
+            formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
+            const elOscPct = document.getElementById('rel-osc-pct-' + m);
+            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
+
+            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+            const elOscRs = document.getElementById('rel-osc-rs-' + m);
+            formatVariacaoCell(elOscRs, oscRs, 'currency');
+
+            const elMensal = document.getElementById('rel-mensal-' + m);
+            if (elMensal) {
+                if (isDolar) {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
+                } else {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
+                }
+            }
+
+            const elCompAnt = document.getElementById('rel-comp-ant-' + m);
+            if (elCompAnt) {
+                if (isDolar) {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                } else {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                }
+            }
+            
+            // CORREÇÃO CRÍTICA: LME ATUAL é o valor de '100% LME' (R$/kg) da semana em curso, não a média semanal bruta em US$/t!
+            const elCompAtu = document.getElementById('rel-comp-atu-' + m);
+            if (elCompAtu) {
+                if (isDolar) {
+                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 3);
+                } else {
+                    elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 3);
+                }
+            }
+            const elCompOsc = document.getElementById('rel-comp-osc-' + m);
+            formatVariacaoCell(elCompOsc, oscRs, 'currency');
+        });
+
+        renderRelatorioCharts(week);
+        renderRelatorioBase(week);
     }
 
     function renderRelatorioCharts(week) {
