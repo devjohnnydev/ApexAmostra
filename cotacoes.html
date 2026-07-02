@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html dir="ltr" lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cotações LME - Apex Tech Metais</title>
-    <meta name="description" content="Acompanhe as cotações LME de cobre, zinco, alumínio, chumbo, estanho e níquel em tempo real. Apex Tech Metais.">
+    <title>CotaÃ§Ãµes LME - Apex Tech Metais</title>
+    <link rel="icon" type="image/png" href="assets/img/icon.png">
+    <meta name="description" content="Acompanhe as cotaÃ§Ãµes LME de cobre, zinco, alumÃ­nio, chumbo, estanho e nÃ­quel em tempo real. Apex Tech Metais.">
     <link rel="icon" type="image/svg+xml" href="https://apextechmetais.com.br/wp-content/uploads/2024/07/logo-apextech.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,18 +28,18 @@
                 <div class="lme-metals-tabs" id="indices">
                     <button class="lme-metal-btn active" data-indice="cobre">Cobre</button>
                     <button class="lme-metal-btn" data-indice="zinco">Zinco</button>
-                    <button class="lme-metal-btn" data-indice="aluminio">Alumínio</button>
+                    <button class="lme-metal-btn" data-indice="aluminio">AlumÃ­nio</button>
                     <button class="lme-metal-btn" data-indice="chumbo">Chumbo</button>
                     <button class="lme-metal-btn" data-indice="estanho">Estanho</button>
-                    <button class="lme-metal-btn" data-indice="niquel">Níquel</button>
-                    <button class="lme-metal-btn" data-indice="dolar">Dólar</button>
+                    <button class="lme-metal-btn" data-indice="niquel">NÃ­quel</button>
+                    <button class="lme-metal-btn" data-indice="dolar">DÃ³lar</button>
                 </div>
                 <div class="lme-select-month">
                     <select id="meslme" style="padding:10px;border:1px solid var(--apex-border);border-radius:4px;"></select>
                 </div>
             </div>
 
-            <!-- Variações -->
+            <!-- VariaÃ§Ãµes -->
             <div id="variacao" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px;"></div>
 
             <!-- Tabela -->
@@ -52,11 +53,11 @@
 
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;">
                 <div class="lme-chart-box">
-                    <h4 id="titchart-diario">Evolução Diária</h4>
+                    <h4 id="titchart-diario">EvoluÃ§Ã£o DiÃ¡ria</h4>
                     <canvas id="chart-diario"></canvas>
                 </div>
                 <div class="lme-chart-box">
-                    <h4 id="titchart-semanal">Evolução Semanal</h4>
+                    <h4 id="titchart-semanal">EvoluÃ§Ã£o Semanal</h4>
                     <canvas id="chart-semanal"></canvas>
                 </div>
             </div>
@@ -69,4 +70,5 @@
 <script src="script.js?v=8"></script>
 </body>
 </html>
+
 

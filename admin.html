@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin - Apex Tech Metais</title>
+    <link rel="icon" type="image/png" href="assets/img/icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;800&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="admin.css?v=13">
@@ -22,8 +23,8 @@
             <h2><i class="fa-solid fa-lock"></i> Acesso Restrito</h2>
             <form id="admin-login-form">
                 <div class="form-group">
-                    <label for="login-user">Usuário</label>
-                    <input type="text" id="login-user" required placeholder="Digite o usuário">
+                    <label for="login-user">UsuÃ¡rio</label>
+                    <input type="text" id="login-user" required placeholder="Digite o usuÃ¡rio">
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Senha</label>
@@ -46,15 +47,15 @@
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-target="dashboard">
                     <i class="fa-solid fa-chart-line"></i>
-                    <span>Análises LME</span>
+                    <span>AnÃ¡lises LME</span>
                 </a>
                 <a href="#" class="nav-item" data-target="lme-excel-report">
                     <i class="fa-solid fa-file-excel"></i>
-                    <span>Relatório LME</span>
+                    <span>RelatÃ³rio LME</span>
                 </a>
                 <a href="#" class="nav-item" data-target="relatorio-diario">
                     <i class="fa-brands fa-whatsapp"></i>
-                    <span>Relatório Diário LME</span>
+                    <span>RelatÃ³rio DiÃ¡rio LME</span>
                 </a>
                 <a href="#" class="nav-item" data-target="home-config">
                     <i class="fa-solid fa-toggle-on"></i>
@@ -70,11 +71,11 @@
                 </a>
                 <a href="#" class="nav-item" data-target="solucoes">
                     <i class="fa-solid fa-industry"></i>
-                    <span>Soluções</span>
+                    <span>SoluÃ§Ãµes</span>
                 </a>
                 <a href="#" class="nav-item" data-target="noticias">
                     <i class="fa-solid fa-newspaper"></i>
-                    <span>Notícias</span>
+                    <span>NotÃ­cias</span>
                 </a>
                 <a href="#" class="nav-item" data-target="lme-email-config">
                     <i class="fa-solid fa-envelope"></i>
@@ -90,15 +91,15 @@
         <!-- Main Content -->
         <main class="main-content">
 
-            <!-- ═══════════════════════════════════════════════════════════
-                 DASHBOARD — ANÁLISES LME (9 análises)
-            ═══════════════════════════════════════════════════════════ -->
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                 DASHBOARD â€” ANÃLISES LME (9 anÃ¡lises)
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="dashboard" class="view-section active">
                 <header class="section-header">
                     <div class="section-header-row">
                         <div>
-                            <h1><i class="fa-solid fa-chart-line"></i> Central de Decisão LME</h1>
-                            <p>Dados em tempo real · Decida o melhor momento de vender cada metal</p>
+                            <h1><i class="fa-solid fa-chart-line"></i> Central de DecisÃ£o LME</h1>
+                            <p>Dados em tempo real Â· Decida o melhor momento de vender cada metal</p>
                         </div>
                         <div class="dashboard-controls">
                             <select id="mes-selector" class="mes-select"></select>
@@ -116,14 +117,14 @@
 
                 <div id="lme-error" class="error-state" style="display:none;">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Erro ao carregar dados. Verifique a conexão e tente novamente.</span>
+                    <span>Erro ao carregar dados. Verifique a conexÃ£o e tente novamente.</span>
                     <button onclick="document.getElementById('btn-refresh-lme').click()" class="btn-secondary" style="width:auto;margin-top:10px;">Tentar novamente</button>
                 </div>
 
                 <!-- Filter Bar -->
                 <div id="analysis-filter-bar" style="display:none;">
                     <div class="analysis-filter-wrap">
-                        <span class="filter-label"><i class="fa-solid fa-filter"></i> Filtrar Análise:</span>
+                        <span class="filter-label"><i class="fa-solid fa-filter"></i> Filtrar AnÃ¡lise:</span>
                         <button class="analysis-filter-btn active" data-filter="all">Todas</button>
                         <button class="analysis-filter-btn" data-filter="01">01</button>
                         <button class="analysis-filter-btn" data-filter="02">02</button>
@@ -141,7 +142,7 @@
                 <div id="fullscreen-overlay" class="fullscreen-overlay" style="display:none;">
                     <div class="fullscreen-modal">
                         <div class="fullscreen-header">
-                            <span id="fullscreen-title">Análise</span>
+                            <span id="fullscreen-title">AnÃ¡lise</span>
                             <button id="btn-close-fullscreen" class="btn-close-fs"><i class="fa-solid fa-xmark"></i> Fechar</button>
                         </div>
                         <div id="fullscreen-body" class="fullscreen-body"></div>
@@ -151,58 +152,58 @@
                 <!-- Analysis Content -->
                 <div id="analysis-content" style="display:none;">
 
-                    <!-- ── ANÁLISE 01: Cotação Atual + Sinalizador de Venda ── -->
+                    <!-- â”€â”€ ANÃLISE 01: CotaÃ§Ã£o Atual + Sinalizador de Venda â”€â”€ -->
                     <div class="analysis-block" data-aid="01">
                         <div class="analysis-header">
                             <div>
-                                <h2 class="analysis-title"><span class="analysis-num">01</span> Cotação Atual + Sinalizador de Venda</h2>
-                                <p class="analysis-desc">Preço atual de cada metal com recomendação baseada na posição dentro do canal de preços do mês.</p>
+                                <h2 class="analysis-title"><span class="analysis-num">01</span> CotaÃ§Ã£o Atual + Sinalizador de Venda</h2>
+                                <p class="analysis-desc">PreÃ§o atual de cada metal com recomendaÃ§Ã£o baseada na posiÃ§Ã£o dentro do canal de preÃ§os do mÃªs.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="01" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
                         <div id="kpi-cards" class="kpi-grid"></div>
                     </div>
 
-                    <!-- ── ANÁLISE 02: Tendência de Preços do Mês ── -->
+                    <!-- â”€â”€ ANÃLISE 02: TendÃªncia de PreÃ§os do MÃªs â”€â”€ -->
                     <div class="analysis-block" data-aid="02">
                         <div class="analysis-header">
                             <div>
-                                <h2 class="analysis-title"><span class="analysis-num">02</span> Tendência de Preços do Mês</h2>
-                                <p class="analysis-desc">Evolução diária dos preços. Selecione o metal para focar a análise.</p>
+                                <h2 class="analysis-title"><span class="analysis-num">02</span> TendÃªncia de PreÃ§os do MÃªs</h2>
+                                <p class="analysis-desc">EvoluÃ§Ã£o diÃ¡ria dos preÃ§os. Selecione o metal para focar a anÃ¡lise.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="02" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
                         <div class="metal-filter-row" id="metal-filters">
                             <button class="btn-metal-filter active" data-metal="cobre" style="--mc:#e07b39;">Cobre</button>
-                            <button class="btn-metal-filter" data-metal="aluminio" style="--mc:#7eb3d5;">Alumínio</button>
+                            <button class="btn-metal-filter" data-metal="aluminio" style="--mc:#7eb3d5;">AlumÃ­nio</button>
                             <button class="btn-metal-filter" data-metal="zinco" style="--mc:#a8c5a0;">Zinco</button>
                             <button class="btn-metal-filter" data-metal="chumbo" style="--mc:#b0a0c0;">Chumbo</button>
                             <button class="btn-metal-filter" data-metal="estanho" style="--mc:#d4b896;">Estanho</button>
-                            <button class="btn-metal-filter" data-metal="niquel" style="--mc:#2AD07A;">Níquel</button>
+                            <button class="btn-metal-filter" data-metal="niquel" style="--mc:#2AD07A;">NÃ­quel</button>
                         </div>
                         <div class="chart-container">
                             <canvas id="trendChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- ── ANÁLISE 03: Ranking de Performance Mensal ── -->
+                    <!-- â”€â”€ ANÃLISE 03: Ranking de Performance Mensal â”€â”€ -->
                     <div class="analysis-block" data-aid="03">
                         <div class="analysis-header">
                             <div>
                                 <h2 class="analysis-title"><span class="analysis-num">03</span> Ranking de Performance Mensal</h2>
-                                <p class="analysis-desc">Classificação dos metais pela variação do primeiro ao último dia com preço registrado no mês.</p>
+                                <p class="analysis-desc">ClassificaÃ§Ã£o dos metais pela variaÃ§Ã£o do primeiro ao Ãºltimo dia com preÃ§o registrado no mÃªs.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="03" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
                         <div id="ranking-container" class="ranking-container"></div>
                     </div>
 
-                    <!-- ── ANÁLISE 04: Score de Oportunidade ── -->
+                    <!-- â”€â”€ ANÃLISE 04: Score de Oportunidade â”€â”€ -->
                     <div class="analysis-block" data-aid="04">
                         <div class="analysis-header">
                             <div>
-                                <h2 class="analysis-title"><span class="analysis-num">04</span> Score de Oportunidade Composto (0–100)</h2>
-                                <p class="analysis-desc">Pontuação: <strong>Posição no Canal (40%) + Momentum 5d (30%) + Variação do Dia (30%)</strong>. Quanto maior, melhor o momento para vender.</p>
+                                <h2 class="analysis-title"><span class="analysis-num">04</span> Score de Oportunidade Composto (0â€“100)</h2>
+                                <p class="analysis-desc">PontuaÃ§Ã£o: <strong>PosiÃ§Ã£o no Canal (40%) + Momentum 5d (30%) + VariaÃ§Ã£o do Dia (30%)</strong>. Quanto maior, melhor o momento para vender.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="04" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
@@ -214,12 +215,12 @@
                         </div>
                     </div>
 
-                    <!-- ── ANÁLISE 05: Semana Atual vs Anterior ── -->
+                    <!-- â”€â”€ ANÃLISE 05: Semana Atual vs Anterior â”€â”€ -->
                     <div class="analysis-block" data-aid="05">
                         <div class="analysis-header">
                             <div>
                                 <h2 class="analysis-title"><span class="analysis-num">05</span> Semana Atual vs. Semana Anterior</h2>
-                                <p class="analysis-desc">Compara a média dos últimos 5 dias úteis com os 5 dias úteis anteriores para todos os metais.</p>
+                                <p class="analysis-desc">Compara a mÃ©dia dos Ãºltimos 5 dias Ãºteis com os 5 dias Ãºteis anteriores para todos os metais.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="05" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
@@ -229,24 +230,24 @@
                         <div id="semana-badges" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;justify-content:center;"></div>
                     </div>
 
-                    <!-- ── ANÁLISE 06: Momentum de Mercado ── -->
+                    <!-- â”€â”€ ANÃLISE 06: Momentum de Mercado â”€â”€ -->
                     <div class="analysis-block" data-aid="06">
                         <div class="analysis-header">
                             <div>
-                                <h2 class="analysis-title"><span class="analysis-num">06</span> Momentum de Mercado (Últimos 5 Dias)</h2>
-                                <p class="analysis-desc">Compara a média dos últimos 5 pregões com os 5 anteriores. <span style="color:#2AD07A;">Verde = acelerando para cima</span> · <span style="color:#ff4d4d;">Vermelho = tendência de queda</span>.</p>
+                                <h2 class="analysis-title"><span class="analysis-num">06</span> Momentum de Mercado (Ãšltimos 5 Dias)</h2>
+                                <p class="analysis-desc">Compara a mÃ©dia dos Ãºltimos 5 pregÃµes com os 5 anteriores. <span style="color:#2AD07A;">Verde = acelerando para cima</span> Â· <span style="color:#ff4d4d;">Vermelho = tendÃªncia de queda</span>.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="06" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
                         <div id="momentum-grid" class="momentum-grid"></div>
                     </div>
 
-                    <!-- ── ANÁLISE 07: SMA-5 Preço vs Média Móvel ── -->
+                    <!-- â”€â”€ ANÃLISE 07: SMA-5 PreÃ§o vs MÃ©dia MÃ³vel â”€â”€ -->
                     <div class="analysis-block" data-aid="07">
                         <div class="analysis-header">
                             <div>
-                                <h2 class="analysis-title"><span class="analysis-num">07</span> Preço vs. Média Móvel SMA-5 (Cobre)</h2>
-                                <p class="analysis-desc">Quando o preço cruza <strong>acima</strong> da SMA-5 (linha branca pontilhada), indica tendência de alta. Quando cruza <strong>abaixo</strong>, indica cautela.</p>
+                                <h2 class="analysis-title"><span class="analysis-num">07</span> PreÃ§o vs. MÃ©dia MÃ³vel SMA-5 (Cobre)</h2>
+                                <p class="analysis-desc">Quando o preÃ§o cruza <strong>acima</strong> da SMA-5 (linha branca pontilhada), indica tendÃªncia de alta. Quando cruza <strong>abaixo</strong>, indica cautela.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="07" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
@@ -255,24 +256,24 @@
                         </div>
                     </div>
 
-                    <!-- ── ANÁLISE 08: Alertas de Preço ── -->
+                    <!-- â”€â”€ ANÃLISE 08: Alertas de PreÃ§o â”€â”€ -->
                     <div class="analysis-block" data-aid="08">
                         <div class="analysis-header">
                             <div>
-                                <h2 class="analysis-title"><span class="analysis-num">08</span> Alertas de Preço Personalizados</h2>
-                                <p class="analysis-desc">Configure um preço-alvo para cada metal. Quando o preço atingir ou superar seu alvo, o card acende um alerta visual. Os alertas ficam salvos no navegador.</p>
+                                <h2 class="analysis-title"><span class="analysis-num">08</span> Alertas de PreÃ§o Personalizados</h2>
+                                <p class="analysis-desc">Configure um preÃ§o-alvo para cada metal. Quando o preÃ§o atingir ou superar seu alvo, o card acende um alerta visual. Os alertas ficam salvos no navegador.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="08" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
                         <div id="alertas-grid" class="alertas-grid"></div>
                     </div>
 
-                    <!-- ── ANÁLISE 09: Canal de Preços (Min-Max do Mês) ── -->
+                    <!-- â”€â”€ ANÃLISE 09: Canal de PreÃ§os (Min-Max do MÃªs) â”€â”€ -->
                     <div class="analysis-block" data-aid="09">
                         <div class="analysis-header">
                             <div>
-                                <h2 class="analysis-title"><span class="analysis-num">09</span> Posição no Canal de Preços (Min–Max do Mês)</h2>
-                                <p class="analysis-desc">Onde o preço atual está em relação à mínima e máxima do mês. <span style="color:#ff4d4d;">Perto do topo (≥85%)</span> = melhor momento de vender. <span style="color:#2AD07A;">Perto da base (&lt;30%)</span> = momento de acumular.</p>
+                                <h2 class="analysis-title"><span class="analysis-num">09</span> PosiÃ§Ã£o no Canal de PreÃ§os (Minâ€“Max do MÃªs)</h2>
+                                <p class="analysis-desc">Onde o preÃ§o atual estÃ¡ em relaÃ§Ã£o Ã  mÃ­nima e mÃ¡xima do mÃªs. <span style="color:#ff4d4d;">Perto do topo (â‰¥85%)</span> = melhor momento de vender. <span style="color:#2AD07A;">Perto da base (&lt;30%)</span> = momento de acumular.</p>
                             </div>
                             <button class="btn-fullscreen" data-aid="09" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                         </div>
@@ -282,15 +283,15 @@
                 </div><!-- end analysis-content -->
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
-                 RELATÓRIO LME
-             ═══════════════════════════════════════════════════════════ -->
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                 RELATÃ“RIO LME
+             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="lme-excel-report" class="view-section">
                 <header class="section-header">
                     <div class="section-header-row">
                         <div>
-                            <h1><i class="fa-solid fa-file-excel"></i> Relatório LME</h1>
-                            <p>Visualize o fechamento semanal · dados automáticos da planilha LME.</p>
+                            <h1><i class="fa-solid fa-file-excel"></i> RelatÃ³rio LME</h1>
+                            <p>Visualize o fechamento semanal Â· dados automÃ¡ticos da planilha LME.</p>
                         </div>
                         <div class="dashboard-controls">
                             <button id="btn-refresh-excel" class="btn-refresh" title="Re-ler planilha e atualizar semanas">
@@ -306,11 +307,11 @@
                     </div>
                 </header>
 
-                <!-- ── PAINEL DE FILTROS ── -->
+                <!-- â”€â”€ PAINEL DE FILTROS â”€â”€ -->
                 <div class="lme-filter-panel">
                     <div class="filter-row">
                         <div class="filter-group">
-                            <label class="filter-label"><i class="fa-regular fa-calendar"></i> Mês / Ano</label>
+                            <label class="filter-label"><i class="fa-regular fa-calendar"></i> MÃªs / Ano</label>
                             <select id="lme-filter-mes" class="filter-select">
                                 <option value="">Carregando meses...</option>
                             </select>
@@ -322,13 +323,13 @@
                         <div class="filter-group filter-group-count">
                             <span id="lme-week-count" class="week-count-badge">
                                 <i class="fa-solid fa-table-list"></i>
-                                <span id="lme-count-num">—</span> semanas
+                                <span id="lme-count-num">â€”</span> semanas
                             </span>
                         </div>
                     </div>
 
                     <div class="filter-row filter-row-metals">
-                        <label class="filter-label"><i class="fa-solid fa-layer-group"></i> Colunas visíveis:</label>
+                        <label class="filter-label"><i class="fa-solid fa-layer-group"></i> Colunas visÃ­veis:</label>
                         <div class="metal-toggles">
                             <label class="metal-toggle-chip metal-chip-cobre">
                                 <input type="checkbox" class="metal-toggle-cb" data-metal="cobre" checked>
@@ -340,7 +341,7 @@
                             </label>
                             <label class="metal-toggle-chip metal-chip-aluminio">
                                 <input type="checkbox" class="metal-toggle-cb" data-metal="aluminio" checked>
-                                <span>Alumínio</span>
+                                <span>AlumÃ­nio</span>
                             </label>
                             <label class="metal-toggle-chip metal-chip-chumbo">
                                 <input type="checkbox" class="metal-toggle-cb" data-metal="chumbo" checked>
@@ -352,18 +353,18 @@
                             </label>
                             <label class="metal-toggle-chip metal-chip-niquel">
                                 <input type="checkbox" class="metal-toggle-cb" data-metal="niquel" checked>
-                                <span>Níquel</span>
+                                <span>NÃ­quel</span>
                             </label>
                             <label class="metal-toggle-chip metal-chip-dolar">
                                 <input type="checkbox" class="metal-toggle-cb" data-metal="dolar" checked>
-                                <span>Dólar</span>
+                                <span>DÃ³lar</span>
                             </label>
                             <button id="btn-toggle-all-metals" class="btn-toggle-all">Todos</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- ── LOADING / ERROR ── -->
+                <!-- â”€â”€ LOADING / ERROR â”€â”€ -->
                 <div id="excel-loading" class="loading-state">
                     <i class="fa-solid fa-circle-notch fa-spin"></i>
                     <span>Carregando dados da planilha LME...</span>
@@ -376,7 +377,7 @@
                     </button>
                 </div>
 
-                <!-- ── PREVIEW DA TABELA ── -->
+                <!-- â”€â”€ PREVIEW DA TABELA â”€â”€ -->
                 <div class="excel-preview-container" id="excel-preview-wrapper" style="display:none;">
                     <div id="excel-table-preview" class="excel-table-card">
                         <!-- Rendered by JavaScript -->
@@ -384,15 +385,15 @@
                 </div>
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
-                 RELATÓRIO DIÁRIO (WHATSAPP/EMAIL)
-             ═══════════════════════════════════════════════════════════ -->
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                 RELATÃ“RIO DIÃRIO (WHATSAPP/EMAIL)
+             â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="relatorio-diario" class="view-section">
                 <header class="section-header">
                     <div class="section-header-row">
                         <div>
-                            <h1><i class="fa-brands fa-whatsapp"></i> Relatório Diário Compartilhável</h1>
-                            <p>Visualização formatada para compartilhar no WhatsApp e por Email.</p>
+                            <h1><i class="fa-brands fa-whatsapp"></i> RelatÃ³rio DiÃ¡rio CompartilhÃ¡vel</h1>
+                            <p>VisualizaÃ§Ã£o formatada para compartilhar no WhatsApp e por Email.</p>
                         </div>
                         <div class="dashboard-controls">
                             <button id="btn-gerar-imagem-wpp" class="btn-primary" title="Copiar Imagem p/ WhatsApp">
@@ -417,8 +418,8 @@
                             <img src="assets/img/apexlogo.png" alt="Apex Tech Metais">
                         </div>
                         <div class="rel-title-wrap">
-                            <div class="rel-title-small">COTAÇÃO VÁLIDA PARA A SEMANA</div>
-                            <h2 class="rel-title-main"><span id="rel-date-range">...</span> — Semana <span id="rel-week-number">...</span></h2>
+                            <div class="rel-title-small">COTAÃ‡ÃƒO VÃLIDA PARA A SEMANA</div>
+                            <h2 class="rel-title-main"><span id="rel-date-range">...</span> â€” Semana <span id="rel-week-number">...</span></h2>
                         </div>
                     </div>
                     
@@ -429,11 +430,11 @@
                                     <th style="background:#000; color:#fff; width: 120px;">DATA</th>
                                     <th style="background:#db1f1f; color:#000;">Cobre U$/t</th>
                                     <th style="background:#e6b8b7; color:#000;">Zinco U$/t</th>
-                                    <th style="background:#bfbfbf; color:#000;">Alumínio U$/t</th>
+                                    <th style="background:#bfbfbf; color:#000;">AlumÃ­nio U$/t</th>
                                     <th style="background:#C9A8E8; color:#2d0060;">Chumbo U$/t</th>
                                     <th style="background:#b5b059; color:#000;">Estanho U$/t</th>
-                                    <th style="background:#ffffff; color:#000;">Níquel U$/t</th>
-                                    <th style="background:#70ad47; color:#000;">Dólar US$</th>
+                                    <th style="background:#ffffff; color:#000;">NÃ­quel U$/t</th>
+                                    <th style="background:#70ad47; color:#000;">DÃ³lar US$</th>
                                 </tr>
                             </thead>
                             <tbody id="rel-tbody">
@@ -441,7 +442,7 @@
                             </tbody>
                             <tbody class="rel-summary-body">
                                 <tr class="bg-orange-light text-black font-bold">
-                                    <td class="font-bold rel-label-col">MÉDIA SEMANAL</td>
+                                    <td class="font-bold rel-label-col">MÃ‰DIA SEMANAL</td>
                                     <td id="rel-media-cobre" class="rel-col-cobre"></td>
                                     <td id="rel-media-zinco" class="rel-col-zinco"></td>
                                     <td id="rel-media-aluminio" class="rel-col-aluminio"></td>
@@ -481,7 +482,7 @@
                                     <td id="rel-fech-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="bg-blue text-xs text-white">
-                                    <td class="rel-label-col">OSCILAÇÃO %</td>
+                                    <td class="rel-label-col">OSCILAÃ‡ÃƒO %</td>
                                     <td id="rel-osc-pct-cobre" class="rel-col-cobre"></td>
                                     <td id="rel-osc-pct-zinco" class="rel-col-zinco"></td>
                                     <td id="rel-osc-pct-aluminio" class="rel-col-aluminio"></td>
@@ -491,7 +492,7 @@
                                     <td id="rel-osc-pct-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="bg-green text-xs text-black font-bold">
-                                    <td class="rel-label-col">OSCILAÇÃO R$</td>
+                                    <td class="rel-label-col">OSCILAÃ‡ÃƒO R$</td>
                                     <td id="rel-osc-rs-cobre" class="rel-col-cobre"></td>
                                     <td id="rel-osc-rs-zinco" class="rel-col-zinco"></td>
                                     <td id="rel-osc-rs-aluminio" class="rel-col-aluminio"></td>
@@ -501,7 +502,7 @@
                                     <td id="rel-osc-rs-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="bg-orange-light text-black font-bold">
-                                    <td class="rel-label-col">MÉDIA MENSAL</td>
+                                    <td class="rel-label-col">MÃ‰DIA MENSAL</td>
                                     <td id="rel-mensal-cobre" class="rel-col-cobre"></td>
                                     <td id="rel-mensal-zinco" class="rel-col-zinco"></td>
                                     <td id="rel-mensal-aluminio" class="rel-col-aluminio"></td>
@@ -522,11 +523,11 @@
                                     <th style="width: 120px;">TIPO</th>
                                     <th style="background:#db1f1f; color:#000;">Cobre R$/kg</th>
                                     <th style="background:#e6b8b7; color:#000;">Zinco R$/kg</th>
-                                    <th style="background:#bfbfbf; color:#000;">Alumínio R$/kg</th>
+                                    <th style="background:#bfbfbf; color:#000;">AlumÃ­nio R$/kg</th>
                                     <th style="background:#C9A8E8; color:#2d0060;">Chumbo R$/kg</th>
                                     <th style="background:#b5b059; color:#000;">Estanho R$/kg</th>
-                                    <th style="background:#ffffff; color:#000;">Níquel R$/kg</th>
-                                    <th style="background:#70ad47; color:#000;">Dólar R$</th>
+                                    <th style="background:#ffffff; color:#000;">NÃ­quel R$/kg</th>
+                                    <th style="background:#70ad47; color:#000;">DÃ³lar R$</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -551,7 +552,7 @@
                                     <td id="rel-comp-atu-dolar" class="rel-col-dolar"></td>
                                 </tr>
                                 <tr class="font-bold">
-                                    <td>Osilaçao</td>
+                                    <td>OsilaÃ§ao</td>
                                     <td id="rel-comp-osc-cobre" class="rel-col-cobre"></td>
                                     <td id="rel-comp-osc-zinco" class="rel-col-zinco"></td>
                                     <td id="rel-comp-osc-aluminio" class="rel-col-aluminio"></td>
@@ -573,10 +574,10 @@
                                     <th style="width:50px;">%</th>
                                     <th style="background:#db1f1f; color:#000;">COBRE</th>
                                     <th style="background:#e6b8b7; color:#000;">ZINCO</th>
-                                    <th style="background:#bfbfbf; color:#000;">ALUMÍNIO</th>
+                                    <th style="background:#bfbfbf; color:#000;">ALUMÃNIO</th>
                                     <th style="background:#C9A8E8; color:#2d0060;">CHUMBO</th>
                                     <th style="background:#b5b059; color:#000;">ESTANHO</th>
-                                    <th style="background:#ffffff; color:#000;">NÍQUEL</th>
+                                    <th style="background:#ffffff; color:#000;">NÃQUEL</th>
                                 </tr>
                             </thead>
                             <tbody id="rel-base-tbody">
@@ -585,14 +586,14 @@
                         </table>
                     </div>
 
-                    <!-- Gráficos de Barras Pareados -->
+                    <!-- GrÃ¡ficos de Barras Pareados -->
                     <div class="rel-charts-container">
 
-                        <!-- Gráfico 1: Cobre · Zinco · Alumínio · Chumbo -->
+                        <!-- GrÃ¡fico 1: Cobre Â· Zinco Â· AlumÃ­nio Â· Chumbo -->
                         <div class="rel-chart-section-title">
                             <span class="rel-legend-box" style="background:#e74c3c;"></span> Semana Anterior &nbsp;
                             <span class="rel-legend-box" style="background:#27ae60;"></span> Semana Atual
-                            &nbsp;·&nbsp; Cobre · Zinco · Alumínio · Chumbo
+                            &nbsp;Â·&nbsp; Cobre Â· Zinco Â· AlumÃ­nio Â· Chumbo
                         </div>
                         <div class="rel-chart-wrap">
                             <canvas id="relChartLines"></canvas>
@@ -600,11 +601,11 @@
                         <!-- Cards grupo 1 -->
                         <div id="rel-cards-group1" class="rel-compare-cards"></div>
 
-                        <!-- Gráfico 2: Estanho · Níquel -->
+                        <!-- GrÃ¡fico 2: Estanho Â· NÃ­quel -->
                         <div class="rel-chart-section-title" style="margin-top:14px;">
                             <span class="rel-legend-box" style="background:#e74c3c;"></span> Semana Anterior &nbsp;
                             <span class="rel-legend-box" style="background:#27ae60;"></span> Semana Atual
-                            &nbsp;·&nbsp; Estanho · Níquel
+                            &nbsp;Â·&nbsp; Estanho Â· NÃ­quel
                         </div>
                         <div class="rel-chart-wrap">
                             <canvas id="relChartOsc"></canvas>
@@ -614,19 +615,19 @@
 
                     </div>
 
-                    <!-- Rodapé do relatório (timestamp de geração) -->
+                    <!-- RodapÃ© do relatÃ³rio (timestamp de geraÃ§Ã£o) -->
                     <div id="rel-rodape" class="rel-rodape" style="display:none; border-top:1px solid #ccc; margin-top:10px; padding-top:6px; font-size:8.5pt; color:#555; font-family:Calibri,Arial,sans-serif; text-align:right;"></div>
 
                 </div>
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  CONFIGURAR HOME
-            ═══════════════════════════════════════════════════════════ -->
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="home-config" class="view-section">
                 <header class="section-header">
                     <h1><i class="fa-solid fa-toggle-on"></i> Configurar Homepage</h1>
-                    <p>Ative ou desative seções da página inicial. Mudanças aplicadas ao clicar em "Salvar".</p>
+                    <p>Ative ou desative seÃ§Ãµes da pÃ¡gina inicial. MudanÃ§as aplicadas ao clicar em "Salvar".</p>
                 </header>
 
                 <div class="settings-grid">
@@ -634,8 +635,8 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-circle-info"></i></div>
                             <div>
-                                <strong>Seção "Sobre Nós"</strong>
-                                <small>Apresentação da empresa e missão</small>
+                                <strong>SeÃ§Ã£o "Sobre NÃ³s"</strong>
+                                <small>ApresentaÃ§Ã£o da empresa e missÃ£o</small>
                             </div>
                         </div>
                         <label class="toggle-switch">
@@ -648,8 +649,8 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-industry"></i></div>
                             <div>
-                                <strong>Seção "Nossas Soluções"</strong>
-                                <small>Cards dos serviços oferecidos</small>
+                                <strong>SeÃ§Ã£o "Nossas SoluÃ§Ãµes"</strong>
+                                <small>Cards dos serviÃ§os oferecidos</small>
                             </div>
                         </div>
                         <label class="toggle-switch">
@@ -662,7 +663,7 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-box-open"></i></div>
                             <div>
-                                <strong>Seção "Catálogo / Materiais"</strong>
+                                <strong>SeÃ§Ã£o "CatÃ¡logo / Materiais"</strong>
                                 <small>Materiais que a empresa compra</small>
                             </div>
                         </div>
@@ -676,8 +677,8 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-map-location-dot"></i></div>
                             <div>
-                                <strong>Seção "Onde Encontramos"</strong>
-                                <small>Locais de coleta de sucata eletrônica</small>
+                                <strong>SeÃ§Ã£o "Onde Encontramos"</strong>
+                                <small>Locais de coleta de sucata eletrÃ´nica</small>
                             </div>
                         </div>
                         <label class="toggle-switch">
@@ -690,8 +691,8 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-chart-bar"></i></div>
                             <div>
-                                <strong>Seção "Cotações LME"</strong>
-                                <small>Tabela e gráficos de cotações de metais</small>
+                                <strong>SeÃ§Ã£o "CotaÃ§Ãµes LME"</strong>
+                                <small>Tabela e grÃ¡ficos de cotaÃ§Ãµes de metais</small>
                             </div>
                         </div>
                         <label class="toggle-switch">
@@ -704,8 +705,8 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-newspaper"></i></div>
                             <div>
-                                <strong>Seção "Notícias do Mercado"</strong>
-                                <small>Feed de notícias publicadas no admin</small>
+                                <strong>SeÃ§Ã£o "NotÃ­cias do Mercado"</strong>
+                                <small>Feed de notÃ­cias publicadas no admin</small>
                             </div>
                         </div>
                         <label class="toggle-switch">
@@ -718,7 +719,7 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-images"></i></div>
                             <div>
-                                <strong>Seção "Galeria de Fotos"</strong>
+                                <strong>SeÃ§Ã£o "Galeria de Fotos"</strong>
                                 <small>Galeria de imagens da empresa e processos</small>
                             </div>
                         </div>
@@ -735,7 +736,7 @@
                         <div class="setting-info">
                             <div class="setting-icon"><i class="fa-solid fa-file-excel"></i></div>
                             <div>
-                                <strong>Menu "Relatório LME"</strong>
+                                <strong>Menu "RelatÃ³rio LME"</strong>
                                 <small>Exibe/oculta a ferramenta de consulta LME do painel</small>
                             </div>
                         </div>
@@ -748,15 +749,15 @@
 
                 <div class="settings-actions">
                     <button id="btn-save-settings" class="btn-primary" style="max-width: 280px;">
-                        <i class="fa-solid fa-save"></i> Salvar Configurações
+                        <i class="fa-solid fa-save"></i> Salvar ConfiguraÃ§Ãµes
                     </button>
                     <p id="settings-msg" class="settings-msg" style="display:none;"></p>
                 </div>
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  GALERIA ADMIN
-            ═══════════════════════════════════════════════════════════ -->
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="galeria-admin" class="view-section">
                 <header class="section-header">
                     <h1><i class="fa-solid fa-images"></i> Gerenciar Galeria de Fotos</h1>
@@ -773,18 +774,18 @@
                                 <small style="color:#888;font-size:0.78rem;display:block;margin-top:4px;">Links diretos de imagens (.jpg, .png, .webp)</small>
                             </div>
                             <div id="gal-preview" class="gal-preview-wrap" style="display:none;">
-                                <img id="gal-preview-img" src="" alt="Prévia">
+                                <img id="gal-preview-img" src="" alt="PrÃ©via">
                             </div>
                             <div class="form-group">
-                                <label for="gal-titulo">Legenda / Título *</label>
-                                <input type="text" id="gal-titulo" required placeholder="Ex: Triagem de Sucata Eletrônica">
+                                <label for="gal-titulo">Legenda / TÃ­tulo *</label>
+                                <input type="text" id="gal-titulo" required placeholder="Ex: Triagem de Sucata EletrÃ´nica">
                             </div>
                             <div class="form-group">
-                                <label for="gal-ordem">Ordem de Exibição</label>
+                                <label for="gal-ordem">Ordem de ExibiÃ§Ã£o</label>
                                 <input type="number" id="gal-ordem" value="0" min="0" placeholder="0 = primeiro">
                             </div>
                             <button type="submit" class="btn-primary">
-                                <i class="fa-solid fa-plus"></i> Adicionar à Galeria
+                                <i class="fa-solid fa-plus"></i> Adicionar Ã  Galeria
                             </button>
                         </form>
                     </div>
@@ -798,13 +799,13 @@
                 </div>
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                  MATERIAIS
-            ═══════════════════════════════════════════════════════════ -->
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="materiais" class="view-section">
                 <header class="section-header">
                     <h1><i class="fa-solid fa-box-open"></i> Gerenciar Materiais</h1>
-                    <p>Adicione novos materiais que a empresa compra. O Chatbot será atualizado automaticamente.</p>
+                    <p>Adicione novos materiais que a empresa compra. O Chatbot serÃ¡ atualizado automaticamente.</p>
                 </header>
 
                 <div class="materiais-layout">
@@ -821,12 +822,12 @@
                                 <small style="color:#888; font-size:0.78rem; display:block; margin-top:4px;">Insira um link direto para uma imagem (.jpg, .png, .webp, etc.)</small>
                             </div>
                             <div class="form-group">
-                                <label for="mat-desc">Descrição Geral (Aparece na aba)</label>
-                                <textarea id="mat-desc" rows="3" required placeholder="Ex: Motores elétricos e induzidos são componentes vitais..."></textarea>
+                                <label for="mat-desc">DescriÃ§Ã£o Geral (Aparece na aba)</label>
+                                <textarea id="mat-desc" rows="3" required placeholder="Ex: Motores elÃ©tricos e induzidos sÃ£o componentes vitais..."></textarea>
                             </div>
                             <hr style="border-color: var(--borda); margin: 20px 0;">
                             <h4 style="margin-bottom: 10px; color: #fff;">Locais de Coleta (Cards)</h4>
-                            <p style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">Adicione os locais onde este material é encontrado para criar os cards dinâmicos.</p>
+                            <p style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">Adicione os locais onde este material Ã© encontrado para criar os cards dinÃ¢micos.</p>
                             <div id="locations-wrapper"></div>
                             <button type="button" id="btn-add-location" class="btn-secondary" style="margin-bottom: 20px;"><i class="fa-solid fa-plus"></i> Adicionar Local</button>
                             <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Material</button>
@@ -839,70 +840,70 @@
                 </div>
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
-                 SOLUÇÕES
-            ═══════════════════════════════════════════════════════════ -->
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                 SOLUÃ‡Ã•ES
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="solucoes" class="view-section">
                 <header class="section-header">
-                    <h1><i class="fa-solid fa-industry"></i> Gerenciar Soluções</h1>
-                    <p>Adicione ou edite os cartões de soluções oferecidas na página principal.</p>
+                    <h1><i class="fa-solid fa-industry"></i> Gerenciar SoluÃ§Ãµes</h1>
+                    <p>Adicione ou edite os cartÃµes de soluÃ§Ãµes oferecidas na pÃ¡gina principal.</p>
                 </header>
 
                 <div class="materiais-layout">
                     <div class="form-container">
-                        <h3>Adicionar/Editar Solução</h3>
+                        <h3>Adicionar/Editar SoluÃ§Ã£o</h3>
                         <form id="form-solucao">
                             <input type="hidden" id="sol-id" value="">
                             <div class="form-group">
-                                <label for="sol-titulo">Título da Solução *</label>
-                                <input type="text" id="sol-titulo" required placeholder="Ex: Sucatas de Indústrias">
+                                <label for="sol-titulo">TÃ­tulo da SoluÃ§Ã£o *</label>
+                                <input type="text" id="sol-titulo" required placeholder="Ex: Sucatas de IndÃºstrias">
                             </div>
                             <div class="form-group">
-                                <label for="sol-img">URL do Ícone/Imagem *</label>
+                                <label for="sol-img">URL do Ãcone/Imagem *</label>
                                 <input type="url" id="sol-img" required placeholder="https://exemplo.com/icone.svg">
                             </div>
                             <div class="form-group">
-                                <label for="sol-desc">Descrição Completa *</label>
-                                <textarea id="sol-desc" rows="4" required placeholder="Nossos principais serviços incluem a gestão..."></textarea>
+                                <label for="sol-desc">DescriÃ§Ã£o Completa *</label>
+                                <textarea id="sol-desc" rows="4" required placeholder="Nossos principais serviÃ§os incluem a gestÃ£o..."></textarea>
                             </div>
-                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Solução</button>
-                            <button type="button" id="btn-cancel-solucao" class="btn-secondary" style="display:none; margin-top: 10px;"><i class="fa-solid fa-xmark"></i> Cancelar Edição</button>
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar SoluÃ§Ã£o</button>
+                            <button type="button" id="btn-cancel-solucao" class="btn-secondary" style="display:none; margin-top: 10px;"><i class="fa-solid fa-xmark"></i> Cancelar EdiÃ§Ã£o</button>
                         </form>
                     </div>
                     <div class="list-container">
-                        <h3>Soluções Cadastradas</h3>
+                        <h3>SoluÃ§Ãµes Cadastradas</h3>
                         <div id="solucoes-admin-list"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
-                 NOTÍCIAS
-            ═══════════════════════════════════════════════════════════ -->
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                 NOTÃCIAS
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="noticias" class="view-section">
                 <header class="section-header">
-                    <h1><i class="fa-solid fa-newspaper"></i> Gerenciar Notícias</h1>
-                    <p>Adicione notícias e links de outros sites. Aparecerão na seção "Notícias do Mercado".</p>
+                    <h1><i class="fa-solid fa-newspaper"></i> Gerenciar NotÃ­cias</h1>
+                    <p>Adicione notÃ­cias e links de outros sites. AparecerÃ£o na seÃ§Ã£o "NotÃ­cias do Mercado".</p>
                 </header>
 
                 <div class="materiais-layout">
                     <div class="form-container">
-                        <h3>Publicar Nova Notícia</h3>
+                        <h3>Publicar Nova NotÃ­cia</h3>
                         <form id="form-noticia">
                             <div class="form-group">
-                                <label for="not-titulo">Título da Notícia *</label>
-                                <input type="text" id="not-titulo" required placeholder="Ex: Preço do Cobre cai 3% na LME">
+                                <label for="not-titulo">TÃ­tulo da NotÃ­cia *</label>
+                                <input type="text" id="not-titulo" required placeholder="Ex: PreÃ§o do Cobre cai 3% na LME">
                             </div>
                             <div class="form-group">
-                                <label for="not-url">Link da Matéria (URL) *</label>
+                                <label for="not-url">Link da MatÃ©ria (URL) *</label>
                                 <input type="url" id="not-url" required placeholder="https://www.exemplo.com.br/noticia">
                             </div>
                             <div class="form-group">
-                                <label for="not-resumo">Resumo / Descrição</label>
-                                <textarea id="not-resumo" rows="3" placeholder="Escreva um breve resumo da notícia..."></textarea>
+                                <label for="not-resumo">Resumo / DescriÃ§Ã£o</label>
+                                <textarea id="not-resumo" rows="3" placeholder="Escreva um breve resumo da notÃ­cia..."></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="not-data">Data de Publicação</label>
+                                <label for="not-data">Data de PublicaÃ§Ã£o</label>
                                 <input type="date" id="not-data">
                             </div>
                             <div class="form-group">
@@ -921,30 +922,30 @@
                         </form>
                     </div>
                     <div class="list-container">
-                        <h3>Notícias Publicadas</h3>
+                        <h3>NotÃ­cias Publicadas</h3>
                         <div id="noticias-admin-list"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- ═══════════════════════════════════════════════════════════
-                 CONFIGURAÇÃO DE E-MAIL LME
-            ═══════════════════════════════════════════════════════════ -->
+            <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                 CONFIGURAÃ‡ÃƒO DE E-MAIL LME
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
             <section id="lme-email-config" class="view-section">
                 <header class="section-header">
-                    <h1><i class="fa-solid fa-envelope"></i> Configuração de Envio de E-mail (LME)</h1>
-                    <p>Gerencie quem recebe o relatório diário da LME, o horário do envio automático e as credenciais de SMTP.</p>
+                    <h1><i class="fa-solid fa-envelope"></i> ConfiguraÃ§Ã£o de Envio de E-mail (LME)</h1>
+                    <p>Gerencie quem recebe o relatÃ³rio diÃ¡rio da LME, o horÃ¡rio do envio automÃ¡tico e as credenciais de SMTP.</p>
                 </header>
 
                 <div class="materiais-layout">
-                    <!-- Coluna da Esquerda: Configurações Gerais e Agendamento -->
+                    <!-- Coluna da Esquerda: ConfiguraÃ§Ãµes Gerais e Agendamento -->
                     <div class="form-container">
-                        <h3><i class="fa-solid fa-gear"></i> Parâmetros do Agendador</h3>
+                        <h3><i class="fa-solid fa-gear"></i> ParÃ¢metros do Agendador</h3>
                         <form id="form-scheduler-config" style="margin-bottom: 25px;">
                             <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #222; padding: 12px; border-radius: 6px; border: 1px solid #444;">
                                 <label style="margin-bottom: 0; cursor: pointer; color: #fff;" for="sched-ativo">
-                                    <strong>Envio Automático Ativo</strong>
-                                    <small style="display: block; color: #888; margin-top: 2px;">Ativa/desativa o disparo diário</small>
+                                    <strong>Envio AutomÃ¡tico Ativo</strong>
+                                    <small style="display: block; color: #888; margin-top: 2px;">Ativa/desativa o disparo diÃ¡rio</small>
                                 </label>
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="sched-ativo" checked>
@@ -952,7 +953,7 @@
                                 </label>
                             </div>
                             <div class="form-group">
-                                <label for="sched-horario">Horário do Disparo Diário *</label>
+                                <label for="sched-horario">HorÃ¡rio do Disparo DiÃ¡rio *</label>
                                 <input type="time" id="sched-horario" required value="14:00">
                             </div>
                             <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Agendamento</button>
@@ -972,31 +973,31 @@
                             <div class="form-group">
                                 <label for="resend-from">E-mail do Remetente (De) *</label>
                                 <input type="email" id="resend-from" required placeholder="Ex: josetiago@lme.lat" autocomplete="off">
-                                <small style="display: block; color: #aaa; margin-top: 4px;">Este e-mail deve pertencer a um domínio verificado no seu painel do Resend.</small>
+                                <small style="display: block; color: #aaa; margin-top: 4px;">Este e-mail deve pertencer a um domÃ­nio verificado no seu painel do Resend.</small>
                             </div>
-                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Configurações Resend</button>
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar ConfiguraÃ§Ãµes Resend</button>
                         </form>
 
                         <div class="smtp-test-box" style="margin-top: 25px; padding: 15px; background: #2a2a2a; border-radius: 6px; border: 1px solid #444;">
-                            <h4 style="margin-top: 0; color: #fff;"><i class="fa-solid fa-paper-plane"></i> Ação Rápida</h4>
-                            <p style="font-size: 0.85rem; color: #bbb; margin-bottom: 15px;">Envie o relatório diário mais recente imediatamente para todos os destinatários cadastrados.</p>
-                            <button id="btn-enviar-teste-lme" class="btn-secondary" style="width: 100%;"><i class="fa-solid fa-paper-plane"></i> Enviar Relatório Diário Agora</button>
+                            <h4 style="margin-top: 0; color: #fff;"><i class="fa-solid fa-paper-plane"></i> AÃ§Ã£o RÃ¡pida</h4>
+                            <p style="font-size: 0.85rem; color: #bbb; margin-bottom: 15px;">Envie o relatÃ³rio diÃ¡rio mais recente imediatamente para todos os destinatÃ¡rios cadastrados.</p>
+                            <button id="btn-enviar-teste-lme" class="btn-secondary" style="width: 100%;"><i class="fa-solid fa-paper-plane"></i> Enviar RelatÃ³rio DiÃ¡rio Agora</button>
                             <div id="test-email-msg" style="margin-top: 10px; font-size: 0.85rem; display: none;"></div>
                         </div>
                     </div>
 
-                    <!-- Coluna da Direita: Gerenciamento de Destinatários -->
+                    <!-- Coluna da Direita: Gerenciamento de DestinatÃ¡rios -->
                     <div class="list-container">
-                        <h3><i class="fa-solid fa-users"></i> Destinatários do Relatório</h3>
+                        <h3><i class="fa-solid fa-users"></i> DestinatÃ¡rios do RelatÃ³rio</h3>
                         
-                        <!-- Form de inclusão/edição inline na lista -->
+                        <!-- Form de inclusÃ£o/ediÃ§Ã£o inline na lista -->
                         <div id="destinatario-form-box" style="background: #2a2a2a; padding: 15px; border-radius: 6px; border: 1px solid #444; margin-bottom: 20px;">
-                            <h4 id="destinatario-form-title" style="margin-top: 0; color: #fff; border-bottom: 1px solid #444; padding-bottom: 8px;"><i class="fa-solid fa-user-plus"></i> Novo Destinatário</h4>
+                            <h4 id="destinatario-form-title" style="margin-top: 0; color: #fff; border-bottom: 1px solid #444; padding-bottom: 8px;"><i class="fa-solid fa-user-plus"></i> Novo DestinatÃ¡rio</h4>
                             <form id="form-destinatario">
                                 <input type="hidden" id="dest-id" value="">
                                 <div class="form-group">
                                     <label for="dest-nome">Nome *</label>
-                                    <input type="text" id="dest-nome" required placeholder="Ex: João da Silva">
+                                    <input type="text" id="dest-nome" required placeholder="Ex: JoÃ£o da Silva">
                                 </div>
                                 <div class="form-group">
                                     <label for="dest-email">E-mail *</label>
@@ -1009,14 +1010,14 @@
                             </form>
                         </div>
 
-                        <!-- Lista de destinatários cadastrados -->
+                        <!-- Lista de destinatÃ¡rios cadastrados -->
                         <div class="destinatarios-list-wrapper">
                             <table class="admin-table" style="width: 100%; border-collapse: collapse; color: #fff;">
                                 <thead>
                                     <tr style="background: #333; text-align: left;">
                                         <th style="padding: 10px;">Nome</th>
                                         <th style="padding: 10px;">E-mail</th>
-                                        <th style="padding: 10px; text-align: center; width: 100px;">Ações</th>
+                                        <th style="padding: 10px; text-align: center; width: 100px;">AÃ§Ãµes</th>
                                     </tr>
                                 </thead>
                                 <tbody id="lme-destinatarios-list">
@@ -1034,3 +1035,4 @@
     <script src="admin.js?v=23"></script>
 </body>
 </html>
+
