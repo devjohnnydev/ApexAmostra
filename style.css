@@ -3404,3 +3404,61 @@ p.mb-0 { margin-bottom: 0; }
     color: var(--color-text-tabela) !important;
     font-weight: 700 !important;
 }
+/* --- LIGHT MODE (PUBLIC SITE) --- */
+[data-theme="light"] {
+    --cor-preto: #F9FAFB;
+    --cor-escuro: #FFFFFF;
+    --cor-escuro-2: #F3F4F6;
+    --cor-branco: #111827;
+    --cor-cinza: #6B7280;
+    --cor-cinza-claro: #374151;
+    --cor-borda: #E5E7EB;
+    --color-media-bg: #EAEAEA;
+    --color-text-tabela: #111827;
+}
+
+[data-theme="light"] body {
+    background-color: var(--cor-preto);
+    color: var(--cor-branco);
+}
+
+[data-theme="light"] header.header {
+    background-color: rgba(255, 255, 255, 0.97);
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+[data-theme="light"] .noble-nav-link {
+    color: var(--cor-branco);
+}
+
+[data-theme="light"] .hero-overlay {
+    background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
+}
+
+[data-theme="light"] .hero-title {
+    color: var(--cor-branco);
+}
+
+[data-theme="light"] .footer-elegant {
+    background-color: var(--cor-escuro);
+    border-top: 1px solid var(--cor-borda);
+}
+[data-theme="light"] .footer-elegant .footer-title { color: var(--cor-branco); }
+[data-theme="light"] .footer-elegant p, [data-theme="light"] .footer-elegant li, [data-theme="light"] .footer-elegant a { color: var(--cor-cinza-claro); }
+
+[data-theme="light"] .noble-product-card, [data-theme="light"] .noticia-card, [data-theme="light"] .sobre-card, [data-theme="light"] .lme-container {
+    background-color: var(--cor-escuro);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid var(--cor-borda);
+}
+
+[data-theme="light"] .cotacoes-hero-title, [data-theme="light"] .section-title-noble {
+    color: var(--cor-branco);
+}
+
+[data-theme="light"] .mobile-menu { background-color: var(--cor-escuro); }
+[data-theme="light"] .mobile-menu a { color: var(--cor-branco); }
+
+[data-theme="light"] #boxtabela table th { background-color: #f1f1f1 !important; color: #111 !important; }
+[data-theme="light"] #boxtabela table td { border-color: #ddd !important; }
+

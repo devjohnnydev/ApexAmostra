@@ -1693,3 +1693,53 @@ tr.bg-orange-light .rel-label-col {
     border-radius: 6px;
     border: 1px solid #333;
 }
+/* --- LIGHT MODE (ADMIN PANEL) --- */
+[data-theme="light"] {
+    --bg-dark: #F3F4F6;
+    --cor-preto: #FFFFFF;
+    --cor-branco: #1F2937;
+    --cor-escuro: #E5E7EB;
+    --cor-cinza: #6B7280;
+    --borda: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .sidebar {
+    background-color: var(--cor-preto);
+    border-right: 1px solid var(--borda);
+}
+
+[data-theme="light"] .sidebar-header {
+    border-bottom: 1px solid var(--borda);
+}
+
+[data-theme="light"] .nav-item { color: var(--cor-branco); }
+[data-theme="light"] .nav-item:hover, [data-theme="light"] .nav-item.active {
+    background-color: rgba(42, 208, 122, 0.1);
+    color: var(--cor-verde);
+}
+
+[data-theme="light"] .kpi-card, [data-theme="light"] .chart-card, [data-theme="light"] .settings-card, [data-theme="light"] .lme-admin-card {
+    background-color: var(--cor-preto);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+[data-theme="light"] .noble-table th {
+    background-color: #F9FAFB;
+    color: var(--cor-branco);
+    border-bottom: 2px solid var(--borda);
+}
+[data-theme="light"] .noble-table td {
+    border-bottom: 1px solid var(--borda);
+}
+
+[data-theme="light"] .noble-input, [data-theme="light"] .noble-textarea {
+    background-color: #F9FAFB;
+    color: var(--cor-branco);
+    border: 1px solid var(--borda);
+}
+
+[data-theme="light"] .login-box {
+    background: #FFFFFF;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
