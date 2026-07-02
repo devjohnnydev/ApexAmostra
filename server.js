@@ -1709,7 +1709,9 @@ function startEmailScheduler() {
                 const data = await generateRelatorioSemanas(mes);
                 if (data && data.semanas && data.semanas.length > 0) {
                     const latestWeek = data.semanas[0];
-                    await enviarRelatorioEmail(latestWeek);
+                    console.log('Gerando PDF via Headless para o envio automático...');
+                    const pdfBase64 = await gerarPdfRelatorioViaHeadless();
+                    await enviarRelatorioEmail(latestWeek, pdfBase64);
                     lastSentDateStr = todayDateStr;
                     console.log(`✅ Relatório enviado automaticamente para a data ${todayDateStr}.`);
                 } else {
@@ -1721,6 +1723,33 @@ function startEmailScheduler() {
         }
     }, 60000);
 }
+
+// ─── API: LME Disparar E-mail (Endpoint Externo) ─────────────────────────────
+app.post('/api/lme/relatorio-email', async (req, res) => {
+    try {
+        const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+        const dObj = new Date(localTimeStr);
+        const month = dObj.getMonth() + 1;
+        const year = dObj.getFullYear();
+        const mes = `${month}-${year}`;
+
+        const data = await generateRelatorioSemanas(mes);
+        if (!data || !data.semanas || data.semanas.length === 0) {
+            return res.status(404).json({ error: 'Nenhuma semana encontrada para enviar.' });
+        }
+
+        const latestWeek = data.semanas[0];
+        console.log('Gerando PDF via Headless para o endpoint /api/lme/relatorio-email...');
+        const pdfBase64 = await gerarPdfRelatorioViaHeadless();
+        
+        await enviarRelatorioEmail(latestWeek, pdfBase64);
+
+        res.json({ success: true, message: 'Relatório disparado com sucesso via endpoint!' });
+    } catch (err) {
+        console.error('Erro no endpoint de disparo de e-mail:', err);
+        res.status(500).json({ error: 'Erro ao disparar e-mail: ' + err.message });
+    }
+});
 
 // ─── API: LME Meses Disponíveis ───────────────────────────────────────────────
 app.get('/api/lme/meses', async (req, res) => {
