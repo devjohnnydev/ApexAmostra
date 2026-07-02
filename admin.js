@@ -2130,15 +2130,92 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 4. Envio de Teste Manual
+        async function generatePDFBase64() {
+            const captureArea = document.getElementById('capture-area');
+            if (!captureArea) return null;
+
+            // Mostrar rodapé com timestamp
+            const nowTs = new Date();
+            const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                + ' às '
+                + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const rodape = document.getElementById('rel-rodape');
+            if (rodape) {
+                rodape.textContent = `Relatório gerado em: ${tsStr}`;
+                rodape.style.display = 'block';
+            }
+
+            const logoImg = captureArea.querySelector('.rel-logo img');
+            let originalSrc = '';
+            if (logoImg && logoImg.src.endsWith('.svg')) {
+                try {
+                    originalSrc = logoImg.src;
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = logoImg.naturalWidth || 400;
+                    tempCanvas.height = logoImg.naturalHeight || 133;
+                    const tCtx = tempCanvas.getContext('2d');
+                    tCtx.fillStyle = '#ffffff';
+                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                    tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                    logoImg.src = tempCanvas.toDataURL('image/png');
+                } catch (svgErr) {
+                    console.warn('Erro ao converter logo para PNG no envio de e-mail:', svgErr);
+                }
+            }
+
+            try {
+                const canvas = await html2canvas(captureArea, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    allowTaint: false,
+                    scrollY: 0,
+                    windowHeight: captureArea.scrollHeight,
+                    height: captureArea.scrollHeight,
+                    width: captureArea.scrollWidth
+                });
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const { jsPDF } = window.jspdf;
+
+                const pdfWidthMm = 210;
+                const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: [pdfWidthMm, pdfHeightMm]
+                });
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+                
+                return pdf.output('datauristring').split(',')[1];
+            } catch (err) {
+                console.error('Erro ao gerar PDF para o e-mail:', err);
+                return null;
+            } finally {
+                if (logoImg && originalSrc) {
+                    logoImg.src = originalSrc;
+                }
+            }
+        }
+
         if (btnEnviarTest) {
             btnEnviarTest.addEventListener('click', async () => {
                 testEmailMsg.style.display = 'block';
                 testEmailMsg.style.color = '#fff';
-                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando e-mail...';
+                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF e enviando...';
                 btnEnviarTest.disabled = true;
 
                 try {
-                    const res = await fetch('/api/lme/enviar-email-manual', { method: 'POST' });
+                    // Gerar o PDF na hora
+                    const pdfBase64 = await generatePDFBase64();
+
+                    const res = await fetch('/api/lme/enviar-email-manual', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ pdfBase64 })
+                    });
                     const result = await res.json();
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';
