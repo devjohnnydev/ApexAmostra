@@ -316,7 +316,7 @@ p.mb-0 { margin-bottom: 0; }
    ============================================================ */
 .page-top-banner {
     position: relative;
-    background: url('https://images.unsplash.com/photo-1518557984649-7b161c230cfa?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+    background: url('assets/img/photo-1518557984649-7b161c230cfa.jpg') center/cover no-repeat;
     padding: 120px 0 90px;
     text-align: left;
     margin-bottom: 50px;
@@ -479,7 +479,7 @@ p.mb-0 { margin-bottom: 0; }
     position: relative;
     width: 100%;
     min-height: 100vh;
-    background-image: url('https://apextechmetais.com.br/wp-content/uploads/2024/10/BG-banner-home.webp');
+    background-image: url('assets/img/BG-banner-home.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -645,7 +645,7 @@ p.mb-0 { margin-bottom: 0; }
    SECTION: TRANSFORMANDO RESÍDUOS
    ============================================================ */
 .section_transformando {
-    background-image: url('https://apextechmetais.com.br/wp-content/uploads/2024/10/bg-transformando-residuos.webp');
+    background-image: url('assets/img/bg-transformando-residuos.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -778,7 +778,7 @@ p.mb-0 { margin-bottom: 0; }
 }
 
 .areas-intro {
-    background-image: url('https://apextechmetais.com.br/wp-content/uploads/2024/07/bg-icone-logo-verde.svg');
+    background-image: url('assets/img/bg-icone-logo-verde.svg');
     background-size: cover;
     background-position: center;
     padding: 80px 0;
@@ -856,7 +856,7 @@ p.mb-0 { margin-bottom: 0; }
    SECTION: CATÁLOGO
    ============================================================ */
 .section-catalogo {
-    background-image: url('https://apextechmetais.com.br/wp-content/uploads/2024/07/bg-icone-logo-verde.svg');
+    background-image: url('assets/img/bg-icone-logo-verde.svg');
     background-size: cover;
     background-position: center;
     background-color: var(--cor-escuro-2);
