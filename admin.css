@@ -1188,6 +1188,24 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
     max-width: 1040px;
     margin: 0 auto;
     font-family: 'Arial', sans-serif;
+    position: relative; /* Para posicionar a marca d'água */
+}
+
+.capture-area::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+    background-image: url('assets/img/apexlogo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.08; /* Super suave para não atrapalhar a leitura */
+    z-index: 999; /* Fica por cima do texto dificultando a remoção */
+    pointer-events: none; /* Permite selecionar o texto embaixo */
 }
 .relatorio-header {
     display: flex;
