@@ -1194,16 +1194,15 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 .capture-area::after {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    height: 60%;
-    background-image: url('assets/img/apexlogo.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 0.08; /* Super suave para não atrapalhar a leitura */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('assets/img/logo (2).png');
+    background-size: 150px 150px;
+    background-repeat: repeat;
+    background-position: top left;
+    opacity: 0.05; /* Suave para não atrapalhar a leitura mas visível em todo o documento */
     z-index: 999; /* Fica por cima do texto dificultando a remoção */
     pointer-events: none; /* Permite selecionar o texto embaixo */
 }
@@ -1587,13 +1586,13 @@ tr.bg-orange-light .rel-label-col {
 #rel-tbody td:nth-child(8), .rel-comparativo tbody td:nth-child(8) { background-color: #70AD47 !important; }
 
 /* Apply to summary body, EXCLUDING specific colored rows */
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light) td:nth-child(2) { background-color: #FF8B9B !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light) td:nth-child(3) { background-color: #E6B8B7 !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light) td:nth-child(4) { background-color: #BFBFBF !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light) td:nth-child(5) { background-color: #C9A8E8 !important; color: #2d0060 !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light) td:nth-child(6) { background-color: #B5B059 !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light) td:nth-child(7) { background-color: #ffffff !important; }
-.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light) td:nth-child(8) { background-color: #70AD47 !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light):not(.row-fechamento-anterior):not(.row-oscilacao-rs):not(.row-semana-anterior):not(.row-lme100) td:nth-child(2) { background-color: #FF8B9B !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light):not(.row-fechamento-anterior):not(.row-oscilacao-rs):not(.row-semana-anterior):not(.row-lme100) td:nth-child(3) { background-color: #E6B8B7 !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light):not(.row-fechamento-anterior):not(.row-oscilacao-rs):not(.row-semana-anterior):not(.row-lme100) td:nth-child(4) { background-color: #BFBFBF !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light):not(.row-fechamento-anterior):not(.row-oscilacao-rs):not(.row-semana-anterior):not(.row-lme100) td:nth-child(5) { background-color: #C9A8E8 !important; color: #2d0060 !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light):not(.row-fechamento-anterior):not(.row-oscilacao-rs):not(.row-semana-anterior):not(.row-lme100) td:nth-child(6) { background-color: #B5B059 !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light):not(.row-fechamento-anterior):not(.row-oscilacao-rs):not(.row-semana-anterior):not(.row-lme100) td:nth-child(7) { background-color: #ffffff !important; }
+.rel-summary-body tr:not(.bg-lightgreen):not(.bg-blue):not(.bg-black):not(.bg-yellow):not(.bg-darkgray):not(.bg-orange-light):not(.row-fechamento-anterior):not(.row-oscilacao-rs):not(.row-semana-anterior):not(.row-lme100) td:nth-child(8) { background-color: #70AD47 !important; }
 
 /* Ensure text in specific functional rows remains readable (like FECHAMENTO which has text-red / text-green classes) */
 .rel-summary-body tr.bg-lightgreen td, .rel-summary-body tr.bg-blue td {
@@ -1756,8 +1755,26 @@ tr.bg-orange-light .rel-label-col {
     border: 1px solid var(--borda);
 }
 
+
 [data-theme="light"] .login-box {
     background: #FFFFFF;
     box-shadow: 0 10px 40px rgba(0,0,0,0.1);
 }
+
+/* Row overrides for Relatório Diário LME */
+.rel-summary-body tr.row-lme100 td:last-child {
+    background-color: #ffffff !important;
+    border: 1px solid #ddd !important;
+}
+.rel-summary-body tr.row-fechamento-anterior td {
+    background-color: #A6A6A6 !important;
+}
+.rel-summary-body tr.row-oscilacao-rs td {
+    background-color: #A6A6A6 !important;
+}
+.rel-summary-body tr.row-semana-anterior td {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+}
+
 

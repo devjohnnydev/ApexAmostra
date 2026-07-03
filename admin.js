@@ -2707,6 +2707,27 @@ document.addEventListener('DOMContentLoaded', () => {
             formatVariacaoCell(elCompOsc, oscRs, 'currency');
         });
 
+        // Aplica overrides de cores nas linhas específicas por label
+        const summaryRows = document.querySelectorAll('.rel-summary-body tr');
+        summaryRows.forEach(row => {
+            const firstCell = row.cells[0];
+            if (!firstCell) return;
+            const text = firstCell.textContent.trim().toUpperCase();
+
+            // Limpa classes anteriores para evitar duplicar/acumular em re-renders
+            row.classList.remove('row-lme100', 'row-fechamento-anterior', 'row-oscilacao-rs', 'row-semana-anterior');
+
+            if (text.includes("100% LME")) {
+                row.classList.add('row-lme100');
+            } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
+                row.classList.add('row-fechamento-anterior');
+            } else if (text.includes("OSCILAÇÃO R$")) {
+                row.classList.add('row-oscilacao-rs');
+            } else if (text === "SEMANA ANTERIOR") {
+                row.classList.add('row-semana-anterior');
+            }
+        });
+
         renderRelatorioCharts(week);
         renderRelatorioBase(week);
     }

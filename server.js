@@ -1277,28 +1277,28 @@ function gerarHtmlRelatorio(weekBlock) {
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].niquel)}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffffff; color: #000000;"></td>
         </tr>
-        <tr style="background-color: #0070c0; font-weight: bold; color: #ffffff;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #ffffff; background-color: #0070c0;">SEMANA ANTERIOR</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #0070c0; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #c6e0b4; color: #000000;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
+        <tr style="background-color: #000000; font-weight: bold; color: #ffffff;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #ffffff; background-color: #000000;">SEMANA ANTERIOR</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
         </tr>
-        <tr style="background-color: #ebf1e4; font-size: 9pt; color: #000000;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #ebf1e4;">FECHAMENTO % (SEMANA ANTERIOR)</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].cobre, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].zinco, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].aluminio, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].chumbo, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].estanho, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #ebf1e4;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].niquel, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #c6e0b4; color: #000000;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].dolar, 'pct', '#000000')}</td>
+        <tr style="background-color: #A6A6A6; font-size: 9pt; color: #000000;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #A6A6A6;">FECHAMENTO % (SEMANA ANTERIOR)</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].cobre, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].zinco, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].aluminio, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].chumbo, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].estanho, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].niquel, 'pct', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6; color: #000000;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].dolar, 'pct', '#000000')}</td>
         </tr>
-        <tr style="background-color: #0070c0; font-weight: bold; font-size: 9pt; color: #ffffff;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #ffffff; background-color: #0070c0;">OSCILAÇÃO %</td>
+        <tr style="background-color: #A6A6A6; font-weight: bold; font-size: 9pt; color: #ffffff;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #ffffff; background-color: #A6A6A6;">OSCILAÇÃO %</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].cobre, 'pct', '#ffffff')}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].zinco, 'pct', '#ffffff')}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].aluminio, 'pct', '#ffffff')}</td>
@@ -1307,15 +1307,15 @@ function gerarHtmlRelatorio(weekBlock) {
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].niquel, 'pct', '#ffffff')}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO %'].dolar, 'pct', '#000000')}</td>
         </tr>
-        <tr style="background-color: #c6e0b4; font-weight: bold; font-size: 9pt; color: #000000;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #c6e0b4;">OSCILAÇÃO R$</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4;">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000')}</td>
+        <tr style="background-color: #A6A6A6; font-weight: bold; font-size: 9pt; color: #000000;">
+            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #A6A6A6;">OSCILAÇÃO R$</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000')}</td>
         </tr>
         <tr style="background-color: #fde9d9; font-weight: bold; color: #000000;">
             <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #fde9d9;">MÉDIA MENSAL</td>
