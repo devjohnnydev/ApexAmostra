@@ -55,7 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
             sections.forEach(sec => sec.classList.remove('active'));
             item.classList.add('active');
             const target = document.getElementById(item.dataset.target);
-            if (target) target.classList.add('active');
+            if (target) {
+                target.classList.add('active');
+                if (item.dataset.target === 'relatorio-diario') {
+                    setTimeout(() => {
+                        window.dispatchEvent(new Event('resize'));
+                    }, 50);
+                }
+            }
         });
     });
 
@@ -2798,6 +2805,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ]
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: { padding: { top: 24, right: 8, left: 8 } },
