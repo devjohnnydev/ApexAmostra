@@ -30,19 +30,28 @@ O portal foi projetado com uma estética visual premium e moderna (Dark Mode), f
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Tecnologias e Bibliotecas Utilizadas
+
+O sistema da **Apex Tech Metais** foi projetado utilizando soluções robustas tanto no frontend quanto no backend. Abaixo detalhamos a stack completa:
 
 ### 📂 Backend (Node.js & Express)
-- **Express**: Servidor HTTP e roteamento de APIs REST.
-- **Cheerio & Axios**: Web scraping diário extraindo cotações oficiais e câmbio em tempo real.
-- **Axios (Resend API)**: Envio de e-mails dinâmicos utilizando a API HTTP da Resend sobre a porta 443.
-- **pg (PostgreSQL)**: Driver de conexão e persistência de dados no banco de dados corporativo da Railway.
+* **Express (`^4.19.2`)**: Framework web para criação do servidor HTTP, roteamento de APIs REST e entrega de arquivos estáticos.
+* **Axios (`^1.18.0`)**: Cliente HTTP robusto utilizado para requisições externas (integração com a API do Resend e consultas a fontes de cotações).
+* **Cheerio (`^1.2.0`)**: Parser de HTML baseado em jQuery para raspagem de dados (web scraping) das cotações diárias de metais LME.
+* **Puppeteer (`^25.3.0`)**: Navegador headless integrado para renderizar o dashboard administrativamente no servidor e gerar relatórios em PDF fiéis ao design.
+* **pg (`^8.21.0`)**: Driver oficial do PostgreSQL utilizado para pooling de conexões e persistência de dados.
+* **Nodemailer (`^9.0.3`)**: Biblioteca para envio e formatação de e-mails direto pelo servidor.
+* **ExcelJS (`^4.4.0`)**: Ferramenta de manipulação de planilhas para a estruturação lógica e gravação do arquivo Excel (.xlsx) no backend.
+* **Canvas (`^3.2.3`) & JSDOM (`^29.1.1`)**: Emulação de ambiente DOM e renderização 2D para processamentos gráficos em servidor headless.
+* **Dotenv (`^16.4.5`)**: Gerenciador de variáveis de ambiente para armazenamento seguro de chaves de API, credenciais e configurações de porta.
 
-### 📂 Frontend (HTML, CSS & Vanilla JS)
-- **HTML5 & CSS3 (Vanilla)**: Estruturação semântica e estilização premium baseada em variáveis nativas (`:root`), Flexbox e CSS Grid.
-- **Chart.js**: Renderização reativa de gráficos de tendências de preços no painel.
-- **ExcelJS**: Biblioteca utilizada pelo navegador para a montagem e estilização sob demanda de planilhas XLSX detalhadas.
-- **JsPDF & AutoTable**: Geração e estruturação de documentos PDF profissionais no lado do cliente.
+### 📂 Frontend (HTML5, Vanilla CSS & Javascript)
+* **FontAwesome (`v6.5.0`)**: Biblioteca de ícones vetoriais moderna para a barra de navegação e botões do painel.
+* **Google Fonts**: Fontes tipográficas premium **Raleway** e **Lato** para um design limpo e corporativo.
+* **Chart.js (`^4.4.0`)**: Renderização dinâmica de gráficos de barras e tendências históricas de cotações com interatividade.
+* **Chartjs-plugin-datalabels (`^2.2.0`)**: Rótulos e indicadores numéricos acima das barras dos gráficos.
+* **html2canvas (`^1.4.1`)**: Captura do layout e elementos DOM da tela do dashboard administrativo, convertendo-os em imagens de alta fidelidade para compartilhamento rápido ou exportação.
+* **jsPDF (`^2.5.1`)**: Biblioteca de geração de PDFs dinâmicos diretamente no lado do cliente.
 
 ---
 
@@ -83,3 +92,4 @@ O portal foi projetado com uma estética visual premium e moderna (Dark Mode), f
 ---
 
 > Desenvolvido com foco em alta performance, usabilidade inteligente e robustez corporativa. 🌿
+
