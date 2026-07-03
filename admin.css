@@ -1658,7 +1658,7 @@ tr.bg-orange-light .rel-label-col {
 .rel-summary-body tr.bg-lightgreen td:not(.rel-label-col),
 .rel-summary-body tr.bg-blue td:not(.rel-label-col),
 .rel-summary-body tr.bg-green td:not(.rel-label-col) {
-    color: #000000 !important;
+    color: #f9f9f9 !important;
 }
 
 /* ─── LME Email Config Section Styles ─── */
