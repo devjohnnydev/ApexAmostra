@@ -2744,6 +2744,30 @@ document.addEventListener('DOMContentLoaded', () => {
             // Destruir instância anterior se existir
             const key = '__apexChart_' + canvasId;
             if (window[key]) { window[key].destroy(); }
+
+            const bgAnt = [];
+            const borderAnt = [];
+            const bgAtu = [];
+            const borderAtu = [];
+
+            for (let i = 0; i < labels.length; i++) {
+                const valAtu = dataAtu[i] || 0;
+                const valAnt = dataAnt[i] || 0;
+                if (valAtu > valAnt) {
+                    // Atual foi melhor (Verde), Anterior foi pior (Vermelho)
+                    bgAtu.push('#27ae60');
+                    borderAtu.push('#1e8449');
+                    bgAnt.push('#e74c3c');
+                    borderAnt.push('#c0392b');
+                } else {
+                    // Atual foi pior (Vermelho), Anterior foi melhor (Verde)
+                    bgAtu.push('#e74c3c');
+                    borderAtu.push('#c0392b');
+                    bgAnt.push('#27ae60');
+                    borderAnt.push('#1e8449');
+                }
+            }
+
             window[key] = new Chart(ctx, {
                 type: 'bar',
                 plugins: [datalabelPlugin],
@@ -2753,8 +2777,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             label: 'Semana Anterior',
                             data: dataAnt,
-                            backgroundColor: '#e74c3c',
-                            borderColor: '#c0392b',
+                            backgroundColor: bgAnt,
+                            borderColor: borderAnt,
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,
@@ -2763,8 +2787,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             label: 'Semana Atual',
                             data: dataAtu,
-                            backgroundColor: '#27ae60',
-                            borderColor: '#1e8449',
+                            backgroundColor: bgAtu,
+                            borderColor: borderAtu,
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,

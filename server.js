@@ -1038,6 +1038,29 @@ function getWeekHeaderInfo(firstDateStr) {
 }
 
 function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
+    const bgAnt = [];
+    const borderAnt = [];
+    const bgAtu = [];
+    const borderAtu = [];
+
+    for (let i = 0; i < labels.length; i++) {
+        const valAtu = dataAtu[i] || 0;
+        const valAnt = dataAnt[i] || 0;
+        if (valAtu > valAnt) {
+            // Atual foi melhor (Verde), Anterior foi pior (Vermelho)
+            bgAtu.push('#27ae60');
+            borderAtu.push('#1e8449');
+            bgAnt.push('#e74c3c');
+            borderAnt.push('#c0392b');
+        } else {
+            // Atual foi pior (Vermelho), Anterior foi melhor (Verde)
+            bgAtu.push('#e74c3c');
+            borderAtu.push('#c0392b');
+            bgAnt.push('#27ae60');
+            borderAnt.push('#1e8449');
+        }
+    }
+
     const chartConfig = {
         type: 'bar',
         data: {
@@ -1045,15 +1068,15 @@ function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
             datasets: [
                 {
                     label: 'Semana Anterior',
-                    backgroundColor: '#e74c3c',
-                    borderColor: '#c0392b',
+                    backgroundColor: bgAnt,
+                    borderColor: borderAnt,
                     borderWidth: 1,
                     data: dataAnt
                 },
                 {
                     label: 'Semana Atual',
-                    backgroundColor: '#27ae60',
-                    borderColor: '#1e8449',
+                    backgroundColor: bgAtu,
+                    borderColor: borderAtu,
                     borderWidth: 1,
                     data: dataAtu
                 }
@@ -1068,8 +1091,7 @@ function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
                 fontFamily: 'Calibri'
             },
             legend: {
-                position: 'top',
-                labels: { fontColor: '#222' }
+                display: false
             },
             plugins: {
                 datalabels: {
@@ -1417,6 +1439,13 @@ function gerarHtmlRelatorio(weekBlock) {
             </table>
 
             <div style="font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif;">Gráficos de Comparação de Cotações</div>
+            
+            <div style="font-family: Calibri, Arial, sans-serif; font-size: 10pt; margin-bottom: 12px; text-align: center; font-weight: bold;">
+                <span style="display: inline-block; width: 12px; height: 12px; background-color: #27ae60; vertical-align: middle; margin-right: 4px; border-radius: 2px;"></span>
+                <span style="color: #27ae60; margin-right: 15px;">Melhor Desempenho</span>
+                <span style="display: inline-block; width: 12px; height: 12px; background-color: #e74c3c; vertical-align: middle; margin-right: 4px; border-radius: 2px;"></span>
+                <span style="color: #e74c3c;">Pior Desempenho</span>
+            </div>
             
             <div style="text-align: center; margin-top: 15px;">
                 <div style="margin-bottom: 25px;">
