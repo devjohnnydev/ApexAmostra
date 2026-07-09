@@ -526,12 +526,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Try to get available months
         try {
-            const res = await fetch(`/api/lme/tabela/${currentMes}`);
+            const res = await fetch(`/api/lme/tabela/atual`);
             if (res.ok) {
                 const data = await res.json();
                 if (data.mesesDisponiveis && data.mesesDisponiveis.length > 0) {
-                    mesSel.innerHTML = data.mesesDisponiveis.map(m =>
-                        `<option value="${m.valor}" ${m.valor === currentMes ? 'selected' : ''}>${m.texto}</option>`
+                    mesSel.innerHTML = data.mesesDisponiveis.map((m, idx) =>
+                        `<option value="${m.valor}" ${idx === 0 ? 'selected' : ''}>${m.texto}</option>`
                     ).join('');
                 } else {
                     mesSel.innerHTML = `<option value="${currentMes}">${now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</option>`;

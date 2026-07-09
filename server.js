@@ -628,7 +628,7 @@ function getPreviousMonthStr(mesStr) {
 
 async function generateRelatorioSemanas(mes) {
     // 1. Busca dados do mês atual
-    const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+    const targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
     const { data: html } = await axios.get(targetUrl, { timeout: 15000 });
     const $ = cheerio.load(html);
 
@@ -638,7 +638,12 @@ async function generateRelatorioSemanas(mes) {
         mesesDisponiveis.push({ valor: $(el).val(), texto: $(el).text().trim() });
     });
 
-    const reqParts = mes.split('-');
+    let resolvedMes = mes;
+    if (mes === 'atual' && mesesDisponiveis.length > 0) {
+        resolvedMes = mesesDisponiveis[0].valor;
+    }
+
+    const reqParts = resolvedMes.split('-');
     const reqMonth = parseInt(reqParts[0], 10);
     const reqYearNum = parseInt(reqParts[1], 10);
 
@@ -846,8 +851,7 @@ async function generateRelatorioSemanas(mes) {
 
 app.get('/api/lme/relatorio-semanal', async (req, res) => {
     try {
-        const mes = req.query.mes; // ex: "6-2026"
-        if (!mes) return res.status(400).json({ error: 'Parâmetro mes obrigatório. Ex: ?mes=6-2026' });
+        const mes = req.query.mes || 'atual';
 
         const data = await generateRelatorioSemanas(mes);
         res.json({ semanas: [...data.semanas].reverse(), mesesDisponiveis: data.mesesDisponiveis });
@@ -2030,7 +2034,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
 app.get('/api/lme/tabela/:mes', async (req, res) => {
     try {
         const mes = req.params.mes;
-        const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+        const targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
         const { data } = await axios.get(targetUrl);
         const $ = cheerio.load(data);
         

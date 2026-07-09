@@ -649,7 +649,7 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
         if (!selectMonth) return; // Se a seção LME não estiver nesta página
 
         // 1. Carga Inicial: busca o mês padrão
-        fetchLMETabela('6-2026'); // Mês inicial padrão. A API retornará os meses disponíveis.
+        fetchLMETabela('atual'); // Busca o mês mais recente/atual da LME
         
         // 2. Mudança de Mês no Dropdown
         selectMonth.addEventListener('change', function(e) {
