@@ -1093,11 +1093,13 @@ function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
             legend: {
                 display: false
             },
+            layout: { padding: { top: 90, right: 8, left: 8, bottom: 8 } },
             plugins: {
                 datalabels: {
                     display: true,
                     anchor: 'end',
                     align: 'top',
+                    rotation: -90,
                     color: '#111111',
                     font: {
                         weight: 'bold',
@@ -1125,7 +1127,7 @@ function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
 
     const configStr = JSON.stringify(chartConfig)
         .replace('"callback_y"', 'function(v) { return "R$ " + v.toLocaleString("pt-BR", { maximumFractionDigits: 0 }); }')
-        .replace('"datalabels_formatter"', 'function(value) { return "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }');
+        .replace('"datalabels_formatter"', 'function(value, ctx) { var prefix = ctx.dataset.label === "Semana Anterior" ? "Ant: " : "Atu: "; return prefix + "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }');
 
     const encodedConfig = encodeURIComponent(configStr);
     return `https://quickchart.io/chart?w=500&h=250&bkg=%23ffffff&c=${encodedConfig}`;

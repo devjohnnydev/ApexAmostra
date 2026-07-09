@@ -2725,12 +2725,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     meta.data.forEach((bar, idx) => {
                         const val = dataset.data[idx];
                         if (val === 0 || val == null) return;
-                        const label = fmtR(val);
+                        
                         ctx.save();
-                        ctx.font = 'bold 10px Arial';
+                        ctx.font = 'bold 9px Arial';
                         ctx.fillStyle = '#111';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(label, bar.x, bar.y - 5);
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        
+                        // Rotaciona para desenhar verticalmente
+                        ctx.translate(bar.x, bar.y - 6);
+                        ctx.rotate(-Math.PI / 2);
+                        
+                        const prefix = dataset.label === 'Semana Anterior' ? 'Ant: ' : 'Atu: ';
+                        const label = prefix + 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                        
+                        ctx.fillText(label, 0, 0);
                         ctx.restore();
                     });
                 });
@@ -2800,7 +2809,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 24, right: 8, left: 8 } },
+                    layout: { padding: { top: 90, right: 8, left: 8 } },
                     plugins: {
                         legend: { display: false },          // legenda feita no HTML
                         tooltip: {
