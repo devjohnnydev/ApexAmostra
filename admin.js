@@ -2536,42 +2536,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        let weekNum = '...';
-        let dataTexto = `${firstDate} a ${lastDate}`;
-        
-        if (firstDate) {
-            const ptMonths = { 'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'set': 8, 'out': 9, 'nov': 10, 'dez': 11 };
-            const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-            
-            // Try to get year from filter, otherwise use current year
-            const filterMes = document.getElementById('lme-filter-mes');
-            let year = new Date().getFullYear();
-            if (filterMes && filterMes.value && filterMes.value.includes('-')) {
-                year = parseInt(filterMes.value.split('-')[1]);
-            }
-            
-            const parts = firstDate.split('/');
-            if (parts.length >= 2) {
-                const day = parseInt(parts[0]);
-                const monthPart = parts[1].toLowerCase().trim();
-                let monthIndex = 0;
-                
-                if (isNaN(monthPart)) {
-                    monthIndex = ptMonths[monthPart] !== undefined ? ptMonths[monthPart] : 0;
-                } else {
-                    monthIndex = parseInt(monthPart) - 1;
-                }
-                
-                // If parts has 3, it's DD/MM/YYYY
-                if (parts.length === 3) {
-                    year = parseInt(parts[2]);
-                }
-                
-                const dateObj = new Date(year, monthIndex, day);
-                weekNum = getISOWeek(dateObj);
-                dataTexto = `${day} de ${monthNames[monthIndex]}`;
-            }
-        }
+        const today = new Date();
+        const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+        const dataTexto = `${today.getDate()} de ${monthNames[today.getMonth()]}`;
+        const weekNum = getISOWeek(today);
         
         document.getElementById('rel-date-range').textContent = dataTexto;
         document.getElementById('rel-week-number').textContent = weekNum;

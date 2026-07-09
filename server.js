@@ -1030,32 +1030,10 @@ function getISOWeek(date) {
 }
 
 function getWeekHeaderInfo(firstDateStr) {
-    if (!firstDateStr) return { dateText: '—', weekNum: '—' };
+    const today = new Date();
     const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-    const ptMonths = { 'jan': 0, 'fev': 1, 'feb': 1, 'mar': 2, 'abr': 3, 'apr': 3, 'mai': 4, 'may': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'aug': 7, 'set': 8, 'sep': 8, 'out': 9, 'oct': 9, 'nov': 10, 'dez': 11, 'dec': 11 };
-
-    const parts = firstDateStr.split('/');
-    if (parts.length < 2) return { dateText: firstDateStr, weekNum: '—' };
-
-    const day = parseInt(parts[0], 10);
-    const monthPart = parts[1].toLowerCase().trim();
-    let monthIndex = 0;
-    let year = new Date().getFullYear();
-
-    if (isNaN(monthPart)) {
-        monthIndex = ptMonths[monthPart] !== undefined ? ptMonths[monthPart] : 0;
-    } else {
-        monthIndex = parseInt(monthPart, 10) - 1;
-    }
-
-    if (parts.length === 3) {
-        year = parseInt(parts[2], 10);
-    }
-
-    const dateObj = new Date(year, monthIndex, day);
-    const weekNum = getISOWeek(dateObj);
-    const dateText = `${day} de ${monthNames[monthIndex]}`;
-
+    const dateText = `${today.getDate()} de ${monthNames[today.getMonth()]}`;
+    const weekNum = getISOWeek(today);
     return { dateText, weekNum };
 }
 
