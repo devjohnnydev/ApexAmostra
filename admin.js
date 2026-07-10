@@ -2316,7 +2316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Erro ao carregar dados do relatorio diario', e);
         }
 
-        btnGerar.addEventListener('click', () => {
+        btnGerar.addEventListener('click', async () => {
             const captureArea = document.getElementById('capture-area');
             // Mostrar rodapé com timestamp
             const now = new Date();
@@ -2328,15 +2328,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
                 rodape.style.display = 'block';
             }
-            html2canvas(captureArea, { scale: 2, useCORS: true, allowTaint: false, scrollY: 0, windowHeight: captureArea.scrollHeight }).then(canvas => {
+
+            // Backup styling to prevent mobile layout distortion
+            const originalWidth = captureArea.style.width;
+            const originalMaxWidth = captureArea.style.maxWidth;
+            captureArea.style.width = '800px';
+            captureArea.style.maxWidth = 'none';
+
+            // Delay to allow DOM layout to update
+            await new Promise(r => setTimeout(r, 100));
+
+            try {
+                const canvas = await html2canvas(captureArea, { 
+                    scale: 2, 
+                    useCORS: true, 
+                    allowTaint: false, 
+                    scrollY: 0, 
+                    windowHeight: captureArea.scrollHeight,
+                    width: 800
+                });
                 const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = 'Relatorio_LME_ApexTech.png';
                 link.href = imgData;
                 link.click();
+            } finally {
+                // Restore styling
+                captureArea.style.width = originalWidth;
+                captureArea.style.maxWidth = originalMaxWidth;
                 // Ocultar rodapé após download
                 if (rodape) rodape.style.display = 'none';
-            });
+            }
         });
 
         btnCopiar.addEventListener('click', () => {
@@ -2413,6 +2435,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
+                // Backup styling to prevent mobile layout distortion
+                const originalWidth = captureArea.style.width;
+                const originalMaxWidth = captureArea.style.maxWidth;
+                captureArea.style.width = '800px';
+                captureArea.style.maxWidth = 'none';
+
+                // Delay to allow DOM layout to update
+                await new Promise(r => setTimeout(r, 100));
+
                 try {
                     // Captura a altura TOTAL do conteúdo
                     const canvas = await html2canvas(captureArea, {
@@ -2423,7 +2454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         scrollY: 0,
                         windowHeight: captureArea.scrollHeight,
                         height: captureArea.scrollHeight,
-                        width: captureArea.scrollWidth
+                        width: 800
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
@@ -2476,6 +2507,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (originalSrc) {
                         logoImg.src = originalSrc;
                     }
+                    // Restore styling
+                    captureArea.style.width = originalWidth;
+                    captureArea.style.maxWidth = originalMaxWidth;
                     // Ocultar rodapé após exportação
                     if (rodape) rodape.style.display = 'none';
                 }
@@ -2637,7 +2671,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const elAnt = document.getElementById('rel-ant-' + m);
             if (elAnt) {
                 if (isDolar) {
-                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
                 } else {
                     elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
                 }
@@ -2663,7 +2697,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const elCompAnt = document.getElementById('rel-comp-ant-' + m);
             if (elCompAnt) {
                 if (isDolar) {
-                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
                 } else {
                     elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
                 }

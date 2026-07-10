@@ -1651,11 +1651,18 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     </html>
     `;
 
-    // Parâmetros do e-mail
+    // Parâmetros do e-mail com a data atual no assunto
+    const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+    const localDate = new Date(localTimeStr);
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const year = localDate.getFullYear();
+    const todayDateStr = `${day}/${month}/${year}`;
+
     const emailPayload = {
         from: config.from,
         to: emailsList,
-        subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${label}`,
+        subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${todayDateStr}`,
         html: html,
         attachments: []
     };
