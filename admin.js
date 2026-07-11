@@ -192,10 +192,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
             if (formatType === 'currency4') {
-                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
+                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
             if (formatType === 'dolar') {
-                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
+                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
             return v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         };
@@ -2088,6 +2088,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 schedAtivo.checked  = settings.lme_envio_ativo === 'true';
                 schedHorario.value  = settings.lme_envio_horario || '14:00';
  
+                const diasStr = settings.lme_envio_dias !== undefined ? settings.lme_envio_dias : '1,2,3,4,5';
+                const diasArr = diasStr.split(',');
+                document.querySelectorAll('.sched-dia').forEach(chk => {
+                    chk.checked = diasArr.includes(chk.value);
+                });
+
                 resendApiKey.value  = settings.lme_resend_api_key || '';
                 resendFrom.value    = settings.lme_resend_from || '';
             } catch (err) {
@@ -2099,9 +2105,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formScheduler) {
             formScheduler.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const selectedDias = Array.from(document.querySelectorAll('.sched-dia:checked')).map(chk => chk.value).join(',');
                 const data = {
                     lme_envio_ativo: schedAtivo.checked ? 'true' : 'false',
-                    lme_envio_horario: schedHorario.value
+                    lme_envio_horario: schedHorario.value,
+                    lme_envio_dias: selectedDias
                 };
  
                 try {
@@ -2500,7 +2508,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const year = now.getFullYear();
                         dateStr = `${day}-${month}-${year}`;
                     }
-                    const filename = `relatorio-lme-${dateStr}.pdf`;
+                    const filename = `Relatorio_LME.pdf`;
                     pdf.save(filename);
                 } finally {
                     // Restaura o SVG original após gerar o PDF
@@ -2597,7 +2605,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Função reutilizável para formatar indicadores de variação
-        function formatVariacaoCell(element, value, type) {
+        function formatVariacaoCell(element, value, type, decimals = 3) {
             if (!element) return;
             if (value === null || value === undefined || isNaN(value)) {
                 element.textContent = '-';
@@ -2611,7 +2619,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'percent') {
                 formattedText = (numVal * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
             } else if (type === 'currency') {
-                formattedText = 'R$ ' + Math.abs(numVal).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                formattedText = 'R$ ' + Math.abs(numVal).toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
             } else {
                 formattedText = numVal.toLocaleString('pt-BR');
             }
@@ -2659,7 +2667,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const elMedia = document.getElementById('rel-media-' + m);
             if (elMedia) {
                 if (isDolar) {
-                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 3);
+                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
                 } else {
                     elMedia.textContent = formatUsd(comp['MEDIA SEMANAL']?.[m]);
                 }
@@ -2683,12 +2691,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
-            formatVariacaoCell(elOscRs, oscRs, 'currency');
+            formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
             const elMensal = document.getElementById('rel-mensal-' + m);
             if (elMensal) {
                 if (isDolar) {
-                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 4);
                 } else {
                     elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
                 }
@@ -2707,13 +2715,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
             if (elCompAtu) {
                 if (isDolar) {
-                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 3);
+                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
                 } else {
                     elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 3);
                 }
             }
             const elCompOsc = document.getElementById('rel-comp-osc-' + m);
-            formatVariacaoCell(elCompOsc, oscRs, 'currency');
+            formatVariacaoCell(elCompOsc, oscRs, 'currency', isDolar ? 4 : 3);
         });
 
         // Aplica overrides de cores nas linhas específicas por label

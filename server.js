@@ -62,6 +62,7 @@ const memStore = {
         show_galeria: 'true',
         lme_envio_ativo: 'false',
         lme_envio_horario: '14:00',
+        lme_envio_dias: '1,2,3,4,5',
         lme_resend_api_key: '',
         lme_resend_from: 'josetiago@lme.lat'
     },
@@ -1003,7 +1004,7 @@ const fmtPct = (val) => {
     if (val === null || val === undefined || isNaN(val)) return '—';
     return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
 };
-const fmtVar = (val, type, textColor = '#000000') => {
+const fmtVar = (val, type, textColor = '#000000', dec = 3) => {
     if (val === null || val === undefined || isNaN(val)) return '—';
     const num = Number(val);
     let arrow = '';
@@ -1016,7 +1017,7 @@ const fmtVar = (val, type, textColor = '#000000') => {
     if (type === 'pct') {
         txt = (num * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
     } else {
-        txt = 'R$ ' + Math.abs(num).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        txt = 'R$ ' + Math.abs(num).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
     }
     return `${arrow}<span style="color: ${textColor} !important;">${txt}</span>`;
 };
@@ -1321,7 +1322,7 @@ function gerarHtmlRelatorio(weekBlock) {
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
             <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000')}</td>
+            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000', 4)}</td>
         </tr>
         <tr style="background-color: #fde9d9; font-weight: bold; color: #000000;">
             <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #fde9d9;">MÉDIA MENSAL</td>
@@ -1379,7 +1380,7 @@ function gerarHtmlRelatorio(weekBlock) {
                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color:#c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000')}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color:#c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000', 4)}</td>
                     </tr>
                 </tbody>
             </table>
@@ -1674,10 +1675,9 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
         console.log('📄 Gerando PDF via Puppeteer no backend para envio automático...');
         finalPdfBase64 = await gerarPdfRelatorioViaHeadless(weekBlock);
     }
-
     if (finalPdfBase64) {
         emailPayload.attachments.push({
-            filename: `relatorio_lme_${label.replace(/\s+/g, '_')}.pdf`,
+            filename: `Relatorio_LME.pdf`,
             content: finalPdfBase64
         });
         console.log('📎 PDF anexado com sucesso ao e-mail.');
@@ -1714,8 +1714,15 @@ function startEmailScheduler() {
 
             const active = settings.lme_envio_ativo === 'true';
             const scheduledTime = settings.lme_envio_horario || '14:00';
+            const scheduledDaysStr = settings.lme_envio_dias !== undefined ? settings.lme_envio_dias : '1,2,3,4,5';
 
             if (!active) return;
+
+            // Check if current day of week is scheduled
+            const spTime = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+            const currentDayOfWeek = new Date(spTime).getDay();
+            const scheduledDays = scheduledDaysStr.split(',').map(Number);
+            if (!scheduledDays.includes(currentDayOfWeek)) return;
 
             // Hora atual em São Paulo
             const localTimeStr = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
