@@ -1736,13 +1736,20 @@ function startEmailScheduler() {
             const month = dateParts[1];
             const day = dateParts[0];
 
-            const hour = timeParts[0];
-            const minute = timeParts[1];
+            const hour = parseInt(timeParts[0], 10);
+            const minute = parseInt(timeParts[1], 10);
+
+            const scheduledParts = scheduledTime.split(':');
+            const schedHour = parseInt(scheduledParts[0], 10);
+            const schedMinute = parseInt(scheduledParts[1], 10);
+
+            const currentTimeMins = (hour * 60) + minute;
+            const schedTimeMins = (schedHour * 60) + schedMinute;
 
             const todayDateStr = `${year}-${month}-${day}`;
-            const currentTimeStr = `${hour}:${minute}`;
+            const currentTimeStr = `${timeParts[0]}:${timeParts[1]}`;
 
-            if (currentTimeStr === scheduledTime && lastSentDateStr !== todayDateStr) {
+            if (currentTimeMins >= schedTimeMins && lastSentDateStr !== todayDateStr) {
                 console.log(`⏰ Horário de envio atingido (${currentTimeStr}). Enviando relatório LME por e-mail...`);
                 
                 const mes = `${parseInt(month, 10)}-${year}`;
