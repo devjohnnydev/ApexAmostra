@@ -11,7 +11,7 @@
     { label: 'Soluções',              href: '/servicos.html',     key: 'servicos' },
     { label: 'Catálogo',              href: '/produtos.html',     key: 'produtos' },
     { label: 'Onde Encontramos',      href: '/onde-comprar.html', key: 'onde-comprar' },
-
+    { label: 'Cotações LME',          href: '/cotacoes.html',     key: 'cotacoes' },
     { label: 'Galeria',               href: '/sobre.html#galeria',key: 'galeria' },
     { label: 'Notícias',              href: '/noticias.html',     key: 'noticias' },
     { label: 'Atendimento',           href: '/contato.html',      key: 'contato' },
@@ -52,7 +52,7 @@
                         <li${currentPage==='sobre'?' class="current"':''}>   <a href="/sobre.html">Sobre</a></li>
                         <li${currentPage==='servicos'?' class="current"':''}>   <a href="/servicos.html">Soluções</a></li>
                         <li${currentPage==='produtos'?' class="current"':''}>  <a href="/produtos.html">Catálogo</a></li>
-
+                        <li${currentPage==='cotacoes'?' class="current"':''}>  <a href="/cotacoes.html">Cotações LME</a></li>
                         <li${currentPage==='contato'?' class="current"':''}>   <a href="/contato.html">Contato</a></li>
                     </ul>
                 </nav>
