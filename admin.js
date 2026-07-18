@@ -2328,25 +2328,98 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!btnGerar) return;
 
         let weeksData = [];
+        let currentSelectedWeek = null;
+        const selectMes = document.getElementById('rel-filter-mes');
+        const selectSemana = document.getElementById('rel-week-selector');
 
-        try {
-            const resMeses = await fetch('/api/lme/meses');
-            const mesesDisponiveis = await resMeses.json();
-            if (mesesDisponiveis.length === 0) return;
-            const mesToFetch = mesesDisponiveis[0].valor;
+        async function loadRelatorioMeses() {
+            try {
+                function gerarMesesFallback() {
+                    const meses = [];
+                    const now = new Date();
+                    for (let i = 0; i < 12; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const ano = d.getFullYear();
+                        const mes = String(d.getMonth() + 1).padStart(2, '0');
+                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
+                    }
+                    return meses;
+                }
 
-            const res = await fetch(`/api/lme/relatorio-semanal?mes=` + mesToFetch);
-            if (!res.ok) return;
-            const data = await res.json();
-            const weeks = data.semanas || [];
-            if (weeks.length === 0) return;
+                let mesesDisponiveis = [];
+                try {
+                    const resMeses = await fetch('/api/lme/meses');
+                    if (resMeses.ok) {
+                        mesesDisponiveis = await resMeses.json();
+                    }
+                } catch (fetchErr) {
+                    console.warn('Falha ao buscar meses via API, usando fallback:', fetchErr);
+                }
 
-            weeksData = weeks;
-            const week = weeks[0];
-            renderRelatorioDiario(week);
-        } catch(e) {
-            console.error('Erro ao carregar dados do relatorio diario', e);
+                if (!mesesDisponiveis || mesesDisponiveis.length === 0) {
+                    mesesDisponiveis = gerarMesesFallback();
+                }
+
+                if (selectMes) {
+                    selectMes.innerHTML = mesesDisponiveis.map(m =>
+                        '<option value="' + m.valor + '">' + m.texto + '</option>'
+                    ).join('');
+                    const mesToFetch = mesesDisponiveis[0].valor;
+                    selectMes.value = mesToFetch;
+                    await loadRelatorioSemanas(mesToFetch);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar meses do relatório', e);
+            }
         }
+
+        async function loadRelatorioSemanas(mes) {
+            if (selectSemana) selectSemana.innerHTML = '<option>Carregando semanas...</option>';
+            try {
+                const res = await fetch('/api/lme/relatorio-semanal?mes=' + mes);
+                if (!res.ok) {
+                    if (selectSemana) selectSemana.innerHTML = '<option value="">Erro ao carregar semanas</option>';
+                    return;
+                }
+                const data = await res.json();
+                weeksData = data.semanas || [];
+                if (weeksData.length === 0) {
+                    if (selectSemana) selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
+                    return;
+                }
+
+                if (selectSemana) {
+                    selectSemana.innerHTML = weeksData.map((wk, idx) =>
+                        '<option value="' + idx + '">Semana de ' + (wk.label || 'sem data') + '</option>'
+                    ).join('');
+                    selectSemana.value = 0;
+                }
+                currentSelectedWeek = weeksData[0];
+                renderRelatorioDiario(currentSelectedWeek);
+            } catch (e) {
+                console.error('Erro ao carregar semanas do relatório', e);
+                if (selectSemana) selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
+            }
+        }
+
+        if (selectMes) {
+            selectMes.addEventListener('change', async (e) => {
+                await loadRelatorioSemanas(e.target.value);
+            });
+        }
+
+        if (selectSemana) {
+            selectSemana.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.value, 10);
+                if (!isNaN(idx) && weeksData[idx]) {
+                    currentSelectedWeek = weeksData[idx];
+                    renderRelatorioDiario(currentSelectedWeek);
+                }
+            });
+        }
+
+        await loadRelatorioMeses();
 
         btnGerar.addEventListener('click', async () => {
             const captureArea = document.getElementById('capture-area');
@@ -2394,8 +2467,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         btnCopiar.addEventListener('click', () => {
-            if (!weeksData || weeksData.length === 0) return;
-            const week = weeksData[0];
+            if (!currentSelectedWeek) return;
+            const week = currentSelectedWeek;
             const comp = week.computed || {};
             const d = week.days || [];
             const lastDate = d[d.length - 1]?.data || '';
@@ -2443,8 +2516,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Correção do Bug do SVG Preto:
-                // O html2canvas não renderiza SVGs complexos corretamente e eles viram blocos pretos.
-                // Solução: Converter a logo para Base64 PNG nativamente via Canvas antes de gerar o PDF.
                 const logoImg = captureArea.querySelector('.rel-logo img');
                 let originalSrc = '';
                 if (logoImg && logoImg.src.endsWith('.svg')) {
@@ -2505,8 +2576,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Nome de arquivo dinâmico (ex: relatorio-lme-DD-MM-AAAA.pdf)
                     let dateStr = '';
-                    if (weeksData && weeksData.length > 0) {
-                        const week = weeksData[0];
+                    if (currentSelectedWeek) {
+                        const week = currentSelectedWeek;
                         const d = week.days || [];
                         if (d.length > 0 && d[0].data) {
                             const parts = d[0].data.split('/');
@@ -2515,7 +2586,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const month = parts[1].padStart(2, '0');
                                 let year = parts[2] || '';
                                 if (!year) {
-                                    const filterMes = document.getElementById('lme-filter-mes');
+                                    const filterMes = document.getElementById('rel-filter-mes');
                                     year = new Date().getFullYear();
                                     if (filterMes && filterMes.value && filterMes.value.includes('-')) {
                                         year = filterMes.value.split('-')[1];
@@ -2550,8 +2621,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btnExcel) {
             btnExcel.addEventListener('click', async () => {
-                if (!weeksData || weeksData.length === 0) return;
-                const block = weeksData[0];
+                if (!currentSelectedWeek) return;
+                const block = currentSelectedWeek;
                 btnExcel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
                 try {
                     const res = await fetch('/api/lme/gerar-excel', {
