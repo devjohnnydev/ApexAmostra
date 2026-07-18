@@ -1645,7 +1645,7 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     </head>
     <body style="background-color: #ffffff; padding: 20px; margin: 0; font-family: Arial, sans-serif; color: #333333;">
         <p>Olá,</p>
-        <p>Segue em anexo o Relatório Diário LME — <strong>${label}</strong>.</p>
+        <p>Segue em anexo o Relatório Diário LME.</p>
         <br>
         <p>Atenciosamente,<br>Apextech Metais</p>
     </body>
