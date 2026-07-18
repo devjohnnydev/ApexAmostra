@@ -2331,6 +2331,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentSelectedWeek = null;
         const selectMes = document.getElementById('rel-filter-mes');
         const selectSemana = document.getElementById('rel-week-selector');
+        const btnVerHistorico = document.getElementById('btn-ver-historico');
+
+        if (btnVerHistorico) {
+            btnVerHistorico.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await loadRelatorioMeses();
+            });
+        }
 
         async function loadRelatorioMeses() {
             try {
@@ -2673,10 +2681,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        const today = new Date();
-        const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-        const dataTexto = `${today.getDate()} de ${monthNames[today.getMonth()]}`;
-        const weekNum = getISOWeek(today);
+        // Tentar obter a data da semana a partir do primeiro dia útil dela
+        let referenceDate = new Date();
+        if (d.length > 0 && d[0].data && d[0].data !== '—') {
+            const parts = d[0].data.split('/');
+            if (parts.length >= 2) {
+                const selectMes = document.getElementById('rel-filter-mes');
+                let yr = new Date().getFullYear();
+                if (selectMes && selectMes.value && selectMes.value.includes('-')) {
+                    yr = parseInt(selectMes.value.split('-')[1], 10);
+                }
+                referenceDate = new Date(yr, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+            }
+        }
+        
+        const dataTexto = `${week.label || ''}`;
+        const weekNum = getISOWeek(referenceDate);
         
         document.getElementById('rel-date-range').textContent = dataTexto;
         document.getElementById('rel-week-number').textContent = weekNum;
@@ -3084,15 +3104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let weeksData = [];
         let currentSelectedWeek = null;
 
-        // Alternar seção para histórico
-        btnVerHistorico.addEventListener('click', async () => {
-            sectionDiario.classList.remove('active');
-            sectionHistorico.classList.add('active');
-            window.dispatchEvent(new Event('resize'));
-            selectMes.innerHTML = '<option>Carregando...</option>';
-            selectSemana.innerHTML = '<option>Aguarde...</option>';
-            await loadHistoricoMeses();
-        });
+
 
         // Alternar de volta
         btnVoltar.addEventListener('click', () => {
