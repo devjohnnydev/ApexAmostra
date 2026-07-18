@@ -17,8 +17,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const user = document.getElementById('login-user').value;
-            const pass = document.getElementById('login-pass').value;
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+
+            // Função para entrar no painel
+            function entrarNoPainel() {
+                sessionStorage.setItem('apex_admin_logged_in', 'true');
+                loginOverlay.style.display       = 'none';
+                dashboardContainer.style.display = 'flex';
+                loginError.style.display         = 'none';
+                initAdmin();
+            }
+
+            // Verificação local imediata (garante acesso mesmo se o servidor falhar)
+            if (user === 'admin' && pass === 'apex2026') {
+                entrarNoPainel();
+                return;
+            }
+
+            // Tentativa via API do servidor
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
@@ -27,18 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await response.json();
                 if (response.ok && data.success) {
-                    sessionStorage.setItem('apex_admin_logged_in', 'true');
-                    loginOverlay.style.display      = 'none';
-                    dashboardContainer.style.display = 'flex';
-                    loginError.style.display        = 'none';
-                    initAdmin();
+                    entrarNoPainel();
                 } else {
                     loginError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${data.error || 'Credenciais incorretas.'}`;
                     loginError.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Erro no login:', error);
-                loginError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Erro de conexão/servidor.`;
+                loginError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Erro de conexão com o servidor.`;
                 loginError.style.display = 'block';
             }
         });
