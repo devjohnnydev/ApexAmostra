@@ -169,6 +169,22 @@ async function initDatabase() {
             console.log('✅ Configurações padrão da home inseridas no banco de dados.');
         }
 
+        // Garante que as chaves de e-mail LME existam no banco (sem sobrescrever dados salvos)
+        const lmeDefaults = [
+            { key: 'lme_envio_ativo',   value: 'false' },
+            { key: 'lme_envio_horario', value: '14:00' },
+            { key: 'lme_envio_dias',    value: '1,2,3,4,5' },
+            { key: 'lme_resend_api_key', value: process.env.RESEND_API_KEY || '' },
+            { key: 'lme_resend_from',   value: process.env.RESEND_FROM || '' }
+        ];
+        for (const s of lmeDefaults) {
+            await client.query(
+                'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING',
+                [s.key, s.value]
+            );
+        }
+        console.log('✅ Chaves de configuração LME garantidas no banco de dados.');
+
         dbAvailable = true;
         console.log('✅ Banco de dados inicializado com sucesso.');
     } catch (err) {
@@ -1751,7 +1767,10 @@ function startEmailScheduler() {
             const todayDateStr = `${year}-${month}-${day}`;
             const currentTimeStr = `${timeParts[0]}:${timeParts[1]}`;
 
-            if (currentTimeMins >= schedTimeMins && lastSentDateStr !== todayDateStr) {
+            const windowMins = 2; // Janela de 2 minutos para disparar
+            const withinWindow = currentTimeMins >= schedTimeMins && currentTimeMins < schedTimeMins + windowMins;
+
+            if (withinWindow && lastSentDateStr !== todayDateStr) {
                 console.log(`⏰ Horário de envio atingido (${currentTimeStr}). Enviando relatório LME por e-mail...`);
                 
                 const mes = `${parseInt(month, 10)}-${year}`;
