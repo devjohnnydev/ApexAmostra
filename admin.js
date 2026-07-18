@@ -42,6 +42,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const btnTogglePass = document.getElementById('btn-toggle-pass');
+    const inputPass = document.getElementById('login-pass');
+    const iconPass = document.getElementById('toggle-pass-icon');
+
+    if (btnTogglePass && inputPass && iconPass) {
+        btnTogglePass.addEventListener('click', () => {
+            const type = inputPass.getAttribute('type') === 'password' ? 'text' : 'password';
+            inputPass.setAttribute('type', type);
+            if (type === 'text') {
+                iconPass.classList.remove('fa-eye');
+                iconPass.classList.add('fa-eye-slash');
+            } else {
+                iconPass.classList.remove('fa-eye-slash');
+                iconPass.classList.add('fa-eye');
+            }
+        });
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // NAVEGAÇÃO
     // ─────────────────────────────────────────────────────────────────────────
