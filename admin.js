@@ -2336,11 +2336,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnVerHistorico) {
             btnVerHistorico.addEventListener('click', async (e) => {
                 e.preventDefault();
-                await loadRelatorioMeses();
+                const originalContent = btnVerHistorico.innerHTML;
+                btnVerHistorico.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
+                btnVerHistorico.disabled = true;
+                try {
+                    await loadRelatorioMeses(true);
+                } finally {
+                    btnVerHistorico.innerHTML = originalContent;
+                    btnVerHistorico.disabled = false;
+                }
             });
         }
 
-        async function loadRelatorioMeses() {
+        async function loadRelatorioMeses(force = false) {
             try {
                 function gerarMesesFallback() {
                     const meses = [];
@@ -2357,7 +2365,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let mesesDisponiveis = [];
                 try {
-                    const resMeses = await fetch('/api/lme/meses');
+                    const url = '/api/lme/meses' + (force ? '?_ts=' + Date.now() : '');
+                    const resMeses = await fetch(url);
                     if (resMeses.ok) {
                         mesesDisponiveis = await resMeses.json();
                     }
@@ -2375,17 +2384,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     ).join('');
                     const mesToFetch = mesesDisponiveis[0].valor;
                     selectMes.value = mesToFetch;
-                    await loadRelatorioSemanas(mesToFetch);
+                    await loadRelatorioSemanas(mesToFetch, force);
                 }
             } catch (e) {
                 console.error('Erro ao carregar meses do relatório', e);
             }
         }
 
-        async function loadRelatorioSemanas(mes) {
+        async function loadRelatorioSemanas(mes, force = false) {
             if (selectSemana) selectSemana.innerHTML = '<option>Carregando semanas...</option>';
             try {
-                const res = await fetch('/api/lme/relatorio-semanal?mes=' + mes);
+                const url = '/api/lme/relatorio-semanal?mes=' + mes + (force ? '&_ts=' + Date.now() : '');
+                const res = await fetch(url);
                 if (!res.ok) {
                     if (selectSemana) selectSemana.innerHTML = '<option value="">Erro ao carregar semanas</option>';
                     return;
