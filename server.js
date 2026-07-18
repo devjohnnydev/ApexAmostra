@@ -647,8 +647,27 @@ function getPreviousMonthStr(mesStr) {
 
 async function generateRelatorioSemanas(mes) {
     // 1. Busca dados do mês atual
-    const targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
-    const { data: html } = await axios.get(targetUrl, { timeout: 15000 });
+    let targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
+    let html;
+    try {
+        const response = await axios.get(targetUrl, {
+            timeout: 15000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
+        html = response.data;
+    } catch (err) {
+        console.warn(`Erro no agendador ao buscar ${targetUrl}, tentando fallback para a home:`, err.message);
+        targetUrl = `https://shockmetais.com.br/lme/`;
+        const response = await axios.get(targetUrl, {
+            timeout: 15000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
+        html = response.data;
+    }
     const $ = cheerio.load(html);
 
     // 2. Extrai opções de meses disponíveis
@@ -1822,7 +1841,12 @@ app.post('/api/lme/relatorio-email', async (req, res) => {
 // ─── API: LME Meses Disponíveis ───────────────────────────────────────────────
 app.get('/api/lme/meses', async (req, res) => {
     try {
-        const { data: html } = await axios.get(`https://shockmetais.com.br/lme/`, { timeout: 10000 });
+        const { data: html } = await axios.get(`https://shockmetais.com.br/lme/`, { 
+            timeout: 10000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
         const $ = cheerio.load(html);
         const meses = [];
         $('#meslme option').each((i, el) => {
@@ -2085,9 +2109,27 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
 app.get('/api/lme/tabela/:mes', async (req, res) => {
     try {
         const mes = req.params.mes;
-        const targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
-        const { data } = await axios.get(targetUrl);
-        const $ = cheerio.load(data);
+        let targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
+        
+        let response;
+        try {
+            response = await axios.get(targetUrl, { 
+                timeout: 10000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            });
+        } catch (err) {
+            console.warn(`Erro ao buscar ${targetUrl}, tentando fallback para a home:`, err.message);
+            targetUrl = `https://shockmetais.com.br/lme/`;
+            response = await axios.get(targetUrl, {
+                timeout: 10000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            });
+        }
+        const $ = cheerio.load(response.data);
         
         const cotacoes = [];
         $('#boxtabela table tbody tr').each((index, element) => {
