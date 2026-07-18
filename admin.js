@@ -2691,7 +2691,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (selectMes && selectMes.value && selectMes.value.includes('-')) {
                     yr = parseInt(selectMes.value.split('-')[1], 10);
                 }
-                referenceDate = new Date(yr, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                const monthMap = {
+                    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
+                    'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
+                };
+                const monthAbbr = parts[1].toLowerCase().replace('.', '').trim();
+                const monthNum = monthMap[monthAbbr] || parseInt(parts[1], 10) || (new Date().getMonth() + 1);
+                const dayNum = parseInt(parts[0], 10) || 1;
+                referenceDate = new Date(yr, monthNum - 1, dayNum);
             }
         }
         
@@ -3415,7 +3422,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (selectMes && selectMes.value && selectMes.value.includes('-')) {
                     yr = parseInt(selectMes.value.split('-')[1], 10);
                 }
-                referenceDate = new Date(yr, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                const monthMap = {
+                    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
+                    'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
+                };
+                const monthAbbr = parts[1].toLowerCase().replace('.', '').trim();
+                const monthNum = monthMap[monthAbbr] || parseInt(parts[1], 10) || (new Date().getMonth() + 1);
+                const dayNum = parseInt(parts[0], 10) || 1;
+                referenceDate = new Date(yr, monthNum - 1, dayNum);
             }
         }
         
