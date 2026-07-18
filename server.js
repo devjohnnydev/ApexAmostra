@@ -207,6 +207,8 @@ app.post('/api/login', (req, res) => {
         const adminUser = (process.env.ADMIN_USERNAME || 'admin').trim();
         const adminPass = (process.env.ADMIN_PASSWORD || 'apex2026').trim();
 
+        console.log(`[LOGIN] Usuário recebido: "${user}", Senha recebida: "${pass}" | Esperado: "${adminUser}", "${adminPass}"`);
+
         if (user === adminUser && pass === adminPass) {
             res.json({ success: true });
         } else {

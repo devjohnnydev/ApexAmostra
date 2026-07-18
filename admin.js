@@ -33,10 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginError.style.display        = 'none';
                     initAdmin();
                 } else {
+                    loginError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${data.error || 'Credenciais incorretas.'}`;
                     loginError.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Erro no login:', error);
+                loginError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Erro de conexão/servidor.`;
                 loginError.style.display = 'block';
             }
         });
