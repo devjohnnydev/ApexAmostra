@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initLMEDashboard();
         initLMEExcelReport();
         initRelatorioDiario();
+        initRelatorioDiarioHistorico();
         initSettings();
         initGaleria();
         initMateriais();
@@ -2953,6 +2954,691 @@ document.addEventListener('DOMContentLoaded', () => {
 
             metals.forEach(m => {
                 // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1ª semana do mês — exibe '-'
+                const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
+                const colClass = `rel-col-${m}`;
+                if (lme === null) {
+                    colsHtml += `<td class="${colClass}">-</td>`;
+                } else {
+                    const baseVal = lme * (p / 100);
+                    const fmt = 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                    colsHtml += `<td class="${colClass}">${fmt}</td>`;
+                }
+            });
+
+            tr.innerHTML = colsHtml;
+            tbody.appendChild(tr);
+    }
+
+    // =========================================================================
+    // HISTÓRICO DO RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
+    // =========================================================================
+    async function initRelatorioDiarioHistorico() {
+        const btnVerHistorico = document.getElementById('btn-ver-historico');
+        const btnVoltar = document.getElementById('btn-historico-voltar');
+        if (!btnVerHistorico) return;
+
+        const sectionDiario = document.getElementById('relatorio-diario');
+        const sectionHistorico = document.getElementById('relatorio-diario-historico');
+        const selectMes = document.getElementById('rel-hist-filter-mes');
+        const selectSemana = document.getElementById('rel-hist-week-selector');
+
+        const btnGerar = document.getElementById('btn-hist-gerar-imagem-wpp');
+        const btnCopiar = document.getElementById('btn-hist-copiar-texto');
+        const btnPdf = document.getElementById('btn-hist-relatorio-pdf');
+        const btnExcel = document.getElementById('btn-hist-relatorio-excel');
+
+        let weeksData = [];
+        let currentSelectedWeek = null;
+
+        // Alternar seção para histórico
+        btnVerHistorico.addEventListener('click', async () => {
+            sectionDiario.classList.remove('active');
+            sectionHistorico.classList.add('active');
+            window.dispatchEvent(new Event('resize'));
+            await loadHistoricoMeses();
+        });
+
+        // Alternar de volta
+        btnVoltar.addEventListener('click', () => {
+            sectionHistorico.classList.remove('active');
+            sectionDiario.classList.add('active');
+            window.dispatchEvent(new Event('resize'));
+        });
+
+        async function loadHistoricoMeses() {
+            try {
+                const resMeses = await fetch('/api/lme/meses');
+                const mesesDisponiveis = await resMeses.json();
+                if (mesesDisponiveis.length === 0) return;
+
+                selectMes.innerHTML = mesesDisponiveis.map(m => 
+                    `<option value="${m.valor}">${m.texto}</option>`
+                ).join('');
+
+                // Seleciona o mês atual por padrão
+                const mesToFetch = mesesDisponiveis[0].valor;
+                selectMes.value = mesToFetch;
+
+                await loadHistoricoSemanas(mesToFetch);
+            } catch (e) {
+                console.error('Erro ao carregar meses do histórico', e);
+            }
+        }
+
+        async function loadHistoricoSemanas(mes) {
+            try {
+                const res = await fetch(`/api/lme/relatorio-semanal?mes=` + mes);
+                if (!res.ok) return;
+                const data = await res.json();
+                weeksData = data.semanas || [];
+                if (weeksData.length === 0) {
+                    selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
+                    return;
+                }
+
+                selectSemana.innerHTML = weeksData.map((wk, idx) => 
+                    `<option value="${idx}">Semana de ${wk.label}</option>`
+                ).join('');
+
+                // Seleciona a primeira semana
+                selectSemana.value = 0;
+                currentSelectedWeek = weeksData[0];
+                renderRelatorioDiarioHistorico(currentSelectedWeek);
+            } catch (e) {
+                console.error('Erro ao carregar semanas do histórico', e);
+            }
+        }
+
+        selectMes.addEventListener('change', async (e) => {
+            await loadHistoricoSemanas(e.target.value);
+        });
+
+        selectSemana.addEventListener('change', (e) => {
+            const idx = parseInt(e.target.value, 10);
+            if (!isNaN(idx) && weeksData[idx]) {
+                currentSelectedWeek = weeksData[idx];
+                renderRelatorioDiarioHistorico(currentSelectedWeek);
+            }
+        });
+
+        // Ações de exportação do histórico (usando o capture-area-historico e currentSelectedWeek)
+        if (btnGerar) {
+            btnGerar.addEventListener('click', async () => {
+                if (!currentSelectedWeek) return;
+                const captureArea = document.getElementById('capture-area-historico');
+                const now = new Date();
+                const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    + ' às '
+                    + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const rodape = document.getElementById('rel-hist-rodape');
+                if (rodape) {
+                    rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
+                    rodape.style.display = 'block';
+                }
+
+                const originalWidth = captureArea.style.width;
+                const originalMaxWidth = captureArea.style.maxWidth;
+                captureArea.style.width = '800px';
+                captureArea.style.maxWidth = 'none';
+
+                await new Promise(r => setTimeout(r, 100));
+
+                try {
+                    const canvas = await html2canvas(captureArea, { 
+                        scale: 2, 
+                        useCORS: true, 
+                        allowTaint: false, 
+                        scrollY: 0, 
+                        windowHeight: captureArea.scrollHeight,
+                        width: 800
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = `Relatorio_LME_Historico_${currentSelectedWeek.label.replace(/[\/\s]/g, '_')}.png`;
+                    link.href = imgData;
+                    link.click();
+                } finally {
+                    captureArea.style.width = originalWidth;
+                    captureArea.style.maxWidth = originalMaxWidth;
+                    if (rodape) rodape.style.display = 'none';
+                }
+            });
+        }
+
+        if (btnCopiar) {
+            btnCopiar.addEventListener('click', () => {
+                if (!currentSelectedWeek) return;
+                const comp = currentSelectedWeek.computed || {};
+                const d = currentSelectedWeek.days || [];
+                const lastDate = d[d.length - 1]?.data || '';
+                let txt = `*COTAÇÃO LME HISTÓRICO - APEXTECH METAIS*\n`;
+                txt += `Semana de ${d[0]?.data} a ${lastDate}\n\n`;
+                txt += `*Variação Diária (Grupo 6):*\n`;
+                
+                const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
+                metals.forEach(m => {
+                    const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+                    const setinha = osc >= 0 ? '⬆' : '⬇';
+                    const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
+                });
+
+                const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
+                const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
+                const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+                txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
+
+                navigator.clipboard.writeText(txt).then(() => {
+                    alert('Resumo histórico copiado!');
+                }).catch(err => {
+                    alert('Erro ao copiar texto.');
+                    console.error(err);
+                });
+            });
+        }
+
+        if (btnPdf) {
+            btnPdf.addEventListener('click', async () => {
+                if (!currentSelectedWeek) return;
+                const captureArea = document.getElementById('capture-area-historico');
+                const nowTs = new Date();
+                const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    + ' às '
+                    + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const rodape = document.getElementById('rel-hist-rodape');
+                if (rodape) {
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
+                    rodape.style.display = 'block';
+                }
+
+                const logoImg = captureArea.querySelector('.rel-logo img');
+                let originalSrc = '';
+                if (logoImg && logoImg.src.endsWith('.svg')) {
+                    try {
+                        originalSrc = logoImg.src;
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = logoImg.naturalWidth || 400;
+                        tempCanvas.height = logoImg.naturalHeight || 133;
+                        const tCtx = tempCanvas.getContext('2d');
+                        tCtx.fillStyle = '#ffffff';
+                        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                        tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                        logoImg.src = tempCanvas.toDataURL('image/png');
+                    } catch (svgErr) {
+                        console.warn('Erro ao converter logo SVG', svgErr);
+                        if (originalSrc) {
+                            logoImg.src = originalSrc;
+                            originalSrc = '';
+                        }
+                    }
+                }
+
+                const originalWidth = captureArea.style.width;
+                const originalMaxWidth = captureArea.style.maxWidth;
+                captureArea.style.width = '800px';
+                captureArea.style.maxWidth = 'none';
+
+                await new Promise(r => setTimeout(r, 100));
+
+                try {
+                    const canvas = await html2canvas(captureArea, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        useCORS: true,
+                        allowTaint: false,
+                        scrollY: 0,
+                        windowHeight: captureArea.scrollHeight,
+                        height: captureArea.scrollHeight,
+                        width: 800
+                    });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const { jsPDF } = window.jspdf;
+
+                    const pdfWidthMm = 210;
+                    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: [pdfWidthMm, pdfHeightMm]
+                    });
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+                    pdf.save(`Relatorio_LME_Historico_${currentSelectedWeek.label.replace(/[\/\s]/g, '_')}.pdf`);
+                } finally {
+                    if (originalSrc) {
+                        logoImg.src = originalSrc;
+                    }
+                    captureArea.style.width = originalWidth;
+                    captureArea.style.maxWidth = originalMaxWidth;
+                    if (rodape) rodape.style.display = 'none';
+                }
+            });
+        }
+
+        if (btnExcel) {
+            btnExcel.addEventListener('click', async () => {
+                if (!currentSelectedWeek) return;
+                btnExcel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+                try {
+                    const res = await fetch('/api/lme/gerar-excel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            semana: currentSelectedWeek,
+                            mesLabel: 'Relatório Histórico LME'
+                        })
+                    });
+
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Relatorio_LME_Historico_${currentSelectedWeek.label.replace(/[\/\s]/g, '_')}.xlsx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        alert('Erro ao gerar Excel do histórico.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Erro na conexão com o servidor.');
+                } finally {
+                    btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
+                }
+            });
+        }
+    }
+
+    function renderRelatorioDiarioHistorico(week) {
+        const d = week.days || [];
+        const comp = week.computed || {};
+        
+        const firstDate = d[0]?.data || '';
+        const lastDate = d[d.length - 1]?.data || '';
+        
+        function getISOWeek(date) {
+            const dObj = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = dObj.getUTCDay() || 7;
+            dObj.setUTCDate(dObj.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(dObj.getUTCFullYear(), 0, 1));
+            return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
+        }
+
+        // Tentar obter a data da semana a partir do primeiro dia útil dela
+        let referenceDate = new Date();
+        if (d.length > 0 && d[0].data && d[0].data !== '—') {
+            const parts = d[0].data.split('/');
+            if (parts.length >= 2) {
+                const selectMes = document.getElementById('rel-hist-filter-mes');
+                let yr = new Date().getFullYear();
+                if (selectMes && selectMes.value && selectMes.value.includes('-')) {
+                    yr = parseInt(selectMes.value.split('-')[1], 10);
+                }
+                referenceDate = new Date(yr, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+            }
+        }
+        
+        const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+        const dataTexto = `${week.label}`;
+        const weekNum = getISOWeek(referenceDate);
+        
+        document.getElementById('rel-hist-date-range').textContent = dataTexto;
+        document.getElementById('rel-hist-week-number').textContent = weekNum;
+
+        const tbody = document.getElementById('rel-hist-tbody');
+        tbody.innerHTML = '';
+        
+        const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
+        
+        const formatUsd = (val) => {
+            if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
+            return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        };
+        const formatBrl = (val, dec = 3) => {
+            if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
+            return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+        };
+        const formatPct = (val) => {
+            if (val === null || val === undefined || isNaN(val)) return '-';
+            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+        };
+
+        function formatVariacaoCell(element, value, type, decimals = 3) {
+            if (!element) return;
+            if (value === null || value === undefined || isNaN(value)) {
+                element.textContent = '-';
+                element.style.setProperty('color', '#000000', 'important');
+                return;
+            }
+            
+            const numVal = Number(value);
+            let formattedText = '';
+            
+            if (type === 'percent') {
+                formattedText = (numVal * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+            } else if (type === 'currency') {
+                formattedText = 'R$ ' + Math.abs(numVal).toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            } else {
+                formattedText = numVal.toLocaleString('pt-BR');
+            }
+
+            let arrow = '';
+            if (numVal > 0) {
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
+            } else if (numVal < 0) {
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
+            }
+            
+            element.innerHTML = `${arrow}${formattedText}`;
+            element.style.setProperty('color', '#000000', 'important');
+        }
+
+        const mediaLabelEl = document.querySelector('#relatorio-diario-historico .rel-summary-body .rel-label-col');
+        if (mediaLabelEl) {
+            if (week.numDias !== undefined && week.numDias < 5) {
+                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
+            } else {
+                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
+            }
+        }
+
+        d.forEach(day => {
+            if (!day.data) return;
+            const tr = document.createElement('tr');
+            let colsHtml = `<td class="font-bold rel-label-col">${day.data}</td>`;
+            metals.forEach(m => {
+                const val = day[m];
+                const colClass = `rel-col-${m}`;
+                if (m === 'dolar') {
+                    colsHtml += `<td class="${colClass}">${formatBrl(val, 4)}</td>`;
+                } else {
+                    colsHtml += `<td class="${colClass}">${formatUsd(val)}</td>`;
+                }
+            });
+            tr.innerHTML = colsHtml;
+            tbody.appendChild(tr);
+        });
+
+        metals.forEach(m => {
+            const isDolar = (m === 'dolar');
+            const elMedia = document.getElementById('rel-hist-media-' + m);
+            if (elMedia) {
+                if (isDolar) {
+                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                } else {
+                    elMedia.textContent = formatUsd(comp['MEDIA SEMANAL']?.[m]);
+                }
+            }
+            if (m !== 'dolar') {
+                const elLme = document.getElementById('rel-hist-lme-' + m);
+                if (elLme) elLme.textContent = formatBrl(comp['100% LME']?.[m], 3);
+            }
+            const elAnt = document.getElementById('rel-hist-ant-' + m);
+            if (elAnt) {
+                if (isDolar) {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                } else {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                }
+            }
+            const elFech = document.getElementById('rel-hist-fech-' + m);
+            formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
+            const elOscPct = document.getElementById('rel-hist-osc-pct-' + m);
+            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
+
+            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+            const elOscRs = document.getElementById('rel-hist-osc-rs-' + m);
+            formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
+
+            const elMensal = document.getElementById('rel-hist-mensal-' + m);
+            if (elMensal) {
+                if (isDolar) {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 4);
+                } else {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
+                }
+            }
+
+            const elCompAnt = document.getElementById('rel-hist-comp-ant-' + m);
+            if (elCompAnt) {
+                if (isDolar) {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                } else {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                }
+            }
+            
+            const elCompAtu = document.getElementById('rel-hist-comp-atu-' + m);
+            if (elCompAtu) {
+                if (isDolar) {
+                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                } else {
+                    elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 3);
+                }
+            }
+            const elCompOsc = document.getElementById('rel-hist-comp-osc-' + m);
+            formatVariacaoCell(elCompOsc, oscRs, 'currency', isDolar ? 4 : 3);
+        });
+
+        const summaryRows = document.querySelectorAll('#relatorio-diario-historico .rel-summary-body tr');
+        summaryRows.forEach(row => {
+            const firstCell = row.cells[0];
+            if (!firstCell) return;
+            const text = firstCell.textContent.trim().toUpperCase();
+
+            row.classList.remove('row-lme100', 'row-fechamento-anterior', 'row-oscilacao-rs', 'row-semana-anterior');
+
+            if (text.includes("100% LME")) {
+                row.classList.add('row-lme100');
+            } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
+                row.classList.add('row-fechamento-anterior');
+            } else if (text.includes("OSCILAÇÃO R$")) {
+                row.classList.add('row-oscilacao-rs');
+            } else if (text === "SEMANA ANTERIOR") {
+                row.classList.add('row-semana-anterior');
+            }
+        });
+
+        renderRelatorioDiarioHistoricoCharts(week);
+        renderRelatorioDiarioHistoricoBase(week);
+    }
+
+    function renderRelatorioDiarioHistoricoCharts(week) {
+        const comp = week.computed || {};
+
+        const fmtR = v =>
+            'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+        const datalabelPlugin = {
+            id: 'apexBarLabelsHist',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (meta.hidden) return;
+                    meta.data.forEach((bar, idx) => {
+                        const val = dataset.data[idx];
+                        if (val === 0 || val == null) return;
+                        
+                        ctx.save();
+                        ctx.font = 'bold 9px Arial';
+                        ctx.fillStyle = '#111';
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        
+                        ctx.translate(bar.x, bar.y - 6);
+                        ctx.rotate(-Math.PI / 2);
+                        
+                        const prefix = dataset.label === 'Semana Anterior' ? 'Ant: ' : 'Atu: ';
+                        const label = prefix + 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                        
+                        ctx.fillText(label, 0, 0);
+                        ctx.restore();
+                    });
+                });
+            }
+        };
+
+        function buildBarChart(canvasId, labels, dataAnt, dataAtu) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            const key = '__apexChart_' + canvasId;
+            if (window[key]) { window[key].destroy(); }
+
+            const bgAnt = [];
+            const borderAnt = [];
+            const bgAtu = [];
+            const borderAtu = [];
+
+            for (let i = 0; i < labels.length; i++) {
+                const valAtu = dataAtu[i] || 0;
+                const valAnt = dataAnt[i] || 0;
+                if (valAtu > valAnt) {
+                    bgAtu.push('#27ae60');
+                    borderAtu.push('#1e8449');
+                    bgAnt.push('#e74c3c');
+                    borderAnt.push('#c0392b');
+                } else {
+                    bgAtu.push('#e74c3c');
+                    borderAtu.push('#c0392b');
+                    bgAnt.push('#27ae60');
+                    borderAnt.push('#1e8449');
+                }
+            }
+
+            window[key] = new Chart(ctx, {
+                type: 'bar',
+                plugins: [datalabelPlugin],
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Semana Anterior',
+                            data: dataAnt,
+                            backgroundColor: bgAnt,
+                            borderColor: borderAnt,
+                            borderWidth: 1,
+                            borderRadius: 3,
+                            barPercentage: 0.75,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Semana Atual',
+                            data: dataAtu,
+                            backgroundColor: bgAtu,
+                            borderColor: borderAtu,
+                            borderWidth: 1,
+                            borderRadius: 3,
+                            barPercentage: 0.75,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    animation: false,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 90, right: 8, left: 8 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => fmtR(ctx.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#222', font: { size: 10, weight: 'bold' } },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#444',
+                                font: { size: 9 },
+                                callback: v => 'R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
+                            },
+                            grid: { color: '#e8e8e8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        const group1 = [
+            { key: 'cobre',    label: 'COBRE' },
+            { key: 'zinco',    label: 'ZINCO' },
+            { key: 'aluminio', label: 'ALUMÍNIO' },
+            { key: 'chumbo',   label: 'CHUMBO' }
+        ];
+        buildBarChart(
+            'rel-hist-ChartLines',
+            group1.map(m => m.label),
+            group1.map(m => comp['SEMANA ANTERIOR']?.[m.key] || 0),
+            group1.map(m => comp['100% LME']?.[m.key]        || 0)
+        );
+
+        const group2 = [
+            { key: 'estanho', label: 'ESTANHO' },
+            { key: 'niquel',  label: 'NÍQUEL' }
+        ];
+        buildBarChart(
+            'rel-hist-ChartOsc',
+            group2.map(m => m.label),
+            group2.map(m => comp['SEMANA ANTERIOR']?.[m.key] || 0),
+            group2.map(m => comp['100% LME']?.[m.key]        || 0)
+        );
+
+        function buildCards(containerId, group) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            el.innerHTML = group.map(m => {
+                const atual    = comp['100% LME']?.[m.key]        || 0;
+                const anterior = comp['SEMANA ANTERIOR']?.[m.key] || 0;
+                const diff     = atual - anterior;
+                const isUp     = diff > 0;
+                const isDown   = diff < 0;
+                const arrow    = isUp ? '↑' : isDown ? '↓' : '–';
+                const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
+                const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
+                const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
+                return `
+                <div class="rel-card-metal" style="border-color:${border}; background:${bg};">
+                    <div class="rel-card-metal-name">${m.label}</div>
+                    <div class="rel-card-metal-val" style="color:${color};">
+                        ${arrow} ${fmtR(atual)}
+                    </div>
+                    <div class="rel-card-metal-prev">era ${fmtR(anterior)}</div>
+                    <div class="rel-card-metal-diff" style="color:${color};">
+                        ${isUp ? '+' : isDown ? '-' : ''}${fmtR(diff)}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        buildCards('rel-hist-cards-group1', group1);
+        buildCards('rel-hist-cards-group2', group2);
+    }
+
+    function renderRelatorioDiarioHistoricoBase(week) {
+        const comp = week.computed || {};
+        const tbody = document.getElementById('rel-hist-base-tbody');
+        tbody.innerHTML = '';
+        const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
+
+        for (let p = 90; p <= 110; p++) {
+            const tr = document.createElement('tr');
+            if (p < 100) tr.className = 'row-below';
+            else if (p === 100) tr.className = 'row-100pct';
+            else tr.className = 'row-above';
+
+            const pLabel = p === 100 ? '<strong>100%</strong>' : p + '%';
+            let colsHtml = `<td>${pLabel}</td>`;
+
+            metals.forEach(m => {
                 const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
                 const colClass = `rel-col-${m}`;
                 if (lme === null) {
