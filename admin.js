@@ -46,12 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok && data.success) {
                     entrarNoPainel();
                 } else {
-                    loginError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${data.error || 'Credenciais incorretas.'}`;
+                    loginError.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (data.error || 'Credenciais incorretas.');
                     loginError.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Erro no login:', error);
-                loginError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Erro de conexão com o servidor.`;
+                loginError.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro de conexão com o servidor.';
                 loginError.style.display = 'block';
             }
         });
@@ -3671,5 +3671,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
         }
     }
+
+} // fechamento do bloco interno
 
 }); // end DOMContentLoaded
