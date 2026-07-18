@@ -30,8 +30,8 @@
                     <label for="login-pass">Senha</label>
                     <div style="position: relative; display: flex; align-items: center; width: 100%;">
                         <input type="password" id="login-pass" required placeholder="Digite a senha" style="padding-right: 40px; width: 100%;">
-                        <button type="button" id="btn-toggle-pass" style="position: absolute; right: 10px; background: none; border: none; color: #a0aec0; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%;">
-                            <i class="fa-solid fa-eye" id="toggle-pass-icon" style="font-size: 1.1rem; color: #888;"></i>
+                        <button type="button" id="btn-toggle-pass" onclick="const p = document.getElementById('login-pass'); const i = document.getElementById('toggle-pass-icon'); const isP = p.type === 'password'; p.type = isP ? 'text' : 'password'; i.className = isP ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';" style="position: absolute; right: 10px; background: none; border: none; color: #a0aec0; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%; z-index: 20; width: 35px;">
+                            <i class="fa-solid fa-eye" id="toggle-pass-icon" style="font-size: 1.1rem; color: #888; pointer-events: none;"></i>
                         </button>
                     </div>
                 </div>

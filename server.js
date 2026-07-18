@@ -204,8 +204,8 @@ app.use(express.static(__dirname));
 app.post('/api/login', (req, res) => {
     try {
         const { user, pass } = req.body;
-        const adminUser = process.env.ADMIN_USERNAME || 'admin';
-        const adminPass = process.env.ADMIN_PASSWORD || 'apex2026';
+        const adminUser = (process.env.ADMIN_USERNAME || 'admin').trim();
+        const adminPass = (process.env.ADMIN_PASSWORD || 'apex2026').trim();
 
         if (user === adminUser && pass === adminPass) {
             res.json({ success: true });
