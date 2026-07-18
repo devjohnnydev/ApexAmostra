@@ -69,16 +69,22 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             navItems.forEach(nav => nav.classList.remove('active'));
-            sections.forEach(sec => sec.classList.remove('active'));
+            // Esconde todas as seções EXCETO o histórico (que é gerenciado internamente pelo botão)
+            sections.forEach(sec => {
+                if (sec.id !== 'relatorio-diario-historico') {
+                    sec.classList.remove('active');
+                }
+            });
             item.classList.add('active');
             const target = document.getElementById(item.dataset.target);
             if (target) {
-                target.classList.add('active');
+                // Se o target for relatorio-diario, garante que historico fique oculto
                 if (item.dataset.target === 'relatorio-diario') {
-                    setTimeout(() => {
-                        window.dispatchEvent(new Event('resize'));
-                    }, 50);
+                    const histSec = document.getElementById('relatorio-diario-historico');
+                    if (histSec) histSec.classList.remove('active');
                 }
+                target.classList.add('active');
+                setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
             }
         });
     });
@@ -3012,6 +3018,8 @@ document.addEventListener('DOMContentLoaded', () => {
             sectionDiario.classList.remove('active');
             sectionHistorico.classList.add('active');
             window.dispatchEvent(new Event('resize'));
+            selectMes.innerHTML = '<option>Carregando...</option>';
+            selectSemana.innerHTML = '<option>Aguarde...</option>';
             await loadHistoricoMeses();
         });
 
@@ -3024,28 +3032,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function loadHistoricoMeses() {
             try {
-                const resMeses = await fetch('/api/lme/meses');
-                const mesesDisponiveis = await resMeses.json();
-                if (mesesDisponiveis.length === 0) return;
+                // Gera lista de meses dos últimos 12 meses como fallback
+                function gerarMesesFallback() {
+                    const meses = [];
+                    const now = new Date();
+                    for (let i = 0; i < 12; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const ano = d.getFullYear();
+                        const mes = String(d.getMonth() + 1).padStart(2, '0');
+                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
+                    }
+                    return meses;
+                }
 
-                selectMes.innerHTML = mesesDisponiveis.map(m => 
-                    `<option value="${m.valor}">${m.texto}</option>`
+                let mesesDisponiveis = [];
+                try {
+                    const resMeses = await fetch('/api/lme/meses');
+                    if (resMeses.ok) {
+                        mesesDisponiveis = await resMeses.json();
+                    }
+                } catch (fetchErr) {
+                    console.warn('Falha ao buscar meses via API, usando fallback:', fetchErr);
+                }
+
+                // Usa fallback se a API retornar vazio
+                if (!mesesDisponiveis || mesesDisponiveis.length === 0) {
+                    mesesDisponiveis = gerarMesesFallback();
+                }
+
+                selectMes.innerHTML = mesesDisponiveis.map(m =>
+                    '<option value="' + m.valor + '">' + m.texto + '</option>'
                 ).join('');
 
-                // Seleciona o mês atual por padrão
                 const mesToFetch = mesesDisponiveis[0].valor;
                 selectMes.value = mesToFetch;
-
                 await loadHistoricoSemanas(mesToFetch);
             } catch (e) {
                 console.error('Erro ao carregar meses do histórico', e);
+                selectMes.innerHTML = '<option value="">Erro ao carregar meses</option>';
             }
         }
 
         async function loadHistoricoSemanas(mes) {
+            selectSemana.innerHTML = '<option>Carregando semanas...</option>';
             try {
-                const res = await fetch(`/api/lme/relatorio-semanal?mes=` + mes);
-                if (!res.ok) return;
+                const res = await fetch('/api/lme/relatorio-semanal?mes=' + mes);
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    console.error('Erro na API semanas:', errData);
+                    selectSemana.innerHTML = '<option value="">Erro ao carregar semanas</option>';
+                    return;
+                }
                 const data = await res.json();
                 weeksData = data.semanas || [];
                 if (weeksData.length === 0) {
@@ -3053,16 +3091,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                selectSemana.innerHTML = weeksData.map((wk, idx) => 
-                    `<option value="${idx}">Semana de ${wk.label}</option>`
+                selectSemana.innerHTML = weeksData.map((wk, idx) =>
+                    '<option value="' + idx + '">Semana de ' + (wk.label || 'sem data') + '</option>'
                 ).join('');
 
-                // Seleciona a primeira semana
                 selectSemana.value = 0;
                 currentSelectedWeek = weeksData[0];
                 renderRelatorioDiarioHistorico(currentSelectedWeek);
             } catch (e) {
                 console.error('Erro ao carregar semanas do histórico', e);
+                selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
             }
         }
 
