@@ -1756,25 +1756,31 @@ function startEmailScheduler() {
             if (!active) return;
 
             // Check if current day of week is scheduled
-            const spTime = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-            const currentDayOfWeek = new Date(spTime).getDay();
+            const spWeekday = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo", weekday: "short" });
+            const dayMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+            const currentDayOfWeek = dayMap[spWeekday];
             const scheduledDays = scheduledDaysStr.split(',').map(Number);
             if (!scheduledDays.includes(currentDayOfWeek)) return;
 
-            // Hora atual em São Paulo
-            const localTimeStr = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
-            const cleanedStr = localTimeStr.replace(',', '').trim();
-            const parts = cleanedStr.split(' ');
-            if (parts.length < 2) return;
-            const dateParts = parts[0].split('/');
-            const timeParts = parts[1].split(':');
+            // Hora atual e componentes de data em São Paulo
+            const formatter = new Intl.DateTimeFormat('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            const partsList = formatter.formatToParts(new Date());
+            const spParts = {};
+            partsList.forEach(p => { spParts[p.type] = p.value; });
 
-            const year = dateParts[2];
-            const month = dateParts[1];
-            const day = dateParts[0];
-
-            const hour = parseInt(timeParts[0], 10);
-            const minute = parseInt(timeParts[1], 10);
+            const year = spParts.year;
+            const month = spParts.month;
+            const day = spParts.day;
+            const hour = parseInt(spParts.hour, 10);
+            const minute = parseInt(spParts.minute, 10);
 
             const scheduledParts = scheduledTime.split(':');
             const schedHour = parseInt(scheduledParts[0], 10);
@@ -1784,7 +1790,7 @@ function startEmailScheduler() {
             const schedTimeMins = (schedHour * 60) + schedMinute;
 
             const todayDateStr = `${year}-${month}-${day}`;
-            const currentTimeStr = `${timeParts[0]}:${timeParts[1]}`;
+            const currentTimeStr = `${spParts.hour}:${spParts.minute}`;
 
             const windowMins = 2; // Janela de 2 minutos para disparar
             const withinWindow = currentTimeMins >= schedTimeMins && currentTimeMins < schedTimeMins + windowMins;
