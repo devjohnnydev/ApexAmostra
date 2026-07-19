@@ -585,7 +585,8 @@ function parseDate(diaStr, currentYearStr) {
         if (m === undefined) return null;
         
         // Determina o ano. Se currentYearStr não for passado, usa o atual.
-        let y = currentYearStr ? parseInt(currentYearStr, 10) : new Date().getFullYear();
+        const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+        let y = currentYearStr ? parseInt(currentYearStr, 10) : new Date(localTimeStr).getFullYear();
         // Nota: O site pode ter 'Dez' no relatório de 'Jan/2026'.
         // Trataremos isso comparando se m=11 e o mês do relatório é 0.
         return new Date(y, m, d);
@@ -1068,7 +1069,8 @@ function getISOWeek(date) {
 }
 
 function getWeekHeaderInfo(firstDateStr) {
-    const today = new Date();
+    const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+    const today = new Date(localTimeStr);
     const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
     const dateText = `${today.getDate()} de ${monthNames[today.getMonth()]}`;
     const weekNum = getISOWeek(today);
@@ -1510,7 +1512,7 @@ function gerarHtmlRelatorio(weekBlock) {
             <div id="rel-rodape" style="display: none; text-align: center; font-size: 8pt; color: #666; margin-top: 15px; font-family: Calibri, Arial, sans-serif;"></div>
 
             <div style="background: #f9f9f9; padding: 15px; text-align: center; font-size: 9pt; color: #666; border-top: 1px solid #eee; margin-top: 20px;">
-                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} &mdash; Apextech Metais</p>
+                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} &mdash; Apextech Metais</p>
                 <p style="font-size: 8pt; color: #999; margin-top: 8px;">Este e-mail é enviado de forma automática conforme as configurações do painel administrativo.</p>
             </div>
         </div>
