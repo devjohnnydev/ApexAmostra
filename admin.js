@@ -4553,12 +4553,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-            carregarEstoque();
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
     window.gerarLaudoPDF = async function(id) {
         const amostraId = id || activeAmostraIdForDesmonte;
         if (!amostraId) return;
