@@ -1635,6 +1635,95 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- PAINEL FIDC: CALCULADORA DE FORMULA DE COMPRA -->
+                    <div id="fidc-panel" class="kpi-card" style="margin-top:20px; padding:20px; border-left:4px solid #2AD07A; background:rgba(42,208,122,0.04);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                            <h3 style="margin:0; color:#2AD07A;"><i class="fa-solid fa-calculator"></i> Calculadora FIDC &mdash; Formula de Compra</h3>
+                            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                <label style="font-size:0.8rem; color:#aaa;">Margem:</label>
+                                <select id="fidc-margem" class="noble-input" style="width:110px; font-size:0.85rem;" onchange="recalcularFIDC()">
+                                    <option value="50">50%</option>
+                                    <option value="100" selected>100%</option>
+                                    <option value="150">150%</option>
+                                    <option value="200">200%</option>
+                                    <option value="300">300%</option>
+                                    <option value="500">500%</option>
+                                    <option value="1000">1000%</option>
+                                </select>
+                                <label style="font-size:0.8rem; color:#aaa;">Dificuldade:</label>
+                                <select id="fidc-dificuldade" class="noble-input" style="width:140px; font-size:0.85rem;" onchange="recalcularFIDC()">
+                                    <option value="0">Facil (+0%)</option>
+                                    <option value="10" selected>Medio (+10%)</option>
+                                    <option value="25">Dificil (+25%)</option>
+                                    <option value="50">Extremo (+50%)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="background:#1a3a25;">
+                                        <th style="padding:9px 10px; text-align:left; color:#2AD07A;">Material</th>
+                                        <th style="padding:9px 10px; text-align:right; color:#2AD07A;">Rend. (%)</th>
+                                        <th style="padding:9px 10px; text-align:right; color:#2AD07A;">Preco Tabela (R$/kg)</th>
+                                        <th style="padding:9px 10px; text-align:right; color:#2AD07A;">Valor Estimado (R$/kg)</th>
+                                        <th style="padding:9px 10px; text-align:center; color:#aaa;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fidc-tbody">
+                                    <tr><td colspan="5" style="text-align:center; padding:15px; color:#666;">Adicione componentes para calcular</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px;">
+                            <div style="background:#0d2416; border-radius:8px; padding:12px; text-align:center;">
+                                <div style="font-size:0.7rem; color:#aaa; text-transform:uppercase; letter-spacing:1px;">Valor Bruto Calc.</div>
+                                <div id="fidc-valor-bruto" style="font-size:1.3rem; font-weight:700; color:#2AD07A; margin-top:4px;">R$ 0,00<span style="font-size:0.7rem; color:#777;">/kg</span></div>
+                            </div>
+                            <div style="background:#0d2416; border-radius:8px; padding:12px; text-align:center;">
+                                <div style="font-size:0.7rem; color:#aaa; text-transform:uppercase; letter-spacing:1px;">Margem Aplicada</div>
+                                <div id="fidc-margem-display" style="font-size:1.3rem; font-weight:700; color:#f0c040; margin-top:4px;">100%</div>
+                            </div>
+                            <div style="background:#162b1c; border:2px solid #2AD07A; border-radius:8px; padding:12px; text-align:center;">
+                                <div style="font-size:0.7rem; color:#2AD07A; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Preco Sug. Entregar</div>
+                                <div id="fidc-preco-sugerido-entregar" style="font-size:1.4rem; font-weight:800; color:#fff; margin-top:4px;">R$ 0,00<span style="font-size:0.7rem; color:#777;">/kg</span></div>
+                            </div>
+                            <div style="background:#162b1c; border:1px solid rgba(42,208,122,0.3); border-radius:8px; padding:12px; text-align:center;">
+                                <div style="font-size:0.7rem; color:#aaa; text-transform:uppercase; letter-spacing:1px;">Preco Sug. Coletar</div>
+                                <div id="fidc-preco-sugerido-coletar" style="font-size:1.4rem; font-weight:700; color:#ccc; margin-top:4px;">R$ 0,00<span style="font-size:0.7rem; color:#777;">/kg</span></div>
+                            </div>
+                        </div>
+                        <div id="fidc-aviso-sem-preco" style="display:none; margin-top:10px; background:rgba(240,180,0,0.1); border:1px solid #f0b800; border-radius:6px; padding:10px; font-size:0.82rem; color:#f0c040;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Alguns materiais nao possuem preco cadastrado na tabela.
+                        </div>
+                    </div>
+
+                    <!-- PAINEL DE FOTOS DA AMOSTRA -->
+                    <div class="kpi-card" style="margin-top:16px; padding:20px; border-left:4px solid #3e7cb1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+                            <h3 style="margin:0; color:#3e7cb1;"><i class="fa-solid fa-camera"></i> Fotos da Amostra</h3>
+                            <div style="display:flex; gap:8px;">
+                                <label class="btn-secondary" style="cursor:pointer; font-size:0.82rem; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-image"></i> Foto Bruta
+                                    <input type="file" id="foto-input-bruta" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this,'bruta')">
+                                </label>
+                                <label class="btn-secondary" style="cursor:pointer; font-size:0.82rem; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-layer-group"></i> Foto Separada
+                                    <input type="file" id="foto-input-separada" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this,'separada')">
+                                </label>
+                                <label class="btn-secondary" style="cursor:pointer; font-size:0.82rem; padding:6px 12px; display:inline-flex; align-items:center; gap:6px;" id="foto-input-spinner" style="display:none;">
+                                    <i class="fa-solid fa-spinner fa-spin"></i> Enviando...
+                                </label>
+                            </div>
+                        </div>
+                        <div id="fotos-gallery" style="display:flex; flex-wrap:wrap; gap:10px; min-height:80px; align-items:flex-start;">
+                            <div id="fotos-placeholder" style="color:#555; font-size:0.85rem; padding:15px; width:100%; text-align:center;">
+                                <i class="fa-solid fa-images" style="font-size:2rem; margin-bottom:8px; display:block; opacity:0.3;"></i>
+                                Nenhuma foto cadastrada. Use os botoes acima para adicionar fotos.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -1777,7 +1866,30 @@
                     </div>
                 </div>
 
-                <!-- BI Charts Layout -->
+                <!-- KPI Cards BI - Linha 2: FIDC -->
+                <div class="kpi-grid" style="margin-bottom:25px;">
+                    <div class="estoque-card" style="--mc:#3e7cb1;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Total de Análises</span>
+                        <h2 style="margin:5px 0 0; color:#fff;" id="bi-kpi-total-analises">0</h2>
+                        <div style="font-size:0.8rem; color:#3e7cb1; margin-top:5px;">Amostras registradas no sistema</div>
+                    </div>
+                    <div class="estoque-card" style="--mc:#f0b800;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Perda Média (%)</span>
+                        <h2 style="margin:5px 0 0; color:#fff;" id="bi-kpi-perda-media">0.00 %</h2>
+                        <div style="font-size:0.8rem; color:#f0b800; margin-top:5px;">Média de resíduo/descarte por amostra</div>
+                    </div>
+                    <div class="estoque-card" style="--mc:#2AD07A;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Fornecedor Top</span>
+                        <h2 style="margin:5px 0 0; color:#fff; font-size:1rem;" id="bi-kpi-top-fornecedor">—</h2>
+                        <div style="font-size:0.8rem; color:#2AD07A; margin-top:5px;">Quem mais entregou lotes</div>
+                    </div>
+                    <div class="estoque-card" style="--mc:#e07b39;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Material Mais Analisado</span>
+                        <h2 style="margin:5px 0 0; color:#fff; font-size:1rem;" id="bi-kpi-top-material">—</h2>
+                        <div style="font-size:0.8rem; color:#e07b39; margin-top:5px;">Componente mais encontrado</div>
+                    </div>
+                </div>
+
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px; margin-bottom:25px;">
                     <div class="kpi-card" style="padding:20px; border-radius:8px;">
                         <h3>Evolução Mensal (Compra × Venda × Lucro)</h3>
@@ -2168,7 +2280,7 @@
         </div>
     </div>
 
-    <script src="admin.js?v=33"></script>
+    <script src="admin.js?v=34"></script>
     <script src="assets/js/theme-toggle.js"></script>
 </body>
 </html>

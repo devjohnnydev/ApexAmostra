@@ -9,6 +9,17 @@ const path    = require('path');
 const axios   = require('axios');
 const cheerio = require('cheerio');
 const puppeteer = require('puppeteer');
+const multer    = require('multer');
+
+// ─── Multer: armazenamento em memória (fotos de amostras) ──────────────────────
+const uploadMemory = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB por foto
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('Apenas imagens são permitidas'), false);
+    }
+});
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -135,6 +146,7 @@ const memStore = {
         { id: 3, material_id: 6, tipo: "ENTRADA", quantidade: 8200, motivo: "Processamento da amostra AM-002", data: "2026-07-16" },
         { id: 4, material_id: 15, tipo: "ENTRADA", quantidade: 11800, motivo: "Processamento da amostra AM-002", data: "2026-07-16" }
     ],
+    fotos_amostra: [],   // { id, amostra_id, tipo: 'bruta'|'separada'|'componente', data_b64, mimetype, nome, criado_em }
     usuarios: [
         { id: 1, user: "admin", pass: "apex2026", perfil: "Administrador", nome: "Admin Apex" },
         { id: 2, user: "lab", pass: "lab123", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
@@ -312,6 +324,15 @@ async function initDatabase() {
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_validade TIMESTAMP;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS autorizado_por TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS obs_diretoria TEXT;
+            CREATE TABLE IF NOT EXISTS fotos_amostra (
+                id         SERIAL PRIMARY KEY,
+                amostra_id INTEGER NOT NULL,
+                tipo       TEXT DEFAULT 'bruta',
+                data_b64   TEXT NOT NULL,
+                mimetype   TEXT DEFAULT 'image/jpeg',
+                nome       TEXT,
+                criado_em  TIMESTAMP DEFAULT NOW()
+            );
         `);
 
         // Semeando fornecedores e amostras
@@ -1053,6 +1074,179 @@ app.delete('/api/amostras/:id', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Erro ao excluir amostra.' });
+    }
+});
+
+// ─── API: Fotos de Amostras ────────────────────────────────────────────────────
+app.get('/api/amostras/:id/fotos', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) {
+            const r = await pool.query('SELECT id, amostra_id, tipo, mimetype, nome, criado_em FROM fotos_amostra WHERE amostra_id=$1 ORDER BY criado_em ASC', [id]);
+            return res.json(r.rows);
+        }
+        // memStore: retorna sem data_b64 (pesado), frontend busca /api/amostras/:id/fotos/:fotoId para a imagem
+        const fotos = (memStore.fotos_amostra || []).filter(f => f.amostra_id === id)
+            .map(f => ({ id: f.id, amostra_id: f.amostra_id, tipo: f.tipo, mimetype: f.mimetype, nome: f.nome, criado_em: f.criado_em }));
+        res.json(fotos);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/amostras/:id/fotos/:fotoId/img', async (req, res) => {
+    try {
+        const id     = parseInt(req.params.id);
+        const fotoId = parseInt(req.params.fotoId);
+        if (dbAvailable) {
+            const r = await pool.query('SELECT data_b64, mimetype FROM fotos_amostra WHERE id=$1 AND amostra_id=$2', [fotoId, id]);
+            if (!r.rows[0]) return res.status(404).send('Foto não encontrada');
+            const buf = Buffer.from(r.rows[0].data_b64, 'base64');
+            res.set('Content-Type', r.rows[0].mimetype);
+            return res.send(buf);
+        }
+        const foto = (memStore.fotos_amostra || []).find(f => f.id === fotoId && f.amostra_id === id);
+        if (!foto) return res.status(404).send('Foto não encontrada');
+        const buf = Buffer.from(foto.data_b64, 'base64');
+        res.set('Content-Type', foto.mimetype);
+        res.send(buf);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/amostras/:id/fotos', uploadMemory.array('fotos', 10), async (req, res) => {
+    try {
+        const id   = parseInt(req.params.id);
+        const tipo = req.body.tipo || 'bruta';
+        if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+        const inseridas = [];
+        for (const file of req.files) {
+            const b64      = file.buffer.toString('base64');
+            const mimetype = file.mimetype;
+            const nome     = file.originalname;
+            if (dbAvailable) {
+                const r = await pool.query(
+                    'INSERT INTO fotos_amostra (amostra_id, tipo, data_b64, mimetype, nome) VALUES ($1,$2,$3,$4,$5) RETURNING id, amostra_id, tipo, mimetype, nome, criado_em',
+                    [id, tipo, b64, mimetype, nome]
+                );
+                inseridas.push(r.rows[0]);
+            } else {
+                const f = { id: nextId++, amostra_id: id, tipo, data_b64: b64, mimetype, nome, criado_em: new Date().toISOString() };
+                if (!memStore.fotos_amostra) memStore.fotos_amostra = [];
+                memStore.fotos_amostra.push(f);
+                inseridas.push({ id: f.id, amostra_id: f.amostra_id, tipo: f.tipo, mimetype: f.mimetype, nome: f.nome, criado_em: f.criado_em });
+            }
+        }
+        res.json({ success: true, fotos: inseridas });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/amostras/:id/fotos/:fotoId', async (req, res) => {
+    try {
+        const id     = parseInt(req.params.id);
+        const fotoId = parseInt(req.params.fotoId);
+        if (dbAvailable) {
+            await pool.query('DELETE FROM fotos_amostra WHERE id=$1 AND amostra_id=$2', [fotoId, id]);
+        } else {
+            memStore.fotos_amostra = (memStore.fotos_amostra || []).filter(f => !(f.id === fotoId && f.amostra_id === id));
+        }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── API: Enviar E-mail do Laudo ao Diretor (disparo após análise técnica) ─────
+app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+
+        // Buscar dados da amostra
+        let amostra, componentes, fornecedor;
+        if (dbAvailable) {
+            const ar = await pool.query('SELECT a.*, f.razao_social as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id=f.id WHERE a.id=$1', [id]);
+            amostra = ar.rows[0];
+            const cr = await pool.query('SELECT ca.*, mc.nome as material_nome FROM componentes_amostra ca LEFT JOIN materiais_catalogo mc ON ca.material_id=mc.id WHERE ca.amostra_id=$1', [id]);
+            componentes = cr.rows;
+        } else {
+            amostra = memStore.amostras.find(a => a.id === id);
+            if (!amostra) return res.status(404).json({ error: 'Amostra não encontrada' });
+            const forn = memStore.fornecedores.find(f => f.id === amostra.fornecedor_id);
+            amostra = { ...amostra, fornecedor_nome: forn ? forn.razao_social : 'N/A' };
+            componentes = memStore.componentes_amostra
+                .filter(c => c.amostra_id === id)
+                .map(c => ({ ...c, material_nome: (memStore.materiais_catalogo.find(m => m.id === c.material_id) || {}).nome || 'N/A' }));
+        }
+        if (!amostra) return res.status(404).json({ error: 'Amostra não encontrada' });
+
+        // Montar corpo do e-mail
+        const tabelaComponentes = componentes.map(c =>
+            `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${c.material_nome}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${parseFloat(c.peso).toLocaleString('pt-BR')} kg</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${parseFloat(c.percentual).toFixed(2)}%</td></tr>`
+        ).join('');
+
+        const html = `
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+            <div style="background:#0d2416;padding:20px;border-radius:8px 8px 0 0">
+                <h1 style="color:#2AD07A;margin:0;font-size:20px">🔬 APEXTECH METAIS — Análise Laboratorial Concluída</h1>
+                <p style="color:#aaa;margin:5px 0 0">O técnico concluiu a análise e encaminhou para decisão de compra.</p>
+            </div>
+            <div style="background:#fff;padding:20px;border:1px solid #ddd">
+                <table style="width:100%;border-collapse:collapse;margin-bottom:15px">
+                    <tr><td style="width:40%;color:#555;font-size:13px"><strong>Nº Amostra</strong></td><td style="color:#222">${amostra.numero_amostra}</td></tr>
+                    <tr><td style="color:#555;font-size:13px"><strong>Fornecedor</strong></td><td style="color:#222">${amostra.fornecedor_nome}</td></tr>
+                    <tr><td style="color:#555;font-size:13px"><strong>Peso Inicial</strong></td><td style="color:#222">${parseFloat(amostra.peso_inicial).toLocaleString('pt-BR')} kg</td></tr>
+                    <tr><td style="color:#555;font-size:13px"><strong>Responsável</strong></td><td style="color:#222">${amostra.responsavel}</td></tr>
+                    <tr><td style="color:#555;font-size:13px"><strong>Data</strong></td><td style="color:#222">${new Date(amostra.data).toLocaleDateString('pt-BR')}</td></tr>
+                </table>
+                <h3 style="color:#0d2416;border-bottom:2px solid #2AD07A;padding-bottom:5px">Composição Identificada</h3>
+                <table style="width:100%;border-collapse:collapse">
+                    <thead><tr style="background:#0d2416"><th style="padding:8px 10px;color:#2AD07A;text-align:left">Material</th><th style="padding:8px 10px;color:#2AD07A;text-align:right">Peso</th><th style="padding:8px 10px;color:#2AD07A;text-align:right">Rend.</th></tr></thead>
+                    <tbody>${tabelaComponentes}</tbody>
+                </table>
+                ${amostra.parecer_tecnico ? `<div style="margin-top:15px;background:#f5fff8;border-left:4px solid #2AD07A;padding:10px"><strong>Parecer Técnico:</strong><p style="margin:5px 0 0">${amostra.parecer_tecnico}</p></div>` : ''}
+                <div style="margin-top:20px;text-align:center">
+                    <a href="http://localhost:3000/admin.html" style="background:#2AD07A;color:#0d2416;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">🔗 Acessar Sistema para Aprovar</a>
+                </div>
+            </div>
+            <div style="background:#f5f5f5;padding:10px;text-align:center;font-size:11px;color:#999;border-radius:0 0 8px 8px">
+                APEXTECH METAIS ERP — Mensagem automática. Não responda este e-mail.
+            </div>
+        </div>`;
+
+        // Buscar destinatários (usar lista LME ou settings)
+        let destinatarios = [];
+        if (dbAvailable) {
+            const dr = await pool.query('SELECT email FROM lme_destinatarios');
+            destinatarios = dr.rows.map(r => r.email);
+        } else {
+            destinatarios = (memStore.lme_destinatarios || []).map(d => d.email);
+        }
+
+        // Verificar se há configuração de e-mail
+        const settings = dbAvailable
+            ? (await pool.query('SELECT * FROM settings WHERE id=1')).rows[0]
+            : memStore.settings;
+        const resendKey = (settings && settings.lme_resend_api_key) ? settings.lme_resend_api_key : null;
+
+        if (!resendKey || destinatarios.length === 0) {
+            // Sem e-mail configurado: apenas log
+            console.log(`📧 [SEM CONFIG] E-mail de laudo para amostra ${amostra.numero_amostra} não enviado (sem chave Resend ou destinatários).`);
+            return res.json({ success: true, enviado: false, motivo: 'Sem chave Resend ou destinatários cadastrados' });
+        }
+
+        // Enviar via Resend (padrão do sistema)
+        const { Resend } = require('resend');
+        const resend = new Resend(resendKey);
+        const fromEmail = (settings && settings.lme_resend_from) || 'laudo@apextechmetais.com.br';
+
+        for (const dest of destinatarios) {
+            await resend.emails.send({
+                from: fromEmail,
+                to: dest,
+                subject: `[APEXTECH] Análise ${amostra.numero_amostra} — Aguardando Decisão de Compra`,
+                html
+            });
+        }
+        console.log(`📧 E-mail de laudo enviado para ${destinatarios.length} destinatário(s).`);
+        res.json({ success: true, enviado: true, destinatarios });
+    } catch (err) {
+        console.error('Erro ao enviar e-mail de laudo:', err);
+        res.json({ success: true, enviado: false, motivo: err.message });
     }
 });
 

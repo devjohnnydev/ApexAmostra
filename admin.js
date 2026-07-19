@@ -4472,6 +4472,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             renderizarBotoesAcoesAmostra(amostra.status);
             renderComponentesDesmonte();
+            // Carregar fotos da amostra
+            await carregarFotosAmostra(id);
             document.getElementById('analise-desmonte-container').style.display = 'block';
             document.getElementById('analise-desmonte-container').scrollIntoView({ behavior: 'smooth' });
         } catch (err) {
@@ -4543,18 +4545,160 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarCronometroDisplay();
     };
 
-    // Upload de Fotos Simulado
+    // Upload de Fotos Simulado (legado inline de componente - mantido)
     window.simularUploadFoto = function(idx) {
-        const mockPhotos = [
-            'assets/img/photo-cobre.jpg',
-            'assets/img/photo-aluminio.jpg',
-            'assets/img/photo-aco.jpg',
-            'assets/img/photo-plastico.jpg'
-        ];
-        const foto = mockPhotos[idx % mockPhotos.length];
-        componentesActivos[idx].foto = foto;
-        renderComponentesDesmonte();
+        // Redireciona para o painel de fotos
+        document.getElementById('foto-input-bruta').click();
     };
+
+    // ─── UPLOAD REAL DE FOTOS ───────────────────────────────────────────────────
+    window.uploadFotos = async function(input, tipo) {
+        if (!activeAmostraIdForDesmonte || !input.files || input.files.length === 0) return;
+        const spinner = document.getElementById('foto-input-spinner');
+        if (spinner) spinner.style.display = 'inline-flex';
+        try {
+            const formData = new FormData();
+            formData.append('tipo', tipo);
+            for (const file of input.files) formData.append('fotos', file);
+            const res = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`, { method: 'POST', body: formData });
+            const result = await res.json();
+            if (result.success) {
+                await carregarFotosAmostra(activeAmostraIdForDesmonte);
+            } else {
+                alert('Erro ao enviar foto: ' + (result.error || 'desconhecido'));
+            }
+        } catch (err) {
+            console.error('uploadFotos:', err);
+        } finally {
+            if (spinner) spinner.style.display = 'none';
+            input.value = ''; // reset input
+        }
+    };
+
+    async function carregarFotosAmostra(id) {
+        try {
+            const res  = await fetch(`/api/amostras/${id}/fotos`);
+            const fotos = await res.json();
+            renderFotosGallery(fotos, id);
+        } catch (err) { console.error('carregarFotosAmostra:', err); }
+    }
+
+    function renderFotosGallery(fotos, amostraId) {
+        const gallery     = document.getElementById('fotos-gallery');
+        const placeholder = document.getElementById('fotos-placeholder');
+        if (!gallery) return;
+        // Remove thumbs anteriores mas mantém placeholder
+        Array.from(gallery.children).forEach(el => { if (el.id !== 'fotos-placeholder') el.remove(); });
+        if (!fotos || fotos.length === 0) {
+            if (placeholder) placeholder.style.display = 'block';
+            return;
+        }
+        if (placeholder) placeholder.style.display = 'none';
+        fotos.forEach(foto => {
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'position:relative; width:110px; height:90px; border-radius:8px; overflow:hidden; border:2px solid #333; flex-shrink:0;';
+            const badge = document.createElement('span');
+            badge.textContent = foto.tipo === 'bruta' ? 'Bruta' : 'Separada';
+            badge.style.cssText = `position:absolute;top:4px;left:4px;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:700;background:${foto.tipo==='bruta'?'#f0b800':'#2AD07A'};color:#000;z-index:2;`;
+            const img = document.createElement('img');
+            img.src = `/api/amostras/${amostraId}/fotos/${foto.id}/img`;
+            img.alt = foto.nome || 'Foto';
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            img.onerror = () => { img.src = 'assets/img/apexlogo.png'; };
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            delBtn.title = 'Excluir foto';
+            delBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(255,0,0,0.75);border:none;color:#fff;cursor:pointer;border-radius:50%;width:18px;height:18px;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:2;';
+            delBtn.onclick = async () => {
+                if (!confirm('Excluir esta foto?')) return;
+                await fetch(`/api/amostras/${amostraId}/fotos/${foto.id}`, { method: 'DELETE' });
+                await carregarFotosAmostra(amostraId);
+            };
+            wrapper.appendChild(badge);
+            wrapper.appendChild(img);
+            wrapper.appendChild(delBtn);
+            gallery.appendChild(wrapper);
+        });
+    }
+
+    // ─── CALCULADORA FIDC ────────────────────────────────────────────────────────
+    // Cache de precos para o painel
+    let fidcPrecosCache = [];
+
+    // Chamado ao abrir o desmonte e ao alterar componentes
+    window.recalcularFIDC = async function() {
+        const fidcTbody = document.getElementById('fidc-tbody');
+        if (!fidcTbody) return;
+
+        // Buscar tabela de precos se cache vazio
+        if (fidcPrecosCache.length === 0) {
+            try {
+                const pr = await fetch('/api/tabela-precos');
+                fidcPrecosCache = await pr.json();
+            } catch(e) { fidcPrecosCache = []; }
+        }
+
+        const margem     = parseFloat(document.getElementById('fidc-margem')?.value || 100) / 100;
+        const difBonus   = parseFloat(document.getElementById('fidc-dificuldade')?.value || 0) / 100;
+        const margemTot  = margem + difBonus;
+
+        if (componentesActivos.length === 0) {
+            fidcTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:15px;color:#666;">Adicione componentes para calcular</td></tr>';
+            setFidcTotals(0, margemTot);
+            return;
+        }
+
+        let valorBruto = 0;
+        let semPreco   = false;
+        fidcTbody.innerHTML = '';
+
+        for (const c of componentesActivos) {
+            const mat   = localMateriais.find(m => m.id === c.material_id);
+            const preco = fidcPrecosCache.find(p => p.material_id === c.material_id);
+            const pct   = c.percentual;
+            const precoEntregar = preco ? parseFloat(preco.preco_entregar) : null;
+
+            const valorComp = precoEntregar !== null ? (pct / 100) * precoEntregar : null;
+            if (valorComp !== null) valorBruto += valorComp;
+            if (precoEntregar === null) semPreco = true;
+
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid #222';
+            tr.innerHTML = `
+                <td style="padding:8px 10px;">${mat ? mat.nome : 'Desconhecido'}</td>
+                <td style="padding:8px 10px;text-align:right;">${pct.toFixed(2)}%</td>
+                <td style="padding:8px 10px;text-align:right;color:${precoEntregar!==null?'#2AD07A':'#f0b800'}">
+                    ${precoEntregar!==null ? 'R$ ' + precoEntregar.toFixed(2) : '<i class="fa-solid fa-triangle-exclamation"></i> Sem preco'}
+                </td>
+                <td style="padding:8px 10px;text-align:right;font-weight:700;color:#fff;">
+                    ${valorComp!==null ? 'R$ ' + valorComp.toFixed(4) : '---'}
+                </td>
+                <td style="padding:8px 10px;text-align:center;">
+                    ${precoEntregar!==null
+                        ? '<span style="color:#2AD07A;font-size:0.75rem;"><i class="fa-solid fa-check-circle"></i> OK</span>'
+                        : '<span style="color:#f0b800;font-size:0.75rem;"><i class="fa-solid fa-circle-exclamation"></i> Sem tabela</span>'}
+                </td>`;
+            fidcTbody.appendChild(tr);
+        }
+
+        const avisoEl = document.getElementById('fidc-aviso-sem-preco');
+        if (avisoEl) avisoEl.style.display = semPreco ? 'block' : 'none';
+        setFidcTotals(valorBruto, margemTot);
+    };
+
+    function setFidcTotals(valorBruto, margemTot) {
+        const precoSugEntregar = valorBruto / (1 + margemTot);
+        const precoSugColetar  = precoSugEntregar * 0.96; // 4% desconto coletar vs entregar
+        const margemPct        = Math.round(margemTot * 100);
+
+        const fmt = (v) => 'R$ ' + v.toFixed(2);
+        const el  = (id) => document.getElementById(id);
+
+        if (el('fidc-valor-bruto'))              el('fidc-valor-bruto').innerHTML              = fmt(valorBruto) + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
+        if (el('fidc-margem-display'))            el('fidc-margem-display').textContent          = margemPct + '%';
+        if (el('fidc-preco-sugerido-entregar'))   el('fidc-preco-sugerido-entregar').innerHTML  = fmt(precoSugEntregar) + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
+        if (el('fidc-preco-sugerido-coletar'))    el('fidc-preco-sugerido-coletar').innerHTML   = fmt(precoSugColetar)  + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
+    }
 
     function renderComponentesDesmonte() {
         const body = document.getElementById('analise-componentes-body');
@@ -4696,7 +4840,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'Aguardando Decisão de Compra' })
             });
-            alert('Análise salva! A amostra foi enviada para decisão de compra pela Diretoria.');
+            // Disparo automático de e-mail ao Diretor
+            try {
+                const emailRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/enviar-laudo-email`, { method: 'POST' });
+                const emailData = await emailRes.json();
+                const emailMsg = emailData.enviado
+                    ? `\n\n📧 E-mail enviado para ${emailData.destinatarios?.length || 0} destinatário(s).`
+                    : `\n\n📧 E-mail não enviado (${emailData.motivo || 'sem config'}).`;
+                alert('Análise salva! A amostra foi enviada para decisão de compra pela Diretoria.' + emailMsg);
+            } catch(e) {
+                alert('Análise salva! A amostra foi enviada para decisão de compra pela Diretoria.');
+            }
             fecharAnaliseDesmonte();
             carregarAmostras();
         } catch (err) {
