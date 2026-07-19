@@ -1180,6 +1180,19 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 /* ═══════════════════════════════════════════════════════════
    RELATÓRIO DIÁRIO LME
 ═══════════════════════════════════════════════════════════ */
+.relatorio-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+    .capture-area {
+        min-width: 980px !important;
+        margin: 0 !important;
+    }
+}
+
 .capture-area {
     background: #fff;
     color: #000;
