@@ -4298,14 +4298,14 @@ document.addEventListener('DOMContentLoaded', () => {
         localAmostras.forEach(a => {
             const dataFmt = new Date(a.data).toLocaleDateString('pt-BR');
             const statusClass = a.status.toLowerCase().replace(/ /g, '-');
-            const tr = document.createElement('tr');
             
-            // Botão de exclusão visível apenas para Admin e Diretoria
-            let btnDelete = '';
+            // Delete button check
+            let deleteBtnHtml = '';
             if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
-                btnDelete = `<button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; margin-left:10px;" onclick="window.deletarAmostra(${a.id})" title="Excluir Amostra"><i class="fa-solid fa-trash"></i></button>`;
+                deleteBtnHtml = `<button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; margin-left:8px;" onclick="window.deletarAmostra(${a.id})" title="Excluir Amostra"><i class="fa-solid fa-trash"></i></button>`;
             }
 
+            const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="padding:12px;"><strong>${a.numero_amostra}</strong></td>
                 <td style="padding:12px;">${dataFmt}</td>
@@ -4315,10 +4315,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:12px; text-align:center;"><span class="badge-status ${statusClass}">${a.status}</span></td>
                 <td style="padding:12px; text-align:center;">
                     <button class="btn-refresh" style="background:none; border:none; color:#2AD07A;" onclick="window.gerarLaudoPDF(${a.id})"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-                    ${btnDelete}
                 </td>
-                <td style="padding:12px; text-align:center;">
+                <td style="padding:12px; text-align:center; display:flex; align-items:center; justify-content:center; gap:5px;">
                     <button class="btn-primary" style="padding:4px 8px; font-size:0.8rem;" onclick="abrirAnaliseDesmonte(${a.id})"><i class="fa-solid fa-vial"></i> Analisar</button>
+                    ${deleteBtnHtml}
                 </td>
             `;
             body.appendChild(tr);
@@ -4326,17 +4326,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.deletarAmostra = async function(id) {
-        if (!confirm('Deseja realmente excluir esta amostra e toda a sua composição?')) return;
+        if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
+            alert('Erro: Apenas o Administrador ou Diretoria podem excluir amostras.');
+            return;
+        }
+        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas análises de componentes?')) return;
         try {
-            const res = await fetch(`/api/amostras/${id}?user_perfil=${currentSimulatedRole}`, {
-                method: 'DELETE'
-            });
+            const res = await fetch(`/api/amostras/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 alert('Amostra excluída com sucesso!');
                 carregarAmostras();
+                fecharAnaliseDesmonte();
             } else {
                 const data = await res.json();
-                alert('Erro: ' + (data.error || 'Não foi possível excluir a amostra.'));
+                alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido.'));
             }
         } catch (err) {
             console.error(err);
@@ -4421,12 +4424,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // Parecer Técnico
             document.getElementById('analise-parecer-tecnico').value = amostra.parecer_tecnico || '';
 
-            // Decisão da Diretoria (Painel)
+            // Decisão da Diretoria e campos de precificação autorizada
             const painelDir = document.getElementById('painel-decisao-diretoria');
             const hContainer = document.getElementById('decisao-historica-container');
+            const bannerAutonomia = document.getElementById('banner-autonomia-compra');
             
+            // Popula os inputs de precificação e obs. diretoria
+            document.getElementById('dir-preco-entregar').value = amostra.preco_compra_entregar || '';
+            document.getElementById('dir-preco-coletar').value = amostra.preco_compra_coletar || '';
+            const defaultDate = new Date();
+            defaultDate.setDate(defaultDate.getDate() + 30);
+            document.getElementById('dir-preco-validade').value = amostra.preco_validade ? amostra.preco_validade.split('T')[0] : defaultDate.toISOString().split('T')[0];
+            const dirObsEl = document.getElementById('dir-obs-diretoria');
+            if (dirObsEl) dirObsEl.value = amostra.obs_diretoria || '';
+
             if (painelDir) {
-                // Só mostra se for Administrador ou Diretoria
                 if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
                     painelDir.style.display = 'block';
                 } else {
@@ -4440,6 +4452,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('decisao-historica-motivo').textContent = amostra.motivo_reprovacao ? `Motivo: ${amostra.motivo_reprovacao}` : '';
                 } else {
                     hContainer.style.display = 'none';
+                }
+            }
+
+            // Exibir banner de autonomia com detalhes explícitos
+            if (bannerAutonomia) {
+                if (amostra.decisao_diretoria === 'Aprovado') {
+                    bannerAutonomia.style.display = 'flex';
+                    document.getElementById('autonomia-val-entregar').textContent = parseFloat(amostra.preco_compra_entregar || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    document.getElementById('autonomia-val-coletar').textContent = parseFloat(amostra.preco_compra_coletar || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    
+                    const dataValFmt = amostra.preco_validade ? new Date(amostra.preco_validade).toLocaleDateString('pt-BR') : '--/--/----';
+                    document.getElementById('autonomia-val-validade').textContent = dataValFmt;
+                    document.getElementById('autonomia-val-diretor').textContent = amostra.autorizado_por || 'Diretoria';
+                } else {
+                    bannerAutonomia.style.display = 'none';
                 }
             }
 
@@ -4464,7 +4491,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (status === 'Liberado para Produção') {
             btnProcessar.style.display = '';
         }
-        applyRolePermissions();
     }
 
     window.fecharAnaliseDesmonte = function() {
@@ -4525,7 +4551,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'assets/img/photo-aco.jpg',
             'assets/img/photo-plastico.jpg'
         ];
-        // Seleciona uma imagem fictícia baseada no índice ou aleatória
         const foto = mockPhotos[idx % mockPhotos.length];
         componentesActivos[idx].foto = foto;
         renderComponentesDesmonte();
@@ -4621,7 +4646,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Alerta de Limite de Peso
         if (totalPesos > pesoInicial) {
             alert('Atenção: A soma do peso dos componentes não pode exceder o peso inicial da amostra!');
         }
@@ -4633,7 +4657,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('resumo-peso-perda').textContent = perdaFisica.toFixed(3);
         document.getElementById('resumo-percentual-perda').textContent = percentualPerda.toFixed(2);
 
-        // Build Formula String
+        // Formula Química
         const formulaParts = componentesActivos.map(c => {
             const m = localMateriais.find(x => x.id === c.material_id);
             return `${c.percentual.toFixed(1)}% ${m ? m.nome : 'Desconhecido'}`;
@@ -4663,7 +4687,117 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ 
                     componentes: componentesActivos,
                     tempo_desmonte: cronSegundos,
-                    parecer_tecnico: document.g    window.gerarLaudoPDF = async function(id) {
+                    parecer_tecnico: document.getElementById('analise-parecer-tecnico').value.trim()
+                })
+            });
+            // Muda status para sinalizar que precisa de decisão do Diretor
+            await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Aguardando Decisão de Compra' })
+            });
+            alert('Análise salva! A amostra foi enviada para decisão de compra pela Diretoria.');
+            fecharAnaliseDesmonte();
+            carregarAmostras();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    // Ações Diretoria
+    window.abrirModalReprovacao = function() {
+        document.getElementById('reprovacao-motivo-texto').value = '';
+        document.getElementById('modal-reprovacao').style.display = 'flex';
+    };
+
+    window.fecharModalReprovacao = function() {
+        document.getElementById('modal-reprovacao').style.display = 'none';
+    };
+
+    window.salvarDecisaoDiretoria = async function(decisao) {
+        if (!activeAmostraIdForDesmonte) return;
+        const motivo = document.getElementById('reprovacao-motivo-texto').value.trim();
+        const precoEntregar = parseFloat(document.getElementById('dir-preco-entregar').value);
+        const precoColetar = parseFloat(document.getElementById('dir-preco-coletar').value);
+        const validade = document.getElementById('dir-preco-validade').value;
+        const obsDir = (document.getElementById('dir-obs-diretoria') || {}).value || '';
+
+        if (decisao === 'Reprovado' && !motivo) {
+            alert('Por favor, informe o motivo da reprovação.');
+            return;
+        }
+
+        if (decisao === 'Aprovado') {
+            if (isNaN(precoEntregar) || isNaN(precoColetar) || !validade) {
+                alert('Por favor, preencha os preços autorizados de compra (Entregar e Coletar) e a validade.');
+                return;
+            }
+        }
+
+        try {
+            const res = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/decisao`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    decisao_diretoria: decisao,
+                    motivo_reprovacao: motivo,
+                    obs_diretoria: obsDir,
+                    preco_compra_entregar: precoEntregar,
+                    preco_compra_coletar: precoColetar,
+                    preco_validade: validade,
+                    user_perfil: currentSimulatedRole,
+                    user_nome: currentSimulatedRole
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const emoji = decisao === 'Aprovado' ? '✅' : '❌';
+                alert(`${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`);
+                fecharModalReprovacao();
+                fecharAnaliseDesmonte();
+                carregarAmostras();
+            } else {
+                alert('Erro: ' + (data.error || 'Não foi possível registrar a decisão.'));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.liberarLoteParaPCP = async function() {
+        if (!activeAmostraIdForDesmonte) return;
+        try {
+            await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Liberado para Produção' })
+            });
+            alert('Lote Aprovado e Liberado para Produção/PCP!');
+            fecharAnaliseDesmonte();
+            carregarAmostras();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.confirmarProcessamentoIndustrial = async function() {
+        if (!activeAmostraIdForDesmonte) return;
+        try {
+            await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Processado' })
+            });
+            alert('Processamento confirmado! Componentes recuperados adicionados ao estoque.');
+            fecharAnaliseDesmonte();
+            carregarAmostras();
+            carregarEstoque();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.gerarLaudoPDF = async function(id) {
         const amostraId = id || activeAmostraIdForDesmonte;
         if (!amostraId) return;
 
@@ -4716,38 +4850,30 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('DADOS GERAIS DO LOTE / FORNECEDOR', 15, 52);
             pdf.line(15, 54, 195, 54);
 
-            // Formatação do tempo
-            const tempoSec = parseInt(amostra.tempo_desmonte) || 0;
-            const minStr = Math.floor(tempoSec / 60).toString().padStart(2, '0');
-            const segStr = (tempoSec % 60).toString().padStart(2, '0');
-
             pdf.setTextColor(58, 58, 58);
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'normal');
             pdf.text(`Razão Social / Fornecedor: ${amostra.fornecedor_nome.toUpperCase()}`, 15, 60);
             pdf.text(`Responsável Técnico: ${amostra.responsavel}`, 15, 66);
-            pdf.text(`Tempo de Desmonte: ${minStr}:${segStr}`, 15, 72);
             pdf.text(`Data de Recebimento: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`, 155, 60);
             pdf.text(`Peso Inicial Bruto: ${parseFloat(amostra.peso_inicial).toLocaleString('pt-BR')} kg`, 155, 66);
 
-            // 3. Tabela Técnica Alternada com Dificuldade e Foto
+            // 3. Tabela Técnica Alternada
             pdf.setTextColor(10, 35, 66);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(11);
-            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 15, 84);
-            pdf.line(15, 86, 195, 86);
+            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 15, 80);
+            pdf.line(15, 82, 195, 82);
 
             pdf.setFillColor(30, 78, 140); // Azul Médio #1E4E8C
-            pdf.rect(15, 90, 180, 8, 'F');
+            pdf.rect(15, 86, 180, 8, 'F');
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
-            pdf.text('Item / Material Recuperado', 18, 95);
-            pdf.text('Peso Líquido', 95, 95);
-            pdf.text('Rend (%)', 125, 95);
-            pdf.text('Dificuldade', 150, 95);
-            pdf.text('Foto Anexa', 172, 95);
+            pdf.text('Item / Material Recuperado', 18, 91);
+            pdf.text('Peso Líquido', 115, 91);
+            pdf.text('Rendimento (%)', 155, 91);
 
-            let y = 104;
+            let y = 98;
             let sumPeso = 0;
             pdf.setTextColor(58, 58, 58);
             pdf.setFont('helvetica', 'normal');
@@ -4759,10 +4885,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     pdf.rect(15, y - 4, 180, 7, 'F');
                 }
                 pdf.text(`${c.material_nome} (${c.material_categoria})`, 18, y);
-                pdf.text(`${parseFloat(c.peso).toLocaleString('pt-BR')} kg`, 95, y);
-                pdf.text(`${parseFloat(c.percentual).toFixed(2)} %`, 125, y);
-                pdf.text(`${c.dificuldade || 'Fácil'}`, 150, y);
-                pdf.text(`${c.foto ? 'Sim' : 'Não'}`, 172, y);
+                pdf.text(`${parseFloat(c.peso).toLocaleString('pt-BR')} kg`, 115, y);
+                pdf.text(`${parseFloat(c.percentual).toFixed(2)} %`, 155, y);
                 sumPeso += parseFloat(c.peso);
                 y += 7;
             });
@@ -4775,10 +4899,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.rect(15, y - 4, 180, 7, 'F');
             pdf.setFont('helvetica', 'bold');
             pdf.text('Resíduos Industriais / Perda Física', 18, y);
-            pdf.text(`${perda.toLocaleString('pt-BR')} kg`, 95, y);
-            pdf.text(`${pctPerda.toFixed(2)} %`, 125, y);
-            pdf.text('-', 150, y);
-            pdf.text('-', 172, y);
+            pdf.text(`${perda.toLocaleString('pt-BR')} kg`, 115, y);
+            pdf.text(`${pctPerda.toFixed(2)} %`, 155, y);
 
             // 4. Fórmula Química de Composição
             y += 15;
@@ -4795,48 +4917,70 @@ document.addEventListener('DOMContentLoaded', () => {
             const formulaStr = componentes.map(c => `${parseFloat(c.percentual).toFixed(1)}% ${c.material_nome.toUpperCase()}`).join(' · ');
             pdf.text(formulaStr, 20, y + 12);
 
-            // 4.5 Parecer Técnico (Se existir)
-            if (amostra.parecer_tecnico) {
-                y += 24;
-                pdf.setTextColor(10, 35, 66);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9.5);
-                pdf.text('PARECER E OBSERVAÇÕES TÉCNICAS DO LABORATÓRIO:', 15, y);
-                pdf.setTextColor(80, 80, 80);
-                pdf.setFont('helvetica', 'italic');
-                pdf.setFontSize(8.5);
-                pdf.text(amostra.parecer_tecnico, 15, y + 5, { maxWidth: 180 });
-                y += 10;
+            // 5. Seção de Pareceres - Técnico e Diretoria
+            y += 26;
+            pdf.setTextColor(10, 35, 66);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.text('PARECERES TÉCNICO E DECISÃO DE COMPRA', 15, y);
+            pdf.line(15, y + 2, 195, y + 2);
+            y += 8;
+
+            // Parecer Técnico
+            pdf.setFillColor(240, 245, 255);
+            pdf.rect(15, y, 180, 22, 'F');
+            pdf.setDrawColor(30, 78, 140);
+            pdf.setLineWidth(0.3);
+            pdf.rect(15, y, 180, 22);
+            pdf.setTextColor(30, 78, 140);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8.5);
+            pdf.text('PARECER TÉCNICO (LABORATÓRIO):', 18, y + 6);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(58, 58, 58);
+            const parecerTec = amostra.parecer_tecnico || '(não informado)';
+            const parecerTecLines = pdf.splitTextToSize(parecerTec, 170);
+            pdf.text(parecerTecLines.slice(0, 2), 18, y + 12);
+            y += 26;
+
+            // Decisão da Diretoria
+            const decAprovada = amostra.decisao_diretoria === 'Aprovado';
+            const decColor = decAprovada ? [42, 168, 98] : (amostra.decisao_diretoria === 'Reprovado' ? [200, 50, 50] : [100, 100, 100]);
+            pdf.setFillColor(decAprovada ? 245 : 255, decAprovada ? 255 : 245, decAprovada ? 245 : 245);
+            pdf.rect(15, y, 180, 28, 'F');
+            pdf.setDrawColor(...decColor);
+            pdf.setLineWidth(0.5);
+            pdf.rect(15, y, 180, 28);
+            pdf.setTextColor(...decColor);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8.5);
+            const decStr = `DECISÃO DA DIRETORIA: ${(amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase()}`;
+            pdf.text(decStr, 18, y + 6);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(58, 58, 58);
+            if (amostra.obs_diretoria) {
+                const obsLines = pdf.splitTextToSize(`Obs: ${amostra.obs_diretoria}`, 170);
+                pdf.text(obsLines.slice(0, 2), 18, y + 12);
             }
-
-            // 5. Decisão da Diretoria de Compra
-            if (amostra.decisao_diretoria && amostra.decisao_diretoria !== 'Aguardando') {
-                y += 14;
-                pdf.setFillColor(244, 246, 248);
-                pdf.rect(15, y, 180, 18, 'F');
-
-                // Borda esquerda colorida baseada na decisão
-                pdf.setFillColor(amostra.decisao_diretoria === 'Aprovado' ? 42 : 255, amostra.decisao_diretoria === 'Aprovado' ? 208 : 77, amostra.decisao_diretoria === 'Aprovado' ? 122 : 77);
-                pdf.rect(15, y, 3, 18, 'F');
-
-                pdf.setTextColor(10, 35, 66);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9);
-                pdf.text(`DECISÃO DA DIRETORIA: COMPRA ${amostra.decisao_diretoria.toUpperCase()}`, 22, y + 6);
-                
-                pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(8);
-                pdf.setTextColor(80, 80, 80);
-                const descDec = amostra.decisao_diretoria === 'Reprovado' ? `Motivo: ${amostra.motivo_reprovacao}` : 'Lote aprovado para aquisição industrial e precificação comercial.';
-                pdf.text(descDec, 22, y + 12);
+            if (amostra.motivo_reprovacao) {
+                pdf.setTextColor(180, 40, 40);
+                pdf.text(`Motivo da Reprovação: ${amostra.motivo_reprovacao}`, 18, y + 20);
             }
+            if (decAprovada && amostra.preco_compra_entregar) {
+                pdf.setTextColor(30, 130, 60);
+                pdf.text(`Preço Autorizado - Entregar: R$ ${parseFloat(amostra.preco_compra_entregar).toFixed(2)}/kg | Coletar: R$ ${parseFloat(amostra.preco_compra_coletar||0).toFixed(2)}/kg`, 18, y + 20);
+                const valFmt = amostra.preco_validade ? new Date(amostra.preco_validade).toLocaleDateString('pt-BR') : '--';
+                pdf.text(`Válido até: ${valFmt}   |   Autorizado por: ${amostra.autorizado_por || 'Diretoria'}`, 18, y + 26);
+            }
+            y += 34;
 
-            // 5.5. Módulo Financeiro Integrado (Visível para todos exceto Laboratório)
+            // 6. Módulo Financeiro Integrado (Visível para todos exceto Laboratório)
             if (currentSimulatedRole !== 'Laboratório' && lote) {
-                y += 24;
+
+                y += 26;
                 pdf.setTextColor(10, 35, 66);
                 pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(10);
+                pdf.setFontSize(11);
                 pdf.text('RESUMO DESEMPENHO E MOTOR FINANCEIRO DO LOTE', 15, y);
                 pdf.line(15, y + 2, 195, y + 2);
 
@@ -5224,11 +5368,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('pl-rendimento').value = componentes[0].percentual;
                 document.getElementById('pl-produto').value = componentes[0].material_nome;
 
-                // Tenta buscar preço da tabela de preços para aquele material
-                const prc = localPrecos.find(x => x.material_id === componentes[0].material_id);
-                if (prc) {
-                    document.getElementById('pl-preco-compra').value = prc.preco_entregar;
-                    document.getElementById('pl-preco-venda').value = prc.venda_ref;
+                // Favorecer o preço especial de compra autorizado pelo Diretor
+                if (amostra.decisao_diretoria === 'Aprovado' && amostra.preco_compra_entregar) {
+                    document.getElementById('pl-preco-compra').value = amostra.preco_compra_entregar;
+                    // Preço de venda de referência da tabela geral
+                    const prc = localPrecos.find(x => x.material_id === componentes[0].material_id);
+                    if (prc) {
+                        document.getElementById('pl-preco-venda').value = prc.venda_ref;
+                    }
+                } else {
+                    // Fallback para preço da tabela geral
+                    const prc = localPrecos.find(x => x.material_id === componentes[0].material_id);
+                    if (prc) {
+                        document.getElementById('pl-preco-compra').value = prc.preco_entregar;
+                        document.getElementById('pl-preco-venda').value = prc.venda_ref;
+                    }
                 }
             }
             calcularLotePlanSimulacao();

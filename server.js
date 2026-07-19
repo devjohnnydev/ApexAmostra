@@ -307,6 +307,11 @@ async function initDatabase() {
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS decisao_diretoria TEXT DEFAULT 'Aguardando';
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS motivo_reprovacao TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS data_decisao TIMESTAMP;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_entregar NUMERIC(10,2);
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_coletar NUMERIC(10,2);
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_validade TIMESTAMP;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS autorizado_por TEXT;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS obs_diretoria TEXT;
         `);
 
         // Semeando fornecedores e amostras
@@ -978,28 +983,47 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
 app.patch('/api/amostras/:id/decisao', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { decisao_diretoria, motivo_reprovacao, user_perfil } = req.body;
+        const { decisao_diretoria, motivo_reprovacao, obs_diretoria, preco_compra_entregar, preco_compra_coletar, preco_validade, user_perfil, user_nome } = req.body;
 
         if (user_perfil !== 'Administrador' && user_perfil !== 'Diretoria') {
             return res.status(403).json({ error: 'Apenas a Diretoria ou Administrador pode tomar esta decisão.' });
         }
 
-        const status = decisao_diretoria === 'Aprovado' ? 'Aguardando Precificação' : 'Reprovado';
+        const status = decisao_diretoria === 'Aprovado' ? 'Aprovado - Compra Autorizada' : 'Reprovado';
 
         if (dbAvailable) {
             await pool.query(
                 `UPDATE amostras 
-                 SET decisao_diretoria=$1, motivo_reprovacao=$2, status=$3, data_decisao=NOW() 
-                 WHERE id=$4`,
-                [decisao_diretoria, motivo_reprovacao || '', status, id]
+                 SET decisao_diretoria=$1, motivo_reprovacao=$2, status=$3, data_decisao=NOW(),
+                     preco_compra_entregar=$4, preco_compra_coletar=$5, preco_validade=$6, autorizado_por=$7,
+                     obs_diretoria=$8
+                 WHERE id=$9`,
+                [
+                    decisao_diretoria, 
+                    motivo_reprovacao || '', 
+                    status, 
+                    decisao_diretoria === 'Aprovado' ? parseFloat(preco_compra_entregar) || null : null,
+                    decisao_diretoria === 'Aprovado' ? parseFloat(preco_compra_coletar) || null : null,
+                    decisao_diretoria === 'Aprovado' ? preco_validade || null : null,
+                    decisao_diretoria === 'Aprovado' ? user_nome || 'Diretoria' : null,
+                    obs_diretoria || '',
+                    id
+                ]
             );
         } else {
             const a = memStore.amostras.find(x => x.id === id);
             if (!a) return res.status(404).json({ error: 'Amostra não encontrada.' });
             a.decisao_diretoria = decisao_diretoria;
             a.motivo_reprovacao = motivo_reprovacao || '';
+            a.obs_diretoria = obs_diretoria || '';
             a.status = status;
             a.data_decisao = new Date().toISOString();
+            if (decisao_diretoria === 'Aprovado') {
+                a.preco_compra_entregar = parseFloat(preco_compra_entregar) || null;
+                a.preco_compra_coletar = parseFloat(preco_compra_coletar) || null;
+                a.preco_validade = preco_validade || null;
+                a.autorizado_por = user_nome || 'Diretoria';
+            }
         }
         res.json({ success: true, status, decisao_diretoria });
     } catch (err) {
