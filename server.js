@@ -42,11 +42,11 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // ─── Armazenamento em memória (fallback sem banco) ──────────────────────────
-let nextId = 100;
+let nextId = 1000;
 const memStore = {
     solucoes: [
         { id: 1, nome: 'Sucatas de Indústrias',    img: 'assets/img/residuos-de-empresas-e-industrias.svg',  descricao: 'Nossos principais serviços incluem a gestão e comercialização de resíduos gerados por indústrias, assegurando o descarte adequado e a reciclagem responsável de materiais. Atendemos a diversos setores industriais, oferecendo soluções inovadoras e eficientes para a gestão de resíduos, com foco constante na sustentabilidade e no reaproveitamento, promovendo um ciclo ambientalmente consciente.', ordem: 1, criado_em: new Date().toISOString() },
-        { id: 2, nome: 'Resíduos de Conectores',   img: 'assets/img/icon-residuos-de-conectores.svg',          descricao: 'Tratamos e reciclamos resíduos de conectores elétricos e eletrônicos, assegurando que esses materiais sejam reaproveitados de forma eficiente e sustentável. Nosso processo garante a máxima recuperação de metais, reduzindo o impacto ambiental e promovendo fortemente a economia circular em todos os nossos processos logísticos.', ordem: 2, criado_em: new Date().toISOString() },
+        { id: 2, nome: 'Resíduos de Conectores',   img: 'assets/img/icon-residuos-de-conectores.svg',          descricao: 'Tratamos e reciclamos resíduos de conectores elétricos e eletrônicos, assegurando que esses materiais sejam reaproveitados de forma eficiente e sustentável. Nosso processo garante a máxima recuperação de metais, reduzindo o impacto ambienta e promovendo fortemente a economia circular em todos os nossos processos logísticos.', ordem: 2, criado_em: new Date().toISOString() },
         { id: 3, nome: 'Sucatas de Fios e Cabos',  img: 'assets/img/sucata-de-fio.svg',                         descricao: 'Especializamo-nos na compra e reciclagem de sucata de fio e cabos de todos os tipos. Transformamos resíduos em recursos reutilizáveis através de processos de separação de alta tecnologia que isolam o plástico dos metais valiosos como cobre e alumínio de maneira rápida, limpa e altamente sustentável.', ordem: 3, criado_em: new Date().toISOString() },
         { id: 4, nome: 'Resíduos e Sucatas de Obras', img: 'assets/img/residuos-e-sucatas-de-obras.svg',       descricao: 'Oferecemos serviços de gestão de resíduos em obras, proporcionando soluções completas e personalizadas para o setor da construção civil. Trabalhamos com planejamento de coleta programada para manter sua obra limpa, organizada e perfeitamente adequada às normas ambientais mais rigorosas de descarte.', ordem: 4, criado_em: new Date().toISOString() }
     ],
@@ -71,6 +71,77 @@ const memStore = {
         { id: 1, url: 'assets/img/photo-1595246140625-573b715d11dc.jpg', titulo: 'Triagem de Sucata Eletrônica', ordem: 1 },
         { id: 2, url: 'assets/img/photo-1605647540924-852290f6b0d5.jpg', titulo: 'Processamento de Placas de Circuito', ordem: 2 },
         { id: 3, url: 'assets/img/photo-1532187863486-abf9d39d66e8.jpg', titulo: 'Metais Nobres Separados', ordem: 3 }
+    ],
+    // ── NOVOS MÓDULOS ──
+    fornecedores: [
+        { id: 1, razao_social: "Davi Reciclagem de Metais LTDA", nome_fantasia: "davi", cnpj: "12.345.678/0001-99", contato: "Davi", telefone: "(11) 98765-4321", email: "davi@apextech.com", endereco: "Av. da Reciclagem, 1000", observacoes: "Fornecedor Parceiro LME" }
+    ],
+    materiais_catalogo: [
+        { id: 1, nome: "Sucata de chaparia de alumínio", unidade: "kg", categoria: "Alumínio", cor: "#7eb3d5", ncm: "7602.00.00", observacoes: "" },
+        { id: 2, nome: "Sucata de alumínio bloco limpo", unidade: "kg", categoria: "Alumínio", cor: "#5a92b5", ncm: "7602.00.00", observacoes: "" },
+        { id: 3, nome: "Sucata de alumínio roda", unidade: "kg", categoria: "Alumínio", cor: "#3b6d8c", ncm: "7602.00.00", observacoes: "" },
+        { id: 4, nome: "Sucata de radiador de alumínio e cobre", unidade: "kg", categoria: "Alumínio", cor: "#3b6d8a", ncm: "7602.00.00", observacoes: "" },
+        { id: 5, nome: "Sucata de cobre 1", unidade: "kg", categoria: "Cobre", cor: "#e07b39", ncm: "7404.00.00", observacoes: "" },
+        { id: 6, nome: "Sucata de cobre 2", unidade: "kg", categoria: "Cobre", cor: "#c25e20", ncm: "7404.00.00", observacoes: "" },
+        { id: 7, nome: "Sucata de cobre 4", unidade: "kg", categoria: "Cobre", cor: "#a3450c", ncm: "7404.00.00", observacoes: "" },
+        { id: 8, nome: "Sucata de fio de internet", unidade: "kg", categoria: "Cobre", cor: "#b0a0c0", ncm: "7404.00.00", observacoes: "" },
+        { id: 9, nome: "Sucata de fio de instalação", unidade: "kg", categoria: "Cobre", cor: "#8a7ba8", ncm: "7404.00.00", observacoes: "" },
+        { id: 10, nome: "Sucata de fio PP", unidade: "kg", categoria: "Cobre", cor: "#685b8c", ncm: "7404.00.00", observacoes: "" },
+        { id: 11, nome: "Sucata de tomada e conectores", unidade: "kg", categoria: "Tomada/Conectores", cor: "#d4b896", ncm: "7404.00.00", observacoes: "" },
+        { id: 12, nome: "Sucata de aço 201", unidade: "kg", categoria: "Aço", cor: "#a8c5a0", ncm: "7204.21.00", observacoes: "" },
+        { id: 13, nome: "Sucata de aço inox", unidade: "kg", categoria: "Aço", cor: "#7ea374", ncm: "7204.21.00", observacoes: "" },
+        { id: 14, nome: "Sucata de cavaco de aço inox", unidade: "kg", categoria: "Aço", cor: "#5a8050", ncm: "7204.21.00", observacoes: "" },
+        { id: 15, nome: "Plástico", unidade: "kg", categoria: "Outros", cor: "#cccccc", ncm: "3915.90.00", observacoes: "Resíduos e isolamentos" }
+    ],
+    tabela_precos: [
+        { id: 1, material_id: 1, preco_entregar: 11.30, preco_coletar: 11.00, venda_ref: 12.80, validade: "2026-12-31" },
+        { id: 2, material_id: 2, preco_entregar: 11.00, preco_coletar: 10.80, venda_ref: 12.30, validade: "2026-12-31" },
+        { id: 3, material_id: 3, preco_entregar: 16.00, preco_coletar: 15.50, venda_ref: 17.50, validade: "2026-12-31" },
+        { id: 4, material_id: 4, preco_entregar: 33.50, preco_coletar: 33.00, venda_ref: 37.00, validade: "2026-12-31" },
+        { id: 5, material_id: 5, preco_entregar: 68.00, preco_coletar: 67.50, venda_ref: 70.00, validade: "2026-12-31" },
+        { id: 8, material_id: 8, preco_entregar: 19.00, preco_coletar: 18.50, venda_ref: 28.10, validade: "2026-12-31" },
+        { id: 10, material_id: 10, preco_entregar: 15.00, preco_coletar: 14.50, venda_ref: 23.20, validade: "2026-12-31" },
+        { id: 11, material_id: 11, preco_entregar: 4.30, preco_coletar: 4.10, venda_ref: 10.29, validade: "2026-12-31" },
+        { id: 12, material_id: 12, preco_entregar: 0.80, preco_coletar: 0.70, venda_ref: 1.60, validade: "2026-12-31" },
+        { id: 13, material_id: 13, preco_entregar: 4.50, preco_coletar: 4.30, venda_ref: 5.70, validade: "2026-12-31" },
+        { id: 14, material_id: 14, preco_entregar: 4.00, preco_coletar: 3.80, venda_ref: 5.30, validade: "2026-12-31" }
+    ],
+    amostras: [
+        { id: 1, numero_amostra: "AM-001", data: "2026-07-15", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 5000, status: "Processado", observacoes: "Fio de Instalação do Fornecedor davi", foto_original: "assets/img/photo-1595246140625-573b715d11dc.jpg" },
+        { id: 2, numero_amostra: "AM-002", data: "2026-07-16", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 20000, status: "Liberado para Produção", observacoes: "Fio Misto", foto_original: "" },
+        { id: 3, numero_amostra: "AM-003", data: "2026-07-17", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 15000, status: "Aguardando Liberação PCP", observacoes: "Fio Terminais", foto_original: "" }
+    ],
+    componentes_amostra: [
+        { id: 1, amostra_id: 1, material_id: 5, peso: 3100, percentual: 62.0, observacoes: "Cobre 1" },
+        { id: 2, amostra_id: 1, material_id: 15, peso: 1900, percentual: 38.0, observacoes: "Isolamento plástico/perda" },
+        { id: 3, amostra_id: 2, material_id: 6, peso: 8200, percentual: 41.0, observacoes: "Cobre 2" },
+        { id: 4, amostra_id: 2, material_id: 15, peso: 11800, percentual: 59.0, observacoes: "Resíduos e plásticos" },
+        { id: 5, amostra_id: 3, material_id: 6, peso: 4650, percentual: 31.0, observacoes: "Cobre 2" },
+        { id: 6, amostra_id: 3, material_id: 15, peso: 10350, percentual: 69.0, observacoes: "Resíduos e plásticos" }
+    ],
+    lotes_compra: [
+        { id: 1, amostra_id: 1, fornecedor_id: 1, produto: "fio de instalação", peso_comprado: 5000, preco_compra: 40.50, percentual_rendimento: 62.0, material_id: 5, preco_venda_material: 71.00, comissao: 2.0, fidc: 2.3, mes: "2026-07" },
+        { id: 2, amostra_id: 2, fornecedor_id: 1, produto: "fio misto", peso_comprado: 20000, preco_compra: 18.00, percentual_rendimento: 41.0, material_id: 6, preco_venda_material: 65.50, comissao: 2.0, fidc: 2.3, mes: "2026-07" },
+        { id: 3, amostra_id: 3, fornecedor_id: 1, produto: "fio terminais", peso_comprado: 15000, preco_compra: 14.00, percentual_rendimento: 31.0, material_id: 6, preco_venda_material: 65.00, comissao: 2.0, fidc: 2.3, mes: "2026-07" }
+    ],
+    estoque: [
+        { material_id: 5, saldo: 3100 },
+        { material_id: 6, saldo: 8200 },
+        { material_id: 15, saldo: 13700 }
+    ],
+    movimentacoes_estoque: [
+        { id: 1, material_id: 5, tipo: "ENTRADA", quantidade: 3100, motivo: "Processamento da amostra AM-001", data: "2026-07-15" },
+        { id: 2, material_id: 15, tipo: "ENTRADA", quantidade: 1900, motivo: "Processamento da amostra AM-001", data: "2026-07-15" },
+        { id: 3, material_id: 6, tipo: "ENTRADA", quantidade: 8200, motivo: "Processamento da amostra AM-002", data: "2026-07-16" },
+        { id: 4, material_id: 15, tipo: "ENTRADA", quantidade: 11800, motivo: "Processamento da amostra AM-002", data: "2026-07-16" }
+    ],
+    usuarios: [
+        { id: 1, user: "admin", pass: "apex2026", perfil: "Administrador", nome: "Admin Apex" },
+        { id: 2, user: "lab", pass: "lab123", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
+        { id: 3, user: "compras", pass: "compras123", perfil: "Compras", nome: "Ana (Compras)" },
+        { id: 4, user: "producao", pass: "prod123", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
+        { id: 5, user: "financeiro", pass: "fin123", perfil: "Financeiro", nome: "Mariana (Fin)" },
+        { id: 6, user: "diretoria", pass: "dir123", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
     ]
 };
 
@@ -131,7 +202,172 @@ async function initDatabase() {
                 email     TEXT NOT NULL UNIQUE,
                 criado_em TIMESTAMP DEFAULT NOW()
             );
+
+            -- NOVAS TABELAS APEX
+            CREATE TABLE IF NOT EXISTS fornecedores (
+                id            SERIAL PRIMARY KEY,
+                razao_social  TEXT NOT NULL,
+                nome_fantasia TEXT NOT NULL,
+                cnpj          TEXT,
+                contato       TEXT,
+                telefone      TEXT,
+                email         TEXT,
+                endereco      TEXT,
+                observacoes   TEXT,
+                criado_em     TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS materiais_catalogo (
+                id          SERIAL PRIMARY KEY,
+                nome        TEXT NOT NULL,
+                unidade     TEXT DEFAULT 'kg',
+                categoria   TEXT NOT NULL,
+                cor         TEXT,
+                ncm         TEXT,
+                observacoes TEXT,
+                criado_em   TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS tabela_precos (
+                id              SERIAL PRIMARY KEY,
+                material_id     INTEGER NOT NULL,
+                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
+                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
+                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
+                validade        DATE NOT NULL,
+                criado_em       TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS amostras (
+                id             SERIAL PRIMARY KEY,
+                numero_amostra TEXT NOT NULL UNIQUE,
+                data           DATE NOT NULL,
+                fornecedor_id  INTEGER NOT NULL,
+                responsavel    TEXT NOT NULL,
+                peso_inicial   NUMERIC(12,3) NOT NULL,
+                status         TEXT DEFAULT 'Em Análise', -- 'Em Análise', 'Aguardando Precificação', 'Aguardando Liberação PCP', 'Liberado para Produção', 'Processado'
+                observacoes    TEXT,
+                foto_original  TEXT,
+                criado_em      TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS componentes_amostra (
+                id          SERIAL PRIMARY KEY,
+                amostra_id  INTEGER NOT NULL,
+                material_id INTEGER NOT NULL,
+                peso        NUMERIC(12,3) NOT NULL,
+                percentual  NUMERIC(5,2) NOT NULL,
+                observacoes TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS lotes_compra (
+                id                   SERIAL PRIMARY KEY,
+                amostra_id           INTEGER,
+                fornecedor_id        INTEGER NOT NULL,
+                produto              TEXT NOT NULL,
+                peso_comprado        NUMERIC(12,3) NOT NULL,
+                preco_compra         NUMERIC(10,2) NOT NULL,
+                percentual_rendimento NUMERIC(5,2) NOT NULL,
+                material_id          INTEGER NOT NULL,
+                preco_venda_material NUMERIC(10,2) NOT NULL,
+                comissao             NUMERIC(5,2) DEFAULT 2.0,
+                fidc                 NUMERIC(5,2) DEFAULT 2.3,
+                mes                  TEXT NOT NULL, -- YYYY-MM
+                criado_em            TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS estoque (
+                material_id INTEGER PRIMARY KEY,
+                saldo       NUMERIC(12,3) DEFAULT 0.000
+            );
+
+            CREATE TABLE IF NOT EXISTS movimentacoes_estoque (
+                id          SERIAL PRIMARY KEY,
+                material_id INTEGER NOT NULL,
+                tipo        TEXT NOT NULL, -- ENTRADA / SAIDA
+                quantidade  NUMERIC(12,3) NOT NULL,
+                motivo      TEXT,
+                data        TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id        SERIAL PRIMARY KEY,
+                "user"    TEXT NOT NULL UNIQUE,
+                pass      TEXT NOT NULL,
+                perfil    TEXT NOT NULL,
+                nome      TEXT NOT NULL,
+                criado_em TIMESTAMP DEFAULT NOW()
+            );
         `);
+
+        // Semeando dados padrão caso fornecedores esteja vazia
+        const { rowCount: fCount } = await client.query('SELECT 1 FROM fornecedores LIMIT 1');
+        if (fCount === 0) {
+            await client.query(`
+                INSERT INTO fornecedores (razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes)
+                VALUES ('Davi Reciclagem de Metais LTDA', 'davi', '12.345.678/0001-99', 'Davi', '(11) 98765-4321', 'davi@apextech.com', 'Av. da Reciclagem, 1000', 'Fornecedor Parceiro LME');
+            `);
+
+            // Seed materiais_catalogo
+            const mats = memStore.materiais_catalogo;
+            for (const m of mats) {
+                await client.query(`
+                    INSERT INTO materiais_catalogo (id, nome, unidade, categoria, cor, ncm, observacoes)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING;
+                `, [m.id, m.nome, m.unidade, m.categoria, m.cor, m.ncm, m.observacoes]);
+            }
+
+            // Seed tabela_precos
+            const precos = memStore.tabela_precos;
+            for (const p of precos) {
+                await client.query(`
+                    INSERT INTO tabela_precos (id, material_id, preco_entregar, preco_coletar, venda_ref, validade)
+                    VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING;
+                `, [p.id, p.material_id, p.preco_entregar, p.preco_coletar, p.venda_ref, p.validade]);
+            }
+
+            // Seed usuarios
+            const usrs = memStore.usuarios;
+            for (const u of usrs) {
+                await client.query(`
+                    INSERT INTO usuarios (id, "user", pass, perfil, nome)
+                    VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING;
+                `, [u.id, u.user, u.pass, u.perfil, u.nome]);
+            }
+            
+            // Seed amostras/lotes do Davi
+            await client.query(`
+                INSERT INTO amostras (id, numero_amostra, data, fornecedor_id, responsavel, peso_inicial, status, observacoes, foto_original) VALUES
+                (1, 'AM-001', '2026-07-15', 1, 'Eng. Roberto', 5000, 'Processado', 'Fio de Instalação do Fornecedor davi', 'assets/img/photo-1595246140625-573b715d11dc.jpg'),
+                (2, 'AM-002', '2026-07-16', 1, 'Eng. Roberto', 20000, 'Liberado para Produção', 'Fio Misto', ''),
+                (3, 'AM-003', '2026-07-17', 1, 'Eng. Roberto', 15000, 'Aguardando Liberação PCP', 'Fio Terminais', '');
+
+                INSERT INTO componentes_amostra (id, amostra_id, material_id, peso, percentual, observacoes) VALUES
+                (1, 1, 5, 3100, 62.0, 'Cobre 1'),
+                (2, 1, 15, 1900, 38.0, 'Isolamento plástico/perda'),
+                (3, 2, 6, 8200, 41.0, 'Cobre 2'),
+                (4, 2, 15, 11800, 59.0, 'Resíduos e plásticos'),
+                (5, 3, 6, 4650, 31.0, 'Cobre 2'),
+                (6, 3, 15, 10350, 69.0, 'Resíduos e plásticos');
+
+                INSERT INTO lotes_compra (id, amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes) VALUES
+                (1, 1, 1, 'fio de instalação', 5000, 40.50, 62.0, 5, 71.00, 2.0, 2.3, '2026-07'),
+                (2, 2, 1, 'fio misto', 20000, 18.00, 41.0, 6, 65.50, 2.0, 2.3, '2026-07'),
+                (3, 3, 1, 'fio terminais', 15000, 14.00, 31.0, 6, 65.00, 2.0, 2.3, '2026-07');
+
+                INSERT INTO estoque (material_id, saldo) VALUES
+                (5, 3100),
+                (6, 8200),
+                (15, 13700);
+
+                INSERT INTO movimentacoes_estoque (id, material_id, tipo, quantidade, motivo, data) VALUES
+                (1, 5, 'ENTRADA', 3100, 'Processamento da amostra AM-001', '2026-07-15'),
+                (2, 15, 'ENTRADA', 1900, 'Processamento da amostra AM-001', '2026-07-15'),
+                (3, 6, 'ENTRADA', 8200, 'Processamento da amostra AM-002', '2026-07-16'),
+                (4, 15, 'ENTRADA', 11800, 'Processamento da amostra AM-002', '2026-07-16');
+            `);
+            console.log('✅ Dados padrão APEX semeados no banco.');
+        }
 
         // Inserir soluções padrão se a tabela estiver vazia
         const { rowCount } = await client.query('SELECT 1 FROM solucoes LIMIT 1');
@@ -217,16 +453,27 @@ app.use((req, res, next) => {
 app.use(express.static(__dirname));
 
 // ─── API: Login ───────────────────────────────────────────────────────────────
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     try {
         const { user, pass } = req.body;
-        const adminUser = (process.env.ADMIN_USERNAME || 'admin').trim();
-        const adminPass = (process.env.ADMIN_PASSWORD || 'apex2026').trim();
+        
+        // Verificar no banco de dados primeiro
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM usuarios WHERE "user" = $1 AND pass = $2', [user, pass]);
+            if (result.rows.length > 0) {
+                const u = result.rows[0];
+                return res.json({ success: true, user: { user: u.user, perfil: u.perfil, nome: u.nome } });
+            }
+        } else {
+            const u = memStore.usuarios.find(x => x.user === user && x.pass === pass);
+            if (u) {
+                return res.json({ success: true, user: { user: u.user, perfil: u.perfil, nome: u.nome } });
+            }
+        }
 
-        console.log(`[LOGIN] Usuário recebido: "${user}", Senha recebida: "${pass}" | Esperado: "${adminUser}", "${adminPass}"`);
-
-        if ((user === adminUser && pass === adminPass) || (user === 'admin' && pass === 'apex2026')) {
-            res.json({ success: true });
+        // Fallback admin padrão
+        if ((user === 'admin' && pass === 'apex2026')) {
+            res.json({ success: true, user: { user: 'admin', perfil: 'Administrador', nome: 'Admin Apex' } });
         } else {
             res.status(401).json({ success: false, error: 'Usuário ou senha inválidos.' });
         }
@@ -235,6 +482,586 @@ app.post('/api/login', (req, res) => {
         res.status(500).json({ error: 'Erro interno no servidor.' });
     }
 });
+
+// ─── API: Usuários (CRUD) ──────────────────────────────────────────────────────
+app.get('/api/usuarios', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT id, "user", perfil, nome FROM usuarios ORDER BY id ASC');
+            return res.json(result.rows);
+        }
+        res.json(memStore.usuarios.map(({ id, user, perfil, nome }) => ({ id, user, perfil, nome })));
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar usuários.' });
+    }
+});
+
+app.post('/api/usuarios', async (req, res) => {
+    try {
+        const { user, pass, perfil, nome } = req.body;
+        if (!user || !pass || !perfil || !nome) return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+        
+        if (dbAvailable) {
+            const result = await pool.query(
+                'INSERT INTO usuarios ("user", pass, perfil, nome) VALUES ($1, $2, $3, $4) RETURNING id, "user", perfil, nome',
+                [user, pass, perfil, nome]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const newU = { id: nextId++, user, pass, perfil, nome };
+            memStore.usuarios.push(newU);
+            return res.json({ id: newU.id, user, perfil, nome });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao criar usuário: ' + err.message });
+    }
+});
+
+app.delete('/api/usuarios/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) {
+            await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+        } else {
+            memStore.usuarios = memStore.usuarios.filter(x => x.id !== id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao excluir usuário.' });
+    }
+});
+
+// ─── API: Fornecedores (CRUD) ─────────────────────────────────────────────────
+app.get('/api/fornecedores', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM fornecedores ORDER BY razao_social ASC');
+            return res.json(result.rows);
+        }
+        res.json(memStore.fornecedores);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar fornecedores.' });
+    }
+});
+
+app.post('/api/fornecedores', async (req, res) => {
+    try {
+        const { razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO fornecedores (razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+                [razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const newF = { id: nextId++, razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes };
+            memStore.fornecedores.push(newF);
+            return res.json(newF);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao criar fornecedor.' });
+    }
+});
+
+app.put('/api/fornecedores/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `UPDATE fornecedores SET razao_social=$1, nome_fantasia=$2, cnpj=$3, contato=$4, telefone=$5, email=$6, endereco=$7, observacoes=$8
+                 WHERE id=$9 RETURNING *`,
+                [razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes, id]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const idx = memStore.fornecedores.findIndex(x => x.id === id);
+            if (idx === -1) return res.status(404).json({ error: 'Fornecedor não encontrado.' });
+            memStore.fornecedores[idx] = { id, razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes };
+            return res.json(memStore.fornecedores[idx]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar fornecedor.' });
+    }
+});
+
+app.delete('/api/fornecedores/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) {
+            await pool.query('DELETE FROM fornecedores WHERE id=$1', [id]);
+        } else {
+            memStore.fornecedores = memStore.fornecedores.filter(x => x.id !== id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao deletar fornecedor.' });
+    }
+});
+
+// ─── API: Materiais de Catálogo (CRUD) ─────────────────────────────────────────
+app.get('/api/materiais-catalogo', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM materiais_catalogo ORDER BY categoria ASC, nome ASC');
+            return res.json(result.rows);
+        }
+        res.json(memStore.materiais_catalogo);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar materiais.' });
+    }
+});
+
+app.post('/api/materiais-catalogo', async (req, res) => {
+    try {
+        const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes)
+                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
+            memStore.materiais_catalogo.push(newM);
+            return res.json(newM);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao criar material.' });
+    }
+});
+
+app.put('/api/materiais-catalogo/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `UPDATE materiais_catalogo SET nome=$1, unidade=$2, categoria=$3, cor=$4, ncm=$5, observacoes=$6
+                 WHERE id=$7 RETURNING *`,
+                [nome, unidade, categoria, cor, ncm, observacoes, id]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const idx = memStore.materiais_catalogo.findIndex(x => x.id === id);
+            if (idx === -1) return res.status(404).json({ error: 'Material não encontrado.' });
+            memStore.materiais_catalogo[idx] = { id, nome, unidade, categoria, cor, ncm, observacoes };
+            return res.json(memStore.materiais_catalogo[idx]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar material.' });
+    }
+});
+
+app.delete('/api/materiais-catalogo/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) {
+            await pool.query('DELETE FROM materiais_catalogo WHERE id=$1', [id]);
+        } else {
+            memStore.materiais_catalogo = memStore.materiais_catalogo.filter(x => x.id !== id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao deletar material.' });
+    }
+});
+
+// ─── API: Tabela de Preços (CRUD) ─────────────────────────────────────────────
+app.get('/api/tabela-precos', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query(`
+                SELECT tp.*, mc.nome as material_nome, mc.categoria as material_categoria, mc.ncm as material_ncm
+                FROM tabela_precos tp
+                JOIN materiais_catalogo mc ON tp.material_id = mc.id
+                ORDER BY mc.categoria ASC, mc.nome ASC
+            `);
+            return res.json(result.rows);
+        }
+        const data = memStore.tabela_precos.map(p => {
+            const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
+            return {
+                ...p,
+                material_nome: mc ? mc.nome : '',
+                material_categoria: mc ? mc.categoria : '',
+                material_ncm: mc ? mc.ncm : ''
+            };
+        });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar tabela de preços.' });
+    }
+});
+
+app.post('/api/tabela-precos', async (req, res) => {
+    try {
+        const { material_id, preco_entregar, preco_coletar, venda_ref, validade } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade)
+                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+                [material_id, preco_entregar, preco_coletar, venda_ref, validade]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const newP = { id: nextId++, material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar), preco_coletar: parseFloat(preco_coletar), venda_ref: parseFloat(venda_ref), validade };
+            memStore.tabela_precos.push(newP);
+            return res.json(newP);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao salvar preço.' });
+    }
+});
+
+app.put('/api/tabela-precos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { preco_entregar, preco_coletar, venda_ref, validade } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `UPDATE tabela_precos SET preco_entregar=$1, preco_coletar=$2, venda_ref=$3, validade=$4
+                 WHERE id=$5 RETURNING *`,
+                [preco_entregar, preco_coletar, venda_ref, validade, id]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const idx = memStore.tabela_precos.findIndex(x => x.id === id);
+            if (idx === -1) return res.status(404).json({ error: 'Preço não encontrado.' });
+            memStore.tabela_precos[idx].preco_entregar = parseFloat(preco_entregar);
+            memStore.tabela_precos[idx].preco_coletar = parseFloat(preco_coletar);
+            memStore.tabela_precos[idx].venda_ref = parseFloat(venda_ref);
+            memStore.tabela_precos[idx].validade = validade;
+            return res.json(memStore.tabela_precos[idx]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar preço.' });
+    }
+});
+
+app.delete('/api/tabela-precos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) {
+            await pool.query('DELETE FROM tabela_precos WHERE id=$1', [id]);
+        } else {
+            memStore.tabela_precos = memStore.tabela_precos.filter(x => x.id !== id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao deletar preço.' });
+    }
+});
+
+// ─── API: Amostras & Análise (CRUD) ───────────────────────────────────────────
+app.get('/api/amostras', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query(`
+                SELECT a.*, f.nome_fantasia as fornecedor_nome
+                FROM amostras a
+                JOIN fornecedores f ON a.fornecedor_id = f.id
+                ORDER BY a.data DESC, a.id DESC
+            `);
+            return res.json(result.rows);
+        }
+        const data = memStore.amostras.map(a => {
+            const f = memStore.fornecedores.find(x => x.id === a.fornecedor_id);
+            return {
+                ...a,
+                fornecedor_nome: f ? f.nome_fantasia : ''
+            };
+        });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar amostras.' });
+    }
+});
+
+app.get('/api/amostras/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        let amostra;
+        let componentes;
+
+        if (dbAvailable) {
+            const aRes = await pool.query('SELECT a.*, f.nome_fantasia as fornecedor_nome FROM amostras a JOIN fornecedores f ON a.fornecedor_id = f.id WHERE a.id=$1', [id]);
+            if (aRes.rows.length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            amostra = aRes.rows[0];
+
+            const cRes = await pool.query(`
+                SELECT ca.*, mc.nome as material_nome, mc.categoria as material_categoria
+                FROM componentes_amostra ca
+                JOIN materiais_catalogo mc ON ca.material_id = mc.id
+                WHERE ca.amostra_id=$1
+            `, [id]);
+            componentes = cRes.rows;
+        } else {
+            amostra = memStore.amostras.find(x => x.id === id);
+            if (!amostra) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            const f = memStore.fornecedores.find(x => x.id === amostra.fornecedor_id);
+            amostra.fornecedor_nome = f ? f.nome_fantasia : '';
+
+            componentes = memStore.componentes_amostra.filter(x => x.amostra_id === id).map(ca => {
+                const mc = memStore.materiais_catalogo.find(x => x.id === ca.material_id);
+                return {
+                    ...ca,
+                    material_nome: mc ? mc.nome : '',
+                    material_categoria: mc ? mc.categoria : ''
+                };
+            });
+        }
+        res.json({ amostra, componentes });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao carregar detalhes da amostra.' });
+    }
+});
+
+app.post('/api/amostras', async (req, res) => {
+    try {
+        const { numero_amostra, data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO amostras (numero_amostra, data, fornecedor_id, responsavel, peso_inicial, status, observacoes, foto_original)
+                 VALUES ($1, $2, $3, $4, $5, 'Em Análise', $6, $7) RETURNING *`,
+                [numero_amostra, data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const newA = { id: nextId++, numero_amostra, data, fornecedor_id: parseInt(fornecedor_id), responsavel, peso_inicial: parseFloat(peso_inicial), status: 'Em Análise', observacoes, foto_original };
+            memStore.amostras.push(newA);
+            return res.json(newA);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao criar amostra: ' + err.message });
+    }
+});
+
+app.post('/api/amostras/:id/componentes', async (req, res) => {
+    try {
+        const amostra_id = parseInt(req.params.id);
+        const { componentes } = req.body; // array of { material_id, peso, percentual, observacoes }
+
+        if (dbAvailable) {
+            await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=$1', [amostra_id]);
+            for (const c of componentes) {
+                await pool.query(
+                    `INSERT INTO componentes_amostra (amostra_id, material_id, peso, percentual, observacoes)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    [amostra_id, c.material_id, c.peso, c.percentual, c.observacoes]
+                );
+            }
+            // Atualiza status se estava em análise
+            await pool.query("UPDATE amostras SET status = 'Aguardando Precificação' WHERE id = $1 AND status = 'Em Análise'", [amostra_id]);
+        } else {
+            memStore.componentes_amostra = memStore.componentes_amostra.filter(x => x.amostra_id !== amostra_id);
+            for (const c of componentes) {
+                memStore.componentes_amostra.push({
+                    id: nextId++,
+                    amostra_id,
+                    material_id: parseInt(c.material_id),
+                    peso: parseFloat(c.peso),
+                    percentual: parseFloat(c.percentual),
+                    observacoes: c.observacoes
+                });
+            }
+            const a = memStore.amostras.find(x => x.id === amostra_id);
+            if (a && a.status === 'Em Análise') {
+                a.status = 'Aguardando Precificação';
+            }
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao salvar componentes.' });
+    }
+});
+
+// Liberação e Processamento PCP
+app.patch('/api/amostras/:id/status', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { status } = req.body;
+
+        if (dbAvailable) {
+            await pool.query('UPDATE amostras SET status=$1 WHERE id=$2', [status, id]);
+            
+            // Se for "Processado", efetua a movimentação de estoque
+            if (status === 'Processado') {
+                const cRes = await pool.query('SELECT * FROM componentes_amostra WHERE amostra_id=$1', [id]);
+                const compList = cRes.rows;
+                const aRes = await pool.query('SELECT * FROM amostras WHERE id=$1', [id]);
+                const amostra = aRes.rows[0];
+
+                for (const c of compList) {
+                    // Update estoque
+                    await pool.query(
+                        `INSERT INTO estoque (material_id, saldo) VALUES ($1, $2)
+                         ON CONFLICT (material_id) DO UPDATE SET saldo = estoque.saldo + EXCLUDED.saldo`,
+                        [c.material_id, c.peso]
+                    );
+                    // Log movimentação
+                    await pool.query(
+                        `INSERT INTO movimentacoes_estoque (material_id, tipo, quantidade, motivo)
+                         VALUES ($1, 'ENTRADA', $2, $3)`,
+                        [c.material_id, c.peso, `Processamento da amostra ${amostra.numero_amostra}`]
+                    );
+                }
+            }
+        } else {
+            const a = memStore.amostras.find(x => x.id === id);
+            if (!a) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            a.status = status;
+
+            if (status === 'Processado') {
+                const compList = memStore.componentes_amostra.filter(x => x.amostra_id === id);
+                for (const c of compList) {
+                    const est = memStore.estoque.find(x => x.material_id === c.material_id);
+                    if (est) {
+                        est.saldo += c.peso;
+                    } else {
+                        memStore.estoque.push({ material_id: c.material_id, saldo: c.peso });
+                    }
+                    memStore.movimentacoes_estoque.push({
+                        id: nextId++,
+                        material_id: c.material_id,
+                        tipo: "ENTRADA",
+                        quantidade: c.peso,
+                        motivo: `Processamento da amostra ${a.numero_amostra}`,
+                        data: new Date().toISOString()
+                    });
+                }
+            }
+        }
+        res.json({ success: true, status });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar status e estoque.' });
+    }
+});
+
+// ─── API: Planejamento Mensal / Lotes Compra (CRUD + Motor Financeiro) ─────────
+app.get('/api/planejamento-compras', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query(`
+                SELECT lc.*, f.nome_fantasia as fornecedor_nome, mc.nome as material_nome, a.numero_amostra
+                FROM lotes_compra lc
+                JOIN fornecedores f ON lc.fornecedor_id = f.id
+                JOIN materiais_catalogo mc ON lc.material_id = mc.id
+                LEFT JOIN amostras a ON lc.amostra_id = a.id
+                ORDER BY lc.id DESC
+            `);
+            return res.json(result.rows);
+        }
+        
+        const data = memStore.lotes_compra.map(lc => {
+            const f = memStore.fornecedores.find(x => x.id === lc.fornecedor_id);
+            const mc = memStore.materiais_catalogo.find(x => x.id === lc.material_id);
+            const a = memStore.amostras.find(x => x.id === lc.amostra_id);
+            return {
+                ...lc,
+                fornecedor_nome: f ? f.nome_fantasia : '',
+                material_nome: mc ? mc.nome : '',
+                numero_amostra: a ? a.numero_amostra : ''
+            };
+        });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao carregar planejamento.' });
+    }
+});
+
+app.post('/api/planejamento-compras', async (req, res) => {
+    try {
+        const { amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes } = req.body;
+        
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO lotes_compra (amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+                [amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao || 2.0, fidc || 2.3, mes]
+            );
+            
+            if (amostra_id) {
+                // Se vinculou a uma amostra, avança o status dela
+                await pool.query("UPDATE amostras SET status = 'Aguardando Liberação PCP' WHERE id = $1 AND status = 'Aguardando Precificação'", [amostra_id]);
+            }
+            return res.json(result.rows[0]);
+        } else {
+            const newL = {
+                id: nextId++,
+                amostra_id: amostra_id ? parseInt(amostra_id) : null,
+                fornecedor_id: parseInt(fornecedor_id),
+                produto,
+                peso_comprado: parseFloat(peso_comprado),
+                preco_compra: parseFloat(preco_compra),
+                percentual_rendimento: parseFloat(percentual_rendimento),
+                material_id: parseInt(material_id),
+                preco_venda_material: parseFloat(preco_venda_material),
+                comissao: parseFloat(comissao || 2.0),
+                fidc: parseFloat(fidc || 2.3),
+                mes
+            };
+            memStore.lotes_compra.push(newL);
+
+            if (amostra_id) {
+                const a = memStore.amostras.find(x => x.id === parseInt(amostra_id));
+                if (a && a.status === 'Aguardando Precificação') {
+                    a.status = 'Aguardando Liberação PCP';
+                }
+            }
+            return res.json(newL);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao salvar planejamento.' });
+    }
+});
+
+// ─── API: Estoque (GET) ───────────────────────────────────────────────────────
+app.get('/api/estoque', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const eRes = await pool.query(`
+                SELECT e.*, mc.nome as material_nome, mc.categoria as material_categoria, mc.unidade as material_unidade
+                FROM estoque e
+                JOIN materiais_catalogo mc ON e.material_id = mc.id
+                ORDER BY mc.categoria ASC, mc.nome ASC
+            `);
+            const mRes = await pool.query(`
+                SELECT m.*, mc.nome as material_nome
+                FROM movimentacoes_estoque m
+                JOIN materiais_catalogo mc ON m.material_id = mc.id
+                ORDER BY m.data DESC LIMIT 100
+            `);
+            return res.json({ estoque: eRes.rows, movimentacoes: mRes.rows });
+        }
+
+        const estoque = memStore.estoque.map(e => {
+            const mc = memStore.materiais_catalogo.find(x => x.id === e.material_id);
+            return {
+                ...e,
+                material_nome: mc ? mc.nome : '',
+                material_categoria: mc ? mc.categoria : '',
+                material_unidade: mc ? mc.unidade : 'kg'
+            };
+        });
+
+        const movimentacoes = memStore.movimentacoes_estoque.map(m => {
+            const mc = memStore.materiais_catalogo.find(x => x.id === m.material_id);
+            return {
+                ...m,
+                material_nome: mc ? mc.nome : ''
+            };
+        }).sort((a,b) => new Date(b.data) - new Date(a.data));
+
+        res.json({ estoque, movimentacoes });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao carregar estoque.' });
+    }
+});
+
+// ─── API: Login ───────────────────────────────────────────────────────────────
 
 // ─── API: Groq Chat ───────────────────────────────────────────────────────────
 app.post('/api/chat', async (req, res) => {

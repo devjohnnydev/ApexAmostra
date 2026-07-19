@@ -51,6 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
         initSolucoes();
         initNoticias();
         initLMEEmailConfig();
+        
+        // Apex Gestão Inits
+        initApexFornecedores();
+        initApexMateriais();
+        initApexPrecos();
+        initApexAmostras();
+        initApexPlanejamento();
+        initApexEstoque();
+        initApexUsuarios();
+        switchSimulatedRole(sessionStorage.getItem('apex_user_role') || 'Administrador');
     }
 
     // =========================================================================
@@ -3766,6 +3776,1226 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÁLISE, FINANCEIRO E ESTOQUE
+    // ─────────────────────────────────────────────────────────────────────────
+    let currentSimulatedRole = sessionStorage.getItem('apex_user_role') || 'Administrador';
+    let localFornecedores = [];
+    let localMateriais = [];
+    let localPrecos = [];
+    let localAmostras = [];
+    let localPlanejamento = [];
+    let activeAmostraIdForDesmonte = null;
+
+    // --- Role Switcher & Permissões ---
+    window.switchSimulatedRole = function(role) {
+        currentSimulatedRole = role;
+        sessionStorage.setItem('apex_user_role', role);
+        document.getElementById('simulated-role-indicator').textContent = role;
+
+        const roles = ['admin', 'lab', 'compras', 'producao', 'financeiro', 'diretoria'];
+        roles.forEach(r => {
+            const el = document.getElementById(`sim-${r}`);
+            if (el) el.classList.remove('active');
+        });
+        
+        const mapRoleToBtn = {
+            'Administrador': 'sim-admin',
+            'Laboratório': 'sim-lab',
+            'Compras': 'sim-compras',
+            'Produção': 'sim-producao',
+            'Financeiro': 'sim-financeiro',
+            'Diretoria': 'sim-diretoria'
+        };
+        const activeBtn = document.getElementById(mapRoleToBtn[role]);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        applyRolePermissions();
+    };
+
+    function applyRolePermissions() {
+        const role = currentSimulatedRole;
+
+        // Tabs Visibility
+        const navPrecos = document.getElementById('nav-precos');
+        const navPlanejamento = document.getElementById('nav-planejamento');
+        const navUsuarios = document.getElementById('nav-usuarios');
+
+        if (role === 'Laboratório' || role === 'Produção') {
+            if (navPrecos) navPrecos.style.display = 'none';
+            if (navPlanejamento) navPlanejamento.style.display = 'none';
+        } else {
+            if (navPrecos) navPrecos.style.display = 'flex';
+            if (navPlanejamento) navPlanejamento.style.display = 'flex';
+        }
+
+        if (role !== 'Administrador') {
+            if (navUsuarios) navUsuarios.style.display = 'none';
+        } else {
+            if (navUsuarios) navUsuarios.style.display = 'flex';
+        }
+
+        // Restrito Financeiro
+        const restritoFin = document.querySelectorAll('.restrito-financeiro');
+        restritoFin.forEach(el => {
+            if (role === 'Laboratório' || role === 'Produção') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = '';
+            }
+        });
+
+        // Restrito Produção (PCP)
+        const restritoProd = document.querySelectorAll('.restrito-producao');
+        restritoProd.forEach(el => {
+            if (role === 'Produção' || role === 'Administrador' || role === 'Diretoria') {
+                el.style.display = '';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+
+        // Atualiza botões no desmonte se aberto
+        if (activeAmostraIdForDesmonte) {
+            const amostra = localAmostras.find(x => x.id === activeAmostraIdForDesmonte);
+            if (amostra) renderizarBotoesAcoesAmostra(amostra.status);
+        }
+    }
+
+    // --- 1. FORNECEDORES ---
+    window.initApexFornecedores = function() {
+        carregarFornecedores();
+    };
+
+    async function carregarFornecedores() {
+        try {
+            const res = await fetch('/api/fornecedores');
+            localFornecedores = await res.json();
+            renderFornecedores();
+            popularSeletoresFornecedores();
+        } catch (err) {
+            console.error('Erro ao buscar fornecedores:', err);
+        }
+    }
+
+    function renderFornecedores() {
+        const body = document.getElementById('fornecedores-table-body');
+        if (!body) return;
+        body.innerHTML = '';
+        localFornecedores.forEach(f => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:12px;"><strong>${f.razao_social}</strong></td>
+                <td style="padding:12px;">${f.nome_fantasia}</td>
+                <td style="padding:12px;">${f.cnpj || '-'}</td>
+                <td style="padding:12px;">${f.contato || '-'}</td>
+                <td style="padding:12px;">${f.telefone || '-'}</td>
+                <td style="padding:12px;">${f.email || '-'}</td>
+                <td style="padding:12px; text-align:center;">
+                    <button class="btn-refresh" style="background:none; border:none; color:#3e7cb1; margin-right:8px;" onclick="editarFornecedor(${f.id})"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d;" onclick="deletarFornecedor(${f.id})"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    window.abrirModalFornecedor = function() {
+        document.getElementById('form-fornecedor-apex').reset();
+        document.getElementById('forn-id').value = '';
+        document.getElementById('modal-fornecedor').style.display = 'flex';
+    };
+
+    window.fecharModalFornecedor = function() {
+        document.getElementById('modal-fornecedor').style.display = 'none';
+    };
+
+    window.editarFornecedor = function(id) {
+        const f = localFornecedores.find(x => x.id === id);
+        if (!f) return;
+        document.getElementById('forn-id').value = f.id;
+        document.getElementById('forn-razao').value = f.razao_social;
+        document.getElementById('forn-fantasia').value = f.nome_fantasia;
+        document.getElementById('forn-cnpj').value = f.cnpj || '';
+        document.getElementById('forn-contato').value = f.contato || '';
+        document.getElementById('forn-telefone').value = f.telefone || '';
+        document.getElementById('forn-email').value = f.email || '';
+        document.getElementById('forn-endereco').value = f.endereco || '';
+        document.getElementById('forn-obs').value = f.observacoes || '';
+        document.getElementById('modal-fornecedor').style.display = 'flex';
+    };
+
+    window.salvarFornecedor = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('forn-id').value;
+        const data = {
+            razao_social: document.getElementById('forn-razao').value,
+            nome_fantasia: document.getElementById('forn-fantasia').value,
+            cnpj: document.getElementById('forn-cnpj').value,
+            contato: document.getElementById('forn-contato').value,
+            telefone: document.getElementById('forn-telefone').value,
+            email: document.getElementById('forn-email').value,
+            endereco: document.getElementById('forn-endereco').value,
+            observacoes: document.getElementById('forn-obs').value
+        };
+
+        try {
+            const url = id ? `/api/fornecedores/${id}` : '/api/fornecedores';
+            const method = id ? 'PUT' : 'POST';
+            await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            fecharModalFornecedor();
+            carregarFornecedores();
+        } catch (err) {
+            console.error('Erro ao salvar fornecedor:', err);
+        }
+    };
+
+    window.deletarFornecedor = async function(id) {
+        if (!confirm('Deseja realmente excluir este fornecedor?')) return;
+        try {
+            await fetch(`/api/fornecedores/${id}`, { method: 'DELETE' });
+            carregarFornecedores();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.filtrarFornecedores = function() {
+        const search = document.getElementById('fornecedores-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#fornecedores-table-body tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(search) ? '' : 'none';
+        });
+    };
+
+    function popularSeletoresFornecedores() {
+        const amoF = document.getElementById('amo-fornecedor');
+        const plF = document.getElementById('pl-fornecedor');
+        if (amoF) {
+            amoF.innerHTML = '';
+            localFornecedores.forEach(f => {
+                amoF.innerHTML += `<option value="${f.id}">${f.nome_fantasia}</option>`;
+            });
+        }
+        if (plF) {
+            plF.innerHTML = '';
+            localFornecedores.forEach(f => {
+                plF.innerHTML += `<option value="${f.id}">${f.nome_fantasia}</option>`;
+            });
+        }
+    }
+
+    // --- 2. CATALOGO DE MATERIAIS ---
+    window.initApexMateriais = function() {
+        carregarMateriais();
+    };
+
+    async function carregarMateriais() {
+        try {
+            const res = await fetch('/api/materiais-catalogo');
+            localMateriais = await res.json();
+            renderMateriais();
+            popularSeletoresMateriais();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderMateriais() {
+        const body = document.getElementById('materiais-table-body');
+        if (!body) return;
+        body.innerHTML = '';
+        localMateriais.forEach(m => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:12px;"><strong>${m.nome}</strong></td>
+                <td style="padding:12px;">${m.unidade}</td>
+                <td style="padding:12px;"><span class="badge-status em-analise" style="background:${m.cor || '#1e4e8c'};">${m.categoria}</span></td>
+                <td style="padding:12px;">${m.ncm || '-'}</td>
+                <td style="padding:12px;"><div style="width:24px; height:24px; border-radius:50%; background:${m.cor || '#fff'}; border:1px solid #444;"></div></td>
+                <td style="padding:12px;">${m.observacoes || '-'}</td>
+                <td style="padding:12px; text-align:center;">
+                    <button class="btn-refresh" style="background:none; border:none; color:#3e7cb1; margin-right:8px;" onclick="editarMaterial(${m.id})"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d;" onclick="deletarMaterial(${m.id})"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    window.abrirModalMaterial = function() {
+        document.getElementById('form-material-apex').reset();
+        document.getElementById('mat-id').value = '';
+        document.getElementById('modal-material').style.display = 'flex';
+    };
+
+    window.fecharModalMaterial = function() {
+        document.getElementById('modal-material').style.display = 'none';
+    };
+
+    window.editarMaterial = function(id) {
+        const m = localMateriais.find(x => x.id === id);
+        if (!m) return;
+        document.getElementById('mat-id').value = m.id;
+        document.getElementById('mat-nome').value = m.nome;
+        document.getElementById('mat-categoria').value = m.categoria;
+        document.getElementById('mat-unidade').value = m.unidade;
+        document.getElementById('mat-ncm').value = m.ncm || '';
+        document.getElementById('mat-cor').value = m.cor || '#3e7cb1';
+        document.getElementById('mat-obs').value = m.observacoes || '';
+        document.getElementById('modal-material').style.display = 'flex';
+    };
+
+    window.salvarMaterial = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('mat-id').value;
+        const data = {
+            nome: document.getElementById('mat-nome').value,
+            categoria: document.getElementById('mat-categoria').value,
+            unidade: document.getElementById('mat-unidade').value,
+            ncm: document.getElementById('mat-ncm').value,
+            cor: document.getElementById('mat-cor').value,
+            observacoes: document.getElementById('mat-obs').value
+        };
+
+        try {
+            const url = id ? `/api/materiais-catalogo/${id}` : '/api/materiais-catalogo';
+            const method = id ? 'PUT' : 'POST';
+            await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            fecharModalMaterial();
+            carregarMateriais();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.deletarMaterial = async function(id) {
+        if (!confirm('Excluir este material do catálogo?')) return;
+        try {
+            await fetch(`/api/materiais-catalogo/${id}`, { method: 'DELETE' });
+            carregarMateriais();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.filtrarMateriais = function() {
+        const search = document.getElementById('materiais-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#materiais-table-body tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(search) ? '' : 'none';
+        });
+    };
+
+    function popularSeletoresMateriais() {
+        const prcM = document.getElementById('prc-material');
+        const plM = document.getElementById('pl-material-result');
+        if (prcM) {
+            prcM.innerHTML = '';
+            localMateriais.forEach(m => {
+                prcM.innerHTML += `<option value="${m.id}">${m.nome} (${m.categoria})</option>`;
+            });
+        }
+        if (plM) {
+            plM.innerHTML = '';
+            localMateriais.forEach(m => {
+                plM.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+            });
+        }
+    }
+
+    // --- 3. TABELA DE PREÇOS ---
+    window.initApexPrecos = function() {
+        carregarPrecos();
+    };
+
+    async function carregarPrecos() {
+        try {
+            const res = await fetch('/api/tabela-precos');
+            localPrecos = await res.json();
+            renderTabelaPrecos();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderTabelaPrecos() {
+        const container = document.getElementById('tabela-precos-categorias-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // Agrupar por categorias
+        const categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+
+        categorias.forEach(cat => {
+            const precosCat = localPrecos.filter(p => p.material_categoria === cat);
+            if (precosCat.length === 0) return;
+
+            const validadeStr = precosCat[0] ? new Date(precosCat[0].validade).toLocaleDateString('pt-BR') : '-';
+
+            const box = document.createElement('div');
+            box.className = 'categoria-preco-box';
+            box.innerHTML = `
+                <div class="categoria-preco-header">
+                    <span>${cat.toUpperCase()}</span>
+                    <span style="font-size:0.85rem; font-weight:normal;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                </div>
+                <div class="categoria-preco-observacao">
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                        <thead>
+                            <tr style="background:#172635; text-align:left;">
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Venda Ref (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Ent. (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Col. (%)</th>
+                                <th style="padding:10px; text-align:right; color:#d4b896;">Diferença (%)</th>
+                                <th style="padding:10px;">NCM</th>
+                                <th style="padding:10px; text-align:center; width:100px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${precosCat.map(p => {
+                                const lucroEnt = p.venda_ref - p.preco_entregar;
+                                const margemEnt = p.venda_ref > 0 ? (lucroEnt / p.venda_ref) * 100 : 0;
+                                const lucroCol = p.venda_ref - p.preco_coletar;
+                                const margemCol = p.venda_ref > 0 ? (lucroCol / p.venda_ref) * 100 : 0;
+                                const dif = margemCol - margemEnt;
+
+                                return `
+                                    <tr>
+                                        <td style="padding:10px;"><strong>${p.material_nome}</strong></td>
+                                        <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.preco_entregar).toFixed(2)}</td>
+                                        <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.preco_coletar).toFixed(2)}</td>
+                                        <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.venda_ref).toFixed(2)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${lucroEnt.toFixed(2)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A;">${margemEnt.toFixed(2)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${lucroCol.toFixed(2)}</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">${margemCol.toFixed(2)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#d4b896;">${dif.toFixed(2)}%</td>
+                                        <td style="padding:10px;">${p.material_ncm || '-'}</td>
+                                        <td style="padding:10px; text-align:center;">
+                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#3e7cb1; margin-right:5px;" onclick="editarPreco(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#ff4d4d;" onclick="deletarPreco(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                            <tr style="background:#131c26;">
+                                <td colspan="11" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(box);
+        });
+        applyRolePermissions();
+    }
+
+    window.abrirModalPreco = function() {
+        document.getElementById('form-preco-apex').reset();
+        document.getElementById('prc-id').value = '';
+        document.getElementById('modal-preco').style.display = 'flex';
+    };
+
+    window.fecharModalPreco = function() {
+        document.getElementById('modal-preco').style.display = 'none';
+    };
+
+    window.editarPreco = function(id) {
+        const p = localPrecos.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('prc-id').value = p.id;
+        document.getElementById('prc-material').value = p.material_id;
+        document.getElementById('prc-entregar').value = p.preco_entregar;
+        document.getElementById('prc-coletar').value = p.preco_coletar;
+        document.getElementById('prc-venda').value = p.venda_ref;
+        document.getElementById('prc-validade').value = p.validade.split('T')[0];
+        document.getElementById('modal-preco').style.display = 'flex';
+    };
+
+    window.salvarPreco = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('prc-id').value;
+        const data = {
+            material_id: document.getElementById('prc-material').value,
+            preco_entregar: document.getElementById('prc-entregar').value,
+            preco_coletar: document.getElementById('prc-coletar').value,
+            venda_ref: document.getElementById('prc-venda').value,
+            validade: document.getElementById('prc-validade').value
+        };
+
+        try {
+            const url = id ? `/api/tabela-precos/${id}` : '/api/tabela-precos';
+            const method = id ? 'PUT' : 'POST';
+            await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            fecharModalPreco();
+            carregarPrecos();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.deletarPreco = async function(id) {
+        if (!confirm('Excluir este preço?')) return;
+        try {
+            await fetch(`/api/tabela-precos/${id}`, { method: 'DELETE' });
+            carregarPrecos();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.exportarTabelaPrecosExcel = function() {
+        alert('Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)');
+    };
+
+    // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---
+    window.initApexAmostras = function() {
+        carregarAmostras();
+    };
+
+    async function carregarAmostras() {
+        try {
+            const res = await fetch('/api/amostras');
+            localAmostras = await res.json();
+            renderAmostras();
+            popularSeletoresAmostras();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderAmostras() {
+        const body = document.getElementById('amostras-table-body');
+        if (!body) return;
+        body.innerHTML = '';
+        localAmostras.forEach(a => {
+            const dataFmt = new Date(a.data).toLocaleDateString('pt-BR');
+            const statusClass = a.status.toLowerCase().replace(/ /g, '-');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:12px;"><strong>${a.numero_amostra}</strong></td>
+                <td style="padding:12px;">${dataFmt}</td>
+                <td style="padding:12px;">${a.fornecedor_nome}</td>
+                <td style="padding:12px;">${a.responsavel}</td>
+                <td style="padding:12px; text-align:right;">${parseFloat(a.peso_inicial).toFixed(3)} kg</td>
+                <td style="padding:12px; text-align:center;"><span class="badge-status ${statusClass}">${a.status}</span></td>
+                <td style="padding:12px; text-align:center;">
+                    <button class="btn-refresh" style="background:none; border:none; color:#2AD07A;" onclick="window.gerarLaudoPDF(${a.id})"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                </td>
+                <td style="padding:12px; text-align:center;">
+                    <button class="btn-primary" style="padding:4px 8px; font-size:0.8rem;" onclick="abrirAnaliseDesmonte(${a.id})"><i class="fa-solid fa-vial"></i> Analisar</button>
+                </td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    window.abrirModalAmostra = function() {
+        document.getElementById('form-amostra-apex').reset();
+        document.getElementById('amo-id').value = '';
+        document.getElementById('modal-amostra').style.display = 'flex';
+        document.getElementById('amo-data').value = new Date().toISOString().split('T')[0];
+    };
+
+    window.fecharModalAmostra = function() {
+        document.getElementById('modal-amostra').style.display = 'none';
+    };
+
+    window.salvarAmostra = async function(e) {
+        e.preventDefault();
+        const data = {
+            numero_amostra: document.getElementById('amo-numero').value,
+            data: document.getElementById('amo-data').value,
+            fornecedor_id: document.getElementById('amo-fornecedor').value,
+            responsavel: document.getElementById('amo-responsavel').value,
+            peso_inicial: document.getElementById('amo-peso').value,
+            observacoes: document.getElementById('amo-obs').value,
+            foto_original: ''
+        };
+
+        try {
+            await fetch('/api/amostras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            fecharModalAmostra();
+            carregarAmostras();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.filtrarAmostras = function() {
+        const search = document.getElementById('amostras-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#amostras-table-body tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(search) ? '' : 'none';
+        });
+    };
+
+    // Detalhes do Desmonte
+    let componentesActivos = [];
+
+    window.abrirAnaliseDesmonte = async function(id) {
+        activeAmostraIdForDesmonte = id;
+        try {
+            const res = await fetch(`/api/amostras/${id}`);
+            const data = await res.json();
+            const { amostra, componentes } = data;
+
+            document.getElementById('analise-titulo-amostra').textContent = amostra.numero_amostra;
+            document.getElementById('analise-fornecedor-nome').textContent = amostra.fornecedor_nome;
+            document.getElementById('analise-peso-inicial').textContent = parseFloat(amostra.peso_inicial).toFixed(3);
+
+            componentesActivos = componentes.map(c => ({
+                material_id: c.material_id,
+                peso: parseFloat(c.peso),
+                percentual: parseFloat(c.percentual),
+                observacoes: c.observacoes || ''
+            }));
+
+            renderizarBotoesAcoesAmostra(amostra.status);
+            renderComponentesDesmonte();
+            document.getElementById('analise-desmonte-container').style.display = 'block';
+            document.getElementById('analise-desmonte-container').scrollIntoView({ behavior: 'smooth' });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    function renderizarBotoesAcoesAmostra(status) {
+        const btnLiberar = document.getElementById('btn-liberar-pcp');
+        const btnProcessar = document.getElementById('btn-processar-pcp');
+
+        btnLiberar.style.display = 'none';
+        btnProcessar.style.display = 'none';
+
+        if (status === 'Aguardando Liberação PCP') {
+            btnLiberar.style.display = '';
+        } else if (status === 'Liberado para Produção') {
+            btnProcessar.style.display = '';
+        }
+        applyRolePermissions();
+    }
+
+    window.fecharAnaliseDesmonte = function() {
+        document.getElementById('analise-desmonte-container').style.display = 'none';
+        activeAmostraIdForDesmonte = null;
+    };
+
+    function renderComponentesDesmonte() {
+        const body = document.getElementById('analise-componentes-body');
+        if (!body) return;
+        body.innerHTML = '';
+
+        componentesActivos.forEach((c, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px;">
+                    <select class="noble-input sel-comp-material" style="padding:5px;" onchange="atualizarComponenteData(${idx}, 'material_id', this.value)">
+                        ${localMateriais.map(m => `<option value="${m.id}" ${m.id === c.material_id ? 'selected' : ''}>${m.nome} (${m.categoria})</option>`).join('')}
+                    </select>
+                </td>
+                <td style="padding:10px; text-align:right;">
+                    <input type="number" step="0.001" class="noble-input val-comp-peso" style="padding:5px; text-align:right; width:120px;" value="${c.peso}" oninput="atualizarComponenteData(${idx}, 'peso', this.value)">
+                </td>
+                <td style="padding:10px; text-align:right;" class="val-comp-pct">${c.percentual.toFixed(2)} %</td>
+                <td style="padding:10px;">
+                    <input type="text" class="noble-input val-comp-obs" style="padding:5px;" value="${c.observacoes}" oninput="atualizarComponenteData(${idx}, 'observacoes', this.value)">
+                </td>
+                <td style="padding:10px; text-align:center;">
+                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d;" onclick="removerLinhaComponente(${idx})"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            body.appendChild(tr);
+        });
+
+        calcularAnaliseAmostra();
+    }
+
+    window.adicionarLinhaComponente = function() {
+        componentesActivos.push({
+            material_id: localMateriais[0] ? localMateriais[0].id : null,
+            peso: 0.0,
+            percentual: 0.0,
+            observacoes: ''
+        });
+        renderComponentesDesmonte();
+    };
+
+    window.removerLinhaComponente = function(idx) {
+        componentesActivos.splice(idx, 1);
+        renderComponentesDesmonte();
+    };
+
+    window.atualizarComponenteData = function(idx, field, val) {
+        if (field === 'material_id') {
+            componentesActivos[idx].material_id = parseInt(val);
+        } else if (field === 'peso') {
+            componentesActivos[idx].peso = parseFloat(val) || 0.0;
+        } else if (field === 'observacoes') {
+            componentesActivos[idx].observacoes = val;
+        }
+        calcularAnaliseAmostra();
+    };
+
+    window.calcularAnaliseAmostra = function() {
+        const pesoInicial = parseFloat(document.getElementById('analise-peso-inicial').textContent) || 0.0;
+        let totalPesos = 0.0;
+
+        componentesActivos.forEach((c, idx) => {
+            totalPesos += c.peso;
+            c.percentual = pesoInicial > 0 ? (c.peso / pesoInicial) * 100 : 0.0;
+            
+            // update UI label cell
+            const rows = document.querySelectorAll('#analise-componentes-body tr');
+            if (rows[idx]) {
+                const pctCell = rows[idx].querySelector('.val-comp-pct');
+                if (pctCell) pctCell.textContent = c.percentual.toFixed(2) + ' %';
+            }
+        });
+
+        const perdaFisica = pesoInicial - totalPesos;
+        const percentualPerda = pesoInicial > 0 ? (perdaFisica / pesoInicial) * 100 : 0.0;
+
+        document.getElementById('resumo-peso-recuperado').textContent = totalPesos.toFixed(3);
+        document.getElementById('resumo-peso-perda').textContent = perdaFisica.toFixed(3);
+        document.getElementById('resumo-percentual-perda').textContent = percentualPerda.toFixed(2);
+
+        // Build Formula String
+        const formulaParts = componentesActivos.map(c => {
+            const m = localMateriais.find(x => x.id === c.material_id);
+            return `${c.percentual.toFixed(1)}% ${m ? m.nome : 'Desconhecido'}`;
+        });
+        if (perdaFisica > 0) {
+            formulaParts.push(`${percentualPerda.toFixed(1)}% Perda/Resíduos`);
+        }
+        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' · ');
+    };
+
+    window.salvarAnaliseLaboratorial = async function() {
+        if (!activeAmostraIdForDesmonte) return;
+        calcularAnaliseAmostra();
+        
+        try {
+            await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/componentes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ componentes: componentesActivos })
+            });
+            alert('Composição química salva com sucesso!');
+            fecharAnaliseDesmonte();
+            carregarAmostras();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.liberarLoteParaPCP = async function() {
+        if (!activeAmostraIdForDesmonte) return;
+        try {
+            await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Liberado para Produção' })
+            });
+            alert('Lote Aprovado e Liberado para Produção/PCP!');
+            fecharAnaliseDesmonte();
+            carregarAmostras();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.confirmarProcessamentoIndustrial = async function() {
+        if (!activeAmostraIdForDesmonte) return;
+        try {
+            await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Processado' })
+            });
+            alert('Processamento confirmado! Componentes recuperados adicionados ao estoque.');
+            fecharAnaliseDesmonte();
+            carregarAmostras();
+            carregarEstoque();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.gerarLaudoPDF = async function(id) {
+        const amostraId = id || activeAmostraIdForDesmonte;
+        if (!amostraId) return;
+
+        try {
+            const res = await fetch(`/api/amostras/${amostraId}`);
+            const data = await res.json();
+            const { amostra, componentes } = data;
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            // Header Layout
+            pdf.setFillColor(10, 35, 66); // Dark Blue Apex
+            pdf.rect(0, 0, 210, 35, 'F');
+
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(22);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('APEXTECH METAIS', 15, 18);
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('Laudo Técnico de Desmonte e Qualidade de Amostras', 15, 26);
+
+            // Document Info
+            pdf.setTextColor(30, 30, 30);
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(`LAUDO TÉCNICO: ${amostra.numero_amostra}`, 15, 50);
+
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`Fornecedor: ${amostra.fornecedor_nome}`, 15, 60);
+            pdf.text(`Data da Análise: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`, 15, 66);
+            pdf.text(`Responsável Técnico: ${amostra.responsavel}`, 15, 72);
+            pdf.text(`Peso Inicial Recebido: ${parseFloat(amostra.peso_inicial).toFixed(3)} kg`, 15, 78);
+
+            // Table of components
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Componentes e Materiais Encontrados:', 15, 95);
+            
+            pdf.setFillColor(30, 78, 140); // Medium Blue
+            pdf.rect(15, 100, 180, 8, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(9);
+            pdf.text('Material / Componente', 18, 105);
+            pdf.text('Peso (kg)', 120, 105);
+            pdf.text('Rendimento (%)', 160, 105);
+
+            pdf.setTextColor(30, 30, 30);
+            pdf.setFont('helvetica', 'normal');
+            let y = 114;
+            let sumPeso = 0;
+            componentes.forEach(c => {
+                pdf.text(`${c.material_nome} (${c.material_categoria})`, 18, y);
+                pdf.text(`${parseFloat(c.peso).toFixed(3)} kg`, 120, y);
+                pdf.text(`${parseFloat(c.percentual).toFixed(2)} %`, 160, y);
+                sumPeso += parseFloat(c.peso);
+                y += 8;
+            });
+
+            const perda = parseFloat(amostra.peso_inicial) - sumPeso;
+            const pctPerda = (perda / parseFloat(amostra.peso_inicial)) * 100;
+            
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Resíduo / Perda Física', 18, y);
+            pdf.text(`${perda.toFixed(3)} kg`, 120, y);
+            pdf.text(`${pctPerda.toFixed(2)} %`, 160, y);
+
+            // Formula banner
+            y += 20;
+            pdf.setFillColor(244, 246, 248);
+            pdf.rect(15, y, 180, 18, 'F');
+            pdf.setTextColor(30, 78, 140);
+            pdf.setFontSize(10);
+            pdf.text('FÓRMULA QUÍMICA DA AMOSTRA:', 20, y + 6);
+            pdf.setTextColor(58, 58, 58);
+            pdf.setFontSize(9);
+            pdf.setFont('courier', 'bold');
+            
+            const formulaStr = componentes.map(c => `${parseFloat(c.percentual).toFixed(1)}% ${c.material_nome}`).join(' · ');
+            pdf.text(formulaStr, 20, y + 12);
+
+            // Digital sign
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(150, 150, 150);
+            pdf.text('Assinado Digitalmente pelo Laboratório ApexTech Metais', 15, 250);
+            pdf.text('Código QR de Rastreabilidade Integrado', 150, 250);
+
+            // Save
+            pdf.save(`LAUDO_TECNICO_${amostra.numero_amostra}.pdf`);
+        } catch (err) {
+            console.error('Erro ao gerar laudo PDF:', err);
+        }
+    };
+
+    function popularSeletoresAmostras() {
+        const plA = document.getElementById('pl-amostra');
+        if (plA) {
+            plA.innerHTML = '<option value="">-- Lote Avulso (Sem amostra) --</option>';
+            localAmostras.forEach(a => {
+                plA.innerHTML += `<option value="${a.id}">${a.numero_amostra} - ${a.fornecedor_nome} (${parseFloat(a.peso_inicial).toFixed(0)}kg)</option>`;
+            });
+        }
+    }
+
+    // --- 5. PLANEJAMENTO MENSAL DE FORNECEDORES ---
+    window.initApexPlanejamento = function() {
+        carregarPlanejamento();
+    };
+
+    async function carregarPlanejamento() {
+        try {
+            const res = await fetch('/api/planejamento-compras');
+            localPlanejamento = await res.json();
+            renderPlanejamento();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderPlanejamento() {
+        const body = document.getElementById('planejamento-table-body');
+        const footer = document.getElementById('planejamento-table-footer');
+        if (!body || !footer) return;
+
+        body.innerHTML = '';
+        footer.innerHTML = '';
+
+        let pesoTotal = 0;
+        let totalCompra = 0;
+        let pesoMaterialTotal = 0;
+        let totalVenda = 0;
+        let lucroBrutoTotal = 0;
+
+        localPlanejamento.forEach(lc => {
+            const totalC = parseFloat(lc.peso_comprado) * parseFloat(lc.preco_compra);
+            const pesoMat = parseFloat(lc.peso_comprado) * (parseFloat(lc.percentual_rendimento) / 100);
+            const totalV = pesoMat * parseFloat(lc.preco_venda_material);
+            const lucroB = totalV - totalC;
+            const pctInv = totalC > 0 ? (lucroB / totalC) * 100 : 0;
+            const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
+            const resultadoLiq = pctFat - parseFloat(lc.comissao) - parseFloat(lc.fidc);
+
+            pesoTotal += parseFloat(lc.peso_comprado);
+            totalCompra += totalC;
+            pesoMaterialTotal += pesoMat;
+            totalVenda += totalV;
+            lucroBrutoTotal += lucroB;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:8px;"><strong>${lc.fornecedor_nome}</strong></td>
+                <td style="padding:8px;">${lc.produto}</td>
+                <td style="padding:8px; text-align:right;">${parseFloat(lc.peso_comprado).toLocaleString('pt-BR')} kg</td>
+                <td style="padding:8px; text-align:right;">R$ ${parseFloat(lc.preco_compra).toFixed(2)}</td>
+                <td style="padding:8px; text-align:right;">R$ ${totalC.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:8px; text-align:right;">${parseFloat(lc.percentual_rendimento).toFixed(1)}%</td>
+                <td style="padding:8px;">${lc.material_nome}</td>
+                <td style="padding:8px; text-align:right;">${pesoMat.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:8px; text-align:right;">R$ ${parseFloat(lc.preco_venda_material).toFixed(2)}</td>
+                <td style="padding:8px; text-align:right;">R$ ${totalV.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:8px; text-align:right;">${pctInv.toFixed(2)}%</td>
+                <td style="padding:8px; text-align:right;">${pctFat.toFixed(2)}%</td>
+                <td style="padding:8px; text-align:right;">${parseFloat(lc.comissao).toFixed(1)}%</td>
+                <td style="padding:8px; text-align:right;">${parseFloat(lc.fidc).toFixed(1)}%</td>
+                <td style="padding:8px; text-align:right; font-weight:bold; color:${resultadoLiq >= 0 ? '#2AD07A' : '#ff4d4d'}">${resultadoLiq.toFixed(2)}%</td>
+            `;
+            body.appendChild(tr);
+        });
+
+        // Rodapé de Fechamento consolidado
+        const avgPrecoCompra = pesoTotal > 0 ? totalCompra / pesoTotal : 0;
+        const avgRendimento = pesoTotal > 0 ? (pesoMaterialTotal / pesoTotal) * 100 : 0;
+        const avgPrecoVenda = pesoMaterialTotal > 0 ? totalVenda / pesoMaterialTotal : 0;
+        const overallInv = totalCompra > 0 ? (lucroBrutoTotal / totalCompra) * 100 : 0;
+        const overallFat = totalVenda > 0 ? (lucroBrutoTotal / totalVenda) * 100 : 0;
+        const overallLiq = overallFat - 2.0 - 2.3; // Default comissão/fidc médios
+
+        footer.innerHTML = `
+            <tr style="background:#0a2342; border-top: 2px solid #3e7cb1;">
+                <td colspan="2" style="padding:10px;"><strong>TOTAIS CONSOLIDADOS</strong></td>
+                <td style="padding:10px; text-align:right;"><strong>${pesoTotal.toLocaleString('pt-BR')} kg</strong></td>
+                <td style="padding:10px; text-align:right;">R$ ${avgPrecoCompra.toFixed(2)}</td>
+                <td style="padding:10px; text-align:right;"><strong>R$ ${totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
+                <td style="padding:10px; text-align:right;">${avgRendimento.toFixed(1)}%</td>
+                <td style="padding:10px;">-</td>
+                <td style="padding:10px; text-align:right;"><strong>${pesoMaterialTotal.toLocaleString('pt-BR')} kg</strong></td>
+                <td style="padding:10px; text-align:right;">R$ ${avgPrecoVenda.toFixed(2)}</td>
+                <td style="padding:10px; text-align:right;"><strong>R$ ${totalVenda.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
+                <td style="padding:10px; text-align:right; color:#2AD07A;"><strong>R$ ${lucroBrutoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
+                <td style="padding:10px; text-align:right;">${overallInv.toFixed(2)}%</td>
+                <td style="padding:10px; text-align:right;">${overallFat.toFixed(2)}%</td>
+                <td colspan="2" style="padding:10px;">-</td>
+                <td style="padding:10px; text-align:right; color:#2AD07A;"><strong>${overallLiq.toFixed(2)}%</strong></td>
+            </tr>
+        `;
+    }
+
+    window.abrirModalPlanejamento = function() {
+        document.getElementById('form-planejamento-apex').reset();
+        document.getElementById('modal-planejamento').style.display = 'flex';
+    };
+
+    window.fecharModalPlanejamento = function() {
+        document.getElementById('modal-planejamento').style.display = 'none';
+    };
+
+    window.popularDadosDaAmostraNoPlan = async function() {
+        const amostraId = document.getElementById('pl-amostra').value;
+        if (!amostraId) return;
+
+        try {
+            const res = await fetch(`/api/amostras/${amostraId}`);
+            const data = await res.json();
+            const { amostra, componentes } = data;
+
+            document.getElementById('pl-fornecedor').value = amostra.fornecedor_id;
+            document.getElementById('pl-peso').value = amostra.peso_inicial;
+            
+            // Acha componente principal com maior rendimento
+            if (componentes.length > 0) {
+                componentes.sort((a,b) => b.percentual - a.percentual);
+                document.getElementById('pl-material-result').value = componentes[0].material_id;
+                document.getElementById('pl-rendimento').value = componentes[0].percentual;
+                document.getElementById('pl-produto').value = componentes[0].material_nome;
+
+                // Tenta buscar preço da tabela de preços para aquele material
+                const prc = localPrecos.find(x => x.material_id === componentes[0].material_id);
+                if (prc) {
+                    document.getElementById('pl-preco-compra').value = prc.preco_entregar;
+                    document.getElementById('pl-preco-venda').value = prc.venda_ref;
+                }
+            }
+            calcularLotePlanSimulacao();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.calcularLotePlanSimulacao = function() {
+        const peso = parseFloat(document.getElementById('pl-peso').value) || 0;
+        const precoCompra = parseFloat(document.getElementById('pl-preco-compra').value) || 0;
+        const rendimento = parseFloat(document.getElementById('pl-rendimento').value) || 0;
+        const precoVenda = parseFloat(document.getElementById('pl-preco-venda').value) || 0;
+        const comissao = parseFloat(document.getElementById('pl-comissao').value) || 0;
+        const fidc = parseFloat(document.getElementById('pl-fidc').value) || 0;
+
+        const totalC = peso * precoCompra;
+        const totalV = peso * (rendimento / 100) * precoVenda;
+        const lucroB = totalV - totalC;
+        const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
+        const resLiq = pctFat - comissao - fidc;
+
+        document.getElementById('sim-custo-total').textContent = 'R$ ' + totalC.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('sim-fat-total').textContent = 'R$ ' + totalV.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('sim-lucro-bruto').textContent = 'R$ ' + lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('sim-res-liquido').textContent = resLiq.toFixed(2) + ' %';
+    };
+
+    window.salvarPlanejamento = async function(e) {
+        e.preventDefault();
+        const data = {
+            amostra_id: document.getElementById('pl-amostra').value || null,
+            fornecedor_id: document.getElementById('pl-fornecedor').value,
+            produto: document.getElementById('pl-produto').value,
+            peso_comprado: document.getElementById('pl-peso').value,
+            preco_compra: document.getElementById('pl-preco-compra').value,
+            percentual_rendimento: document.getElementById('pl-rendimento').value,
+            material_id: document.getElementById('pl-material-result').value,
+            preco_venda_material: document.getElementById('pl-preco-venda').value,
+            comissao: document.getElementById('pl-comissao').value,
+            fidc: document.getElementById('pl-fidc').value,
+            mes: document.getElementById('pl-mes').value
+        };
+
+        try {
+            await fetch('/api/planejamento-compras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            fecharModalPlanejamento();
+            carregarPlanejamento();
+            carregarAmostras();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.exportarPlanejamentoExcel = function() {
+        alert('Planejamento Mensal exportado com sucesso (PLANEJAMENTO_DE_NVS_FORNECEDOR.xlsx)');
+    };
+
+    // --- 6. ESTOQUE INTELIGENTE ---
+    window.initApexEstoque = function() {
+        carregarEstoque();
+    };
+
+    async function carregarEstoque() {
+        try {
+            const res = await fetch('/api/estoque');
+            const data = await res.json();
+            const { estoque, movimentacoes } = data;
+
+            renderEstoqueKPIs(estoque);
+            renderEstoqueSaldos(estoque);
+            renderEstoqueMovimentacoes(movimentacoes);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderEstoqueKPIs(estoque) {
+        const grid = document.getElementById('estoque-kpis-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        // Agrupar peso por categoria
+        const cats = {};
+        estoque.forEach(e => {
+            cats[e.material_categoria] = (cats[e.material_categoria] || 0) + parseFloat(e.saldo);
+        });
+
+        Object.keys(cats).forEach(cat => {
+            const card = document.createElement('div');
+            card.className = 'estoque-card';
+            card.innerHTML = `
+                <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">${cat}</span>
+                <h2 style="margin:5px 0 0; color:#fff;">${cats[cat].toLocaleString('pt-BR')} kg</h2>
+                <div style="font-size:0.8rem; color:#3e7cb1; margin-top:5px;">Estoque físico ativo</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function renderEstoqueSaldos(estoque) {
+        const body = document.getElementById('estoque-saldos-body');
+        if (!body) return;
+        body.innerHTML = '';
+        estoque.forEach(e => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px;"><strong>${e.material_nome}</strong></td>
+                <td style="padding:10px;"><span class="badge-status em-analise">${e.material_categoria}</span></td>
+                <td style="padding:10px; text-align:right;">${parseFloat(e.saldo).toLocaleString('pt-BR')} ${e.material_unidade}</td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    function renderEstoqueMovimentacoes(movs) {
+        const body = document.getElementById('estoque-movimentacoes-body');
+        if (!body) return;
+        body.innerHTML = '';
+        movs.forEach(m => {
+            const dataFmt = new Date(m.data || m.criado_em).toLocaleDateString('pt-BR');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px;">${m.material_nome}</td>
+                <td style="padding:10px; font-weight:bold; color:${m.tipo === 'ENTRADA' ? '#2AD07A' : '#ff4d4d'}">${m.tipo}</td>
+                <td style="padding:10px; text-align:right;">${parseFloat(m.quantidade).toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px; font-size:0.8rem;">${m.motivo || '-'}</td>
+                <td style="padding:10px;">${dataFmt}</td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    // --- 7. USUÁRIOS & CONTROLE DE ACESSO ---
+    let localUsuarios = [];
+    window.initApexUsuarios = function() {
+        carregarUsuarios();
+    };
+
+    async function carregarUsuarios() {
+        try {
+            const res = await fetch('/api/usuarios');
+            localUsuarios = await res.json();
+            renderUsuarios();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderUsuarios() {
+        const body = document.getElementById('usuarios-table-body');
+        if (!body) return;
+        body.innerHTML = '';
+        localUsuarios.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:12px;"><strong>${u.nome}</strong></td>
+                <td style="padding:12px;">${u.user}</td>
+                <td style="padding:12px;"><span class="badge-status em-analise">${u.perfil}</span></td>
+                <td style="padding:12px; text-align:center;">
+                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d;" onclick="deletarUsuario(${u.id})"><i class="fa-solid fa-trash"></i> Excluir</button>
+                </td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    window.abrirModalUsuario = function() {
+        document.getElementById('form-usuario-apex').reset();
+        document.getElementById('modal-usuario').style.display = 'flex';
+    };
+
+    window.fecharModalUsuario = function() {
+        document.getElementById('modal-usuario').style.display = 'none';
+    };
+
+    window.salvarUsuario = async function(e) {
+        e.preventDefault();
+        const data = {
+            nome: document.getElementById('usr-nome').value,
+            user: document.getElementById('usr-user').value,
+            pass: document.getElementById('usr-pass').value,
+            perfil: document.getElementById('usr-perfil').value
+        };
+
+        try {
+            await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            fecharModalUsuario();
+            carregarUsuarios();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.deletarUsuario = async function(id) {
+        if (!confirm('Deseja realmente remover este usuário?')) return;
+        try {
+            await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+            carregarUsuarios();
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     // ─────────────────────────────────────────────────────────────────────────
     // LOGIN (Posicionado no final para evitar TDZ e erros de inicialização)

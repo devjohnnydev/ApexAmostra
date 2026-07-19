@@ -83,7 +83,40 @@
                     <span>Configurar E-mail LME</span>
                 </a>
 
-                <a href="/" class="nav-item return-site">
+                <!-- DIVISOR GESTÃO INTERNA APEX -->
+                <div style="padding: 12px 18px 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #5a738e; letter-spacing: 0.1em; border-top: 1px solid #223547; margin-top: 10px;">
+                    Gestão ApexTech
+                </div>
+                <a href="#" class="nav-item" data-target="fornecedores-view" id="nav-fornecedores">
+                    <i class="fa-solid fa-handshake"></i>
+                    <span>Fornecedores</span>
+                </a>
+                <a href="#" class="nav-item" data-target="materiais-view" id="nav-materiais">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Catálogo de Materiais</span>
+                </a>
+                <a href="#" class="nav-item" data-target="tabela-precos-view" id="nav-precos">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                    <span>Tabela de Preços</span>
+                </a>
+                <a href="#" class="nav-item" data-target="amostras-view" id="nav-amostras">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>Análise de Amostras</span>
+                </a>
+                <a href="#" class="nav-item" data-target="planejamento-view" id="nav-planejamento">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>Planejamento Mensal</span>
+                </a>
+                <a href="#" class="nav-item" data-target="estoque-view" id="nav-estoque">
+                    <i class="fa-solid fa-warehouse"></i>
+                    <span>Estoque Inteligente</span>
+                </a>
+                <a href="#" class="nav-item" data-target="usuarios-view" id="nav-usuarios">
+                    <i class="fa-solid fa-users-cog"></i>
+                    <span>Usuários & PCP</span>
+                </a>
+
+                <a href="/" class="nav-item return-site" style="margin-top: 15px; border-top: 1px dashed #223547;">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span>Voltar ao Site</span>
                 </a>
@@ -1298,7 +1331,670 @@
                 </div>
             </section>
 
+            <!-- ═══════════════════════════════════════════════════════════
+                 1. FORNECEDORES
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="fornecedores-view" class="view-section">
+                <header class="section-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <h1><i class="fa-solid fa-handshake"></i> Gestão de Fornecedores</h1>
+                            <p>Cadastre e gerencie as indústrias e parceiros que fornecem materiais recicláveis.</p>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalFornecedor()"><i class="fa-solid fa-plus"></i> Novo Fornecedor</button>
+                    </div>
+                </header>
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <input type="text" id="fornecedores-search" class="noble-input" placeholder="🔍 Pesquisar por Razão Social, Nome Fantasia ou CNPJ..." style="flex: 1;" oninput="filtrarFornecedores()">
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#223547; text-align:left;">
+                                    <th style="padding:12px;">Razão Social</th>
+                                    <th style="padding:12px;">Nome Fantasia</th>
+                                    <th style="padding:12px;">CNPJ</th>
+                                    <th style="padding:12px;">Contato</th>
+                                    <th style="padding:12px;">Telefone</th>
+                                    <th style="padding:12px;">E-mail</th>
+                                    <th style="padding:12px; text-align:center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fornecedores-table-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 2. CATALOGO DE MATERIAIS
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="materiais-view" class="view-section">
+                <header class="section-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <h1><i class="fa-solid fa-tags"></i> Catálogo de Materiais</h1>
+                            <p>Configure os metais e insumos que são analisados no laboratório e transacionados financeiramente.</p>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalMaterial()"><i class="fa-solid fa-plus"></i> Novo Material</button>
+                    </div>
+                </header>
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <input type="text" id="materiais-search" class="noble-input" placeholder="🔍 Pesquisar material ou NCM..." style="flex: 1;" oninput="filtrarMateriais()">
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#223547; text-align:left;">
+                                    <th style="padding:12px;">Nome do Material</th>
+                                    <th style="padding:12px;">Unidade</th>
+                                    <th style="padding:12px;">Categoria</th>
+                                    <th style="padding:12px;">NCM</th>
+                                    <th style="padding:12px;">Cor Visual</th>
+                                    <th style="padding:12px;">Observações</th>
+                                    <th style="padding:12px; text-align:center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materiais-table-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 3. TABELA DE PREÇOS
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="tabela-precos-view" class="view-section">
+                <header class="section-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <h1><i class="fa-solid fa-dollar-sign"></i> Tabela de Preços Vigente</h1>
+                            <p>Define e monitora os custos de entrega, coleta e o lucro projetado com base em LME / Venda Ref.</p>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-secondary" onclick="exportarTabelaPrecosExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPreco()"><i class="fa-solid fa-plus"></i> Novo Item de Preço</button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px; margin-bottom: 20px; border:1px solid #1e4e8c;">
+                    <h3 style="margin-top:0; color:#3e7cb1;"><i class="fa-solid fa-triangle-exclamation"></i> Diretrizes Gerais de Compra</h3>
+                    <ul style="color:#aaa; font-size:0.9rem; padding-left:20px; margin-bottom:0;">
+                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                        <li><strong>DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</strong></li>
+                    </ul>
+                </div>
+
+                <div id="tabela-precos-categorias-container">
+                    <!-- Categorias de metal agrupadas renderizadas aqui -->
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 4. ANALISE DE AMOSTRAS (LABORATÓRIO & LAUDOS)
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="amostras-view" class="view-section">
+                <header class="section-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <h1><i class="fa-solid fa-flask"></i> Análise Laboratorial e Laudos</h1>
+                            <p>Fluxo de triagem física, desmontagem e formulação química de lotes de sucata.</p>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalAmostra()"><i class="fa-solid fa-plus"></i> Receber Lote/Amostra</button>
+                    </div>
+                </header>
+
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <input type="text" id="amostras-search" class="noble-input" placeholder="🔍 Buscar por número da amostra, fornecedor, responsável ou status..." style="flex: 1;" oninput="filtrarAmostras()">
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#223547; text-align:left;">
+                                    <th style="padding:12px;">Código</th>
+                                    <th style="padding:12px;">Data</th>
+                                    <th style="padding:12px;">Fornecedor</th>
+                                    <th style="padding:12px;">Responsável</th>
+                                    <th style="padding:12px; text-align:right;">Peso Inicial (kg)</th>
+                                    <th style="padding:12px; text-align:center;">Status</th>
+                                    <th style="padding:12px; text-align:center;">Laudo</th>
+                                    <th style="padding:12px; text-align:center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amostras-table-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Detalhes do Desmonte / Análise de Amostra selecionada -->
+                <div id="analise-desmonte-container" class="kpi-card" style="display:none; padding: 25px; border-radius: 8px; border-left: 5px solid #1e4e8c; margin-top:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:15px; margin-bottom:20px;">
+                        <div>
+                            <h2 style="margin:0; color:#3e7cb1;"><i class="fa-solid fa-vial"></i> Desmonte e Composição Química: <span id="analise-titulo-amostra">AM-001</span></h2>
+                            <p style="margin:5px 0 0; font-size:0.9rem; color:#888;">Fornecedor: <strong id="analise-fornecedor-nome">-</strong> | Peso Inicial: <strong id="analise-peso-inicial">-</strong> kg</p>
+                        </div>
+                        <button class="btn-secondary" onclick="fecharAnaliseDesmonte()"><i class="fa-solid fa-xmark"></i> Fechar Painel</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:25px;">
+                        <div>
+                            <h3 style="margin-top:0;"><i class="fa-solid fa-list-check"></i> Componentes Desmontados</h3>
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+                                <thead>
+                                    <tr style="background:#1b2d3d; text-align:left;">
+                                        <th style="padding:10px;">Material Catalisado</th>
+                                        <th style="padding:10px; text-align:right; width:150px;">Peso Recuperado (kg)</th>
+                                        <th style="padding:10px; text-align:right; width:120px;">Rendimento (%)</th>
+                                        <th style="padding:10px;">Observações</th>
+                                        <th style="padding:10px; text-align:center; width:50px;">-</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analise-componentes-body">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                            <button class="btn-secondary" onclick="adicionarLinhaComponente()"><i class="fa-solid fa-plus"></i> Adicionar Componente</button>
+                        </div>
+
+                        <div>
+                            <h3 style="margin-top:0;"><i class="fa-solid fa-square-poll-vertical"></i> Resumo Técnico</h3>
+                            <div style="background:#162432; padding:15px; border-radius:6px; border:1px solid #223547; margin-bottom:15px;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                    <span>Soma dos Componentes:</span>
+                                    <span><strong id="resumo-peso-recuperado">0.000</strong> kg</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                    <span>Diferença / Perda Física:</span>
+                                    <span style="color:#ff4d4d;"><strong id="resumo-peso-perda">0.000</strong> kg</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px dashed #444; padding-bottom:10px;">
+                                    <span>Percentual Médio de Perda:</span>
+                                    <span style="color:#ff4d4d;"><strong id="resumo-percentual-perda">0.00</strong> %</span>
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <span style="display:block; margin-bottom:5px; font-weight:bold;">Fórmula Química Projetada:</span>
+                                    <div id="resumo-formula-quimica" style="background:#101a24; padding:10px; border-radius:4px; font-family:monospace; font-size:0.9rem; color:#2AD07A;">
+                                        -
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:20px;">
+                                <h4 style="margin:0 0 10px;"><i class="fa-solid fa-camera"></i> Registro Fotográfico da Análise</h4>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                                    <div style="border: 2px dashed #444; border-radius:6px; padding:10px; text-align:center; background:#162432;">
+                                        <i class="fa-solid fa-image" style="font-size:1.5rem; color:#555; display:block; margin-bottom:5px;"></i>
+                                        <span style="font-size:0.75rem; color:#aaa;">Original</span>
+                                    </div>
+                                    <div style="border: 2px dashed #444; border-radius:6px; padding:10px; text-align:center; background:#162432;">
+                                        <i class="fa-solid fa-image" style="font-size:1.5rem; color:#555; display:block; margin-bottom:5px;"></i>
+                                        <span style="font-size:0.75rem; color:#aaa;">Componente 1</span>
+                                    </div>
+                                </div>
+                                <input type="file" class="noble-input" style="font-size:0.8rem;" multiple>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <button class="btn-primary" style="width:100%;" onclick="salvarAnaliseLaboratorial()"><i class="fa-solid fa-save"></i> Salvar Composição Química</button>
+                                <button id="btn-liberar-pcp" class="btn-secondary restrito-financeiro" style="width:100%; display:none;" onclick="liberarLoteParaPCP()"><i class="fa-solid fa-paper-plane"></i> Liberar para Produção & PCP</button>
+                                <button id="btn-processar-pcp" class="btn-secondary restrito-producao" style="width:100%; display:none; background:#2AD07A; color:#000;" onclick="confirmarProcessamentoIndustrial()"><i class="fa-solid fa-industry"></i> Confirmar Processamento Industrial</button>
+                                <button class="btn-secondary" style="width:100%;" onclick="gerarLaudoPDF()"><i class="fa-solid fa-file-pdf"></i> Imprimir Laudo Técnico</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 5. PLANEJAMENTO MENSAL DE FORNECEDORES (FINANCEIRO)
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="planejamento-view" class="view-section">
+                <header class="section-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <h1><i class="fa-solid fa-calculator"></i> Planejamento Mensal de Fornecedores</h1>
+                            <p>Aba digitalizada do Planejamento LME. Simule lotes e gerencie margens de compra x venda.</p>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-secondary" onclick="exportarPlanejamentoExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Tabela Excel</button>
+                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPlanejamento()"><i class="fa-solid fa-plus"></i> Novo Lote Planejado</button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px;">
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                            <thead>
+                                <tr style="background:#223547; text-align:left;">
+                                    <th style="padding:8px;">Fornecedor</th>
+                                    <th style="padding:8px;">Produto</th>
+                                    <th style="padding:8px; text-align:right;">Peso (kg)</th>
+                                    <th style="padding:8px; text-align:right;">Preço Compra</th>
+                                    <th style="padding:8px; text-align:right;">Total Compra</th>
+                                    <th style="padding:8px; text-align:right;">Rend. (%)</th>
+                                    <th style="padding:8px;">Mat. Resultante</th>
+                                    <th style="padding:8px; text-align:right;">Peso Material</th>
+                                    <th style="padding:8px; text-align:right;">Preço Venda</th>
+                                    <th style="padding:8px; text-align:right;">Total Venda</th>
+                                    <th style="padding:8px; text-align:right;">Lucro Bruto</th>
+                                    <th style="padding:8px; text-align:right;">% Invest.</th>
+                                    <th style="padding:8px; text-align:right;">% Fatur.</th>
+                                    <th style="padding:8px; text-align:right;">Comissão</th>
+                                    <th style="padding:8px; text-align:right;">FIDC</th>
+                                    <th style="padding:8px; text-align:right;">Resultado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="planejamento-table-body">
+                                <!-- Dynamically populated rows from lots -->
+                            </tbody>
+                            <tfoot id="planejamento-table-footer" style="background:#12212f; font-weight:bold;">
+                                <!-- aggregated values -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 6. ESTOQUE INTELIGENTE
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="estoque-view" class="view-section">
+                <header class="section-header">
+                    <h1><i class="fa-solid fa-warehouse"></i> Estoque Inteligente</h1>
+                    <p>Posição consolidada de matérias-primas e resíduos recuperados das análises industriais.</p>
+                </header>
+
+                <div class="kpi-grid" id="estoque-kpis-grid">
+                    <!-- Dynamic kpi blocks of stock categories -->
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px;">
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <h3>Saldos de Inventário por Material</h3>
+                        <table class="admin-table" style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#1b2d3d; text-align:left;">
+                                    <th style="padding:10px;">Material</th>
+                                    <th style="padding:10px;">Categoria</th>
+                                    <th style="padding:10px; text-align:right;">Quantidade (kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="estoque-saldos-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <h3>Últimas Movimentações (Rastreabilidade)</h3>
+                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                            <thead>
+                                <tr style="background:#1b2d3d; text-align:left;">
+                                    <th style="padding:10px;">Material</th>
+                                    <th style="padding:10px;">Tipo</th>
+                                    <th style="padding:10px; text-align:right;">Qtd (kg)</th>
+                                    <th style="padding:10px;">Motivo</th>
+                                    <th style="padding:10px;">Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="estoque-movimentacoes-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 7. CONTROLE DE ACESSO E USUÁRIOS (PCP / SEGURANÇA)
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="usuarios-view" class="view-section">
+                <header class="section-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <h1><i class="fa-solid fa-users-cog"></i> Configuração de Acesso e Perfis</h1>
+                            <p>Controle de permissões industriais, faturamento e fluxo de liberação PCP.</p>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalUsuario()"><i class="fa-solid fa-plus"></i> Novo Usuário</button>
+                    </div>
+                </header>
+
+                <!-- ROLE SWITCHER PARA VALIDAÇÃO/TESTES -->
+                <div class="kpi-card" style="padding:20px; border-radius:8px; border:2px dashed #3e7cb1; margin-bottom:25px; background:rgba(30,78,140,0.1);">
+                    <h3 style="margin-top:0; color:#3e7cb1;"><i class="fa-solid fa-circle-user"></i> Simulação de Perfil de Acesso (Role Switcher de Teste)</h3>
+                    <p style="color:#aaa; font-size:0.85rem;">Use o seletor abaixo para alternar instantaneamente de perfil e simular o comportamento de cada área do sistema ApexTech Metais:</p>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn-metal-filter active" id="sim-admin" onclick="switchSimulatedRole('Administrador')" style="--mc:#3e7cb1;">Administrador</button>
+                        <button class="btn-metal-filter" id="sim-lab" onclick="switchSimulatedRole('Laboratório')" style="--mc:#2AD07A;">Laboratório</button>
+                        <button class="btn-metal-filter" id="sim-compras" onclick="switchSimulatedRole('Compras')" style="--mc:#e07b39;">Compras</button>
+                        <button class="btn-metal-filter" id="sim-producao" onclick="switchSimulatedRole('Produção')" style="--mc:#b0a0c0;">Produção (PCP)</button>
+                        <button class="btn-metal-filter" id="sim-financeiro" onclick="switchSimulatedRole('Financeiro')" style="--mc:#a8c5a0;">Financeiro</button>
+                        <button class="btn-metal-filter" id="sim-diretoria" onclick="switchSimulatedRole('Diretoria')" style="--mc:#d4b896;">Diretoria</button>
+                    </div>
+                    <div style="margin-top:10px; font-size:0.9rem; color:#fff;">
+                        Perfil Atual Simulado: <strong id="simulated-role-indicator" style="color:#3e7cb1;">Administrador</strong>
+                    </div>
+                </div>
+
+                <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                    <h3>Operadores Cadastrados</h3>
+                    <table class="admin-table" style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#1b2d3d; text-align:left;">
+                                <th style="padding:12px;">Nome</th>
+                                <th style="padding:12px;">Usuário (Login)</th>
+                                <th style="padding:12px;">Perfil de Acesso</th>
+                                <th style="padding:12px; text-align:center; width:120px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuarios-table-body">
+                            <!-- JS populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
         </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MODAIS DE CADASTRO E EDICÃO
+    ═══════════════════════════════════════════════════════════ -->
+
+    <!-- Modal Fornecedor -->
+    <div id="modal-fornecedor" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-handshake"></i> Cadastro de Fornecedor</h3>
+            <form id="form-fornecedor-apex" onsubmit="salvarFornecedor(event)">
+                <input type="hidden" id="forn-id" value="">
+                <div class="form-group">
+                    <label>Razão Social *</label>
+                    <input type="text" id="forn-razao" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Nome Fantasia *</label>
+                    <input type="text" id="forn-fantasia" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>CNPJ</label>
+                    <input type="text" id="forn-cnpj" class="noble-input" placeholder="00.000.000/0001-00">
+                </div>
+                <div class="form-group">
+                    <label>Contato</label>
+                    <input type="text" id="forn-contato" class="noble-input">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="text" id="forn-telefone" class="noble-input">
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="forn-email" class="noble-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input type="text" id="forn-endereco" class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="forn-obs" rows="3" class="noble-input" style="height:auto;"></textarea>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalFornecedor()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Material -->
+    <div id="modal-material" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-tag"></i> Cadastro de Material</h3>
+            <form id="form-material-apex" onsubmit="salvarMaterial(event)">
+                <input type="hidden" id="mat-id" value="">
+                <div class="form-group">
+                    <label>Nome do Material *</label>
+                    <input type="text" id="mat-nome" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Categoria *</label>
+                    <select id="mat-categoria" class="noble-input" required>
+                        <option value="Alumínio">Alumínio</option>
+                        <option value="Cobre">Cobre</option>
+                        <option value="Tomada/Conectores">Tomada/Conectores</option>
+                        <option value="Chumbo">Chumbo</option>
+                        <option value="Latão/Bronze">Latão/Bronze</option>
+                        <option value="Zamac">Zamac</option>
+                        <option value="Aço">Aço</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Unidade *</label>
+                        <input type="text" id="mat-unidade" required class="noble-input" value="kg">
+                    </div>
+                    <div class="form-group">
+                        <label>NCM</label>
+                        <input type="text" id="mat-ncm" class="noble-input">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 3fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Cor Badge</label>
+                        <input type="color" id="mat-cor" class="noble-input" value="#3e7cb1" style="padding:2px; height:40px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Observações</label>
+                        <input type="text" id="mat-obs" class="noble-input">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalMaterial()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Receber Amostra -->
+    <div id="modal-amostra" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-flask"></i> Recebimento de Lote</h3>
+            <form id="form-amostra-apex" onsubmit="salvarAmostra(event)">
+                <input type="hidden" id="amo-id" value="">
+                <div class="form-group">
+                    <label>Código da Amostra *</label>
+                    <input type="text" id="amo-numero" required class="noble-input" placeholder="Ex: AM-004">
+                </div>
+                <div class="form-group">
+                    <label>Data *</label>
+                    <input type="date" id="amo-data" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Fornecedor *</label>
+                    <select id="amo-fornecedor" required class="noble-input"></select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Responsável *</label>
+                        <input type="text" id="amo-responsavel" required class="noble-input" value="Eng. Roberto">
+                    </div>
+                    <div class="form-group">
+                        <label>Peso Inicial (kg) *</label>
+                        <input type="number" step="0.001" id="amo-peso" required class="noble-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="amo-obs" class="noble-input" rows="2" style="height:auto;"></textarea>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalAmostra()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Preço -->
+    <div id="modal-preco" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-dollar-sign"></i> Definir Preço de Compra</h3>
+            <form id="form-preco-apex" onsubmit="salvarPreco(event)">
+                <input type="hidden" id="prc-id" value="">
+                <div class="form-group">
+                    <label>Material *</label>
+                    <select id="prc-material" required class="noble-input"></select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Entregar (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-entregar" required class="noble-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Coletar (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-coletar" required class="noble-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Preço Venda Ref. (R$/kg) *</label>
+                    <input type="number" step="0.01" id="prc-venda" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Válido Até *</label>
+                    <input type="date" id="prc-validade" required class="noble-input">
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalPreco()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Planejamento/Lote Manual -->
+    <div id="modal-planejamento" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-calculator"></i> Novo Planejamento de Lote</h3>
+            <form id="form-planejamento-apex" onsubmit="salvarPlanejamento(event)">
+                <div class="form-group">
+                    <label>Vincular a uma Amostra Analisada (Opcional)</label>
+                    <select id="pl-amostra" class="noble-input" onchange="popularDadosDaAmostraNoPlan()"></select>
+                </div>
+                <div class="form-group">
+                    <label>Fornecedor *</label>
+                    <select id="pl-fornecedor" required class="noble-input"></select>
+                </div>
+                <div class="form-group">
+                    <label>Produto / Descrição *</label>
+                    <input type="text" id="pl-produto" required class="noble-input" placeholder="Ex: fio de instalação">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Peso Comprado (kg) *</label>
+                        <input type="number" step="0.01" id="pl-peso" required class="noble-input" oninput="calcularLotePlanSimulacao()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço de Compra (R$/kg) *</label>
+                        <input type="number" step="0.01" id="pl-preco-compra" required class="noble-input" oninput="calcularLotePlanSimulacao()">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>% Rendimento Estimado *</label>
+                        <input type="number" step="0.1" id="pl-rendimento" required class="noble-input" oninput="calcularLotePlanSimulacao()">
+                    </div>
+                    <div class="form-group">
+                        <label>Material Resultante *</label>
+                        <select id="pl-material-result" required class="noble-input"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Preço Venda Estimado (R$/kg) *</label>
+                    <input type="number" step="0.01" id="pl-preco-venda" required class="noble-input" oninput="calcularLotePlanSimulacao()">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Comissão (%) *</label>
+                        <input type="number" step="0.01" id="pl-comissao" required class="noble-input" value="2" oninput="calcularLotePlanSimulacao()">
+                    </div>
+                    <div class="form-group">
+                        <label>FIDC (%) *</label>
+                        <input type="number" step="0.01" id="pl-fidc" required class="noble-input" value="2.3" oninput="calcularLotePlanSimulacao()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Mês de Planejamento *</label>
+                    <input type="month" id="pl-mes" required class="noble-input" value="2026-07">
+                </div>
+
+                <!-- Simulação de Resultados inline -->
+                <div style="background:#12212f; padding:10px; border-radius:6px; font-size:0.8rem; margin-bottom:15px; color:#aaa;">
+                    <div>Custo Total: <span style="color:#fff;" id="sim-custo-total">R$ 0,00</span></div>
+                    <div>Faturamento Total: <span style="color:#fff;" id="sim-fat-total">R$ 0,00</span></div>
+                    <div>Lucro Bruto: <span style="color:#2AD07A;" id="sim-lucro-bruto">R$ 0,00</span></div>
+                    <div>Resultado Líquido: <span style="color:#2AD07A;" id="sim-res-liquido">0.00 %</span></div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalPlanejamento()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Novo Usuário -->
+    <div id="modal-usuario" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-user-shield"></i> Cadastro de Usuário</h3>
+            <form id="form-usuario-apex" onsubmit="salvarUsuario(event)">
+                <div class="form-group">
+                    <label>Nome do Operador *</label>
+                    <input type="text" id="usr-nome" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Login de Usuário *</label>
+                    <input type="text" id="usr-user" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Senha *</label>
+                    <input type="password" id="usr-pass" required class="noble-input">
+                </div>
+                <div class="form-group">
+                    <label>Perfil de Acesso *</label>
+                    <select id="usr-perfil" class="noble-input" required>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Laboratório">Laboratório (Apenas Análise)</option>
+                        <option value="Compras">Compras (Análise e Finanças)</option>
+                        <option value="Produção">Produção/PCP (Análise e Produção)</option>
+                        <option value="Financeiro">Financeiro (Acesso Financeiro)</option>
+                        <option value="Diretoria">Diretoria (Acesso Completo)</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalUsuario()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
     </div>
 
     <script src="admin.js?v=30"></script>
