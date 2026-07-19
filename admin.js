@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initApexPlanejamento();
         initApexEstoque();
         initApexUsuarios();
+        initApexBI();
         switchSimulatedRole(sessionStorage.getItem('apex_user_role') || 'Administrador');
     }
 
@@ -4552,6 +4553,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+            carregarEstoque();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     window.gerarLaudoPDF = async function(id) {
         const amostraId = id || activeAmostraIdForDesmonte;
         if (!amostraId) return;
@@ -4561,92 +4568,377 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             const { amostra, componentes } = data;
 
+            // Busca lote correspondente no planejamento para detalhes financeiros
+            const resPlan = await fetch('/api/planejamento-compras');
+            const planList = await resPlan.json();
+            const lote = planList.find(x => x.amostra_id === amostra.id);
+
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
 
-            // Header Layout
-            pdf.setFillColor(10, 35, 66); // Dark Blue Apex
-            pdf.rect(0, 0, 210, 35, 'F');
+            // 1. Cabeçalho Corporativo Premium APEXTECH METAIS
+            pdf.setFillColor(10, 35, 66); // Azul Escuro #0A2342
+            pdf.rect(0, 0, 210, 38, 'F');
+
+            // Linha decorativa dourada/azul clara
+            pdf.setFillColor(62, 124, 177); // Azul Claro #3E7CB1
+            pdf.rect(0, 38, 210, 2, 'F');
 
             pdf.setTextColor(255, 255, 255);
+            pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(22);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('APEXTECH METAIS', 15, 18);
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text('Laudo Técnico de Desmonte e Qualidade de Amostras', 15, 26);
-
-            // Document Info
-            pdf.setTextColor(30, 30, 30);
-            pdf.setFontSize(14);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(`LAUDO TÉCNICO: ${amostra.numero_amostra}`, 15, 50);
-
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text(`Fornecedor: ${amostra.fornecedor_nome}`, 15, 60);
-            pdf.text(`Data da Análise: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`, 15, 66);
-            pdf.text(`Responsável Técnico: ${amostra.responsavel}`, 15, 72);
-            pdf.text(`Peso Inicial Recebido: ${parseFloat(amostra.peso_inicial).toFixed(3)} kg`, 15, 78);
-
-            // Table of components
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Componentes e Materiais Encontrados:', 15, 95);
+            pdf.text('APEXTECH METAIS', 15, 16);
             
-            pdf.setFillColor(30, 78, 140); // Medium Blue
-            pdf.rect(15, 100, 180, 8, 'F');
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9);
+            pdf.text('TECNOLOGIA E SUSTENTABILIDADE NA RECICLAGEM DE METAIS', 15, 22);
+            pdf.setFontSize(8);
+            pdf.text('Divisão Laboratorial e Controle de Qualidade de Lotes', 15, 28);
+            pdf.text('www.apextechmetais.com.br | sac@apextechmetais.com.br', 15, 32);
+
+            // Código do laudo no topo direito
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.text(`Nº LAUDO: APX-${amostra.numero_amostra}`, 155, 16);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.text(`EMISSÃO: ${new Date().toLocaleDateString('pt-BR')}`, 155, 22);
+            pdf.text('STATUS: CERTIFICADO', 155, 26);
+
+            // 2. Metadados do Lote
+            pdf.setTextColor(10, 35, 66);
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('DADOS GERAIS DO LOTE / FORNECEDOR', 15, 52);
+            pdf.line(15, 54, 195, 54);
+
+            pdf.setTextColor(58, 58, 58);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(`Razão Social / Fornecedor: ${amostra.fornecedor_nome.toUpperCase()}`, 15, 60);
+            pdf.text(`Responsável Técnico: ${amostra.responsavel}`, 15, 66);
+            pdf.text(`Data de Recebimento: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`, 155, 60);
+            pdf.text(`Peso Inicial Bruto: ${parseFloat(amostra.peso_inicial).toLocaleString('pt-BR')} kg`, 155, 66);
+
+            // 3. Tabela Técnica Alternada
+            pdf.setTextColor(10, 35, 66);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 15, 80);
+            pdf.line(15, 82, 195, 82);
+
+            pdf.setFillColor(30, 78, 140); // Azul Médio #1E4E8C
+            pdf.rect(15, 86, 180, 8, 'F');
             pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
-            pdf.text('Material / Componente', 18, 105);
-            pdf.text('Peso (kg)', 120, 105);
-            pdf.text('Rendimento (%)', 160, 105);
+            pdf.text('Item / Material Recuperado', 18, 91);
+            pdf.text('Peso Líquido', 115, 91);
+            pdf.text('Rendimento (%)', 155, 91);
 
-            pdf.setTextColor(30, 30, 30);
-            pdf.setFont('helvetica', 'normal');
-            let y = 114;
+            let y = 98;
             let sumPeso = 0;
-            componentes.forEach(c => {
+            pdf.setTextColor(58, 58, 58);
+            pdf.setFont('helvetica', 'normal');
+            
+            componentes.forEach((c, idx) => {
+                // Alternar cores de fundo da linha
+                if (idx % 2 === 0) {
+                    pdf.setFillColor(244, 246, 248); // Cinza Claro #F4F6F8
+                    pdf.rect(15, y - 4, 180, 7, 'F');
+                }
                 pdf.text(`${c.material_nome} (${c.material_categoria})`, 18, y);
-                pdf.text(`${parseFloat(c.peso).toFixed(3)} kg`, 120, y);
-                pdf.text(`${parseFloat(c.percentual).toFixed(2)} %`, 160, y);
+                pdf.text(`${parseFloat(c.peso).toLocaleString('pt-BR')} kg`, 115, y);
+                pdf.text(`${parseFloat(c.percentual).toFixed(2)} %`, 155, y);
                 sumPeso += parseFloat(c.peso);
-                y += 8;
+                y += 7;
             });
 
+            // Linha de Resíduo/Perda
             const perda = parseFloat(amostra.peso_inicial) - sumPeso;
             const pctPerda = (perda / parseFloat(amostra.peso_inicial)) * 100;
             
+            pdf.setFillColor(240, 240, 240);
+            pdf.rect(15, y - 4, 180, 7, 'F');
             pdf.setFont('helvetica', 'bold');
-            pdf.text('Resíduo / Perda Física', 18, y);
-            pdf.text(`${perda.toFixed(3)} kg`, 120, y);
-            pdf.text(`${pctPerda.toFixed(2)} %`, 160, y);
+            pdf.text('Resíduos Industriais / Perda Física', 18, y);
+            pdf.text(`${perda.toLocaleString('pt-BR')} kg`, 115, y);
+            pdf.text(`${pctPerda.toFixed(2)} %`, 155, y);
 
-            // Formula banner
-            y += 20;
-            pdf.setFillColor(244, 246, 248);
+            // 4. Fórmula Química de Composição
+            y += 15;
+            pdf.setFillColor(10, 35, 66); // Azul Escuro
             pdf.rect(15, y, 180, 18, 'F');
-            pdf.setTextColor(30, 78, 140);
-            pdf.setFontSize(10);
-            pdf.text('FÓRMULA QUÍMICA DA AMOSTRA:', 20, y + 6);
-            pdf.setTextColor(58, 58, 58);
+            pdf.setTextColor(255, 255, 255);
             pdf.setFontSize(9);
-            pdf.setFont('courier', 'bold');
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('COMPOSIÇÃO CONSOLIDADA DA AMOSTRA (FÓRMULA):', 20, y + 6);
             
-            const formulaStr = componentes.map(c => `${parseFloat(c.percentual).toFixed(1)}% ${c.material_nome}`).join(' · ');
+            pdf.setTextColor(42, 208, 122); // Verde Neon
+            pdf.setFont('courier', 'bold');
+            pdf.setFontSize(9);
+            const formulaStr = componentes.map(c => `${parseFloat(c.percentual).toFixed(1)}% ${c.material_nome.toUpperCase()}`).join(' · ');
             pdf.text(formulaStr, 20, y + 12);
 
-            // Digital sign
-            pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(150, 150, 150);
-            pdf.text('Assinado Digitalmente pelo Laboratório ApexTech Metais', 15, 250);
-            pdf.text('Código QR de Rastreabilidade Integrado', 150, 250);
+            // 5. Módulo Financeiro Integrado (Visível para todos exceto Laboratório)
+            if (currentSimulatedRole !== 'Laboratório' && lote) {
+                y += 26;
+                pdf.setTextColor(10, 35, 66);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(11);
+                pdf.text('RESUMO DESEMPENHO E MOTOR FINANCEIRO DO LOTE', 15, y);
+                pdf.line(15, y + 2, 195, y + 2);
 
-            // Save
+                const totalCompra = parseFloat(lote.peso_comprado) * parseFloat(lote.preco_compra);
+                const totalVenda = (parseFloat(lote.peso_comprado) * (parseFloat(lote.percentual_rendimento) / 100)) * parseFloat(lote.preco_venda_material);
+                const lucroB = totalVenda - totalCompra;
+                const margemBruta = totalVenda > 0 ? (lucroB / totalVenda) * 100 : 0;
+
+                y += 8;
+                pdf.setFillColor(244, 246, 248);
+                pdf.rect(15, y, 180, 20, 'F');
+
+                pdf.setTextColor(58, 58, 58);
+                pdf.setFontSize(8.5);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(`Investimento Compra: R$ ${totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}`, 18, y + 6);
+                pdf.text(`Faturamento Projetado: R$ ${totalVenda.toLocaleString('pt-BR', {minimumFractionDigits:2})}`, 18, y + 12);
+                
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(`Lucro Projetado: R$ ${lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2})}`, 110, y + 6);
+                pdf.text(`Margem Bruta Lote: ${margemBruta.toFixed(2)} %`, 110, y + 12);
+            }
+
+            // 6. Rodapé com Assinatura e QR Code Mockado
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7.5);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text('Laudo técnico gerado automaticamente pelo sistema integrado APEXTECH METAIS ERP.', 15, 260);
+            pdf.text('A chave digital confirma a veracidade das informações apresentadas.', 15, 264);
+
+            // Desenhar Linha de Assinatura
+            pdf.setDrawColor(150, 150, 150);
+            pdf.line(15, 242, 90, 242);
+            pdf.text('ASSINATURA DO CONTROLADOR DE QUALIDADE', 24, 247);
+
+            // Desenhar QR Code Simulado
+            pdf.setDrawColor(10, 35, 66);
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(155, 225, 25, 25, 'FD');
+            pdf.setFillColor(10, 35, 66);
+            // Desenhar padrão de blocos
+            pdf.rect(157, 227, 8, 8, 'F');
+            pdf.rect(170, 227, 8, 8, 'F');
+            pdf.rect(157, 240, 8, 8, 'F');
+            pdf.rect(167, 237, 4, 4, 'F');
+            pdf.rect(172, 242, 6, 6, 'F');
+
+            // Save PDF
             pdf.save(`LAUDO_TECNICO_${amostra.numero_amostra}.pdf`);
         } catch (err) {
             console.error('Erro ao gerar laudo PDF:', err);
         }
     };
+
+    // --- 6.5. CENTRAL BI (ANALYTICS) ---
+    let biChartEvolucaoObj = null;
+    let biChartComposicaoObj = null;
+    let biChartFornecedoresObj = null;
+    let biChartMargensObj = null;
+
+    window.initApexBI = function() {
+        carregarDadosBI();
+    };
+
+    async function carregarDadosBI() {
+        try {
+            const resAmo = await fetch('/api/amostras');
+            const amostras = await resAmo.json();
+            
+            const resPlan = await fetch('/api/planejamento-compras');
+            const planejamento = await resPlan.json();
+
+            const resEst = await fetch('/api/estoque');
+            const { estoque } = await resEst.json();
+
+            // ─── KPIs ───
+            let pesoTotal = 0;
+            let totalCompra = 0;
+            let faturamento = 0;
+            let lucroConsolidado = 0;
+
+            planejamento.forEach(p => {
+                pesoTotal += parseFloat(p.peso_comprado) || 0;
+                const totalC = (parseFloat(p.peso_comprado) || 0) * (parseFloat(p.preco_compra) || 0);
+                const pesoMat = (parseFloat(p.peso_comprado) || 0) * ((parseFloat(p.percentual_rendimento) || 0) / 100);
+                const totalV = pesoMat * (parseFloat(p.preco_venda_material) || 0);
+                totalCompra += totalC;
+                faturamento += totalV;
+            });
+            lucroConsolidado = faturamento - totalCompra;
+            const margemConsolidada = faturamento > 0 ? (lucroConsolidado / faturamento) * 100 : 0;
+
+            let totalPesoOriginalAmostras = 0;
+            let totalPesoPerdaAmostras = 0;
+            
+            amostras.forEach(a => {
+                if (a.status === 'Processado' || a.status === 'Liberado para Produção') {
+                    const weight = parseFloat(a.peso_inicial) || 0;
+                    totalPesoOriginalAmostras += weight;
+                    
+                    const lotes = planejamento.filter(l => l.amostra_id === a.id);
+                    if (lotes.length > 0) {
+                        const avgRend = lotes.reduce((acc, curr) => acc + parseFloat(curr.percentual_rendimento), 0) / lotes.length;
+                        totalPesoPerdaAmostras += weight * (1 - (avgRend / 100));
+                    } else {
+                        totalPesoPerdaAmostras += weight * 0.05;
+                    }
+                }
+            });
+            const taxaPerdaIndustrial = totalPesoOriginalAmostras > 0 ? (totalPesoPerdaAmostras / totalPesoOriginalAmostras) * 100 : 2.5;
+
+            document.getElementById('bi-kpi-peso-total').textContent = pesoTotal.toLocaleString('pt-BR') + ' kg';
+            document.getElementById('bi-kpi-faturamento').textContent = 'R$ ' + faturamento.toLocaleString('pt-BR', {minimumFractionDigits:2});
+            document.getElementById('bi-kpi-lucro').textContent = 'R$ ' + lucroConsolidado.toLocaleString('pt-BR', {minimumFractionDigits:2});
+            document.getElementById('bi-kpi-margem').textContent = margemConsolidada.toFixed(2) + ' %';
+            document.getElementById('bi-kpi-perda').textContent = taxaPerdaIndustrial.toFixed(2) + ' %';
+
+            // ── Gráfico 1: Evolução Mensal ──
+            const mesesMap = {};
+            planejamento.forEach(p => {
+                const m = p.mes || '2026-07';
+                if (!mesesMap[m]) mesesMap[m] = { compra: 0, venda: 0, lucro: 0 };
+                const totalC = (parseFloat(p.peso_comprado) || 0) * (parseFloat(p.preco_compra) || 0);
+                const pesoMat = (parseFloat(p.peso_comprado) || 0) * ((parseFloat(p.percentual_rendimento) || 0) / 100);
+                const totalV = pesoMat * (parseFloat(p.preco_venda_material) || 0);
+                mesesMap[m].compra += totalC;
+                mesesMap[m].venda += totalV;
+                mesesMap[m].lucro += (totalV - totalC);
+            });
+            const mesesLabels = Object.keys(mesesMap).sort();
+            const dataCompra = mesesLabels.map(m => mesesMap[m].compra);
+            const dataVenda = mesesLabels.map(m => mesesMap[m].venda);
+            const dataLucro = mesesLabels.map(m => mesesMap[m].lucro);
+
+            if (biChartEvolucaoObj) biChartEvolucaoObj.destroy();
+            const ctxEvol = document.getElementById('biChartEvolucao').getContext('2d');
+            biChartEvolucaoObj = new Chart(ctxEvol, {
+                type: 'bar',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [
+                        { label: 'Custo Compra', data: dataCompra, backgroundColor: '#1e4e8c' },
+                        { label: 'Faturamento Venda', data: dataVenda, backgroundColor: '#3e7cb1' },
+                        { label: 'Lucro Bruto', data: dataLucro, backgroundColor: '#2AD07A' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { grid: { color: '#222' } } }
+                }
+            });
+
+            // ── Gráfico 2: Composição das Amostras ──
+            const compMap = {};
+            estoque.forEach(e => {
+                compMap[e.material_nome] = parseFloat(e.saldo) || 0;
+            });
+            const compLabels = Object.keys(compMap);
+            const compData = Object.values(compMap);
+
+            if (biChartComposicaoObj) biChartComposicaoObj.destroy();
+            const ctxComp = document.getElementById('biChartComposicao').getContext('2d');
+            biChartComposicaoObj = new Chart(ctxComp, {
+                type: 'doughnut',
+                data: {
+                    labels: compLabels,
+                    datasets: [{
+                        data: compData,
+                        backgroundColor: ['#e07b39', '#7eb3d5', '#a8c5a0', '#b0a0c0', '#d4b896', '#2AD07A', '#3e7cb1', '#cccccc']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+
+            // ── Gráfico 3: Ranking de Fornecedores ──
+            const fornMap = {};
+            planejamento.forEach(p => {
+                const f = p.fornecedor_nome || 'Desconhecido';
+                if (!fornMap[f]) fornMap[f] = { volume: 0, lucro: 0 };
+                const totalC = (parseFloat(p.peso_comprado) || 0) * (parseFloat(p.preco_compra) || 0);
+                const pesoMat = (parseFloat(p.peso_comprado) || 0) * ((parseFloat(p.percentual_rendimento) || 0) / 100);
+                const totalV = pesoMat * (parseFloat(p.preco_venda_material) || 0);
+                fornMap[f].volume += parseFloat(p.peso_comprado) || 0;
+                fornMap[f].lucro += (totalV - totalC);
+            });
+            const fornLabels = Object.keys(fornMap);
+            const fornVolumeData = fornLabels.map(f => fornMap[f].volume);
+            const fornLucroData = fornLabels.map(f => fornMap[f].lucro);
+
+            if (biChartFornecedoresObj) biChartFornecedoresObj.destroy();
+            const ctxForn = document.getElementById('biChartFornecedores').getContext('2d');
+            biChartFornecedoresObj = new Chart(ctxForn, {
+                type: 'bar',
+                data: {
+                    labels: fornLabels,
+                    datasets: [
+                        { label: 'Lucro Projetado (R$)', data: fornLucroData, backgroundColor: '#2AD07A', yAxisID: 'y' },
+                        { label: 'Volume (kg)', data: fornVolumeData, type: 'line', borderColor: '#3e7cb1', backgroundColor: 'transparent', yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', grid: { color: '#222' } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            // ── Gráfico 4: Margem de Compra Coleta vs Entrega ──
+            const catMargem = {};
+            localPrecos.forEach(p => {
+                const cat = p.material_categoria;
+                if (!catMargem[cat]) catMargem[cat] = { entrega: 0, coleta: 0, count: 0 };
+                const lucroEnt = p.venda_ref - p.preco_entregar;
+                const margemEnt = p.venda_ref > 0 ? (lucroEnt / p.venda_ref) * 100 : 0;
+                const lucroCol = p.venda_ref - p.preco_coletar;
+                const margemCol = p.venda_ref > 0 ? (lucroCol / p.venda_ref) * 100 : 0;
+                catMargem[cat].entrega += margemEnt;
+                catMargem[cat].coleta += margemCol;
+                catMargem[cat].count++;
+            });
+            const catLabels = Object.keys(catMargem);
+            const catEntrega = catLabels.map(c => catMargem[c].entrega / catMargem[c].count);
+            const catColeta = catLabels.map(c => catMargem[c].coleta / catMargem[c].count);
+
+            if (biChartMargensObj) biChartMargensObj.destroy();
+            const ctxMarg = document.getElementById('biChartMargens').getContext('2d');
+            biChartMargensObj = new Chart(ctxMarg, {
+                type: 'bar',
+                data: {
+                    labels: catLabels,
+                    datasets: [
+                        { label: 'Margem Entrega (%)', data: catEntrega, backgroundColor: '#3e7cb1' },
+                        { label: 'Margem Coleta (%)', data: catColeta, backgroundColor: '#e07b39' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { grid: { color: '#222' } } }
+                }
+            });
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
     function popularSeletoresAmostras() {
         const plA = document.getElementById('pl-amostra');

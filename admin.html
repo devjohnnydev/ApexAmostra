@@ -111,6 +111,10 @@
                     <i class="fa-solid fa-warehouse"></i>
                     <span>Estoque Inteligente</span>
                 </a>
+                <a href="#" class="nav-item" data-target="bi-view" id="nav-bi">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Central BI (Analytics)</span>
+                </a>
                 <a href="#" class="nav-item" data-target="usuarios-view" id="nav-usuarios">
                     <i class="fa-solid fa-users-cog"></i>
                     <span>Usuários & PCP</span>
@@ -1653,6 +1657,80 @@
                                 <!-- JS populated -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 6.5. CENTRAL BI (ANALYTICS)
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="bi-view" class="view-section">
+                <header class="section-header">
+                    <h1><i class="fa-solid fa-chart-pie"></i> Central de Inteligência ApexTech (BI)</h1>
+                    <p>Mapeamento de desempenho industrial, financeiro, perdas e rentabilidade geral de compras.</p>
+                </header>
+
+                <!-- KPI Cards BI -->
+                <div class="kpi-grid" style="margin-bottom:25px;">
+                    <div class="estoque-card" style="--mc:#3e7cb1;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Total de Material Comprado</span>
+                        <h2 style="margin:5px 0 0; color:#fff;" id="bi-kpi-peso-total">0 kg</h2>
+                        <div style="font-size:0.8rem; color:#3e7cb1; margin-top:5px;">Soma do peso de todos os lotes</div>
+                    </div>
+                    <div class="estoque-card" style="--mc:#2AD07A;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Faturamento Projetado</span>
+                        <h2 style="margin:5px 0 0; color:#fff;" id="bi-kpi-faturamento">R$ 0,00</h2>
+                        <div style="font-size:0.8rem; color:#2AD07A; margin-top:5px;">Receita de venda de recuperados</div>
+                    </div>
+                    <div class="estoque-card" style="--mc:#e07b39;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Lucro Bruto Consolidado</span>
+                        <h2 style="margin:5px 0 0; color:#fff;" id="bi-kpi-lucro">R$ 0,00</h2>
+                        <div style="font-size:0.8rem; color:#e07b39; margin-top:5px;">Total venda - Total compra</div>
+                    </div>
+                    <div class="estoque-card" style="--mc:#a8c5a0;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Margem Operacional Média</span>
+                        <h2 style="margin:5px 0 0; color:#fff;" id="bi-kpi-margem">0.00 %</h2>
+                        <div style="font-size:0.8rem; color:#a8c5a0; margin-top:5px;">Retorno sobre faturamento</div>
+                    </div>
+                    <div class="estoque-card" style="--mc:#ff4d4d;">
+                        <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">Taxa de Perda Industrial</span>
+                        <h2 style="margin:5px 0 0; color:#fff;" id="bi-kpi-perda">0.00 %</h2>
+                        <div style="font-size:0.8rem; color:#ff4d4d; margin-top:5px;">Descarte físico/Resíduos médios</div>
+                    </div>
+                </div>
+
+                <!-- BI Charts Layout -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px; margin-bottom:25px;">
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <h3>Evolução Mensal (Compra × Venda × Lucro)</h3>
+                        <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Histórico financeiro dos lotes por mês</p>
+                        <div class="chart-container" style="height:280px; position:relative;">
+                            <canvas id="biChartEvolucao"></canvas>
+                        </div>
+                    </div>
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <h3>Composição das Amostras (Distribuição %)</h3>
+                        <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Proporção média de materiais recuperados</p>
+                        <div class="chart-container" style="height:280px; position:relative;">
+                            <canvas id="biChartComposicao"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:25px;">
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <h3>Ranking de Fornecedores por Resultado</h3>
+                        <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Comparativo de volume e lucro gerado</p>
+                        <div class="chart-container" style="height:280px; position:relative;">
+                            <canvas id="biChartFornecedores"></canvas>
+                        </div>
+                    </div>
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <h3>Diferencial Coletar vs Entregar</h3>
+                        <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Margem média de compra (%) por categoria de material</p>
+                        <div class="chart-container" style="height:280px; position:relative;">
+                            <canvas id="biChartMargens"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
