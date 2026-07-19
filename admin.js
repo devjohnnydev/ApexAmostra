@@ -4483,13 +4483,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnLiberar = document.getElementById('btn-liberar-pcp');
         const btnProcessar = document.getElementById('btn-processar-pcp');
 
-        btnLiberar.style.display = 'none';
-        btnProcessar.style.display = 'none';
+        if (btnLiberar) btnLiberar.style.display = 'none';
+        if (btnProcessar) btnProcessar.style.display = 'none';
 
         if (status === 'Aguardando Liberação PCP') {
-            btnLiberar.style.display = '';
+            if (btnLiberar) btnLiberar.style.display = '';
         } else if (status === 'Liberado para Produção') {
-            btnProcessar.style.display = '';
+            if (btnProcessar) btnProcessar.style.display = '';
         }
     }
 
@@ -4806,232 +4806,371 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             const { amostra, componentes } = data;
 
-            // Busca lote correspondente no planejamento para detalhes financeiros
             const resPlan = await fetch('/api/planejamento-compras');
             const planList = await resPlan.json();
             const lote = planList.find(x => x.amostra_id === amostra.id);
 
+            // Carregar logo como base64
+            let logoBase64 = null;
+            try {
+                const logoRes = await fetch('/assets/img/apexlogo.png');
+                const logoBlob = await logoRes.blob();
+                logoBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(logoBlob);
+                });
+            } catch(e) { console.warn('Logo nao carregado:', e); }
+
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
 
-            // 1. Cabeçalho Corporativo Premium APEXTECH METAIS
-            pdf.setFillColor(10, 35, 66); // Azul Escuro #0A2342
-            pdf.rect(0, 0, 210, 38, 'F');
+            // Paleta de cores da empresa
+            const VERDE_ESCURO = [13, 36, 22];
+            const VERDE_VIVO   = [42, 208, 122];
+            const BRANCO       = [255, 255, 255];
+            const CINZA_TEXTO  = [50, 50, 50];
 
-            // Linha decorativa dourada/azul clara
-            pdf.setFillColor(62, 124, 177); // Azul Claro #3E7CB1
-            pdf.rect(0, 38, 210, 2, 'F');
+            function drawWatermark() {
+                if (logoBase64) {
+                    try {
+                        pdf.saveGraphicsState();
+                        pdf.setGState(new pdf.GState({ opacity: 0.05 }));
+                        pdf.addImage(logoBase64, 'PNG', 35, 100, 140, 46, '', 'FAST');
+                        pdf.restoreGraphicsState();
+                    } catch(e) {}
+                }
+                // Texto diagonal
+                pdf.saveGraphicsState();
+                pdf.setGState(new pdf.GState({ opacity: 0.04 }));
+                pdf.setTextColor(42, 208, 122);
+                pdf.setFontSize(42);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('APEXTECH METAIS', 105, 195, { angle: 45, align: 'center' });
+                pdf.restoreGraphicsState();
+            }
 
-            pdf.setTextColor(255, 255, 255);
+            function drawFooter(pageNum) {
+                pdf.setFillColor(13, 36, 22);
+                pdf.rect(0, 283, 210, 14, 'F');
+                pdf.setFillColor(42, 208, 122);
+                pdf.rect(0, 283, 210, 1.5, 'F');
+                pdf.setTextColor(42, 208, 122);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(7.5);
+                pdf.text('APEXTECH METAIS', 15, 289);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(140, 210, 160);
+                pdf.text('Tecnologia e Sustentabilidade na Reciclagem de Metais', 60, 289);
+                pdf.setTextColor(255, 255, 255);
+                pdf.text('Pagina ' + pageNum, 195, 289, { align: 'right' });
+                pdf.setFontSize(7);
+                pdf.setTextColor(120, 180, 140);
+                pdf.text('Laudo No. APX-' + (amostra.numero_amostra || '') + '  |  ' + new Date().toLocaleDateString('pt-BR'), 15, 293);
+            }
+
+            function drawHeader() {
+                pdf.setFillColor(13, 36, 22);
+                pdf.rect(0, 0, 210, 42, 'F');
+                pdf.setFillColor(42, 208, 122);
+                pdf.rect(0, 42, 210, 2.5, 'F');
+
+                if (logoBase64) {
+                    try { pdf.addImage(logoBase64, 'PNG', 10, 5, 68, 23, '', 'FAST'); } catch(e) {}
+                } else {
+                    pdf.setTextColor(42, 208, 122);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(20);
+                    pdf.text('APEXTECH METAIS', 15, 20);
+                }
+
+                pdf.setTextColor(140, 210, 160);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(7.5);
+                pdf.text('TECNOLOGIA E SUSTENTABILIDADE NA RECICLAGEM DE METAIS', 15, 32);
+                pdf.text('www.apextechmetais.com.br  |  sac@apextechmetais.com.br', 15, 37);
+
+                pdf.setTextColor(42, 208, 122);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(10);
+                pdf.text('No. LAUDO: APX-' + (amostra.numero_amostra || ''), 195, 14, { align: 'right' });
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(8);
+                pdf.setTextColor(255, 255, 255);
+                pdf.text('EMISSAO: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
+                const decStatus = amostra.decisao_diretoria || 'AGUARDANDO';
+                const sc = decStatus === 'Aprovado' ? [42, 208, 122] : decStatus === 'Reprovado' ? [255, 80, 80] : [220, 200, 60];
+                pdf.setTextColor(...sc);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(decStatus.toUpperCase(), 195, 26, { align: 'right' });
+            }
+
+            // === PAGINA 1 ===
+            drawWatermark();
+            drawHeader();
+            drawFooter(1);
+
+            let y = 54;
+
+            // Dados Gerais
+            pdf.setFillColor(13, 36, 22);
+            pdf.rect(15, y, 180, 8, 'F');
+            pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(22);
-            pdf.text('APEXTECH METAIS', 15, 16);
-            
-            pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(9);
-            pdf.text('TECNOLOGIA E SUSTENTABILIDADE NA RECICLAGEM DE METAIS', 15, 22);
-            pdf.setFontSize(8);
-            pdf.text('Divisão Laboratorial e Controle de Qualidade de Lotes', 15, 28);
-            pdf.text('www.apextechmetais.com.br | sac@apextechmetais.com.br', 15, 32);
+            pdf.text('DADOS GERAIS DO LOTE / FORNECEDOR', 17, y + 5.5);
+            y += 12;
 
-            // Código do laudo no topo direito
+            pdf.setFontSize(8.5);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(10);
-            pdf.text(`Nº LAUDO: APX-${amostra.numero_amostra}`, 155, 16);
+            pdf.setTextColor(50, 50, 50);
+            pdf.text('Fornecedor:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(8);
-            pdf.text(`EMISSÃO: ${new Date().toLocaleDateString('pt-BR')}`, 155, 22);
-            pdf.text('STATUS: CERTIFICADO', 155, 26);
-
-            // 2. Metadados do Lote
-            pdf.setTextColor(10, 35, 66);
-            pdf.setFontSize(11);
+            pdf.text((amostra.fornecedor_nome || '---').toUpperCase(), 45, y);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('DADOS GERAIS DO LOTE / FORNECEDOR', 15, 52);
-            pdf.line(15, 54, 195, 54);
-
-            pdf.setTextColor(58, 58, 58);
-            pdf.setFontSize(9);
+            pdf.text('Data:', 138, y);
             pdf.setFont('helvetica', 'normal');
-            pdf.text(`Razão Social / Fornecedor: ${amostra.fornecedor_nome.toUpperCase()}`, 15, 60);
-            pdf.text(`Responsável Técnico: ${amostra.responsavel}`, 15, 66);
-            pdf.text(`Data de Recebimento: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`, 155, 60);
-            pdf.text(`Peso Inicial Bruto: ${parseFloat(amostra.peso_inicial).toLocaleString('pt-BR')} kg`, 155, 66);
-
-            // 3. Tabela Técnica Alternada
-            pdf.setTextColor(10, 35, 66);
+            pdf.text(new Date(amostra.data).toLocaleDateString('pt-BR'), 150, y);
+            y += 6;
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(11);
-            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 15, 80);
-            pdf.line(15, 82, 195, 82);
+            pdf.text('Responsavel:', 17, y);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(amostra.responsavel || '---', 50, y);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Peso Inicial:', 138, y);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(parseFloat(amostra.peso_inicial || 0).toLocaleString('pt-BR') + ' kg', 160, y);
+            y += 6;
+            if (amostra.observacoes) {
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Obs:', 17, y);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(pdf.splitTextToSize(amostra.observacoes, 155)[0], 30, y);
+                y += 6;
+            }
+            y += 2;
 
-            pdf.setFillColor(30, 78, 140); // Azul Médio #1E4E8C
-            pdf.rect(15, 86, 180, 8, 'F');
-            pdf.setTextColor(255, 255, 255);
+            // Divisor
+            pdf.setDrawColor(42, 208, 122);
+            pdf.setLineWidth(0.5);
+            pdf.line(15, y, 195, y);
+            y += 6;
+
+            // Tabela de componentes
+            pdf.setFillColor(13, 36, 22);
+            pdf.rect(15, y, 180, 8, 'F');
+            pdf.setTextColor(42, 208, 122);
+            pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('Item / Material Recuperado', 18, 91);
-            pdf.text('Peso Líquido', 115, 91);
-            pdf.text('Rendimento (%)', 155, 91);
+            pdf.text('RESULTADO DA ANALISE FISICA E DESMONTE', 17, y + 5.5);
+            y += 12;
 
-            let y = 98;
+            pdf.setFillColor(20, 60, 35);
+            pdf.rect(15, y, 180, 7, 'F');
+            pdf.setTextColor(42, 208, 122);
+            pdf.setFontSize(8.5);
+            pdf.text('Material Recuperado', 18, y + 4.8);
+            pdf.text('Peso Liq.', 110, y + 4.8);
+            pdf.text('Rendimento', 145, y + 4.8);
+            pdf.text('Dificuldade', 170, y + 4.8);
+            y += 8;
+
             let sumPeso = 0;
-            pdf.setTextColor(58, 58, 58);
             pdf.setFont('helvetica', 'normal');
-            
             componentes.forEach((c, idx) => {
-                // Alternar cores de fundo da linha
                 if (idx % 2 === 0) {
-                    pdf.setFillColor(244, 246, 248); // Cinza Claro #F4F6F8
+                    pdf.setFillColor(238, 250, 242);
                     pdf.rect(15, y - 4, 180, 7, 'F');
                 }
-                pdf.text(`${c.material_nome} (${c.material_categoria})`, 18, y);
-                pdf.text(`${parseFloat(c.peso).toLocaleString('pt-BR')} kg`, 115, y);
-                pdf.text(`${parseFloat(c.percentual).toFixed(2)} %`, 155, y);
+                pdf.setTextColor(50, 50, 50);
+                pdf.setFontSize(8.5);
+                pdf.text((c.material_nome || '?') + ' (' + (c.material_categoria || '') + ')', 18, y);
+                pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, y);
+                pdf.text(parseFloat(c.percentual).toFixed(2) + ' %', 148, y);
+                if (c.dificuldade) {
+                    const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Media' ? [180,130,0] : [30,130,60];
+                    pdf.setTextColor(...dc);
+                    pdf.setFontSize(7.5);
+                    pdf.text(c.dificuldade, 172, y);
+                }
                 sumPeso += parseFloat(c.peso);
                 y += 7;
             });
 
-            // Linha de Resíduo/Perda
+            // Linha de perda
             const perda = parseFloat(amostra.peso_inicial) - sumPeso;
-            const pctPerda = (perda / parseFloat(amostra.peso_inicial)) * 100;
-            
-            pdf.setFillColor(240, 240, 240);
+            const pctPerda = parseFloat(amostra.peso_inicial) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
+            pdf.setFillColor(255, 240, 240);
             pdf.rect(15, y - 4, 180, 7, 'F');
+            pdf.setTextColor(180, 40, 40);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('Resíduos Industriais / Perda Física', 18, y);
-            pdf.text(`${perda.toLocaleString('pt-BR')} kg`, 115, y);
-            pdf.text(`${pctPerda.toFixed(2)} %`, 155, y);
+            pdf.setFontSize(8.5);
+            pdf.text('Residuos Industriais / Perda Fisica', 18, y);
+            pdf.text(perda.toLocaleString('pt-BR') + ' kg', 110, y);
+            pdf.text(pctPerda.toFixed(2) + ' %', 148, y);
+            y += 10;
 
-            // 4. Fórmula Química de Composição
-            y += 15;
-            pdf.setFillColor(10, 35, 66); // Azul Escuro
-            pdf.rect(15, y, 180, 18, 'F');
-            pdf.setTextColor(255, 255, 255);
+            // Formula quimica
+            pdf.setFillColor(13, 36, 22);
+            pdf.rect(15, y, 180, 16, 'F');
+            pdf.setTextColor(42, 208, 122);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8.5);
+            pdf.text('COMPOSICAO CONSOLIDADA:', 18, y + 5.5);
+            pdf.setFont('courier', 'normal');
+            pdf.setTextColor(170, 255, 200);
+            pdf.setFontSize(7.5);
+            const fstr = componentes.map(c => parseFloat(c.percentual).toFixed(1) + '% ' + (c.material_nome || '?').toUpperCase()).join('  -  ');
+            pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 12);
+            y += 20;
+
+            if (amostra.tempo_desmonte) {
+                const min = Math.floor(parseInt(amostra.tempo_desmonte) / 60);
+                const seg = parseInt(amostra.tempo_desmonte) % 60;
+                pdf.setTextColor(13, 90, 40);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(8.5);
+                pdf.text('Tempo de Desmonte: ' + String(min).padStart(2,'0') + 'h ' + String(seg).padStart(2,'0') + 'min', 17, y);
+                y += 8;
+            }
+
+            y += 3;
+            // Pareceres
+            pdf.setFillColor(13, 36, 22);
+            pdf.rect(15, y, 180, 8, 'F');
+            pdf.setTextColor(42, 208, 122);
+            pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('COMPOSIÇÃO CONSOLIDADA DA AMOSTRA (FÓRMULA):', 20, y + 6);
-            
-            pdf.setTextColor(42, 208, 122); // Verde Neon
-            pdf.setFont('courier', 'bold');
-            pdf.setFontSize(9);
-            const formulaStr = componentes.map(c => `${parseFloat(c.percentual).toFixed(1)}% ${c.material_nome.toUpperCase()}`).join(' · ');
-            pdf.text(formulaStr, 20, y + 12);
+            pdf.text('PARECERES TECNICO E DECISAO DE COMPRA', 17, y + 5.5);
+            y += 12;
 
-            // 5. Seção de Pareceres - Técnico e Diretoria
-            y += 26;
-            pdf.setTextColor(10, 35, 66);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(11);
-            pdf.text('PARECERES TÉCNICO E DECISÃO DE COMPRA', 15, y);
-            pdf.line(15, y + 2, 195, y + 2);
-            y += 8;
-
-            // Parecer Técnico
-            pdf.setFillColor(240, 245, 255);
+            // Parecer tecnico
+            pdf.setFillColor(235, 248, 240);
             pdf.rect(15, y, 180, 22, 'F');
-            pdf.setDrawColor(30, 78, 140);
+            pdf.setFillColor(42, 140, 80);
+            pdf.rect(15, y, 4, 22, 'F');
+            pdf.setDrawColor(42, 140, 80);
             pdf.setLineWidth(0.3);
             pdf.rect(15, y, 180, 22);
-            pdf.setTextColor(30, 78, 140);
+            pdf.setTextColor(10, 70, 30);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(8.5);
-            pdf.text('PARECER TÉCNICO (LABORATÓRIO):', 18, y + 6);
+            pdf.setFontSize(8);
+            pdf.text('PARECER TECNICO (LABORATORIO):', 22, y + 6);
             pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(58, 58, 58);
-            const parecerTec = amostra.parecer_tecnico || '(não informado)';
-            const parecerTecLines = pdf.splitTextToSize(parecerTec, 170);
-            pdf.text(parecerTecLines.slice(0, 2), 18, y + 12);
+            pdf.setTextColor(50, 50, 50);
+            const pt = amostra.parecer_tecnico || '(nao preenchido)';
+            pdf.text(pdf.splitTextToSize(pt, 168).slice(0, 2), 22, y + 13);
             y += 26;
 
-            // Decisão da Diretoria
+            // Decisao diretoria
             const decAprovada = amostra.decisao_diretoria === 'Aprovado';
-            const decColor = decAprovada ? [42, 168, 98] : (amostra.decisao_diretoria === 'Reprovado' ? [200, 50, 50] : [100, 100, 100]);
-            pdf.setFillColor(decAprovada ? 245 : 255, decAprovada ? 255 : 245, decAprovada ? 245 : 245);
-            pdf.rect(15, y, 180, 28, 'F');
-            pdf.setDrawColor(...decColor);
-            pdf.setLineWidth(0.5);
-            pdf.rect(15, y, 180, 28);
-            pdf.setTextColor(...decColor);
+            const isReprov = amostra.decisao_diretoria === 'Reprovado';
+            const bgDec = decAprovada ? [235, 252, 240] : isReprov ? [252, 235, 235] : [248, 248, 235];
+            const barDec = decAprovada ? [42, 168, 80] : isReprov ? [180, 40, 40] : [150, 140, 40];
+            const txtDec = decAprovada ? [10, 70, 30] : isReprov ? [130, 20, 20] : [80, 70, 10];
+
+            pdf.setFillColor(...bgDec);
+            pdf.rect(15, y, 180, 32, 'F');
+            pdf.setFillColor(...barDec);
+            pdf.rect(15, y, 4, 32, 'F');
+            pdf.setDrawColor(...barDec);
+            pdf.setLineWidth(0.3);
+            pdf.rect(15, y, 180, 32);
+            pdf.setTextColor(...txtDec);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            const decStr = `DECISÃO DA DIRETORIA: ${(amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase()}`;
-            pdf.text(decStr, 18, y + 6);
+            pdf.text('DECISAO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 7);
             pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(58, 58, 58);
+            pdf.setTextColor(50, 50, 50);
+            pdf.setFontSize(8);
+            let dy = y + 14;
             if (amostra.obs_diretoria) {
-                const obsLines = pdf.splitTextToSize(`Obs: ${amostra.obs_diretoria}`, 170);
-                pdf.text(obsLines.slice(0, 2), 18, y + 12);
+                pdf.text(pdf.splitTextToSize('Obs: ' + amostra.obs_diretoria, 168).slice(0,1), 22, dy);
+                dy += 6;
             }
             if (amostra.motivo_reprovacao) {
-                pdf.setTextColor(180, 40, 40);
-                pdf.text(`Motivo da Reprovação: ${amostra.motivo_reprovacao}`, 18, y + 20);
+                pdf.setTextColor(160, 30, 30);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Motivo da Reprovacao: ' + amostra.motivo_reprovacao, 22, dy);
+                dy += 6;
             }
             if (decAprovada && amostra.preco_compra_entregar) {
-                pdf.setTextColor(30, 130, 60);
-                pdf.text(`Preço Autorizado - Entregar: R$ ${parseFloat(amostra.preco_compra_entregar).toFixed(2)}/kg | Coletar: R$ ${parseFloat(amostra.preco_compra_coletar||0).toFixed(2)}/kg`, 18, y + 20);
-                const valFmt = amostra.preco_validade ? new Date(amostra.preco_validade).toLocaleDateString('pt-BR') : '--';
-                pdf.text(`Válido até: ${valFmt}   |   Autorizado por: ${amostra.autorizado_por || 'Diretoria'}`, 18, y + 26);
-            }
-            y += 34;
-
-            // 6. Módulo Financeiro Integrado (Visível para todos exceto Laboratório)
-            if (currentSimulatedRole !== 'Laboratório' && lote) {
-
-                y += 26;
-                pdf.setTextColor(10, 35, 66);
+                pdf.setTextColor(10, 100, 40);
                 pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(11);
-                pdf.text('RESUMO DESEMPENHO E MOTOR FINANCEIRO DO LOTE', 15, y);
-                pdf.line(15, y + 2, 195, y + 2);
+                pdf.text('Preco Autorizado - Entregar: R$ ' + parseFloat(amostra.preco_compra_entregar).toFixed(2) + '/kg  |  Coletar: R$ ' + parseFloat(amostra.preco_compra_coletar || 0).toFixed(2) + '/kg', 22, dy);
+                dy += 6;
+                const vf = amostra.preco_validade ? new Date(amostra.preco_validade).toLocaleDateString('pt-BR') : '--';
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(50, 50, 50);
+                pdf.text('Valido ate: ' + vf + '   |   Autorizado por: ' + (amostra.autorizado_por || 'Diretoria'), 22, dy);
+            }
+            y += 36;
+
+            // Modulo financeiro
+            if (currentSimulatedRole !== 'Laboratorio' && lote) {
+                y += 4;
+                pdf.setFillColor(13, 36, 22);
+                pdf.rect(15, y, 180, 8, 'F');
+                pdf.setTextColor(42, 208, 122);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(9);
+                pdf.text('RESUMO FINANCEIRO DO LOTE', 17, y + 5.5);
+                y += 12;
 
                 const totalCompra = parseFloat(lote.peso_comprado) * parseFloat(lote.preco_compra);
                 const totalVenda = (parseFloat(lote.peso_comprado) * (parseFloat(lote.percentual_rendimento) / 100)) * parseFloat(lote.preco_venda_material);
                 const lucroB = totalVenda - totalCompra;
                 const margemBruta = totalVenda > 0 ? (lucroB / totalVenda) * 100 : 0;
 
-                y += 8;
-                pdf.setFillColor(244, 246, 248);
+                pdf.setFillColor(238, 250, 242);
                 pdf.rect(15, y, 180, 20, 'F');
-
-                pdf.setTextColor(58, 58, 58);
+                pdf.setTextColor(50, 50, 50);
                 pdf.setFontSize(8.5);
                 pdf.setFont('helvetica', 'normal');
-                pdf.text(`Investimento Compra: R$ ${totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}`, 18, y + 6);
-                pdf.text(`Faturamento Projetado: R$ ${totalVenda.toLocaleString('pt-BR', {minimumFractionDigits:2})}`, 18, y + 12);
-                
+                pdf.text('Investimento Compra: R$ ' + totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2}), 18, y + 6);
+                pdf.text('Faturamento Projetado: R$ ' + totalVenda.toLocaleString('pt-BR', {minimumFractionDigits:2}), 18, y + 12);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text(`Lucro Projetado: R$ ${lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2})}`, 110, y + 6);
-                pdf.text(`Margem Bruta Lote: ${margemBruta.toFixed(2)} %`, 110, y + 12);
+                pdf.setTextColor(10, 100, 40);
+                pdf.text('Lucro Projetado: R$ ' + lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2}), 115, y + 6);
+                pdf.text('Margem Bruta: ' + margemBruta.toFixed(2) + ' %', 115, y + 12);
+                y += 26;
             }
 
-            // 6. Rodapé com Assinatura e QR Code Mockado
+            // Rodape com assinatura
+            const sigY = 260;
+            pdf.setDrawColor(80, 160, 100);
+            pdf.setLineWidth(0.4);
+            pdf.line(17, sigY, 97, sigY);
+            pdf.line(115, sigY, 195, sigY);
+            pdf.setTextColor(80, 80, 80);
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(7.5);
-            pdf.setTextColor(150, 150, 150);
-            pdf.text('Laudo técnico gerado automaticamente pelo sistema integrado APEXTECH METAIS ERP.', 15, 260);
-            pdf.text('A chave digital confirma a veracidade das informações apresentadas.', 15, 264);
+            pdf.text('RESPONSAVEL TECNICO / ANALISTA', 20, sigY + 4);
+            pdf.text('DIRETOR / APROVADOR', 120, sigY + 4);
+            pdf.setFontSize(7);
+            pdf.setTextColor(130, 130, 130);
+            pdf.text('Laudo gerado automaticamente pelo sistema APEXTECH METAIS ERP.', 15, sigY + 13);
+            pdf.text('Nao valido sem aprovacao da Diretoria.', 15, sigY + 17);
 
-            // Desenhar Linha de Assinatura
-            pdf.setDrawColor(150, 150, 150);
-            pdf.line(15, 242, 90, 242);
-            pdf.text('ASSINATURA DO CONTROLADOR DE QUALIDADE', 24, 247);
-
-            // Desenhar QR Code Simulado
-            pdf.setDrawColor(10, 35, 66);
+            // QR Code decorativo
             pdf.setFillColor(255, 255, 255);
-            pdf.rect(155, 225, 25, 25, 'FD');
-            pdf.setFillColor(10, 35, 66);
-            // Desenhar padrão de blocos
-            pdf.rect(157, 227, 8, 8, 'F');
-            pdf.rect(170, 227, 8, 8, 'F');
-            pdf.rect(157, 240, 8, 8, 'F');
-            pdf.rect(167, 237, 4, 4, 'F');
-            pdf.rect(172, 242, 6, 6, 'F');
+            pdf.setDrawColor(13, 36, 22);
+            pdf.setLineWidth(0.5);
+            pdf.rect(155, 247, 30, 30, 'FD');
+            pdf.setFillColor(13, 36, 22);
+            pdf.rect(157, 249, 9, 9, 'F'); pdf.rect(171, 249, 9, 9, 'F'); pdf.rect(157, 263, 9, 9, 'F');
+            pdf.setFillColor(42, 208, 122);
+            pdf.rect(159, 251, 5, 5, 'F'); pdf.rect(173, 251, 5, 5, 'F'); pdf.rect(159, 265, 5, 5, 'F');
+            pdf.rect(169, 259, 4, 4, 'F'); pdf.rect(175, 261, 5, 5, 'F');
+            pdf.setTextColor(13, 36, 22);
+            pdf.setFontSize(5.5);
+            pdf.text('CODIGO DE VERIFICACAO', 155, 280);
 
-            // Save PDF
-            pdf.save(`LAUDO_TECNICO_${amostra.numero_amostra}.pdf`);
+            pdf.save('LAUDO_APEXTECH_' + (amostra.numero_amostra || 'PDF') + '.pdf');
+
         } catch (err) {
             console.error('Erro ao gerar laudo PDF:', err);
+            alert('Erro ao gerar o laudo. Tente novamente.');
         }
     };
 
