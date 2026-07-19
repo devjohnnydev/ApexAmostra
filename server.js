@@ -298,6 +298,15 @@ async function initDatabase() {
                 nome      TEXT NOT NULL,
                 criado_em TIMESTAMP DEFAULT NOW()
             );
+
+            -- Alterar tabelas existentes para adicionar novas colunas do fluxo de desmonte e decisão da diretoria
+            ALTER TABLE componentes_amostra ADD COLUMN IF NOT EXISTS foto TEXT;
+            ALTER TABLE componentes_amostra ADD COLUMN IF NOT EXISTS dificuldade TEXT;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS tempo_desmonte INTEGER DEFAULT 0;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS parecer_tecnico TEXT;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS decisao_diretoria TEXT DEFAULT 'Aguardando';
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS motivo_reprovacao TEXT;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS data_decisao TIMESTAMP;
         `);
 
         // Semeando fornecedores e amostras
@@ -854,19 +863,27 @@ app.post('/api/amostras', async (req, res) => {
 app.post('/api/amostras/:id/componentes', async (req, res) => {
     try {
         const amostra_id = parseInt(req.params.id);
-        const { componentes } = req.body; // array of { material_id, peso, percentual, observacoes }
+        const { componentes, tempo_desmonte, parecer_tecnico } = req.body; // componentes: array of { material_id, peso, percentual, observacoes, foto, dificuldade }
 
         if (dbAvailable) {
+            // Delete old components
             await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=$1', [amostra_id]);
+            
+            // Insert new components with foto and dificuldade
             for (const c of componentes) {
                 await pool.query(
-                    `INSERT INTO componentes_amostra (amostra_id, material_id, peso, percentual, observacoes)
-                     VALUES ($1, $2, $3, $4, $5)`,
-                    [amostra_id, c.material_id, c.peso, c.percentual, c.observacoes]
+                    `INSERT INTO componentes_amostra (amostra_id, material_id, peso, percentual, observacoes, foto, dificuldade)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                    [amostra_id, c.material_id, c.peso, c.percentual, c.observacoes, c.foto || '', c.dificuldade || 'Fácil']
                 );
             }
-            // Atualiza status se estava em análise
-            await pool.query("UPDATE amostras SET status = 'Aguardando Precificação' WHERE id = $1 AND status = 'Em Análise'", [amostra_id]);
+            // Update sample info: tempo, parecer and status
+            await pool.query(
+                `UPDATE amostras 
+                 SET tempo_desmonte = $1, parecer_tecnico = $2, status = 'Aguardando Decisão de Compra' 
+                 WHERE id = $3`,
+                [parseInt(tempo_desmonte) || 0, parecer_tecnico || '', amostra_id]
+            );
         } else {
             memStore.componentes_amostra = memStore.componentes_amostra.filter(x => x.amostra_id !== amostra_id);
             for (const c of componentes) {
@@ -876,17 +893,22 @@ app.post('/api/amostras/:id/componentes', async (req, res) => {
                     material_id: parseInt(c.material_id),
                     peso: parseFloat(c.peso),
                     percentual: parseFloat(c.percentual),
-                    observacoes: c.observacoes
+                    observacoes: c.observacoes,
+                    foto: c.foto || '',
+                    dificuldade: c.dificuldade || 'Fácil'
                 });
             }
             const a = memStore.amostras.find(x => x.id === amostra_id);
-            if (a && a.status === 'Em Análise') {
-                a.status = 'Aguardando Precificação';
+            if (a) {
+                a.tempo_desmonte = parseInt(tempo_desmonte) || 0;
+                a.parecer_tecnico = parecer_tecnico || '';
+                a.status = 'Aguardando Decisão de Compra';
             }
         }
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao salvar componentes.' });
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao salvar componentes e parecer técnico.' });
     }
 });
 
@@ -949,6 +971,64 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
         res.json({ success: true, status });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao atualizar status e estoque.' });
+    }
+});
+
+// Decisão da Diretoria (Comprar / Não Comprar)
+app.patch('/api/amostras/:id/decisao', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { decisao_diretoria, motivo_reprovacao, user_perfil } = req.body;
+
+        if (user_perfil !== 'Administrador' && user_perfil !== 'Diretoria') {
+            return res.status(403).json({ error: 'Apenas a Diretoria ou Administrador pode tomar esta decisão.' });
+        }
+
+        const status = decisao_diretoria === 'Aprovado' ? 'Aguardando Precificação' : 'Reprovado';
+
+        if (dbAvailable) {
+            await pool.query(
+                `UPDATE amostras 
+                 SET decisao_diretoria=$1, motivo_reprovacao=$2, status=$3, data_decisao=NOW() 
+                 WHERE id=$4`,
+                [decisao_diretoria, motivo_reprovacao || '', status, id]
+            );
+        } else {
+            const a = memStore.amostras.find(x => x.id === id);
+            if (!a) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            a.decisao_diretoria = decisao_diretoria;
+            a.motivo_reprovacao = motivo_reprovacao || '';
+            a.status = status;
+            a.data_decisao = new Date().toISOString();
+        }
+        res.json({ success: true, status, decisao_diretoria });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao salvar decisão da diretoria.' });
+    }
+});
+
+// Exclusão de Amostra restrita a ADM e Diretoria
+app.delete('/api/amostras/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { user_perfil } = req.query;
+
+        if (user_perfil !== 'Administrador' && user_perfil !== 'Diretoria') {
+            return res.status(403).json({ error: 'Apenas o Administrador ou Diretoria pode excluir registros.' });
+        }
+
+        if (dbAvailable) {
+            await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=$1', [id]);
+            await pool.query('DELETE FROM amostras WHERE id=$1', [id]);
+        } else {
+            memStore.componentes_amostra = memStore.componentes_amostra.filter(x => x.amostra_id !== id);
+            memStore.amostras = memStore.amostras.filter(x => x.id !== id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao excluir amostra.' });
     }
 });
 
