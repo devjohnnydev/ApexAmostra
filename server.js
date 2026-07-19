@@ -300,40 +300,13 @@ async function initDatabase() {
             );
         `);
 
-        // Semeando dados padrão caso fornecedores esteja vazia
+        // Semeando fornecedores e amostras
         const { rowCount: fCount } = await client.query('SELECT 1 FROM fornecedores LIMIT 1');
         if (fCount === 0) {
             await client.query(`
                 INSERT INTO fornecedores (razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes)
                 VALUES ('Davi Reciclagem de Metais LTDA', 'davi', '12.345.678/0001-99', 'Davi', '(11) 98765-4321', 'davi@apextech.com', 'Av. da Reciclagem, 1000', 'Fornecedor Parceiro LME');
             `);
-
-            // Seed materiais_catalogo
-            const mats = memStore.materiais_catalogo;
-            for (const m of mats) {
-                await client.query(`
-                    INSERT INTO materiais_catalogo (id, nome, unidade, categoria, cor, ncm, observacoes)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING;
-                `, [m.id, m.nome, m.unidade, m.categoria, m.cor, m.ncm, m.observacoes]);
-            }
-
-            // Seed tabela_precos
-            const precos = memStore.tabela_precos;
-            for (const p of precos) {
-                await client.query(`
-                    INSERT INTO tabela_precos (id, material_id, preco_entregar, preco_coletar, venda_ref, validade)
-                    VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING;
-                `, [p.id, p.material_id, p.preco_entregar, p.preco_coletar, p.venda_ref, p.validade]);
-            }
-
-            // Seed usuarios
-            const usrs = memStore.usuarios;
-            for (const u of usrs) {
-                await client.query(`
-                    INSERT INTO usuarios (id, "user", pass, perfil, nome)
-                    VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING;
-                `, [u.id, u.user, u.pass, u.perfil, u.nome]);
-            }
             
             // Seed amostras/lotes do Davi
             await client.query(`
@@ -358,15 +331,54 @@ async function initDatabase() {
                 INSERT INTO estoque (material_id, saldo) VALUES
                 (5, 3100),
                 (6, 8200),
-                (15, 13700);
+                (15, 13700) ON CONFLICT (material_id) DO NOTHING;
 
                 INSERT INTO movimentacoes_estoque (id, material_id, tipo, quantidade, motivo, data) VALUES
                 (1, 5, 'ENTRADA', 3100, 'Processamento da amostra AM-001', '2026-07-15'),
                 (2, 15, 'ENTRADA', 1900, 'Processamento da amostra AM-001', '2026-07-15'),
                 (3, 6, 'ENTRADA', 8200, 'Processamento da amostra AM-002', '2026-07-16'),
-                (4, 15, 'ENTRADA', 11800, 'Processamento da amostra AM-002', '2026-07-16');
+                (4, 15, 'ENTRADA', 11800, 'Processamento da amostra AM-002', '2026-07-16') ON CONFLICT (id) DO NOTHING;
             `);
-            console.log('✅ Dados padrão APEX semeados no banco.');
+            console.log('✅ Fornecedores e amostras semeados.');
+        }
+
+        // Seed materiais_catalogo
+        const { rowCount: mCount } = await client.query('SELECT 1 FROM materiais_catalogo LIMIT 1');
+        if (mCount === 0) {
+            const mats = memStore.materiais_catalogo;
+            for (const m of mats) {
+                await client.query(`
+                    INSERT INTO materiais_catalogo (id, nome, unidade, categoria, cor, ncm, observacoes)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING;
+                `, [m.id, m.nome, m.unidade, m.categoria, m.cor, m.ncm, m.observacoes]);
+            }
+            console.log('✅ Catálogo de materiais semeado.');
+        }
+
+        // Seed tabela_precos
+        const { rowCount: pCount } = await client.query('SELECT 1 FROM tabela_precos LIMIT 1');
+        if (pCount === 0) {
+            const precos = memStore.tabela_precos;
+            for (const p of precos) {
+                await client.query(`
+                    INSERT INTO tabela_precos (id, material_id, preco_entregar, preco_coletar, venda_ref, validade)
+                    VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING;
+                `, [p.id, p.material_id, p.preco_entregar, p.preco_coletar, p.venda_ref, p.validade]);
+            }
+            console.log('✅ Tabela de preços semeada.');
+        }
+
+        // Seed usuarios
+        const { rowCount: uCount } = await client.query('SELECT 1 FROM usuarios LIMIT 1');
+        if (uCount === 0) {
+            const usrs = memStore.usuarios;
+            for (const u of usrs) {
+                await client.query(`
+                    INSERT INTO usuarios (id, "user", pass, perfil, nome)
+                    VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING;
+                `, [u.id, u.user, u.pass, u.perfil, u.nome]);
+            }
+            console.log('✅ Usuários semeados.');
         }
 
         // Inserir soluções padrão se a tabela estiver vazia
