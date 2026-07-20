@@ -4275,6 +4275,249 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)');
     };
 
+    function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao) {
+        const categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        let html = `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #fff; max-width: 950px; margin: 0 auto; box-sizing: border-box;">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e4e8c; padding-bottom: 20px; margin-bottom: 25px;">
+                    <div>
+                        <img src="assets/img/apexlogo.png" alt="Apex Tech Metais" style="height: 60px;">
+                    </div>
+                    <div style="text-align: right;">
+                        <h1 style="margin: 0; color: #1e4e8c; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Tabela de Preços Vigente</h1>
+                        <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">Última Atualização: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
+                    </div>
+                </div>
+
+                <!-- Diretrizes -->
+                <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                        ⚠️ Diretrizes Gerais de Compra
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
+                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                        <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                    </ul>
+                </div>
+        `;
+
+        categorias.forEach(cat => {
+            const precosCat = precos.filter(p => p.material_categoria === cat);
+            if (precosCat.length === 0) return;
+
+            const validadeStr = precosCat[0] ? new Date(precosCat[0].validade).toLocaleDateString('pt-BR') : '-';
+
+            html += `
+                <div style="margin-bottom: 30px; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background: #1e4e8c; color: #fff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <span>${cat}</span>
+                        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
+                                <th style="padding: 10px; border: 1px solid #eee; font-weight: 600; color: #555;">Descrição</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Coletar (R$/kg)</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Venda Ref (R$/kg)</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #27ae60;">Lucro Ent.</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #27ae60;">Margem Ent. (%)</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2980b9;">Lucro Col.</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2980b9;">Margem Col. (%)</th>
+                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #e67e22;">Diferença (%)</th>
+                                <th style="padding: 10px; border: 1px solid #eee; font-weight: 600; color: #555;">NCM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            precosCat.forEach(p => {
+                const lucroEnt = p.venda_ref - p.preco_entregar;
+                const margemEnt = p.venda_ref > 0 ? (lucroEnt / p.venda_ref) * 100 : 0;
+                const lucroCol = p.venda_ref - p.preco_coletar;
+                const margemCol = p.venda_ref > 0 ? (lucroCol / p.venda_ref) * 100 : 0;
+                const dif = margemCol - margemEnt;
+
+                html += `
+                    <tr style="border-bottom: 1px solid #eee; background-color: #ffffff;">
+                        <td style="padding: 10px; border: 1px solid #eee; color: #222;"><strong>${p.material_nome}</strong></td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.preco_entregar).toFixed(2)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.preco_coletar).toFixed(2)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.venda_ref).toFixed(2)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #27ae60; background-color: #fafdfa;">R$ ${lucroEnt.toFixed(2)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #27ae60; background-color: #fafdfa;">${margemEnt.toFixed(2)}%</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #2980b9; background-color: #f7faff;">R$ ${lucroCol.toFixed(2)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #2980b9; background-color: #f7faff;">${margemCol.toFixed(2)}%</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #e67e22; background-color: #fffaf5;">${dif.toFixed(2)}%</td>
+                        <td style="padding: 10px; border: 1px solid #eee; color: #666;">${p.material_ncm || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                            <tr style="background: #fafafa;">
+                                <td colspan="10" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        });
+
+        // Footer with CEO Jose Tiago and date
+        html += `
+                <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555;">
+                    <div style="font-weight: bold; color: #1e4e8c; font-size: 0.95rem;">
+                        ✅ Aprovado pelo CEO Jose Tiago
+                    </div>
+                    <div style="text-align: right; color: #888;">
+                        Documento oficial Apex Tech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
+                    </div>
+                </div>
+            </div>
+        `;
+        return html;
+    }
+
+    window.gerarPdfTabelaPrecosBase64 = async function() {
+        let precos = localPrecos;
+        if (!precos || precos.length === 0) {
+            const res = await fetch('/api/tabela-precos');
+            precos = await res.json();
+        }
+        
+        let lastUpdate = '';
+        try {
+            const resSet = await fetch('/api/settings');
+            const settings = await resSet.json();
+            lastUpdate = settings.tabela_precos_ultima_atualizacao || '';
+        } catch (e) {
+            console.error(e);
+        }
+        if (!lastUpdate) {
+            const today = new Date();
+            lastUpdate = today.toLocaleDateString('pt-BR');
+        }
+
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '-9999px';
+        tempDiv.style.width = '1000px';
+        tempDiv.style.background = '#ffffff';
+        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate);
+        document.body.appendChild(tempDiv);
+
+        try {
+            await new Promise(r => setTimeout(r, 600));
+
+            const canvas = await html2canvas(tempDiv, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: false,
+                scrollY: 0,
+                windowHeight: tempDiv.scrollHeight,
+                height: tempDiv.scrollHeight,
+                width: tempDiv.scrollWidth
+            });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf;
+
+            const pdfWidthMm = 210;
+            const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: [pdfWidthMm, pdfHeightMm]
+            });
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+
+            return pdf.output('datauristring').split(',')[1];
+        } catch (err) {
+            console.error('Erro ao gerar base64 da tabela de preços:', err);
+            return null;
+        } finally {
+            document.body.removeChild(tempDiv);
+        }
+    };
+
+    window.exportarTabelaPrecosPdf = async function() {
+        const btn = document.querySelector('.btn-secondary[onclick="exportarTabelaPrecosPdf()"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF...';
+        }
+        try {
+            const base64 = await window.gerarPdfTabelaPrecosBase64();
+            if (!base64) {
+                alert('Erro ao gerar o PDF da tabela de preços.');
+                return;
+            }
+            const linkSource = `data:application/pdf;base64,${base64}`;
+            const downloadLink = document.createElement("a");
+            downloadLink.href = linkSource;
+            downloadLink.download = `Tabela_de_Precos_Vigente.pdf`;
+            downloadLink.click();
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao exportar PDF: ' + err.message);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Exportar PDF';
+            }
+        }
+    };
+
+    window.enviarTabelaPrecosEmail = async function() {
+        const testEmailMsg = document.getElementById('test-email-msg');
+        const btnPreco = document.querySelector('.btn-secondary[onclick="enviarTabelaPrecosEmail()"]');
+        const btnConfig = document.getElementById('btn-enviar-tabela-preco');
+        
+        const setUIState = (loading, msg = '', color = '#fff') => {
+            if (testEmailMsg) {
+                testEmailMsg.style.display = loading || msg ? 'block' : 'none';
+                testEmailMsg.style.color = color;
+                testEmailMsg.innerHTML = msg;
+            }
+            if (btnPreco) btnPreco.disabled = loading;
+            if (btnConfig) btnConfig.disabled = loading;
+        };
+
+        setUIState(true, '<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF e enviando e-mail...');
+
+        try {
+            const pdfBase64 = await window.gerarPdfTabelaPrecosBase64();
+            if (!pdfBase64) {
+                throw new Error('Falha ao gerar o PDF da tabela de preços.');
+            }
+
+            const res = await fetch('/api/tabela-precos/enviar-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pdfBase64 })
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Tabela de preços enviada com sucesso!'), '#2AD07A');
+                alert('✅ Tabela de preços enviada por e-mail com sucesso!');
+            } else {
+                throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
+            }
+        } catch (err) {
+            console.error(err);
+            setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
+            alert('❌ Erro ao enviar e-mail: ' + err.message);
+        }
+    };
+
     // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---
     window.initApexAmostras = function() {
         carregarAmostras();

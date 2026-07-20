@@ -717,6 +717,28 @@ app.delete('/api/materiais-catalogo/:id', async (req, res) => {
 });
 
 // ─── API: Tabela de Preços (CRUD) ─────────────────────────────────────────────
+async function atualizarDataUltimaModificacaoPrecos() {
+    try {
+        const todayStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+        const localDate = new Date(todayStr);
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const year = localDate.getFullYear();
+        const formatted = `${day}/${month}/${year}`;
+        
+        if (dbAvailable) {
+            await pool.query(
+                'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+                ['tabela_precos_ultima_atualizacao', formatted]
+            );
+        } else {
+            memStore.settings.tabela_precos_ultima_atualizacao = formatted;
+        }
+    } catch (err) {
+        console.error('Erro ao atualizar data de modificação da tabela de preços:', err);
+    }
+}
+
 app.get('/api/tabela-precos', async (req, res) => {
     try {
         if (dbAvailable) {
@@ -752,10 +774,12 @@ app.post('/api/tabela-precos', async (req, res) => {
                  VALUES ($1, $2, $3, $4, $5) RETURNING *`,
                 [material_id, preco_entregar, preco_coletar, venda_ref, validade]
             );
+            await atualizarDataUltimaModificacaoPrecos();
             return res.json(result.rows[0]);
         } else {
             const newP = { id: nextId++, material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar), preco_coletar: parseFloat(preco_coletar), venda_ref: parseFloat(venda_ref), validade };
             memStore.tabela_precos.push(newP);
+            await atualizarDataUltimaModificacaoPrecos();
             return res.json(newP);
         }
     } catch (err) {
@@ -773,6 +797,7 @@ app.put('/api/tabela-precos/:id', async (req, res) => {
                  WHERE id=$5 RETURNING *`,
                 [preco_entregar, preco_coletar, venda_ref, validade, id]
             );
+            await atualizarDataUltimaModificacaoPrecos();
             return res.json(result.rows[0]);
         } else {
             const idx = memStore.tabela_precos.findIndex(x => x.id === id);
@@ -781,6 +806,7 @@ app.put('/api/tabela-precos/:id', async (req, res) => {
             memStore.tabela_precos[idx].preco_coletar = parseFloat(preco_coletar);
             memStore.tabela_precos[idx].venda_ref = parseFloat(venda_ref);
             memStore.tabela_precos[idx].validade = validade;
+            await atualizarDataUltimaModificacaoPrecos();
             return res.json(memStore.tabela_precos[idx]);
         }
     } catch (err) {
@@ -793,8 +819,10 @@ app.delete('/api/tabela-precos/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
             await pool.query('DELETE FROM tabela_precos WHERE id=$1', [id]);
+            await atualizarDataUltimaModificacaoPrecos();
         } else {
             memStore.tabela_precos = memStore.tabela_precos.filter(x => x.id !== id);
+            await atualizarDataUltimaModificacaoPrecos();
         }
         res.json({ success: true });
     } catch (err) {
@@ -2150,6 +2178,24 @@ app.post('/api/lme/enviar-email-manual', async (req, res) => {
     }
 });
 
+app.post('/api/tabela-precos/enviar-email', async (req, res) => {
+    try {
+        let pdfBase64 = req.body && req.body.pdfBase64 ? req.body.pdfBase64 : null;
+        if (!pdfBase64) {
+            console.log('📄 Gerando PDF da Tabela de Preços via Puppeteer no backend...');
+            pdfBase64 = await gerarPdfTabelaPrecosViaHeadless();
+        }
+        if (!pdfBase64) {
+            return res.status(500).json({ error: 'Não foi possível obter ou gerar o PDF da tabela de preços.' });
+        }
+        await enviarTabelaPrecosEmail(pdfBase64);
+        res.json({ success: true, message: 'Tabela de preços enviada com sucesso!' });
+    } catch (err) {
+        console.error('Erro no envio da tabela de preços por e-mail:', err);
+        res.status(500).json({ error: 'Erro ao enviar e-mail: ' + err.message });
+    }
+});
+
 app.post('/api/lme/html-relatorio', (req, res) => {
     try {
         const { weekBlock } = req.body;
@@ -2870,6 +2916,122 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     });
 
     console.log(`✅ Relatório enviado por e-mail via Resend para [${emailsList.join(', ')}]:`, response.data.id);
+    return response.data;
+}
+
+async function gerarPdfTabelaPrecosViaHeadless() {
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true
+    });
+    try {
+        const page = await browser.newPage();
+        
+        // Mock authentication for the headless browser so admin.js runs initAdmin()
+        await page.evaluateOnNewDocument(() => {
+            sessionStorage.setItem('apex_admin_logged_in', 'true');
+        });
+
+        // Set viewport and go to page
+        const port = process.env.PORT || 3000;
+        await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
+        await page.goto(`http://localhost:${port}/admin.html`, { waitUntil: 'networkidle0', timeout: 30000 });
+        
+        // Wait for dashboard and login overlay to hide
+        await page.evaluate(() => {
+            const overlay = document.getElementById('login-overlay');
+            if (overlay) overlay.style.display = 'none';
+            const dashboard = document.getElementById('admin-dashboard-container');
+            if (dashboard) dashboard.style.display = 'flex';
+        });
+
+        // Execute frontend helper that returns base64 PDF
+        const base64Pdf = await page.evaluate(async () => {
+            if (window.gerarPdfTabelaPrecosBase64) {
+                return await window.gerarPdfTabelaPrecosBase64();
+            }
+            return null;
+        });
+        
+        return base64Pdf;
+    } catch (e) {
+        console.error('Erro ao gerar PDF da Tabela de Preços via Puppeteer:', e);
+        return null;
+    } finally {
+        await browser.close();
+    }
+}
+
+async function enviarTabelaPrecosEmail(pdfBase64) {
+    const config = await getResendConfig();
+    if (!config.apiKey) {
+        throw new Error('API Key do Resend não configurada. Preencha a chave no painel.');
+    }
+
+    let recipients = [];
+    if (dbAvailable) {
+        const result = await pool.query('SELECT * FROM lme_destinatarios');
+        recipients = result.rows;
+    } else {
+        recipients = memStore.lme_destinatarios;
+    }
+
+    if (recipients.length === 0) {
+        throw new Error('Nenhum destinatário cadastrado.');
+    }
+
+    const emailsList = recipients.map(r => r.email);
+
+    // Format today's date for subject and body
+    const spTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+    const localDate = new Date(spTimeStr);
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const year = localDate.getFullYear();
+    const formattedDate = `${day}/${month}/${year}`;
+
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body style="background-color: #ffffff; padding: 20px; margin: 0; font-family: Arial, sans-serif; color: #333333;">
+        <p>Olá,</p>
+        <p>Segue em anexo a <strong>Tabela de Preços Vigente</strong> da Apextech Metais.</p>
+        <p>Este documento foi aprovado pelo CEO Jose Tiago.</p>
+        <br>
+        <p>Atenciosamente,<br>Apextech Metais</p>
+    </body>
+    </html>
+    `;
+
+    const emailPayload = {
+        from: config.from,
+        to: emailsList,
+        subject: `📋 Tabela de Preços Vigente - Apextech Metais - ${formattedDate}`,
+        html: html,
+        attachments: []
+    };
+
+    if (pdfBase64) {
+        emailPayload.attachments.push({
+            filename: `Tabela_de_Precos_Vigente.pdf`,
+            content: pdfBase64
+        });
+        console.log('📎 PDF da Tabela de Preços anexado com sucesso ao e-mail.');
+    } else {
+        console.warn('⚠️ Não foi possível anexar o PDF da Tabela de Preços.');
+    }
+
+    const response = await axios.post('https://api.resend.com/emails', emailPayload, {
+        headers: {
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json'
+        }
+    });
+
+    console.log(`✅ Tabela de Preços enviada por e-mail via Resend para [${emailsList.join(', ')}]:`, response.data.id);
     return response.data;
 }
 

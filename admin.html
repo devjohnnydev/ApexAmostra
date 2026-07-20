@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -1286,8 +1286,9 @@
 
                         <div class="smtp-test-box" style="margin-top: 25px; padding: 15px; background: #2a2a2a; border-radius: 6px; border: 1px solid #444;">
                             <h4 style="margin-top: 0; color: #fff;"><i class="fa-solid fa-paper-plane"></i> Ação Rápida</h4>
-                            <p style="font-size: 0.85rem; color: #bbb; margin-bottom: 15px;">Envie o relatório diário mais recente imediatamente para todos os destinatários cadastrados.</p>
-                            <button id="btn-enviar-teste-lme" class="btn-secondary" style="width: 100%;"><i class="fa-solid fa-paper-plane"></i> Enviar Relatório Diário Agora</button>
+                            <p style="font-size: 0.85rem; color: #bbb; margin-bottom: 15px;">Envie os relatórios ou tabelas imediatamente para os destinatários cadastrados.</p>
+                            <button id="btn-enviar-teste-lme" class="btn-secondary" style="width: 100%; margin-bottom: 10px;"><i class="fa-solid fa-paper-plane"></i> Enviar Relatório Diário Agora</button>
+                            <button id="btn-enviar-tabela-preco" class="btn-secondary" style="width: 100%;" onclick="enviarTabelaPrecosEmail()"><i class="fa-solid fa-envelope"></i> Enviar Tabela de Preços Agora</button>
                             <div id="test-email-msg" style="margin-top: 10px; font-size: 0.85rem; display: none;"></div>
                         </div>
                     </div>
@@ -1423,6 +1424,8 @@
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button class="btn-secondary" onclick="exportarTabelaPrecosExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+                            <button class="btn-secondary" onclick="exportarTabelaPrecosPdf()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+                            <button class="btn-secondary" onclick="enviarTabelaPrecosEmail()"><i class="fa-solid fa-paper-plane"></i> Enviar E-mail</button>
                             <button class="btn-primary restrito-financeiro" onclick="abrirModalPreco()"><i class="fa-solid fa-plus"></i> Novo Item de Preço</button>
                         </div>
                     </div>
