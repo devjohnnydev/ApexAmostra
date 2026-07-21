@@ -4321,12 +4321,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding: 10px; border: 1px solid #eee; font-weight: 600; color: #555;">Descrição</th>
                                 <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Entregar (R$/kg)</th>
                                 <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Coletar (R$/kg)</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Venda Ref (R$/kg)</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #27ae60;">Lucro Ent.</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #27ae60;">Margem Ent. (%)</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2980b9;">Lucro Col.</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2980b9;">Margem Col. (%)</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #e67e22;">Diferença (%)</th>
                                 <th style="padding: 10px; border: 1px solid #eee; font-weight: 600; color: #555;">NCM</th>
                             </tr>
                         </thead>
@@ -4334,23 +4328,11 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             precosCat.forEach(p => {
-                const lucroEnt = p.venda_ref - p.preco_entregar;
-                const margemEnt = p.venda_ref > 0 ? (lucroEnt / p.venda_ref) * 100 : 0;
-                const lucroCol = p.venda_ref - p.preco_coletar;
-                const margemCol = p.venda_ref > 0 ? (lucroCol / p.venda_ref) * 100 : 0;
-                const dif = margemCol - margemEnt;
-
                 html += `
                     <tr style="border-bottom: 1px solid #eee; background-color: #ffffff;">
                         <td style="padding: 10px; border: 1px solid #eee; color: #222;"><strong>${p.material_nome}</strong></td>
                         <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.preco_entregar).toFixed(2)}</td>
                         <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.preco_coletar).toFixed(2)}</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.venda_ref).toFixed(2)}</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #27ae60; background-color: #fafdfa;">R$ ${lucroEnt.toFixed(2)}</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #27ae60; background-color: #fafdfa;">${margemEnt.toFixed(2)}%</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #2980b9; background-color: #f7faff;">R$ ${lucroCol.toFixed(2)}</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #2980b9; background-color: #f7faff;">${margemCol.toFixed(2)}%</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; color: #e67e22; background-color: #fffaf5;">${dif.toFixed(2)}%</td>
                         <td style="padding: 10px; border: 1px solid #eee; color: #666;">${p.material_ncm || '-'}</td>
                     </tr>
                 `;
@@ -4358,7 +4340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             html += `
                             <tr style="background: #fafafa;">
-                                <td colspan="10" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
+                                <td colspan="4" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
                                     DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
