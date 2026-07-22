@@ -2105,8 +2105,8 @@
                             <a href="#" onclick="buscarNcmPorNome(event)" style="font-size:0.73rem; color:#3e7cb1; text-decoration:none; font-weight:normal; text-transform:none; letter-spacing:0;"><i class="fa-solid fa-magnifying-glass"></i> Buscar por Nome</a>
                         </label>
                         <div style="display:flex; gap:5px;">
-                            <input type="text" id="mat-ncm" class="noble-input" placeholder="7602.00.00" oninput="autoBuscarNcm(this.value)" autocomplete="off" style="flex:1;">
-                            <button type="button" class="btn-secondary" onclick="buscarNcmManual()" style="padding:0 12px; margin:0;"><i class="fa-solid fa-search"></i></button>
+                            <input type="text" id="mat-ncm" class="noble-input" placeholder="7602.00.00" oninput="autoBuscarNcm(this.value)" autocomplete="off" style="flex:1; width:auto; min-width:0;">
+                            <button type="button" class="btn-secondary" onclick="buscarNcmManual()" style="padding:0 14px; margin:0; width:auto; flex:none; border-radius:6px;"><i class="fa-solid fa-search"></i></button>
                         </div>
                         <div id="ncm-resultados-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#162432; border:1px solid #1e4e8c; border-radius:4px; max-height:200px; overflow-y:auto; z-index:1010; box-shadow:0 4px 10px rgba(0,0,0,0.5);"></div>
                     </div>
