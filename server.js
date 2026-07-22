@@ -468,6 +468,16 @@ async function initDatabase() {
         }
         console.log('✅ Chaves de configuração LME garantidas no banco de dados.');
 
+        // SEMPRE reseta as sequences para que novos INSERTs nunca conflitem com IDs do seed
+        await client.query(`SELECT setval('materiais_catalogo_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM materiais_catalogo), false)`);
+        await client.query(`SELECT setval('tabela_precos_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM tabela_precos), false)`);
+        await client.query(`SELECT setval('fornecedores_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM fornecedores), false)`);
+        await client.query(`SELECT setval('amostras_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM amostras), false)`);
+        await client.query(`SELECT setval('componentes_amostra_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM componentes_amostra), false)`);
+        await client.query(`SELECT setval('lotes_compra_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM lotes_compra), false)`);
+        await client.query(`SELECT setval('usuarios_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM usuarios), false)`);
+        console.log('✅ Sequences do banco resetadas com sucesso.');
+
         dbAvailable = true;
         console.log('✅ Banco de dados inicializado com sucesso.');
     } catch (err) {
@@ -673,11 +683,18 @@ app.post('/api/admin/reparo-seed', async (req, res) => {
             insertedPreco += r.rowCount;
         }
 
-        res.json({ ok: true, materiais_inseridos: insertedMat, precos_inseridos: insertedPreco });
+        // CRITICAL: Reset sequences so new INSERTs use IDs after the seeded ones
+        await pool.query(`SELECT setval('materiais_catalogo_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM materiais_catalogo), false)`);
+        await pool.query(`SELECT setval('tabela_precos_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM tabela_precos), false)`);
+        await pool.query(`SELECT setval('fornecedores_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM fornecedores), false)`);
+        await pool.query(`SELECT setval('amostras_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM amostras), false)`);
+
+        res.json({ ok: true, materiais_inseridos: insertedMat, precos_inseridos: insertedPreco, sequences_resetadas: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 // ─── API: Materiais de Catálogo (CRUD) ─────────────────────────────────────────
 app.get('/api/materiais-catalogo', async (req, res) => {
