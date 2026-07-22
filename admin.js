@@ -4227,42 +4227,59 @@ document.addEventListener('DOMContentLoaded', () => {
         const matCat = document.getElementById('mat-categoria');
         if (!matCat) return;
         
-        const catSet = new Set(["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"]);
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+            try {
+                cats = JSON.parse(settingsPrecos['categorias_materiais']);
+            } catch(e) {}
+        }
+        
         localMateriais.forEach(m => {
-            if (m.categoria) catSet.add(m.categoria);
+            if (m.categoria && !cats.includes(m.categoria)) {
+                cats.push(m.categoria);
+            }
         });
         
         const currentVal = matCat.value;
         matCat.innerHTML = '';
-        Array.from(catSet).forEach(cat => {
+        cats.forEach(cat => {
             matCat.innerHTML += `<option value="${cat}">${cat}</option>`;
         });
-        if (currentVal && catSet.has(currentVal)) matCat.value = currentVal;
+        if (currentVal && cats.includes(currentVal)) matCat.value = currentVal;
     }
 
-    window.adicionarNovaCategoriaPrompt = function() {
+    window.adicionarNovaCategoriaPrompt = async function() {
         const nova = prompt('Digite o nome da nova categoria (Grupo):');
         if (!nova) return;
         const trim = nova.trim();
         if (trim === '') return;
         
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+            try {
+                cats = JSON.parse(settingsPrecos['categorias_materiais']);
+            } catch(e) {}
+        }
+
+        if (!cats.some(c => c.toLowerCase() === trim.toLowerCase())) {
+            cats.push(trim);
+            try {
+                await fetch('/api/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 'categorias_materiais': JSON.stringify(cats) })
+                });
+                settingsPrecos['categorias_materiais'] = JSON.stringify(cats);
+                alert(`Grupo "${trim}" criado com sucesso!`);
+            } catch(err) {
+                console.error('Erro ao salvar nova categoria:', err);
+            }
+        }
+        
+        popularSeletoresCategorias();
         const matCat = document.getElementById('mat-categoria');
         if (matCat) {
-            let exists = false;
-            for (let i = 0; i < matCat.options.length; i++) {
-                if (matCat.options[i].value.toLowerCase() === trim.toLowerCase()) {
-                    matCat.selectedIndex = i;
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists) {
-                const opt = document.createElement('option');
-                opt.value = trim;
-                opt.textContent = trim;
-                matCat.appendChild(opt);
-                matCat.value = trim;
-            }
+            matCat.value = trim;
         }
     };
 
@@ -4407,20 +4424,16 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         // Agrupar por categorias
-        const categoriasSet = new Set();
+        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+            try {
+                categorias = JSON.parse(settingsPrecos['categorias_materiais']);
+            } catch(e) {}
+        }
         localPrecos.forEach(p => {
-            if (p.material_categoria) {
-                categoriasSet.add(p.material_categoria);
+            if (p.material_categoria && !categorias.includes(p.material_categoria)) {
+                categorias.push(p.material_categoria);
             }
-        });
-        const standardOrder = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
-        const categorias = Array.from(categoriasSet).sort((a, b) => {
-            const idxA = standardOrder.indexOf(a);
-            const idxB = standardOrder.indexOf(b);
-            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-            if (idxA !== -1) return -1;
-            if (idxB !== -1) return 1;
-            return a.localeCompare(b);
         });
         const showCompleta = visualizacaoTabelaPrecos === 'completa';
 
@@ -4574,20 +4587,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao) {
-        const categoriasSet = new Set();
+        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+            try {
+                categorias = JSON.parse(settingsPrecos['categorias_materiais']);
+            } catch(e) {}
+        }
         precos.forEach(p => {
-            if (p.material_categoria) {
-                categoriasSet.add(p.material_categoria);
+            if (p.material_categoria && !categorias.includes(p.material_categoria)) {
+                categorias.push(p.material_categoria);
             }
-        });
-        const standardOrder = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
-        const categorias = Array.from(categoriasSet).sort((a, b) => {
-            const idxA = standardOrder.indexOf(a);
-            const idxB = standardOrder.indexOf(b);
-            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-            if (idxA !== -1) return -1;
-            if (idxB !== -1) return 1;
-            return a.localeCompare(b);
         });
         let html = `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #fff; max-width: 950px; margin: 0 auto; box-sizing: border-box;">
