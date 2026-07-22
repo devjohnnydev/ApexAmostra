@@ -5226,7 +5226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dirObsEl) dirObsEl.value = amostra.obs_diretoria || '';
 
             if (painelDir) {
-                if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
+                if (currentSimulatedRole === 'Administrador') {
                     painelDir.style.display = 'block';
                 } else {
                     painelDir.style.display = 'none';
@@ -5234,12 +5234,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (amostra.decisao_diretoria && amostra.decisao_diretoria !== 'Aguardando') {
                     hContainer.style.display = 'block';
-                    document.getElementById('decisao-historica-status').textContent = amostra.decisao_diretoria;
+                    const adminNome = amostra.admin_aprovacao || amostra.autorizado_por || 'Admin';
+                    document.getElementById('decisao-historica-status').textContent = `${amostra.decisao_diretoria} (por ${adminNome})`;
                     document.getElementById('decisao-historica-status').style.color = amostra.decisao_diretoria === 'Aprovado' ? '#2AD07A' : '#ff4d4d';
                     document.getElementById('decisao-historica-motivo').textContent = amostra.motivo_reprovacao ? `Motivo: ${amostra.motivo_reprovacao}` : '';
                 } else {
                     hContainer.style.display = 'none';
                 }
+            }
+            
+            // Exibir quem analisou
+            const tecnicoDiv = document.getElementById('analise-tecnico-nome');
+            if (tecnicoDiv && amostra.tecnico_analise) {
+                tecnicoDiv.textContent = `Analisado por: ${amostra.tecnico_analise}`;
+                tecnicoDiv.style.display = 'block';
+            } else if (tecnicoDiv) {
+                tecnicoDiv.style.display = 'none';
             }
 
             // Exibir banner de autonomia com detalhes explícitos
@@ -5251,7 +5261,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const dataValFmt = amostra.preco_validade ? new Date(amostra.preco_validade).toLocaleDateString('pt-BR') : '--/--/----';
                     document.getElementById('autonomia-val-validade').textContent = dataValFmt;
-                    document.getElementById('autonomia-val-diretor').textContent = amostra.autorizado_por || 'Diretoria';
+                    document.getElementById('autonomia-val-diretor').textContent = amostra.admin_aprovacao || amostra.autorizado_por || 'Administrador';
                 } else {
                     bannerAutonomia.style.display = 'none';
                 }
@@ -5275,7 +5285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnLiberar) btnLiberar.style.display = 'none';
         if (btnProcessar) btnProcessar.style.display = 'none';
 
-        if (status === 'Aguardando Liberação PCP') {
+        if (status === 'Aguardando Liberação PCP' || status === 'Aprovado - Compra Autorizada') {
             if (btnLiberar) btnLiberar.style.display = '';
         } else if (status === 'Liberado para Produção') {
             if (btnProcessar) btnProcessar.style.display = '';
@@ -5618,7 +5628,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ 
                     componentes: componentesActivos,
                     tempo_desmonte: cronSegundos,
-                    parecer_tecnico: document.getElementById('analise-parecer-tecnico').value.trim()
+                    parecer_tecnico: document.getElementById('analise-parecer-tecnico').value.trim(),
+                    tecnico_analise: sessionStorage.getItem('apex_logged_user_name') || currentSimulatedRole
                 })
             });
             // Muda status para sinalizar que precisa de decisão do Diretor
@@ -5687,7 +5698,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     preco_compra_coletar: precoColetar,
                     preco_validade: validade,
                     user_perfil: currentSimulatedRole,
-                    user_nome: currentSimulatedRole
+                    user_nome: sessionStorage.getItem('apex_logged_user_name') || currentSimulatedRole
                 })
             });
             const data = await res.json();
@@ -6782,8 +6793,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const pass = document.getElementById('login-pass').value.trim();
 
             // Função para entrar no painel
-            function entrarNoPainel() {
+            function entrarNoPainel(nome, perfil) {
                 sessionStorage.setItem('apex_admin_logged_in', 'true');
+                if (nome) sessionStorage.setItem('apex_logged_user_name', nome);
+                if (perfil) {
+                    sessionStorage.setItem('apex_user_role', perfil);
+                    currentSimulatedRole = perfil;
+                }
                 loginOverlay.style.display       = 'none';
                 dashboardContainer.style.display = 'flex';
                 loginError.style.display         = 'none';
@@ -6792,7 +6808,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Verificação local imediata (garante acesso mesmo se o servidor falhar)
             if (user === 'admin' && pass === 'apex2026') {
-                entrarNoPainel();
+                entrarNoPainel('Administrador Apex', 'Administrador');
                 return;
             }
 
@@ -6805,7 +6821,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await response.json();
                 if (response.ok && data.success) {
-                    entrarNoPainel();
+                    entrarNoPainel(data.user.nome, data.user.perfil);
                 } else {
                     loginError.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (data.error || 'Credenciais incorretas.');
                     loginError.style.display = 'block';

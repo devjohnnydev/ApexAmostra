@@ -325,6 +325,8 @@ async function initDatabase() {
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS tempo_desmonte INTEGER DEFAULT 0;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS parecer_tecnico TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS decisao_diretoria TEXT DEFAULT 'Aguardando';
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS tecnico_analise TEXT;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS admin_aprovacao TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS motivo_reprovacao TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS data_decisao TIMESTAMP;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_entregar NUMERIC(10,2);
@@ -1029,7 +1031,7 @@ app.post('/api/amostras', async (req, res) => {
 app.post('/api/amostras/:id/componentes', async (req, res) => {
     try {
         const amostra_id = parseInt(req.params.id);
-        const { componentes, tempo_desmonte, parecer_tecnico } = req.body; // componentes: array of { material_id, peso, percentual, observacoes, foto, dificuldade }
+        const { componentes, tempo_desmonte, parecer_tecnico, tecnico_analise } = req.body; // componentes: array of { material_id, peso, percentual, observacoes, foto, dificuldade }
 
         if (dbAvailable) {
             // Delete old components
@@ -1046,9 +1048,9 @@ app.post('/api/amostras/:id/componentes', async (req, res) => {
             // Update sample info: tempo, parecer and status
             await pool.query(
                 `UPDATE amostras 
-                 SET tempo_desmonte = $1, parecer_tecnico = $2, status = 'Aguardando Decisão de Compra' 
+                 SET tempo_desmonte = $1, parecer_tecnico = $2, status = 'Aguardando Decisão de Compra', tecnico_analise = $4 
                  WHERE id = $3`,
-                [parseInt(tempo_desmonte) || 0, parecer_tecnico || '', amostra_id]
+                [parseInt(tempo_desmonte) || 0, parecer_tecnico || '', amostra_id, tecnico_analise || '']
             );
         } else {
             memStore.componentes_amostra = memStore.componentes_amostra.filter(x => x.amostra_id !== amostra_id);
@@ -1068,6 +1070,7 @@ app.post('/api/amostras/:id/componentes', async (req, res) => {
             if (a) {
                 a.tempo_desmonte = parseInt(tempo_desmonte) || 0;
                 a.parecer_tecnico = parecer_tecnico || '';
+                a.tecnico_analise = tecnico_analise || '';
                 a.status = 'Aguardando Decisão de Compra';
             }
         }
@@ -1085,6 +1088,17 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
         const { status } = req.body;
 
         if (dbAvailable) {
+            const currentA = await pool.query('SELECT status FROM amostras WHERE id=$1', [id]);
+            if (currentA.rows.length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            const currStatus = currentA.rows[0].status;
+
+            if (status === 'Liberado para Produção' && currStatus !== 'Aprovado - Compra Autorizada') {
+                return res.status(400).json({ error: 'A amostra precisa estar aprovada (Aprovado - Compra Autorizada) antes de ser liberada para produção.' });
+            }
+            if (status === 'Processado' && currStatus !== 'Liberado para Produção') {
+                return res.status(400).json({ error: 'A amostra precisa estar Liberada para Produção antes de ser processada.' });
+            }
+
             await pool.query('UPDATE amostras SET status=$1 WHERE id=$2', [status, id]);
             
             // Se for "Processado", efetua a movimentação de estoque
@@ -1112,6 +1126,14 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
         } else {
             const a = memStore.amostras.find(x => x.id === id);
             if (!a) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            
+            if (status === 'Liberado para Produção' && a.status !== 'Aprovado - Compra Autorizada') {
+                return res.status(400).json({ error: 'A amostra precisa estar aprovada (Aprovado - Compra Autorizada) antes de ser liberada para produção.' });
+            }
+            if (status === 'Processado' && a.status !== 'Liberado para Produção') {
+                return res.status(400).json({ error: 'A amostra precisa estar Liberada para Produção antes de ser processada.' });
+            }
+
             a.status = status;
 
             if (status === 'Processado') {
@@ -1146,8 +1168,8 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
         const id = parseInt(req.params.id);
         const { decisao_diretoria, motivo_reprovacao, obs_diretoria, preco_compra_entregar, preco_compra_coletar, preco_validade, user_perfil, user_nome } = req.body;
 
-        if (user_perfil !== 'Administrador' && user_perfil !== 'Diretoria') {
-            return res.status(403).json({ error: 'Apenas a Diretoria ou Administrador pode tomar esta decisão.' });
+        if (user_perfil !== 'Administrador') {
+            return res.status(403).json({ error: 'Apenas o Administrador pode tomar esta decisão.' });
         }
 
         const status = decisao_diretoria === 'Aprovado' ? 'Aprovado - Compra Autorizada' : 'Reprovado';
@@ -1157,7 +1179,7 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
                 `UPDATE amostras 
                  SET decisao_diretoria=$1, motivo_reprovacao=$2, status=$3, data_decisao=NOW(),
                      preco_compra_entregar=$4, preco_compra_coletar=$5, preco_validade=$6, autorizado_por=$7,
-                     obs_diretoria=$8
+                     obs_diretoria=$8, admin_aprovacao=$10
                  WHERE id=$9`,
                 [
                     decisao_diretoria, 
@@ -1166,9 +1188,10 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
                     decisao_diretoria === 'Aprovado' ? parseFloat(preco_compra_entregar) || null : null,
                     decisao_diretoria === 'Aprovado' ? parseFloat(preco_compra_coletar) || null : null,
                     decisao_diretoria === 'Aprovado' ? preco_validade || null : null,
-                    decisao_diretoria === 'Aprovado' ? user_nome || 'Diretoria' : null,
+                    user_nome || 'Admin',
                     obs_diretoria || '',
-                    id
+                    id,
+                    user_nome || 'Admin'
                 ]
             );
         } else {
@@ -1183,8 +1206,9 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
                 a.preco_compra_entregar = parseFloat(preco_compra_entregar) || null;
                 a.preco_compra_coletar = parseFloat(preco_compra_coletar) || null;
                 a.preco_validade = preco_validade || null;
-                a.autorizado_por = user_nome || 'Diretoria';
             }
+            a.autorizado_por = user_nome || 'Admin';
+            a.admin_aprovacao = user_nome || 'Admin';
         }
         res.json({ success: true, status, decisao_diretoria });
     } catch (err) {
