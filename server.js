@@ -292,9 +292,19 @@ async function initDatabase() {
                 preco_venda_material NUMERIC(10,2) NOT NULL,
                 comissao             NUMERIC(5,2) DEFAULT 2.0,
                 fidc                 NUMERIC(5,2) DEFAULT 2.3,
-                mes                  TEXT NOT NULL, -- YYYY-MM
+                mes                  TEXT NOT NULL,
+                cliente              TEXT,
+                prazo_recebimento_dias INTEGER,
+                forma_pagamento      TEXT,
+                simulacoes_historico JSONB DEFAULT '[]'::jsonb,
                 criado_em            TIMESTAMP DEFAULT NOW()
             );
+
+            -- Garantir que as colunas existam em DBs já criados
+            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS cliente TEXT;
+            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS prazo_recebimento_dias INTEGER;
+            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS forma_pagamento TEXT;
+            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS simulacoes_historico JSONB DEFAULT '[]'::jsonb;
 
             CREATE TABLE IF NOT EXISTS estoque (
                 material_id INTEGER PRIMARY KEY,
@@ -1448,13 +1458,13 @@ app.get('/api/planejamento-compras', async (req, res) => {
 
 app.post('/api/planejamento-compras', async (req, res) => {
     try {
-        const { amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes } = req.body;
+        const { amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes, cliente, prazo_recebimento_dias, forma_pagamento, simulacoes_historico } = req.body;
         
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO lotes_compra (amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
-                [amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao || 2.0, fidc || 2.3, mes]
+                `INSERT INTO lotes_compra (amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes, cliente, prazo_recebimento_dias, forma_pagamento, simulacoes_historico)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+                [amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao || 2.0, fidc || 2.3, mes, cliente, prazo_recebimento_dias || 30, forma_pagamento, simulacoes_historico ? JSON.stringify(simulacoes_historico) : '[]']
             );
             
             if (amostra_id) {
@@ -1475,7 +1485,11 @@ app.post('/api/planejamento-compras', async (req, res) => {
                 preco_venda_material: parseFloat(preco_venda_material),
                 comissao: parseFloat(comissao || 2.0),
                 fidc: parseFloat(fidc || 2.3),
-                mes
+                mes,
+                cliente,
+                prazo_recebimento_dias: parseInt(prazo_recebimento_dias || 30),
+                forma_pagamento,
+                simulacoes_historico: simulacoes_historico || []
             };
             memStore.lotes_compra.push(newL);
 

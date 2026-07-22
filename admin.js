@@ -6491,16 +6491,231 @@ document.addEventListener('DOMContentLoaded', () => {
         const fidc = parseFloat(document.getElementById('pl-fidc').value) || 0;
 
         const totalC = peso * precoCompra;
-        const totalV = peso * (rendimento / 100) * precoVenda;
+        const pesoResultante = peso * (rendimento / 100);
+        const totalV = pesoResultante * precoVenda;
         const lucroB = totalV - totalC;
-        const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
-        const resLiq = pctFat - comissao - fidc;
+        
+        const valorComissao = totalV * (comissao / 100);
+        const valorFidc = totalV * (fidc / 100);
+        
+        const lucroLiqSemFidc = lucroB - valorComissao;
+        const lucroLiqComFidc = lucroLiqSemFidc - valorFidc;
+        
+        const margem = totalV > 0 ? (lucroLiqSemFidc / totalV) * 100 : 0;
+        const roi = totalC > 0 ? (lucroLiqSemFidc / totalC) * 100 : 0;
 
         document.getElementById('sim-custo-total').textContent = 'R$ ' + totalC.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('sim-fat-total').textContent = 'R$ ' + totalV.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('sim-lucro-bruto').textContent = 'R$ ' + lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2});
-        document.getElementById('sim-res-liquido').textContent = resLiq.toFixed(2) + ' %';
+        
+        // Exibindo lucro líquido sem considerar o desconto antecipado (já que é opcional)
+        document.getElementById('sim-res-liquido').textContent = 'R$ ' + lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('sim-margem').textContent = margem.toFixed(2) + ' %';
+        document.getElementById('sim-roi').textContent = roi.toFixed(2) + ' %';
+        
+        // Salvar valores no window para o Simulador usar
+        window.currentSimData = {
+            peso, precoCompra, rendimento, precoVenda, comissao, fidc,
+            totalC, pesoResultante, totalV, lucroB, valorComissao, valorFidc,
+            lucroLiqSemFidc, lucroLiqComFidc, margem, roi
+        };
     };
+
+    
+    // --- INICIO: SIMULADOR FIDC ---
+    let chartFidcInstance = null;
+
+    window.abrirSimuladorFIDC = function() {
+        if (!window.currentSimData) {
+            alert('Preencha os dados do planejamento primeiro.');
+            return;
+        }
+
+        const data = window.currentSimData;
+        const prazo = parseInt(document.getElementById('pl-prazo').value) || 30;
+        const cliente = document.getElementById('pl-cliente').value || 'Não informado';
+
+        document.getElementById('sim-fidc-prazo-s').textContent = prazo;
+        document.getElementById('sim-fidc-lucro-s').textContent = 'R$ ' + data.lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        
+        document.getElementById('sim-fidc-taxa-c').textContent = data.fidc.toFixed(2) + '%';
+        document.getElementById('sim-fidc-lucro-c').textContent = 'R$ ' + data.lucroLiqComFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+        // Alternativas
+        const taxasAlt = [1.0, 1.5, 2.0, 2.5, 3.0];
+        const containerTaxas = document.getElementById('sim-fidc-tabela-taxas');
+        containerTaxas.innerHTML = '';
+        taxasAlt.forEach(t => {
+            const valF = data.totalV * (t / 100);
+            const lucroT = data.lucroLiqSemFidc - valF;
+            containerTaxas.innerHTML += `
+                <div style="background:#0d1a26; border:1px solid #1e3a5f; padding:10px; border-radius:6px; text-align:center;">
+                    <div style="color:#e07b39; font-weight:bold; margin-bottom:5px;">${t.toFixed(2)}%</div>
+                    <div style="color:#2AD07A; font-size:0.9rem;">R$ ${lucroT.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+                </div>
+            `;
+        });
+
+        // Inteligencia
+        let indicador = '🟢';
+        let titulo = 'Excelente para antecipar';
+        let cor = '#2AD07A';
+        
+        const impactoFidcNoLucro = data.lucroB > 0 ? (data.valorFidc / data.lucroB) : 1;
+        if (impactoFidcNoLucro > 0.4 || data.margem < 5) {
+            indicador = '🔴'; titulo = 'Não recomendado'; cor = '#ff4d4d';
+        } else if (impactoFidcNoLucro > 0.2) {
+            indicador = '🟡'; titulo = 'Avaliar necessidade'; cor = '#f0b800';
+        }
+
+        const dif = data.lucroLiqSemFidc - data.lucroLiqComFidc;
+        document.getElementById('sim-fidc-indicador-icone').textContent = indicador;
+        document.getElementById('sim-fidc-indicador-titulo').textContent = titulo;
+        document.getElementById('sim-fidc-indicador-titulo').style.color = cor;
+        document.getElementById('sim-fidc-inteligencia-box').style.borderLeftColor = cor;
+
+        let txt = `A antecipação via FIDC reduzirá seu lucro em <strong>R$ ${dif.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> (${data.fidc.toFixed(2)}%), porém disponibilizará o capital imediatamente (economia de ${prazo} dias), aumentando a liquidez da empresa. `;
+        
+        if (indicador === '🔴') {
+            txt += "Como o impacto do FIDC no lucro bruto é alto ou a margem da operação é baixa, recomenda-se <strong>NÃO antecipar</strong> os recebíveis a menos que haja urgência de caixa.";
+        } else if (indicador === '🟡') {
+            txt += "O impacto financeiro é moderado. Avalie a real necessidade de capital de giro antes de realizar a antecipação.";
+        } else {
+            txt += "Excelente oportunidade de antecipação. O custo financeiro não compromete a lucratividade e fortalece o fluxo de caixa.";
+        }
+        
+        document.getElementById('sim-fidc-inteligencia-texto').innerHTML = txt;
+        document.getElementById('modal-simulador-fidc').style.display = 'flex';
+
+        // Atualizar Grafico
+        const ctx = document.getElementById('chart-fidc-simulador').getContext('2d');
+        if (chartFidcInstance) chartFidcInstance.destroy();
+
+        chartFidcInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['SEM FIDC', 'COM FIDC'],
+                datasets: [
+                    {
+                        label: 'Lucro Líquido (R$)',
+                        data: [data.lucroLiqSemFidc, data.lucroLiqComFidc],
+                        backgroundColor: ['#2AD07A', '#f0b800']
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#1e3a5f' }, ticks: { color: '#aaa' } },
+                    x: { ticks: { color: '#aaa' } }
+                }
+            }
+        });
+
+        // Registrar no historico
+        window.simulacoesFidcHistorico = window.simulacoesFidcHistorico || [];
+        window.simulacoesFidcHistorico.push({
+            data: new Date().toISOString(),
+            prazo,
+            taxa: data.fidc,
+            lucro_sem: data.lucroLiqSemFidc,
+            lucro_com: data.lucroLiqComFidc
+        });
+    };
+
+    window.fecharSimuladorFIDC = function() {
+        document.getElementById('modal-simulador-fidc').style.display = 'none';
+    };
+
+    window.gerarPdfFIDC = function() {
+        if (!window.jspdf) {
+            alert('A biblioteca jsPDF não carregou corretamente.');
+            return;
+        }
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const data = window.currentSimData;
+        const prazo = document.getElementById('pl-prazo').value || '30';
+        const cliente = document.getElementById('pl-cliente').value || 'N/A';
+        const fornecedor = document.getElementById('pl-fornecedor').options[document.getElementById('pl-fornecedor').selectedIndex]?.text || 'N/A';
+        const produto = document.getElementById('pl-produto').value || 'N/A';
+        const fp = document.getElementById('pl-forma-pagamento').value;
+
+        // Cabeçalho
+        doc.setFontSize(18);
+        doc.setTextColor(224, 123, 57);
+        doc.text('Relatório Executivo - Inteligência Financeira (FIDC)', 15, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
+        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
+
+        // Dados da Operação
+        doc.setFontSize(12);
+        doc.setTextColor(40);
+        doc.text('1. Dados da Operação', 15, 45);
+
+        doc.autoTable({
+            startY: 50,
+            head: [['Fornecedor', 'Produto', 'Cliente', 'Prazo (dias)', 'Forma Pagamento']],
+            body: [[fornecedor, produto, cliente, prazo, fp]],
+            theme: 'grid',
+            headStyles: { fillColor: [13, 26, 38] },
+        });
+
+        // Resultados Financeiros
+        doc.text('2. Indicadores Financeiros', 15, doc.lastAutoTable.finalY + 10);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [['Custo Total', 'Receita Estimada', 'Lucro Bruto', 'Comissão (%)', 'Margem (%)', 'ROI (%)']],
+            body: [[
+                'R$ ' + data.totalC.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + data.totalV.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + data.lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                data.comissao.toFixed(2) + '%',
+                data.margem.toFixed(2) + '%',
+                data.roi.toFixed(2) + '%'
+            ]],
+            theme: 'grid',
+            headStyles: { fillColor: [13, 26, 38] },
+        });
+
+        // Simulação FIDC
+        doc.text('3. Simulação de Antecipação (FIDC)', 15, doc.lastAutoTable.finalY + 10);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [['Taxa FIDC', 'Desconto Financeiro', 'Lucro SEM FIDC', 'Lucro COM FIDC', 'Diferença']],
+            body: [[
+                data.fidc.toFixed(2) + '%',
+                'R$ ' + data.valorFidc.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + data.lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + data.lucroLiqComFidc.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + (data.lucroLiqSemFidc - data.lucroLiqComFidc).toLocaleString('pt-BR', {minimumFractionDigits:2})
+            ]],
+            theme: 'grid',
+            headStyles: { fillColor: [224, 123, 57] },
+        });
+
+        // Conclusão Inteligente
+        doc.text('4. Parecer Financeiro', 15, doc.lastAutoTable.finalY + 10);
+        
+        const div = document.createElement('div');
+        div.innerHTML = document.getElementById('sim-fidc-inteligencia-texto').innerHTML;
+        const textoPuro = div.textContent || div.innerText || "";
+        
+        const splitText = doc.splitTextToSize(textoPuro, 180);
+        doc.setFontSize(10);
+        doc.text(splitText, 15, doc.lastAutoTable.finalY + 18);
+
+        doc.save('Relatorio_Financeiro_FIDC.pdf');
+    };
+    // --- FIM: SIMULADOR FIDC ---
 
     window.salvarPlanejamento = async function(e) {
         e.preventDefault();
@@ -6515,7 +6730,11 @@ document.addEventListener('DOMContentLoaded', () => {
             preco_venda_material: document.getElementById('pl-preco-venda').value,
             comissao: document.getElementById('pl-comissao').value,
             fidc: document.getElementById('pl-fidc').value,
-            mes: document.getElementById('pl-mes').value
+            mes: document.getElementById('pl-mes').value,
+            cliente: document.getElementById('pl-cliente').value,
+            prazo_recebimento_dias: document.getElementById('pl-prazo').value,
+            forma_pagamento: document.getElementById('pl-forma-pagamento').value,
+            simulacoes_historico: window.simulacoesFidcHistorico || []
         };
 
         try {

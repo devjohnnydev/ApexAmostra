@@ -12,6 +12,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <!-- Login Overlay -->
@@ -2278,17 +2279,58 @@
                         <input type="number" step="0.01" id="pl-fidc" required class="noble-input" value="2.3" oninput="calcularLotePlanSimulacao()">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Mês de Planejamento *</label>
-                    <input type="month" id="pl-mes" required class="noble-input" value="2026-07">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="pl-cliente" class="noble-input" placeholder="Ex: Metales SA">
+                    </div>
+                    <div class="form-group">
+                        <label>Prazo de Recebimento (dias) *</label>
+                        <input type="number" id="pl-prazo" required class="noble-input" value="30" oninput="calcularLotePlanSimulacao()">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Forma de Pagamento</label>
+                        <select id="pl-forma-pagamento" class="noble-input">
+                            <option value="Boleto">Boleto</option>
+                            <option value="Transferência">Transferência Bancária</option>
+                            <option value="PIX">PIX</option>
+                            <option value="L/C">Carta de Crédito (L/C)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mês de Planejamento *</label>
+                        <input type="month" id="pl-mes" required class="noble-input" value="2026-07">
+                    </div>
                 </div>
 
                 <!-- Simulação de Resultados inline -->
-                <div style="background:#12212f; padding:10px; border-radius:6px; font-size:0.8rem; margin-bottom:15px; color:#aaa;">
-                    <div>Custo Total: <span style="color:#fff;" id="sim-custo-total">R$ 0,00</span></div>
-                    <div>Faturamento Total: <span style="color:#fff;" id="sim-fat-total">R$ 0,00</span></div>
-                    <div>Lucro Bruto: <span style="color:#2AD07A;" id="sim-lucro-bruto">R$ 0,00</span></div>
-                    <div>Resultado Líquido: <span style="color:#2AD07A;" id="sim-res-liquido">0.00 %</span></div>
+                <div style="background:#12212f; padding:10px; border-radius:6px; font-size:0.8rem; margin-bottom:15px; color:#aaa; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Custo Total:</span> <span style="color:#fff;" id="sim-custo-total">R$ 0,00</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Receita Estimada:</span> <span style="color:#fff;" id="sim-fat-total">R$ 0,00</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Lucro Bruto:</span> <span style="color:#2AD07A;" id="sim-lucro-bruto">R$ 0,00</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-top:1px solid #1e3a5f; padding-top:6px; margin-top:2px;">
+                        <span>Lucro Líquido (s/ FIDC):</span> <span style="color:#2AD07A; font-weight:bold;" id="sim-res-liquido">R$ 0,00</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Margem:</span> <span style="color:#4dabf7;" id="sim-margem">0.00 %</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>ROI:</span> <span style="color:#4dabf7;" id="sim-roi">0.00 %</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <button type="button" class="btn-primary" style="width:100%; background:#e07b39; color:#000; font-weight:bold; justify-content:center;" onclick="abrirSimuladorFIDC()">
+                        <i class="fa-solid fa-chart-line"></i> Simular Antecipação FIDC
+                    </button>
                 </div>
 
                 <div style="display:flex; gap:10px;">
@@ -2296,6 +2338,60 @@
                     <button type="button" class="btn-secondary" onclick="fecharModalPlanejamento()" style="flex:1;">Cancelar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Simulador FIDC Executivo -->
+    <div id="modal-simulador-fidc" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1050;">
+        <div class="login-box" style="width:700px; padding:25px; background:#101a24; border:1px solid #e07b39; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #223547; padding-bottom:10px; margin-bottom:20px;">
+                <h3 style="margin:0; color:#e07b39;"><i class="fa-solid fa-chart-line"></i> Simulador Executivo - Antecipação FIDC</h3>
+                <button class="btn-secondary" onclick="fecharSimuladorFIDC()" style="padding:5px 10px; font-size:0.8rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div style="display:flex; gap:20px; margin-bottom:20px;">
+                <div style="flex:1; background:#162432; padding:15px; border-radius:8px; border-left:4px solid #888;">
+                    <h4 style="margin-top:0; color:#ccc;"><i class="fa-solid fa-calendar-days"></i> Cenário 1: SEM Antecipação</h4>
+                    <p style="font-size:0.85rem; color:#aaa; margin-bottom:5px;">Recebimento em <strong id="sim-fidc-prazo-s" style="color:#fff;">30</strong> dias.</p>
+                    <div style="font-size:1.1rem; color:#2AD07A; font-weight:bold; margin-bottom:5px;" id="sim-fidc-lucro-s">R$ 0,00</div>
+                    <p style="font-size:0.8rem; color:#888;">Lucro Líquido</p>
+                </div>
+                
+                <div style="flex:1; background:#162432; padding:15px; border-radius:8px; border-left:4px solid #e07b39;">
+                    <h4 style="margin-top:0; color:#e07b39;"><i class="fa-solid fa-bolt"></i> Cenário 2: COM Antecipação</h4>
+                    <p style="font-size:0.85rem; color:#aaa; margin-bottom:5px;">Recebimento imediato (<strong id="sim-fidc-taxa-c" style="color:#e07b39;">2.30%</strong>).</p>
+                    <div style="font-size:1.1rem; color:#f0b800; font-weight:bold; margin-bottom:5px;" id="sim-fidc-lucro-c">R$ 0,00</div>
+                    <p style="font-size:0.8rem; color:#888;">Lucro Líquido</p>
+                </div>
+            </div>
+
+            <div style="background:#0d1a26; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <h4 style="margin-top:0; color:#fff; border-bottom:1px dashed #223547; padding-bottom:5px;">Comparativo de Taxas FIDC Alternativas</h4>
+                <div id="sim-fidc-tabela-taxas" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-top:10px;">
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+
+            <!-- Gráfico Chart.js FIDC -->
+            <div style="background:#162432; padding:15px; border-radius:8px; margin-bottom:20px; text-align:center;">
+                <canvas id="chart-fidc-simulador" style="max-height:200px; width:100%;"></canvas>
+            </div>
+
+            <div style="background:#12212f; padding:15px; border-radius:8px; border-left:4px solid #2AD07A; margin-bottom:20px;" id="sim-fidc-inteligencia-box">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <span id="sim-fidc-indicador-icone" style="font-size:1.5rem;">🟢</span>
+                    <h4 style="margin:0; color:#fff;" id="sim-fidc-indicador-titulo">Viável</h4>
+                </div>
+                <p id="sim-fidc-inteligencia-texto" style="color:#aaa; font-size:0.9rem; line-height:1.4; margin:0;">
+                    A antecipação via FIDC reduzirá seu lucro em R$ 0,00...
+                </p>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="btn-primary" style="flex:1; background:#3e7cb1;" onclick="gerarPdfFIDC()">
+                    <i class="fa-solid fa-file-pdf"></i> Exportar Relatório Executivo (PDF)
+                </button>
+            </div>
         </div>
     </div>
 
