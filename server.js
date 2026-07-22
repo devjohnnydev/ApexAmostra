@@ -1619,6 +1619,60 @@ app.delete('/api/noticias/:id', async (req, res) => {
     }
 });
 
+// ─── API: Busca de NCM (Siscomex com Cache) ──────────────────────────────────
+let cacheNcm = null;
+
+async function carregarNcms() {
+    if (cacheNcm) return cacheNcm;
+    try {
+        const response = await axios.get('https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json', {
+            timeout: 15000,
+            headers: { 'Accept-Encoding': 'gzip, deflate, br' }
+        });
+        if (response.data && response.data.Nomenclaturas) {
+            cacheNcm = response.data.Nomenclaturas.map(n => ({
+                codigo: n.Codigo,
+                descricao: n.Descricao
+            }));
+            console.log(`[NCM] Carregados ${cacheNcm.length} códigos do Siscomex.`);
+            return cacheNcm;
+        }
+    } catch (e) {
+        console.error('Erro ao baixar NCMs do Siscomex:', e.message);
+    }
+    
+    // Fallback básico para não travar o sistema
+    return [
+        { codigo: "76020000", descricao: "Desperdícios e resíduos, de alumínio" },
+        { codigo: "74040000", descricao: "Desperdícios e resíduos, de cobre" },
+        { codigo: "79020000", descricao: "Desperdícios e resíduos, de zinco" },
+        { codigo: "78020000", descricao: "Desperdícios e resíduos, de chumbo" },
+        { codigo: "80020000", descricao: "Desperdícios e resíduos, de estanho" },
+        { codigo: "75030000", descricao: "Desperdícios e resíduos, de níquel" }
+    ];
+}
+
+app.get('/api/ncm/buscar', async (req, res) => {
+    try {
+        const query = (req.query.q || '').trim().toLowerCase();
+        if (!query) return res.json([]);
+        
+        const ncms = await carregarNcms();
+        const cleanQuery = query.replace(/\D/g, '');
+        
+        const results = ncms.filter(n => {
+            const cleanCodigo = n.codigo.replace(/\D/g, '');
+            return (cleanQuery && cleanCodigo.includes(cleanQuery)) || 
+                   n.descricao.toLowerCase().includes(query);
+        }).slice(0, 50); // Limita a 50 resultados para performance
+        
+        res.json(results);
+    } catch (err) {
+        console.error('Erro na busca de NCM:', err);
+        res.status(500).json({ error: 'Erro ao buscar NCM.' });
+    }
+});
+
 // ─── API: Configurações da Home ──────────────────────────────────────────────
 app.get('/api/settings', async (req, res) => {
     try {

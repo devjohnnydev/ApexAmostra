@@ -3871,6 +3871,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function carregarFornecedores() {
         try {
+            try {
+                const resAmo = await fetch('/api/amostras');
+                localAmostras = await resAmo.json();
+            } catch (ea) {
+                console.error('Erro ao buscar amostras para fornecedores:', ea);
+            }
+            
             const res = await fetch('/api/fornecedores');
             localFornecedores = await res.json();
             renderFornecedores();
@@ -3885,6 +3892,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!body) return;
         body.innerHTML = '';
         localFornecedores.forEach(f => {
+            const amostrasForn = (localAmostras || []).filter(a => a.fornecedor_id === f.id);
+            const amostrasHtml = amostrasForn.length > 0 
+                ? amostrasForn.map(a => `<span class="badge-status em-analise" style="margin: 2px; font-size: 0.75rem; background: #1e4e8c; color: #fff; cursor: pointer; display: inline-block;" onclick="window.abrirAmostraPorNumero('${a.numero_amostra}')">${a.numero_amostra}</span>`).join(' ')
+                : '<span style="color:#666; font-style:italic; font-size:0.8rem;">Nenhuma</span>';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="padding:12px;"><strong>${f.razao_social}</strong></td>
@@ -3893,6 +3905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:12px;">${f.contato || '-'}</td>
                 <td style="padding:12px;">${f.telefone || '-'}</td>
                 <td style="padding:12px;">${f.email || '-'}</td>
+                <td style="padding:12px;">${amostrasHtml}</td>
                 <td style="padding:12px; text-align:center;">
                     <button class="btn-refresh" style="background:none; border:none; color:#3e7cb1; margin-right:8px;" onclick="editarFornecedor(${f.id})"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d;" onclick="deletarFornecedor(${f.id})"><i class="fa-solid fa-trash"></i></button>
@@ -4030,13 +4043,106 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let ncmTimeout = null;
+
+    window.buscarNcmPorNome = function(e) {
+        if (e) e.preventDefault();
+        const nome = document.getElementById('mat-nome').value;
+        if (!nome) {
+            alert('Por favor, digite o nome do material primeiro.');
+            return;
+        }
+        executarBuscaNcm(nome);
+    };
+
+    window.autoBuscarNcm = function(valor) {
+        clearTimeout(ncmTimeout);
+        if (!valor || valor.trim().length < 2) {
+            fecharNcmDropdown();
+            return;
+        }
+        ncmTimeout = setTimeout(() => {
+            executarBuscaNcm(valor);
+        }, 400);
+    };
+
+    window.buscarNcmManual = function() {
+        const valor = document.getElementById('mat-ncm').value;
+        if (!valor) {
+            alert('Digite um termo ou código para buscar.');
+            return;
+        }
+        executarBuscaNcm(valor);
+    };
+
+    async function executarBuscaNcm(termo) {
+        const dropdown = document.getElementById('ncm-resultados-dropdown');
+        if (!dropdown) return;
+        
+        try {
+            const res = await fetch(`/api/ncm/buscar?q=${encodeURIComponent(termo)}`);
+            const resultados = await res.json();
+            
+            if (resultados.length === 0) {
+                dropdown.innerHTML = '<div style="padding:10px; color:#aaa; font-style:italic; font-size:0.85rem;">Nenhum NCM encontrado</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+            
+            dropdown.innerHTML = resultados.map(n => `
+                <div style="padding:10px; cursor:pointer; border-bottom:1px solid #223547; transition:background 0.2s;" 
+                     onclick="selecionarNcm('${n.codigo}', '${n.descricao.replace(/'/g, "\\'")}')"
+                     onmouseover="this.style.background='rgba(30, 78, 140, 0.4)'"
+                     onmouseout="this.style.background='none'">
+                    <span style="color:#2AD07A; font-weight:bold; font-size:0.85rem;">${formatarCodigoNcm(n.codigo)}</span><br>
+                    <small style="color:#ddd; font-size:0.75rem;">${n.descricao}</small>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        } catch (err) {
+            console.error('Erro ao buscar NCM:', err);
+        }
+    }
+
+    window.selecionarNcm = function(codigo, descricao) {
+        const input = document.getElementById('mat-ncm');
+        if (input) {
+            input.value = formatarCodigoNcm(codigo);
+        }
+        fecharNcmDropdown();
+    };
+
+    function fecharNcmDropdown() {
+        const dropdown = document.getElementById('ncm-resultados-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
+    }
+
+    function formatarCodigoNcm(codigo) {
+        const limpo = codigo.replace(/\D/g, '');
+        if (limpo.length === 8) {
+            return `${limpo.substring(0,4)}.${limpo.substring(4,6)}.${limpo.substring(6,8)}`;
+        }
+        return codigo;
+    }
+
+    // Fechar dropdown de NCM ao clicar fora do modal
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('ncm-resultados-dropdown');
+        const inputNcm = document.getElementById('mat-ncm');
+        if (dropdown && e.target !== dropdown && e.target !== inputNcm && !dropdown.contains(e.target)) {
+            fecharNcmDropdown();
+        }
+    });
+
     window.abrirModalMaterial = function() {
         document.getElementById('form-material-apex').reset();
         document.getElementById('mat-id').value = '';
+        fecharNcmDropdown();
         document.getElementById('modal-material').style.display = 'flex';
     };
 
     window.fecharModalMaterial = function() {
+        fecharNcmDropdown();
         document.getElementById('modal-material').style.display = 'none';
     };
 
@@ -4117,6 +4223,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 3. TABELA DE PREÇOS ---
+    let settingsPrecos = {};
+    let visualizacaoTabelaPrecos = 'completa';
+
     window.initApexPrecos = function() {
         carregarPrecos();
     };
@@ -4125,9 +4234,62 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch('/api/tabela-precos');
             localPrecos = await res.json();
+            
+            try {
+                const resSet = await fetch('/api/settings');
+                settingsPrecos = await resSet.json();
+            } catch (e) {
+                console.error('Erro ao carregar settings para precos:', e);
+            }
+
             renderTabelaPrecos();
         } catch (err) {
             console.error(err);
+        }
+    }
+
+    window.alterarCorCategoria = async function(cat, cor) {
+        try {
+            await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [`cor_categoria_${cat}`]: cor })
+            });
+            settingsPrecos[`cor_categoria_${cat}`] = cor;
+            renderTabelaPrecos();
+        } catch (err) {
+            console.error('Erro ao atualizar cor da categoria:', err);
+        }
+    };
+
+    window.alterarVisualizacaoTabela = function(tipo) {
+        visualizacaoTabelaPrecos = tipo;
+        renderTabelaPrecos();
+    };
+
+    window.alternarModoApresentacao = function() {
+        const view = document.getElementById('tabela-precos-view');
+        if (!view) return;
+        
+        const ativo = view.classList.toggle('modo-apresentacao-ativo');
+        
+        const btnToggle = document.getElementById('btn-toggle-apresentacao');
+        const btnFechar = document.getElementById('btn-fechar-apresentacao');
+        
+        if (ativo) {
+            if (btnToggle) btnToggle.style.display = 'none';
+            if (btnFechar) btnFechar.style.display = 'inline-flex';
+            window.addEventListener('keydown', escApresentacaoHandler);
+        } else {
+            if (btnToggle) btnToggle.style.display = 'inline-flex';
+            if (btnFechar) btnFechar.style.display = 'none';
+            window.removeEventListener('keydown', escApresentacaoHandler);
+        }
+    };
+
+    function escApresentacaoHandler(e) {
+        if (e.key === 'Escape') {
+            window.alternarModoApresentacao();
         }
     }
 
@@ -4138,18 +4300,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Agrupar por categorias
         const categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        const showCompleta = visualizacaoTabelaPrecos === 'completa';
 
         categorias.forEach(cat => {
             const precosCat = localPrecos.filter(p => p.material_categoria === cat);
             if (precosCat.length === 0) return;
 
             const validadeStr = precosCat[0] ? new Date(precosCat[0].validade).toLocaleDateString('pt-BR') : '-';
+            const corCategoria = settingsPrecos[`cor_categoria_${cat}`] || '#1e4e8c';
 
             const box = document.createElement('div');
             box.className = 'categoria-preco-box';
+            box.style.borderColor = corCategoria;
             box.innerHTML = `
-                <div class="categoria-preco-header">
-                    <span>${cat.toUpperCase()}</span>
+                <div class="categoria-preco-header" style="background: ${corCategoria};">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span>${cat.toUpperCase()}</span>
+                        <input type="color" value="${corCategoria}" title="Alterar cor do cabeçalho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
+                    </div>
                     <span style="font-size:0.85rem; font-weight:normal;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                 </div>
                 <div class="categoria-preco-observacao">
@@ -4162,12 +4330,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding:10px;">Descrição</th>
                                 <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
                                 <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Venda Ref (R$/kg)</th>
+                                ${showCompleta ? `
+                                <th style="padding:10px; text-align:right; color: #ffeb3b;">Venda Ref (R$/kg)</th>
                                 <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Ent.</th>
                                 <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Ent. (%)</th>
                                 <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Col.</th>
                                 <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Col. (%)</th>
                                 <th style="padding:10px; text-align:right; color:#d4b896;">Diferença (%)</th>
+                                ` : ''}
                                 <th style="padding:10px;">NCM</th>
                                 <th style="padding:10px; text-align:center; width:100px;">Ações</th>
                             </tr>
@@ -4185,12 +4355,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px;"><strong>${p.material_nome}</strong></td>
                                         <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.preco_entregar).toFixed(2)}</td>
                                         <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.preco_coletar).toFixed(2)}</td>
-                                        <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.venda_ref).toFixed(2)}</td>
+                                        ${showCompleta ? `
+                                        <td style="padding:10px; text-align:right; color: #ffeb3b; font-weight: bold;">R$ ${parseFloat(p.venda_ref).toFixed(2)}</td>
                                         <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${lucroEnt.toFixed(2)}</td>
                                         <td style="padding:10px; text-align:right; color:#2AD07A;">${margemEnt.toFixed(2)}%</td>
                                         <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${lucroCol.toFixed(2)}</td>
                                         <td style="padding:10px; text-align:right; color:#3e7cb1;">${margemCol.toFixed(2)}%</td>
                                         <td style="padding:10px; text-align:right; color:#d4b896;">${dif.toFixed(2)}%</td>
+                                        ` : ''}
                                         <td style="padding:10px;">${p.material_ncm || '-'}</td>
                                         <td style="padding:10px; text-align:center;">
                                             <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#3e7cb1; margin-right:5px;" onclick="editarPreco(${p.id})"><i class="fa-solid fa-pen"></i></button>
@@ -4200,7 +4372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="11" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
+                                <td colspan="${showCompleta ? 11 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
                                     DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
@@ -4549,6 +4721,18 @@ document.addEventListener('DOMContentLoaded', () => {
             body.appendChild(tr);
         });
     }
+
+    window.abrirAmostraPorNumero = function(numero) {
+        const navAmo = document.getElementById('nav-amostras') || document.querySelector('.nav-item[data-target="amostras-view"]');
+        if (navAmo) {
+            navAmo.click();
+            const searchInput = document.getElementById('amostras-search');
+            if (searchInput) {
+                searchInput.value = numero;
+                window.filtrarAmostras();
+            }
+        }
+    };
 
     window.deletarAmostra = async function(id) {
         if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
