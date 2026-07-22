@@ -663,19 +663,43 @@ app.get('/api/materiais-catalogo', async (req, res) => {
 app.post('/api/materiais-catalogo', async (req, res) => {
     try {
         const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        let material;
+        const validadeDefault = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes)
                  VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
                 [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
             );
-            return res.json(result.rows[0]);
+            material = result.rows[0];
+            
+            // Auto-create pricing row
+            await pool.query(
+                `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [material.id, 0.00, 0.00, 0.00, validadeDefault]
+            );
+            await atualizarDataUltimaModificacaoPrecos();
         } else {
             const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
             memStore.materiais_catalogo.push(newM);
-            return res.json(newM);
+            material = newM;
+            
+            // Auto-create pricing row in memory
+            memStore.tabela_precos.push({
+                id: nextId++,
+                material_id: material.id,
+                preco_entregar: 0.00,
+                preco_coletar: 0.00,
+                venda_ref: 0.00,
+                validade: validadeDefault
+            });
+            await atualizarDataUltimaModificacaoPrecos();
         }
+        res.json(material);
     } catch (err) {
+        console.error('Erro ao criar material:', err);
         res.status(500).json({ error: 'Erro ao criar material.' });
     }
 });
@@ -706,12 +730,17 @@ app.delete('/api/materiais-catalogo/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
+            await pool.query('DELETE FROM tabela_precos WHERE material_id=$1', [id]);
             await pool.query('DELETE FROM materiais_catalogo WHERE id=$1', [id]);
+            await atualizarDataUltimaModificacaoPrecos();
         } else {
+            memStore.tabela_precos = memStore.tabela_precos.filter(x => x.material_id !== id);
             memStore.materiais_catalogo = memStore.materiais_catalogo.filter(x => x.id !== id);
+            await atualizarDataUltimaModificacaoPrecos();
         }
         res.json({ success: true });
     } catch (err) {
+        console.error('Erro ao deletar material:', err);
         res.status(500).json({ error: 'Erro ao deletar material.' });
     }
 });
