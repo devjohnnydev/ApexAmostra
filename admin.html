@@ -2051,66 +2051,91 @@
 
     <!-- Modal Material -->
     <div id="modal-material" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
-        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
-            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-tag"></i> Cadastro de Material</h3>
+        <div class="login-box" style="width:620px; max-width:95vw; max-height:92vh; overflow-y:auto; padding:30px; background:#0d1821; border:1px solid #1e4e8c; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+            <!-- Header -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid #1a3045;">
+                <h3 style="margin:0; color:#fff; font-size:1.15rem; display:flex; align-items:center; gap:9px;">
+                    <span style="background:#1e4e8c; padding:7px 10px; border-radius:8px;"><i class="fa-solid fa-tag" style="color:#4fc3f7;"></i></span>
+                    <span id="modal-material-titulo">Cadastro de Material</span>
+                </h3>
+                <button type="button" onclick="fecharModalMaterial()" style="background:none; border:none; color:#aaa; font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px; border-radius:6px;" title="Fechar">✕</button>
+            </div>
+
             <form id="form-material-apex" onsubmit="salvarMaterial(event)">
                 <input type="hidden" id="mat-id" value="">
-                <div class="form-group">
-                    <label>Nome do Material *</label>
-                    <input type="text" id="mat-nome" required class="noble-input">
+
+                <!-- Nome -->
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Nome do Material *</label>
+                    <input type="text" id="mat-nome" required class="noble-input" placeholder="Ex: Sucata de Alumínio Bloco Limpo" style="font-size:1rem;">
                 </div>
-                <div class="form-group">
-                    <label>Categoria *</label>
-                    <div style="display:flex; gap:5px;">
-                        <select id="mat-categoria" class="noble-input" required style="flex:1;">
-                            <option value="Alumínio">Alumínio</option>
-                            <option value="Cobre">Cobre</option>
-                            <option value="Tomada/Conectores">Tomada/Conectores</option>
-                            <option value="Chumbo">Chumbo</option>
-                            <option value="Latão/Bronze">Latão/Bronze</option>
-                            <option value="Zamac">Zamac</option>
-                            <option value="Aço">Aço</option>
-                            <option value="Outros">Outros</option>
+
+                <!-- Categoria -->
+                <div class="form-group" style="margin-bottom:18px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin:0;">Grupo / Categoria *</label>
+                        <button type="button" onclick="adicionarNovaCategoriaPrompt()" style="background:linear-gradient(135deg,#1e4e8c,#3e7cb1); border:none; color:#fff; padding:5px 12px; border-radius:20px; font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                            <i class="fa-solid fa-plus"></i> Novo Grupo
+                        </button>
+                    </div>
+                    <!-- Select oculto usado pelo form -->
+                    <select id="mat-categoria" required style="display:none;"></select>
+                    <!-- Exibição visual como badges -->
+                    <div id="mat-categoria-badges" style="display:flex; flex-wrap:wrap; gap:8px; background:#0a1520; border:1px solid #1a3045; border-radius:10px; padding:12px; min-height:60px;"></div>
+                    <div id="mat-categoria-selecionada" style="margin-top:8px; font-size:0.82rem; color:#4fc3f7; display:none;">
+                        <i class="fa-solid fa-check-circle"></i> Grupo selecionado: <strong id="mat-categoria-nome-display"></strong>
+                    </div>
+                </div>
+
+                <!-- Unidade + NCM -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Unidade *</label>
+                        <select id="mat-unidade" required class="noble-input" style="width:100%;">
+                            <option value="kg">kg — Quilograma</option>
+                            <option value="g">g — Grama</option>
+                            <option value="t">t — Tonelada</option>
+                            <option value="un">un — Unidade</option>
+                            <option value="l">l — Litro</option>
                         </select>
-                        <button type="button" class="btn-secondary" onclick="adicionarNovaCategoriaPrompt()" style="margin:0; padding:0 15px;"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="form-group">
-                        <label>Unidade *</label>
-                        <input type="text" id="mat-unidade" required class="noble-input" value="kg">
-                    </div>
-                    <div class="form-group" style="position:relative;">
-                        <label style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="form-group" style="margin:0; position:relative;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
                             <span>NCM</span>
-                            <a href="#" onclick="buscarNcmPorNome(event)" style="font-size:0.75rem; color:#3e7cb1; text-decoration:none;"><i class="fa-solid fa-magnifying-glass"></i> Buscar por Nome</a>
+                            <a href="#" onclick="buscarNcmPorNome(event)" style="font-size:0.73rem; color:#3e7cb1; text-decoration:none; font-weight:normal; text-transform:none; letter-spacing:0;"><i class="fa-solid fa-magnifying-glass"></i> Buscar por Nome</a>
                         </label>
                         <div style="display:flex; gap:5px;">
-                            <input type="text" id="mat-ncm" class="noble-input" placeholder="Ex: 7602.00.00" oninput="autoBuscarNcm(this.value)" autocomplete="off">
+                            <input type="text" id="mat-ncm" class="noble-input" placeholder="7602.00.00" oninput="autoBuscarNcm(this.value)" autocomplete="off" style="flex:1;">
                             <button type="button" class="btn-secondary" onclick="buscarNcmManual()" style="padding:0 12px; margin:0;"><i class="fa-solid fa-search"></i></button>
                         </div>
-                        <div id="ncm-resultados-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#162432; border:1px solid #1e4e8c; border-radius:4px; max-height:200px; overflow-y:auto; z-index:1010; box-shadow:0 4px 10px rgba(0,0,0,0.5);">
-                            <!-- Resultados inseridos dinamicamente aqui -->
+                        <div id="ncm-resultados-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#162432; border:1px solid #1e4e8c; border-radius:4px; max-height:200px; overflow-y:auto; z-index:1010; box-shadow:0 4px 10px rgba(0,0,0,0.5);"></div>
+                    </div>
+                </div>
+
+                <!-- Cor + Observações -->
+                <div style="display:grid; grid-template-columns:auto 1fr; gap:14px; margin-bottom:24px; align-items:end;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Cor Badge</label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="color" id="mat-cor" value="#3e7cb1" style="width:48px; height:42px; border:2px solid #1a3045; border-radius:8px; cursor:pointer; background:none; padding:2px;">
+                            <span id="mat-cor-preview" style="font-size:0.78rem; color:#aaa; font-family:monospace;">#3e7cb1</span>
                         </div>
                     </div>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 3fr; gap:10px;">
-                    <div class="form-group">
-                        <label>Cor Badge</label>
-                        <input type="color" id="mat-cor" class="noble-input" value="#3e7cb1" style="padding:2px; height:40px;">
-                    </div>
-                    <div class="form-group">
-                        <label>Observações</label>
-                        <input type="text" id="mat-obs" class="noble-input">
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Observações</label>
+                        <input type="text" id="mat-obs" class="noble-input" placeholder="Observações opcionais...">
                     </div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
-                    <button type="button" class="btn-secondary" onclick="fecharModalMaterial()" style="flex:1;">Cancelar</button>
+
+                <!-- Botões -->
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:1; padding:12px; font-size:1rem;"><i class="fa-solid fa-save"></i> Salvar Material</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalMaterial()" style="flex:1; padding:12px; font-size:1rem;">Cancelar</button>
                 </div>
             </form>
         </div>
     </div>
+
 
     <!-- Modal Receber Amostra -->
     <div id="modal-amostra" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">

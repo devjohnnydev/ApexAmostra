@@ -4138,8 +4138,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.abrirModalMaterial = function() {
         document.getElementById('form-material-apex').reset();
         document.getElementById('mat-id').value = '';
+        document.getElementById('modal-material-titulo').textContent = 'Cadastro de Material';
         fecharNcmDropdown();
+        popularSeletoresCategorias();
+        selecionarCategoriaBadge(null);
         document.getElementById('modal-material').style.display = 'flex';
+        // Sync color preview
+        const corInput = document.getElementById('mat-cor');
+        const corPreview = document.getElementById('mat-cor-preview');
+        if (corInput && corPreview) {
+            corInput.addEventListener('input', () => { corPreview.textContent = corInput.value; }, { once: false });
+            corPreview.textContent = corInput.value;
+        }
     };
 
     window.fecharModalMaterial = function() {
@@ -4152,13 +4162,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!m) return;
         document.getElementById('mat-id').value = m.id;
         document.getElementById('mat-nome').value = m.nome;
-        document.getElementById('mat-categoria').value = m.categoria;
-        document.getElementById('mat-unidade').value = m.unidade;
         document.getElementById('mat-ncm').value = m.ncm || '';
         document.getElementById('mat-cor').value = m.cor || '#3e7cb1';
+        const corPreview = document.getElementById('mat-cor-preview');
+        if (corPreview) corPreview.textContent = m.cor || '#3e7cb1';
         document.getElementById('mat-obs').value = m.observacoes || '';
+        document.getElementById('modal-material-titulo').textContent = 'Editar Material';
+        popularSeletoresCategorias();
+        selecionarCategoriaBadge(m.categoria);
+        // Set unidade select
+        const unSelect = document.getElementById('mat-unidade');
+        if (unSelect) { unSelect.value = m.unidade || 'kg'; }
         document.getElementById('modal-material').style.display = 'flex';
+        // Sync color preview
+        const corInput = document.getElementById('mat-cor');
+        if (corInput) corInput.addEventListener('input', () => { if(corPreview) corPreview.textContent = corInput.value; }, { once: false });
     };
+
+    function selecionarCategoriaBadge(cat) {
+        const select = document.getElementById('mat-categoria');
+        const badges = document.querySelectorAll('.cat-badge-btn');
+        const infoDiv = document.getElementById('mat-categoria-selecionada');
+        const nomeSpan = document.getElementById('mat-categoria-nome-display');
+        badges.forEach(b => {
+            const isSelected = b.dataset.cat === cat;
+            b.style.background = isSelected ? (b.dataset.color || '#1e4e8c') : 'rgba(255,255,255,0.05)';
+            b.style.borderColor = isSelected ? (b.dataset.color || '#1e4e8c') : 'rgba(255,255,255,0.12)';
+            b.style.color = isSelected ? '#fff' : '#a0b4c8';
+            b.style.fontWeight = isSelected ? '700' : '400';
+            b.style.transform = isSelected ? 'scale(1.05)' : 'scale(1)';
+        });
+        if (select) select.value = cat || '';
+        if (infoDiv) infoDiv.style.display = cat ? 'block' : 'none';
+        if (nomeSpan && cat) nomeSpan.textContent = cat;
+    }
+    window.selecionarCategoriaBadge = selecionarCategoriaBadge;
 
     window.salvarMaterial = async function(e) {
         e.preventDefault();
@@ -4235,6 +4273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function popularSeletoresCategorias() {
         const matCat = document.getElementById('mat-categoria');
+        const badgesDiv = document.getElementById('mat-categoria-badges');
         if (!matCat) return;
         
         let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
@@ -4249,17 +4288,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 cats.push(m.categoria);
             }
         });
-        
+
+        // Atualiza o select oculto
         const currentVal = matCat.value;
-        matCat.innerHTML = '';
-        cats.forEach(cat => {
-            matCat.innerHTML += `<option value="${cat}">${cat}</option>`;
-        });
+        matCat.innerHTML = cats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
         if (currentVal && cats.includes(currentVal)) matCat.value = currentVal;
+
+        // Renderiza badges visuais
+        if (badgesDiv) {
+            // Paleta de cores por grupo
+            const corPaleta = {
+                'Alumínio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
+                'Aço': '#7ea374', 'Chumbo': '#7a8a99', 'Latão/Bronze': '#c8a240',
+                'Zamac': '#8a7ba8', 'Outros': '#6b7280'
+            };
+            badgesDiv.innerHTML = cats.map(cat => {
+                const cor = settingsPrecos && settingsPrecos[`cor_categoria_${cat}`]
+                    ? settingsPrecos[`cor_categoria_${cat}`]
+                    : (corPaleta[cat] || '#1e4e8c');
+                return `<button type="button" class="cat-badge-btn"
+                    data-cat="${cat}" data-color="${cor}"
+                    onclick="selecionarCategoriaBadge('${cat}')"
+                    style="
+                        padding:7px 16px; border-radius:20px; border:1.5px solid rgba(255,255,255,0.12);
+                        background:rgba(255,255,255,0.05); color:#a0b4c8; font-size:0.83rem;
+                        cursor:pointer; transition:all 0.18s ease; white-space:nowrap;
+                        font-family:inherit; letter-spacing:0.3px;
+                    "
+                    onmouseover="this.style.borderColor='${cor}'; this.style.color='${cor}'; this.style.background='rgba(255,255,255,0.08)';"
+                    onmouseout="if(document.getElementById('mat-categoria').value !== '${cat}') { this.style.borderColor='rgba(255,255,255,0.12)'; this.style.color='#a0b4c8'; this.style.background='rgba(255,255,255,0.05)'; }"
+                >
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${cor}; margin-right:6px; vertical-align:middle;"></span>${cat}
+                </button>`;
+            }).join('');
+        }
     }
 
     window.adicionarNovaCategoriaPrompt = async function() {
-        const nova = prompt('Digite o nome da nova categoria (Grupo):');
+        const nova = prompt('Nome do novo grupo/categoria:');
         if (!nova) return;
         const trim = nova.trim();
         if (trim === '') return;
@@ -4280,17 +4346,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ 'categorias_materiais': JSON.stringify(cats) })
                 });
                 settingsPrecos['categorias_materiais'] = JSON.stringify(cats);
-                alert(`Grupo "${trim}" criado com sucesso!`);
             } catch(err) {
                 console.error('Erro ao salvar nova categoria:', err);
             }
         }
         
         popularSeletoresCategorias();
-        const matCat = document.getElementById('mat-categoria');
-        if (matCat) {
-            matCat.value = trim;
-        }
+        selecionarCategoriaBadge(trim);
     };
 
     window.calcularPorcentagemDeEntregar = function() {
