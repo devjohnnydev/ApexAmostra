@@ -4183,7 +4183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalMaterial();
             await carregarMateriais();
             // Reload the pricing table so the new material/category appears immediately
-            await carregarPrecos();
+            if (window.carregarPrecos) await window.carregarPrecos();
         } catch (err) {
             console.error(err);
         }
@@ -4195,7 +4195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch(`/api/materiais-catalogo/${id}`, { method: 'DELETE' });
             await carregarMateriais();
             // Reload the pricing table so the deleted material/category is removed
-            await carregarPrecos();
+            if (window.carregarPrecos) await window.carregarPrecos();
         } catch (err) {
             console.error(err);
         }
@@ -4356,10 +4356,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let visualizacaoTabelaPrecos = 'completa';
 
     window.initApexPrecos = function() {
-        carregarPrecos();
+        window.carregarPrecos();
     };
 
-    async function carregarPrecos() {
+    window.carregarPrecos = async function() {
         try {
             const res = await fetch('/api/tabela-precos');
             localPrecos = await res.json();
@@ -4375,7 +4375,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error(err);
         }
-    }
+    };
 
     window.alterarCorCategoria = async function(cat, cor) {
         try {
