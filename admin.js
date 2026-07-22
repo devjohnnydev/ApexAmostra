@@ -4181,17 +4181,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(data)
             });
             fecharModalMaterial();
-            carregarMateriais();
+            await carregarMateriais();
+            // Reload the pricing table so the new material/category appears immediately
+            await carregarPrecos();
         } catch (err) {
             console.error(err);
         }
     };
 
     window.deletarMaterial = async function(id) {
-        if (!confirm('Excluir este material do catálogo?')) return;
+        if (!confirm('Excluir este material do catálogo? O preço correspondente também será removido.')) return;
         try {
             await fetch(`/api/materiais-catalogo/${id}`, { method: 'DELETE' });
-            carregarMateriais();
+            await carregarMateriais();
+            // Reload the pricing table so the deleted material/category is removed
+            await carregarPrecos();
         } catch (err) {
             console.error(err);
         }
