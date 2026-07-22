@@ -1955,7 +1955,10 @@
                             <h1><i class="fa-solid fa-users-cog"></i> Configuração de Acesso e Perfis</h1>
                             <p>Controle de permissões industriais, faturamento e fluxo de liberação PCP.</p>
                         </div>
-                        <button class="btn-primary" onclick="abrirModalUsuario()"><i class="fa-solid fa-plus"></i> Novo Usuário</button>
+                        <div>
+                            <button class="btn-secondary" onclick="abrirModalPermissoes()" style="margin-right: 10px; width:auto; border-radius:6px; padding: 10px 14px;"><i class="fa-solid fa-user-shield"></i> Configurar Permissões</button>
+                            <button class="btn-primary" onclick="abrirModalUsuario()"><i class="fa-solid fa-plus"></i> Novo Usuário</button>
+                        </div>
                     </div>
                 </header>
 
@@ -2343,6 +2346,66 @@
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button type="button" class="btn-primary" style="flex:1; background:#ff4d4d; color:#fff;" onclick="salvarDecisaoDiretoria('Reprovado')">Confirmar Reprovação</button>
                 <button type="button" class="btn-secondary" onclick="fecharModalReprovacao()" style="flex:1;">Cancelar</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Modal: Permissões dos Perfis (RBAC) -->
+    <div class="modal-overlay" id="modal-permissoes">
+        <div class="modal-content" style="max-width:800px; width:95%;">
+            <button class="modal-close" onclick="fecharModalPermissoes()"><i class="fa-solid fa-times"></i></button>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                <div style="width:40px; height:40px; border-radius:10px; background:rgba(62,124,177,0.15); display:flex; align-items:center; justify-content:center; color:#3e7cb1;">
+                    <i class="fa-solid fa-user-shield fa-lg"></i>
+                </div>
+                <div>
+                    <h2 style="margin:0; font-size:1.4rem; color:#fff;">Permissões de Perfis (RBAC)</h2>
+                    <p style="margin:0; color:#a0b4c8; font-size:0.9rem;">Defina quais seções cada perfil pode acessar no sistema.</p>
+                </div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 250px 1fr; gap: 20px; background:#111b24; padding:20px; border-radius:8px; border:1px solid #1a3045;">
+                
+                <!-- Lista de Perfis (Esquerda) -->
+                <div>
+                    <h4 style="margin-top:0; margin-bottom:15px; color:#a0b4c8;">Selecione o Perfil:</h4>
+                    <div id="lista-perfis-permissoes" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- JS vai popular os perfis aqui -->
+                    </div>
+                </div>
+                
+                <!-- Checkboxes de Permissão (Direita) -->
+                <div>
+                    <h4 style="margin-top:0; margin-bottom:15px; color:#a0b4c8;">Permissões do Perfil: <strong id="perfil-selecionado-lbl" style="color:#fff;">Nenhum</strong></h4>
+                    <p id="msg-admin-lock" style="display:none; color:#2AD07A; font-size:0.9rem; padding:10px; background:rgba(42,208,122,0.1); border-radius:6px; margin-bottom:15px;">
+                        <i class="fa-solid fa-check-circle"></i> O Administrador sempre possui acesso total.
+                    </p>
+                    
+                    <div id="grid-permissoes" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                        <!-- Menu Lateral -->
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_lme"> Relatório Diário (LME)</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_precos"> Tabela de Preços</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_catalogo"> Catálogo de Materiais</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_fornecedores"> Gestão de Fornecedores</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_laboratorio"> Controle de Amostras</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_planejamento"> Planejamento de Carga</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_estoque"> Gestão de Estoque</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_bi"> Dashboard Interativo (BI)</label>
+                        <label class="perm-checkbox" style="color:#fff;"><input type="checkbox" value="view_usuarios"> Usuários e Perfis</label>
+                        
+                        <div style="grid-column: 1 / -1; border-top:1px dashed #223547; margin: 10px 0;"></div>
+                        
+                        <!-- Ações Específicas -->
+                        <label class="perm-checkbox" style="color:#f0b800;"><input type="checkbox" value="edit_financeiro"> [Financeiro] Ver Custos/Margens</label>
+                        <label class="perm-checkbox" style="color:#f0b800;"><input type="checkbox" value="edit_producao"> [Produção] Botões de PCP/Desmonte</label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-secondary" onclick="fecharModalPermissoes()" style="width:auto; padding:10px 20px;">Cancelar</button>
+                <button class="btn-primary" onclick="salvarPermissoesPerfil()"><i class="fa-solid fa-save"></i> Salvar Permissões</button>
             </div>
         </div>
     </div>

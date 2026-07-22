@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
+    let globalRolePermissions = {};
+
     // ─────────────────────────────────────────────────────────────────────────
     // LOGIN
     // ─────────────────────────────────────────────────────────────────────────
@@ -47,7 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────────────────────────────
     // INIT ADMIN
     // ─────────────────────────────────────────────────────────────────────────
-    function initAdmin() {
+    async function initAdmin() {
+        try {
+            const res = await fetch('/api/settings');
+            const settings = await res.json();
+            if (settings.role_permissions) {
+                globalRolePermissions = JSON.parse(settings.role_permissions);
+            }
+        } catch (e) {
+            console.error('Erro ao buscar permissões:', e);
+        }
+
         initLMEDashboard();
         initLMEExcelReport();
         initRelatorioDiario();
@@ -3825,43 +3837,62 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyRolePermissions() {
         const role = currentSimulatedRole;
 
-        // Tabs Visibility
-        const navPrecos = document.getElementById('nav-precos');
-        const navPlanejamento = document.getElementById('nav-planejamento');
-        const navUsuarios = document.getElementById('nav-usuarios');
-
-        if (role === 'Laboratório' || role === 'Produção') {
-            if (navPrecos) navPrecos.style.display = 'none';
-            if (navPlanejamento) navPlanejamento.style.display = 'none';
-        } else {
-            if (navPrecos) navPrecos.style.display = 'flex';
-            if (navPlanejamento) navPlanejamento.style.display = 'flex';
+        // Se por acaso as permissões ainda não carregaram ou o role não existir, falha fechado (deny all exceto admin)
+        let permissoes = globalRolePermissions[role] || [];
+        if (role === 'Administrador') {
+            // Admin vê tudo.
+            permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios"];
         }
 
-        if (role !== 'Administrador') {
-            if (navUsuarios) navUsuarios.style.display = 'none';
-        } else {
-            if (navUsuarios) navUsuarios.style.display = 'flex';
+        const temPermissao = (p) => permissoes.includes(p);
+
+        // Funções auxiliares para esconder/mostrar navegação
+        const setNav = (idOrSelector, isVisible) => {
+            const el = document.getElementById(idOrSelector) || document.querySelector(idOrSelector);
+            if (el) el.style.display = isVisible ? 'flex' : 'none';
+        };
+
+        // Tabs Visibility (Apex Gestão)
+        setNav('nav-fornecedores', temPermissao('view_fornecedores'));
+        setNav('nav-materiais', temPermissao('view_catalogo'));
+        setNav('nav-precos', temPermissao('view_precos'));
+        setNav('nav-amostras', temPermissao('view_laboratorio'));
+        setNav('nav-planejamento', temPermissao('view_planejamento'));
+        setNav('nav-estoque', temPermissao('view_estoque'));
+        setNav('nav-bi', temPermissao('view_bi'));
+        setNav('nav-usuarios', temPermissao('view_usuarios'));
+
+        // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
+        setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
+        setNav('.nav-item[data-target="relatorio-diario"]', temPermissao('view_lme'));
+        setNav('.nav-item[data-target="lme-email-config"]', temPermissao('view_lme'));
+
+        // Oculta a seção ativa se o usuário perdeu acesso a ela e redireciona para a primeira disponível
+        const activeNav = document.querySelector('.nav-item.active');
+        if (activeNav && activeNav.style.display === 'none') {
+            activeNav.classList.remove('active');
+            const targetSec = document.getElementById(activeNav.dataset.target);
+            if (targetSec) targetSec.classList.remove('active');
+
+            const firstAvailable = document.querySelector('.nav-item[style="display: flex;"]');
+            if (firstAvailable) {
+                firstAvailable.classList.add('active');
+                const targetFirst = document.getElementById(firstAvailable.dataset.target);
+                if (targetFirst) targetFirst.classList.add('active');
+            }
         }
 
-        // Restrito Financeiro
+        // Restrito Financeiro (Valores, margens, custos)
         const restritoFin = document.querySelectorAll('.restrito-financeiro');
         restritoFin.forEach(el => {
-            if (role === 'Laboratório' || role === 'Produção') {
-                el.style.display = 'none';
-            } else {
-                el.style.display = '';
-            }
+            // Alguns elementos podem usar flex ou table-cell ou block, então restauramos o valor limpo '' em vez de fixar
+            el.style.display = temPermissao('edit_financeiro') ? '' : 'none';
         });
 
         // Restrito Produção (PCP)
         const restritoProd = document.querySelectorAll('.restrito-producao');
         restritoProd.forEach(el => {
-            if (role === 'Produção' || role === 'Administrador' || role === 'Diretoria') {
-                el.style.display = '';
-            } else {
-                el.style.display = 'none';
-            }
+            el.style.display = temPermissao('edit_producao') ? '' : 'none';
         });
 
         // Atualiza botões no desmonte se aberto
@@ -6641,6 +6672,92 @@ document.addEventListener('DOMContentLoaded', () => {
             carregarUsuarios();
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    let perfilSelecionado = null;
+
+    window.abrirModalPermissoes = function() {
+        document.getElementById('modal-permissoes').style.display = 'flex';
+        popularPerfisPermissoes();
+        document.getElementById('grid-permissoes').style.opacity = '0.5';
+        document.getElementById('grid-permissoes').style.pointerEvents = 'none';
+        document.getElementById('perfil-selecionado-lbl').textContent = 'Nenhum';
+        document.getElementById('msg-admin-lock').style.display = 'none';
+        document.querySelectorAll('.perm-checkbox input').forEach(c => c.checked = false);
+        perfilSelecionado = null;
+    };
+
+    window.fecharModalPermissoes = function() {
+        document.getElementById('modal-permissoes').style.display = 'none';
+    };
+
+    function popularPerfisPermissoes() {
+        const perfis = ['Administrador', 'Laboratório', 'Compras', 'Produção', 'Financeiro', 'Diretoria'];
+        const container = document.getElementById('lista-perfis-permissoes');
+        container.innerHTML = perfis.map(p => `
+            <div onclick="selecionarPerfilPermissoes('${p}')" style="padding:10px 15px; border-radius:6px; background:#1a3045; cursor:pointer; color:#fff; border:1px solid transparent; transition:0.2s;" onmouseover="this.style.borderColor='#3e7cb1'" onmouseout="this.style.borderColor='transparent'" id="btn-perfil-${p.toLowerCase().replace(/[^a-z0-9]/g,'')}">
+                <i class="fa-solid fa-user-tag" style="color:#a0b4c8; margin-right:8px;"></i> ${p}
+            </div>
+        `).join('');
+    }
+
+    window.selecionarPerfilPermissoes = function(perfil) {
+        perfilSelecionado = perfil;
+        
+        // Highlights
+        document.querySelectorAll('#lista-perfis-permissoes div').forEach(el => el.style.background = '#1a3045');
+        const btn = document.getElementById(`btn-perfil-${perfil.toLowerCase().replace(/[^a-z0-9]/g,'')}`);
+        if (btn) btn.style.background = '#223547';
+
+        document.getElementById('perfil-selecionado-lbl').textContent = perfil;
+        
+        const grid = document.getElementById('grid-permissoes');
+        const msgAdmin = document.getElementById('msg-admin-lock');
+        const checkboxes = grid.querySelectorAll('input[type="checkbox"]');
+
+        if (perfil === 'Administrador') {
+            grid.style.opacity = '0.5';
+            grid.style.pointerEvents = 'none';
+            msgAdmin.style.display = 'block';
+            checkboxes.forEach(chk => chk.checked = true);
+        } else {
+            grid.style.opacity = '1';
+            grid.style.pointerEvents = 'auto';
+            msgAdmin.style.display = 'none';
+            
+            const permissoes = globalRolePermissions[perfil] || [];
+            checkboxes.forEach(chk => {
+                chk.checked = permissoes.includes(chk.value);
+            });
+        }
+    };
+
+    window.salvarPermissoesPerfil = async function() {
+        if (!perfilSelecionado) {
+            alert('Selecione um perfil primeiro.');
+            return;
+        }
+        
+        if (perfilSelecionado !== 'Administrador') {
+            const grid = document.getElementById('grid-permissoes');
+            const checkboxes = grid.querySelectorAll('input[type="checkbox"]:checked');
+            const permissoes = Array.from(checkboxes).map(chk => chk.value);
+            
+            globalRolePermissions[perfilSelecionado] = permissoes;
+        }
+
+        try {
+            await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role_permissions: JSON.stringify(globalRolePermissions) })
+            });
+            alert('Permissões salvas com sucesso!');
+            applyRolePermissions();
+        } catch (err) {
+            console.error('Erro ao salvar permissões:', err);
+            alert('Erro ao salvar permissões.');
         }
     };
 

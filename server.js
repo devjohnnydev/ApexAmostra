@@ -75,7 +75,15 @@ const memStore = {
         lme_envio_horario: '14:00',
         lme_envio_dias: '1,2,3,4,5',
         lme_resend_api_key: '',
-        lme_resend_from: 'josetiago@lme.lat'
+        lme_resend_from: 'josetiago@lme.lat',
+        role_permissions: JSON.stringify({
+            "Administrador": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios"],
+            "Laboratório": ["view_laboratorio", "view_catalogo"],
+            "Compras": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_estoque"],
+            "Produção": ["view_estoque", "view_planejamento", "view_catalogo", "edit_producao"],
+            "Financeiro": ["view_lme", "view_precos", "view_fornecedores", "view_bi", "edit_financeiro"],
+            "Diretoria": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao"]
+        })
     },
     lme_destinatarios: [],
     galeria: [
@@ -458,7 +466,15 @@ async function initDatabase() {
             { key: 'lme_envio_horario', value: '14:00' },
             { key: 'lme_envio_dias',    value: '1,2,3,4,5' },
             { key: 'lme_resend_api_key', value: process.env.RESEND_API_KEY || '' },
-            { key: 'lme_resend_from',   value: process.env.RESEND_FROM || '' }
+            { key: 'lme_resend_from',   value: process.env.RESEND_FROM || '' },
+            { key: 'role_permissions',  value: JSON.stringify({
+                "Administrador": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios"],
+                "Laboratório": ["view_laboratorio", "view_catalogo"],
+                "Compras": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_estoque"],
+                "Produção": ["view_estoque", "view_planejamento", "view_catalogo", "edit_producao"],
+                "Financeiro": ["view_lme", "view_precos", "view_fornecedores", "view_bi", "edit_financeiro"],
+                "Diretoria": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao"]
+            }) }
         ];
         for (const s of lmeDefaults) {
             await client.query(
