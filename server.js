@@ -507,7 +507,16 @@ app.use((req, res, next) => {
 });
 
 // ─── Arquivos Estáticos ───────────────────────────────────────────────────────
-app.use(express.static(__dirname));
+// Desabilita cache agressivo de arquivos estáticos para que atualizações apareçam instantaneamente
+app.use(express.static(__dirname, {
+    etag: false,
+    maxAge: 0,
+    setHeaders: (res, path) => {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+}));
 
 // ─── API: Login ───────────────────────────────────────────────────────────────
 app.post('/api/login', async (req, res) => {
