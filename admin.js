@@ -4175,17 +4175,23 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const url = id ? `/api/materiais-catalogo/${id}` : '/api/materiais-catalogo';
             const method = id ? 'PUT' : 'POST';
-            await fetch(url, {
+            const resp = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                alert('Erro ao salvar material: ' + (errData.error || resp.statusText));
+                return;
+            }
             fecharModalMaterial();
             await carregarMateriais();
             // Reload the pricing table so the new material/category appears immediately
             if (window.carregarPrecos) await window.carregarPrecos();
         } catch (err) {
             console.error(err);
+            alert('Erro de conexão ao salvar material: ' + err.message);
         }
     };
 

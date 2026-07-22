@@ -647,6 +647,38 @@ app.delete('/api/fornecedores/:id', async (req, res) => {
     }
 });
 
+// ─── API: Reparo de Seed (força inserção de dados padrão no banco) ──────────
+app.post('/api/admin/reparo-seed', async (req, res) => {
+    if (!dbAvailable) return res.json({ msg: 'Usando memória, sem necessidade de reparo.' });
+    try {
+        const mats = memStore.materiais_catalogo;
+        let insertedMat = 0;
+        for (const m of mats) {
+            const r = await pool.query(
+                `INSERT INTO materiais_catalogo (id, nome, unidade, categoria, cor, ncm, observacoes)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING`,
+                [m.id, m.nome, m.unidade, m.categoria, m.cor, m.ncm, m.observacoes]
+            );
+            insertedMat += r.rowCount;
+        }
+
+        const precos = memStore.tabela_precos;
+        let insertedPreco = 0;
+        for (const p of precos) {
+            const r = await pool.query(
+                `INSERT INTO tabela_precos (id, material_id, preco_entregar, preco_coletar, venda_ref, validade)
+                 VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING`,
+                [p.id, p.material_id, p.preco_entregar, p.preco_coletar, p.venda_ref, p.validade]
+            );
+            insertedPreco += r.rowCount;
+        }
+
+        res.json({ ok: true, materiais_inseridos: insertedMat, precos_inseridos: insertedPreco });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── API: Materiais de Catálogo (CRUD) ─────────────────────────────────────────
 app.get('/api/materiais-catalogo', async (req, res) => {
     try {
@@ -658,6 +690,7 @@ app.get('/api/materiais-catalogo', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: 'Erro ao buscar materiais.' });
     }
+
 });
 
 app.post('/api/materiais-catalogo', async (req, res) => {
