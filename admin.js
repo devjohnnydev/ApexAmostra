@@ -4091,26 +4091,61 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`/api/ncm/buscar?q=${encodeURIComponent(termo)}`);
             const resultados = await res.json();
             
-            if (resultados.length === 0) {
-                dropdown.innerHTML = '<div style="padding:10px; color:#aaa; font-style:italic; font-size:0.85rem;">Nenhum NCM encontrado</div>';
-                dropdown.style.display = 'block';
-                return;
-            }
+            let html = '';
             
-            dropdown.innerHTML = resultados.map(n => `
-                <div style="padding:10px; cursor:pointer; border-bottom:1px solid #223547; transition:background 0.2s;" 
-                     onclick="selecionarNcm('${n.codigo}', '${n.descricao.replace(/'/g, "\\'")}')"
-                     onmouseover="this.style.background='rgba(30, 78, 140, 0.4)'"
-                     onmouseout="this.style.background='none'">
-                    <span style="color:#2AD07A; font-weight:bold; font-size:0.85rem;">${formatarCodigoNcm(n.codigo)}</span><br>
-                    <small style="color:#ddd; font-size:0.75rem;">${n.descricao}</small>
+            if (resultados.length === 0) {
+                html += `<div style="padding:10px; color:#aaa; font-style:italic; font-size:0.85rem;">Nenhum NCM encontrado na base</div>`;
+            } else {
+                html += resultados.map(n => `
+                    <div style="padding:10px; cursor:pointer; border-bottom:1px solid #223547; transition:background 0.2s;" 
+                         onclick="selecionarNcm('${n.codigo}', '${n.descricao.replace(/'/g, "\\'")}')"
+                         onmouseover="this.style.background='rgba(30, 78, 140, 0.4)'"
+                         onmouseout="this.style.background='none'">
+                        <span style="color:#2AD07A; font-weight:bold; font-size:0.85rem;">${formatarCodigoNcm(n.codigo)}</span><br>
+                        <small style="color:#ddd; font-size:0.75rem;">${n.descricao}</small>
+                    </div>
+                `).join('');
+            }
+
+            // Sempre adiciona a opção de usar o valor digitado manualmente
+            const termoSanitizado = termo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            html += `
+                <div style="padding:10px; cursor:pointer; background:#1a3045; border-top:1px solid #3e7cb1;" 
+                     onclick="usarNcmManual('${termoSanitizado}')"
+                     onmouseover="this.style.background='rgba(30, 78, 140, 0.6)'"
+                     onmouseout="this.style.background='#1a3045'">
+                    <span style="color:#4fc3f7; font-weight:bold; font-size:0.85rem;"><i class="fa-solid fa-keyboard"></i> Usar NCM manual: ${termo}</span>
                 </div>
-            `).join('');
+            `;
+            
+            dropdown.innerHTML = html;
             dropdown.style.display = 'block';
         } catch (err) {
             console.error('Erro ao buscar NCM:', err);
         }
     }
+
+    window.usarNcmManual = function(valor) {
+        const input = document.getElementById('mat-ncm');
+        if (input) {
+            // Formata o valor manual se parecer com um número de 8 dígitos
+            input.value = formatarCodigoNcm(valor);
+        }
+        fecharNcmDropdown();
+    };
+
+    // Fechar dropdown ao clicar fora
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('ncm-resultados-dropdown');
+        const input = document.getElementById('mat-ncm');
+        const btnBusca = document.querySelector('button[onclick="buscarNcmManual()"]');
+        
+        if (dropdown && dropdown.style.display === 'block') {
+            if (!dropdown.contains(e.target) && e.target !== input && e.target !== btnBusca && (!btnBusca || !btnBusca.contains(e.target))) {
+                fecharNcmDropdown();
+            }
+        }
+    });
 
     window.selecionarNcm = function(codigo, descricao) {
         const input = document.getElementById('mat-ncm');
