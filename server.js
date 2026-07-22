@@ -673,34 +673,42 @@ app.post('/api/materiais-catalogo', async (req, res) => {
                 [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
             );
             material = result.rows[0];
-            
-            // Auto-create pricing row
-            await pool.query(
-                `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade)
-                 VALUES ($1, $2, $3, $4, $5)`,
-                [material.id, 0.00, 0.00, 0.00, validadeDefault]
-            );
-            await atualizarDataUltimaModificacaoPrecos();
+
+            // Auto-create pricing row (non-blocking)
+            try {
+                await pool.query(
+                    `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    [material.id, 0.00, 0.00, 0.00, validadeDefault]
+                );
+                await atualizarDataUltimaModificacaoPrecos();
+            } catch (pricingErr) {
+                console.error('Aviso: não foi possível criar preço automaticamente:', pricingErr.message);
+            }
         } else {
             const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
             memStore.materiais_catalogo.push(newM);
             material = newM;
-            
-            // Auto-create pricing row in memory
-            memStore.tabela_precos.push({
-                id: nextId++,
-                material_id: material.id,
-                preco_entregar: 0.00,
-                preco_coletar: 0.00,
-                venda_ref: 0.00,
-                validade: validadeDefault
-            });
-            await atualizarDataUltimaModificacaoPrecos();
+
+            // Auto-create pricing row in memory (non-blocking)
+            try {
+                memStore.tabela_precos.push({
+                    id: nextId++,
+                    material_id: material.id,
+                    preco_entregar: 0.00,
+                    preco_coletar: 0.00,
+                    venda_ref: 0.00,
+                    validade: validadeDefault
+                });
+                await atualizarDataUltimaModificacaoPrecos();
+            } catch (pricingErr) {
+                console.error('Aviso: não foi possível criar preço em memória:', pricingErr.message);
+            }
         }
         res.json(material);
     } catch (err) {
         console.error('Erro ao criar material:', err);
-        res.status(500).json({ error: 'Erro ao criar material.' });
+        res.status(500).json({ error: 'Erro ao criar material: ' + err.message });
     }
 });
 
