@@ -4015,6 +4015,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/materiais-catalogo');
             localMateriais = await res.json();
             renderMateriais();
+            popularSeletoresCategorias();
             popularSeletoresMateriais();
         } catch (err) {
             console.error(err);
@@ -4222,6 +4223,113 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function popularSeletoresCategorias() {
+        const matCat = document.getElementById('mat-categoria');
+        if (!matCat) return;
+        
+        const catSet = new Set(["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"]);
+        localMateriais.forEach(m => {
+            if (m.categoria) catSet.add(m.categoria);
+        });
+        
+        const currentVal = matCat.value;
+        matCat.innerHTML = '';
+        Array.from(catSet).forEach(cat => {
+            matCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+        if (currentVal && catSet.has(currentVal)) matCat.value = currentVal;
+    }
+
+    window.adicionarNovaCategoriaPrompt = function() {
+        const nova = prompt('Digite o nome da nova categoria (Grupo):');
+        if (!nova) return;
+        const trim = nova.trim();
+        if (trim === '') return;
+        
+        const matCat = document.getElementById('mat-categoria');
+        if (matCat) {
+            let exists = false;
+            for (let i = 0; i < matCat.options.length; i++) {
+                if (matCat.options[i].value.toLowerCase() === trim.toLowerCase()) {
+                    matCat.selectedIndex = i;
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = trim;
+                opt.textContent = trim;
+                matCat.appendChild(opt);
+                matCat.value = trim;
+            }
+        }
+    };
+
+    window.calcularPorcentagemDeEntregar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const entregar = parseFloat(document.getElementById('prc-entregar').value) || 0;
+        const pctInput = document.getElementById('prc-entregar-pct');
+        if (pctInput) {
+            if (venda > 0) {
+                pctInput.value = ((entregar / venda) * 100).toFixed(1);
+            } else {
+                pctInput.value = '';
+            }
+        }
+    };
+
+    window.calcularPorcentagemDeColetar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const coletar = parseFloat(document.getElementById('prc-coletar').value) || 0;
+        const pctInput = document.getElementById('prc-coletar-pct');
+        if (pctInput) {
+            if (venda > 0) {
+                pctInput.value = ((coletar / venda) * 100).toFixed(1);
+            } else {
+                pctInput.value = '';
+            }
+        }
+    };
+
+    window.calcularValorDeEntregar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const pct = parseFloat(document.getElementById('prc-entregar-pct').value) || 0;
+        const valInput = document.getElementById('prc-entregar');
+        if (valInput) {
+            valInput.value = ((venda * pct) / 100).toFixed(2);
+        }
+    };
+
+    window.calcularValorDeColetar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const pct = parseFloat(document.getElementById('prc-coletar-pct').value) || 0;
+        const valInput = document.getElementById('prc-coletar');
+        if (valInput) {
+            valInput.value = ((venda * pct) / 100).toFixed(2);
+        }
+    };
+
+    window.calcularValoresDeAcordoComPorcentagem = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        
+        const pctEntregar = parseFloat(document.getElementById('prc-entregar-pct').value) || 0;
+        const valEntregar = document.getElementById('prc-entregar');
+        if (valEntregar && pctEntregar > 0) {
+            valEntregar.value = ((venda * pctEntregar) / 100).toFixed(2);
+        } else if (valEntregar) {
+            window.calcularPorcentagemDeEntregar();
+        }
+
+        const pctColetar = parseFloat(document.getElementById('prc-coletar-pct').value) || 0;
+        const valColetar = document.getElementById('prc-coletar');
+        if (valColetar && pctColetar > 0) {
+            valColetar.value = ((venda * pctColetar) / 100).toFixed(2);
+        } else if (valColetar) {
+            window.calcularPorcentagemDeColetar();
+        }
+    };
+
     // --- 3. TABELA DE PREÇOS ---
     let settingsPrecos = {};
     let visualizacaoTabelaPrecos = 'completa';
@@ -4299,7 +4407,21 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         // Agrupar por categorias
-        const categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        const categoriasSet = new Set();
+        localPrecos.forEach(p => {
+            if (p.material_categoria) {
+                categoriasSet.add(p.material_categoria);
+            }
+        });
+        const standardOrder = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        const categorias = Array.from(categoriasSet).sort((a, b) => {
+            const idxA = standardOrder.indexOf(a);
+            const idxB = standardOrder.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b);
+        });
         const showCompleta = visualizacaoTabelaPrecos === 'completa';
 
         categorias.forEach(cat => {
@@ -4388,6 +4510,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.abrirModalPreco = function() {
         document.getElementById('form-preco-apex').reset();
         document.getElementById('prc-id').value = '';
+        document.getElementById('prc-entregar-pct').value = '';
+        document.getElementById('prc-coletar-pct').value = '';
         document.getElementById('modal-preco').style.display = 'flex';
     };
 
@@ -4405,6 +4529,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prc-venda').value = p.venda_ref;
         document.getElementById('prc-validade').value = p.validade.split('T')[0];
         document.getElementById('modal-preco').style.display = 'flex';
+        window.calcularPorcentagemDeEntregar();
+        window.calcularPorcentagemDeColetar();
     };
 
     window.salvarPreco = async function(e) {
@@ -4448,7 +4574,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao) {
-        const categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        const categoriasSet = new Set();
+        precos.forEach(p => {
+            if (p.material_categoria) {
+                categoriasSet.add(p.material_categoria);
+            }
+        });
+        const standardOrder = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        const categorias = Array.from(categoriasSet).sort((a, b) => {
+            const idxA = standardOrder.indexOf(a);
+            const idxB = standardOrder.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b);
+        });
         let html = `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #fff; max-width: 950px; margin: 0 auto; box-sizing: border-box;">
                 <!-- Header -->

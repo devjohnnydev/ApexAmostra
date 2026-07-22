@@ -2061,16 +2061,19 @@
                 </div>
                 <div class="form-group">
                     <label>Categoria *</label>
-                    <select id="mat-categoria" class="noble-input" required>
-                        <option value="Alumínio">Alumínio</option>
-                        <option value="Cobre">Cobre</option>
-                        <option value="Tomada/Conectores">Tomada/Conectores</option>
-                        <option value="Chumbo">Chumbo</option>
-                        <option value="Latão/Bronze">Latão/Bronze</option>
-                        <option value="Zamac">Zamac</option>
-                        <option value="Aço">Aço</option>
-                        <option value="Outros">Outros</option>
-                    </select>
+                    <div style="display:flex; gap:5px;">
+                        <select id="mat-categoria" class="noble-input" required style="flex:1;">
+                            <option value="Alumínio">Alumínio</option>
+                            <option value="Cobre">Cobre</option>
+                            <option value="Tomada/Conectores">Tomada/Conectores</option>
+                            <option value="Chumbo">Chumbo</option>
+                            <option value="Latão/Bronze">Latão/Bronze</option>
+                            <option value="Zamac">Zamac</option>
+                            <option value="Aço">Aço</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                        <button type="button" class="btn-secondary" onclick="adicionarNovaCategoriaPrompt()" style="margin:0; padding:0 15px;"><i class="fa-solid fa-plus"></i></button>
+                    </div>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div class="form-group">
@@ -2159,19 +2162,29 @@
                     <label>Material *</label>
                     <select id="prc-material" required class="noble-input"></select>
                 </div>
+                <div class="form-group">
+                    <label>Preço Venda Ref. (R$/kg) *</label>
+                    <input type="number" step="0.01" id="prc-venda" required class="noble-input" oninput="calcularValoresDeAcordoComPorcentagem()">
+                </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div class="form-group">
                         <label>Preço Entregar (R$/kg) *</label>
-                        <input type="number" step="0.01" id="prc-entregar" required class="noble-input">
+                        <input type="number" step="0.01" id="prc-entregar" required class="noble-input" oninput="calcularPorcentagemDeEntregar()">
                     </div>
                     <div class="form-group">
-                        <label>Preço Coletar (R$/kg) *</label>
-                        <input type="number" step="0.01" id="prc-coletar" required class="noble-input">
+                        <label>Preço Entregar (%)</label>
+                        <input type="number" step="0.1" id="prc-entregar-pct" class="noble-input" placeholder="Ex: 90" oninput="calcularValorDeEntregar()">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Preço Venda Ref. (R$/kg) *</label>
-                    <input type="number" step="0.01" id="prc-venda" required class="noble-input">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Coletar (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-coletar" required class="noble-input" oninput="calcularPorcentagemDeColetar()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Coletar (%)</label>
+                        <input type="number" step="0.1" id="prc-coletar-pct" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetar()">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Válido Até *</label>
