@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // ─── Utilitário global: formata número no padrão brasileiro com 2 casas ───
+    window.fmtBRL = function(val) {
+        const n = parseFloat(val);
+        if (isNaN(n)) return '0,00';
+        return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
     // ─────────────────────────────────────────────────────────────────────────
     // LOGIN
     // ─────────────────────────────────────────────────────────────────────────
@@ -4296,7 +4303,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Renderiza badges visuais
         if (badgesDiv) {
-            // Paleta de cores por grupo
+            const catsDefault = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
             const corPaleta = {
                 'Alumínio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
                 'Aço': '#7ea374', 'Chumbo': '#7a8a99', 'Latão/Bronze': '#c8a240',
@@ -4306,19 +4313,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cor = settingsPrecos && settingsPrecos[`cor_categoria_${cat}`]
                     ? settingsPrecos[`cor_categoria_${cat}`]
                     : (corPaleta[cat] || '#1e4e8c');
+                const isCustom = !catsDefault.includes(cat);
+                const actionsHtml = isCustom ? `
+                    <span class="cat-badge-actions" style="display:none; margin-left:5px; gap:3px; align-items:center;">
+                        <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
+                            title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
+                            onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
+                        >✎</span>
+                        <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
+                            title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
+                            onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
+                        >×</span>
+                    </span>` : '';
                 return `<button type="button" class="cat-badge-btn"
-                    data-cat="${cat}" data-color="${cor}"
-                    onclick="selecionarCategoriaBadge('${cat}')"
-                    style="
-                        padding:7px 16px; border-radius:20px; border:1.5px solid rgba(255,255,255,0.12);
+                    data-cat="${cat}" data-color="${cor}" data-custom="${isCustom}"
+                    onclick="selecionarCategoriaBadge('${cat.replace(/'/g, "\\'")}')"
+                    onmouseover="this.style.borderColor='${cor}'; this.style.color='${cor}'; this.style.background='rgba(255,255,255,0.08)'; const a=this.querySelector('.cat-badge-actions'); if(a) a.style.display='inline-flex';"
+                    onmouseout="if(document.getElementById('mat-categoria').value !== '${cat.replace(/'/g, "\\'")}'){ this.style.borderColor='rgba(255,255,255,0.12)'; this.style.color='#a0b4c8'; this.style.background='rgba(255,255,255,0.05)'; } const a=this.querySelector('.cat-badge-actions'); if(a) a.style.display='none';"
+                    style="display:inline-flex; align-items:center; padding:7px 14px; border-radius:20px; border:1.5px solid rgba(255,255,255,0.12);
                         background:rgba(255,255,255,0.05); color:#a0b4c8; font-size:0.83rem;
                         cursor:pointer; transition:all 0.18s ease; white-space:nowrap;
-                        font-family:inherit; letter-spacing:0.3px;
-                    "
-                    onmouseover="this.style.borderColor='${cor}'; this.style.color='${cor}'; this.style.background='rgba(255,255,255,0.08)';"
-                    onmouseout="if(document.getElementById('mat-categoria').value !== '${cat}') { this.style.borderColor='rgba(255,255,255,0.12)'; this.style.color='#a0b4c8'; this.style.background='rgba(255,255,255,0.05)'; }"
+                        font-family:inherit; letter-spacing:0.3px;"
                 >
-                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${cor}; margin-right:6px; vertical-align:middle;"></span>${cat}
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${cor}; margin-right:6px; flex-shrink:0;"></span>
+                    ${cat}
+                    ${actionsHtml}
                 </button>`;
             }).join('');
         }
@@ -4332,9 +4351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
-            try {
-                cats = JSON.parse(settingsPrecos['categorias_materiais']);
-            } catch(e) {}
+            try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
 
         if (!cats.some(c => c.toLowerCase() === trim.toLowerCase())) {
@@ -4346,11 +4363,82 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ 'categorias_materiais': JSON.stringify(cats) })
                 });
                 settingsPrecos['categorias_materiais'] = JSON.stringify(cats);
-            } catch(err) {
-                console.error('Erro ao salvar nova categoria:', err);
-            }
+            } catch(err) { console.error('Erro ao salvar nova categoria:', err); }
         }
         
+        popularSeletoresCategorias();
+        selecionarCategoriaBadge(trim);
+    };
+
+    window.excluirCategoria = async function(cat) {
+        const materiaisDoGrupo = localMateriais.filter(m => m.categoria === cat);
+        if (materiaisDoGrupo.length > 0) {
+            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  • ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
+            if (!confirm(confirmMsg)) return;
+            for (const m of materiaisDoGrupo) {
+                await fetch(`/api/materiais-catalogo/${m.id}`, { method: 'DELETE' });
+            }
+        } else {
+            if (!confirm(`Excluir o grupo "${cat}"?`)) return;
+        }
+
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+            try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
+        }
+        cats = cats.filter(c => c !== cat);
+
+        try {
+            await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'categorias_materiais': JSON.stringify(cats) })
+            });
+            settingsPrecos['categorias_materiais'] = JSON.stringify(cats);
+        } catch(err) { console.error('Erro ao excluir categoria:', err); }
+
+        await carregarMateriais();
+        if (window.carregarPrecos) await window.carregarPrecos();
+        // Se o grupo excluído estava selecionado, limpa
+        const select = document.getElementById('mat-categoria');
+        if (select && select.value === cat) selecionarCategoriaBadge(null);
+        popularSeletoresCategorias();
+    };
+
+    window.renomearCategoria = async function(cat) {
+        const novoNome = prompt(`Novo nome para o grupo "${cat}":`, cat);
+        if (!novoNome || novoNome.trim() === '' || novoNome.trim() === cat) return;
+        const trim = novoNome.trim();
+
+        // Atualiza a lista de categorias
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+            try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
+        }
+        const idx = cats.indexOf(cat);
+        if (idx !== -1) cats[idx] = trim;
+
+        try {
+            await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'categorias_materiais': JSON.stringify(cats) })
+            });
+            settingsPrecos['categorias_materiais'] = JSON.stringify(cats);
+        } catch(err) { console.error('Erro ao renomear categoria:', err); }
+
+        // Atualiza a categoria de todos os materiais desse grupo
+        const materiaisDoGrupo = localMateriais.filter(m => m.categoria === cat);
+        for (const m of materiaisDoGrupo) {
+            await fetch(`/api/materiais-catalogo/${m.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...m, categoria: trim })
+            });
+        }
+
+        await carregarMateriais();
+        if (window.carregarPrecos) await window.carregarPrecos();
         popularSeletoresCategorias();
         selecionarCategoriaBadge(trim);
     };
@@ -4560,15 +4648,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 return `
                                     <tr>
                                         <td style="padding:10px;"><strong>${p.material_nome}</strong></td>
-                                        <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.preco_entregar).toFixed(2)}</td>
-                                        <td style="padding:10px; text-align:right;">R$ ${parseFloat(p.preco_coletar).toFixed(2)}</td>
+                                        <td style="padding:10px; text-align:right;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                                        <td style="padding:10px; text-align:right;">R$ ${fmtBRL(p.preco_coletar)}</td>
                                         ${showCompleta ? `
-                                        <td style="padding:10px; text-align:right; color: #ffeb3b; font-weight: bold;">R$ ${parseFloat(p.venda_ref).toFixed(2)}</td>
-                                        <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${lucroEnt.toFixed(2)}</td>
-                                        <td style="padding:10px; text-align:right; color:#2AD07A;">${margemEnt.toFixed(2)}%</td>
-                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${lucroCol.toFixed(2)}</td>
-                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">${margemCol.toFixed(2)}%</td>
-                                        <td style="padding:10px; text-align:right; color:#d4b896;">${dif.toFixed(2)}%</td>
+                                        <td style="padding:10px; text-align:right; color: #ffeb3b; font-weight: bold;">R$ ${fmtBRL(p.venda_ref)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${fmtBRL(lucroEnt)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A;">${fmtBRL(margemEnt)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${fmtBRL(lucroCol)}</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">${fmtBRL(margemCol)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#d4b896;">${fmtBRL(dif)}%</td>
                                         ` : ''}
                                         <td style="padding:10px;">${p.material_ncm || '-'}</td>
                                         <td style="padding:10px; text-align:center;">
@@ -4609,9 +4697,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!p) return;
         document.getElementById('prc-id').value = p.id;
         document.getElementById('prc-material').value = p.material_id;
-        document.getElementById('prc-entregar').value = p.preco_entregar;
-        document.getElementById('prc-coletar').value = p.preco_coletar;
-        document.getElementById('prc-venda').value = p.venda_ref;
+        // Formata com 2 casas decimais nos inputs (usando ponto para o input number)
+        document.getElementById('prc-entregar').value = parseFloat(p.preco_entregar).toFixed(2);
+        document.getElementById('prc-coletar').value = parseFloat(p.preco_coletar).toFixed(2);
+        document.getElementById('prc-venda').value = parseFloat(p.venda_ref).toFixed(2);
         document.getElementById('prc-validade').value = p.validade.split('T')[0];
         document.getElementById('modal-preco').style.display = 'flex';
         window.calcularPorcentagemDeEntregar();
@@ -4621,11 +4710,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.salvarPreco = async function(e) {
         e.preventDefault();
         const id = document.getElementById('prc-id').value;
+        // Parse value: replace comma with dot to handle pt-BR input
+        const parseVal = v => parseFloat(String(v).replace(',', '.')) || 0;
         const data = {
             material_id: document.getElementById('prc-material').value,
-            preco_entregar: document.getElementById('prc-entregar').value,
-            preco_coletar: document.getElementById('prc-coletar').value,
-            venda_ref: document.getElementById('prc-venda').value,
+            preco_entregar: parseVal(document.getElementById('prc-entregar').value),
+            preco_coletar: parseVal(document.getElementById('prc-coletar').value),
+            venda_ref: parseVal(document.getElementById('prc-venda').value),
             validade: document.getElementById('prc-validade').value
         };
 
@@ -4724,8 +4815,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `
                     <tr style="border-bottom: 1px solid #eee; background-color: #ffffff;">
                         <td style="padding: 10px; border: 1px solid #eee; color: #222;"><strong>${p.material_nome}</strong></td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.preco_entregar).toFixed(2)}</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${parseFloat(p.preco_coletar).toFixed(2)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${fmtBRL(p.preco_coletar)}</td>
                         <td style="padding: 10px; border: 1px solid #eee; color: #666;">${p.material_ncm || '-'}</td>
                     </tr>
                 `;
