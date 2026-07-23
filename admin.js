@@ -5134,7 +5134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)');
     };
 
-    function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings) {
+    function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64) {
         const activeSettings = settings || settingsPrecos || {};
         let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (activeSettings && activeSettings['categorias_materiais']) {
@@ -5147,16 +5147,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 categorias.push(p.material_categoria);
             }
         });
+
+        // Gera grid de logos para cobrir toda a página
+        function gerarGridLogo(src) {
+            if (!src) return '';
+            const cols = 4;
+            const rows = 16; // linhas suficientes para cobrir documentos longos
+            let grid = '<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">';
+            for (let r = 0; r < rows; r++) {
+                grid += '<div style="display:flex;justify-content:space-around;align-items:center;padding:18px 0;">';
+                for (let c = 0; c < cols; c++) {
+                    grid += `<img src="${src}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />`;
+                }
+                grid += '</div>';
+            }
+            grid += '</div>';
+            return grid;
+        }
+
         let html = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; max-width: 950px; margin: 0 auto; box-sizing: border-box; position: relative; overflow: hidden;">
-                <!-- Marca d'água de fundo em toda a folha -->
-                <div style="position: absolute; top: -5%; left: -25%; width: 150%; height: 110%; pointer-events: none; z-index: 0; display: flex; flex-direction: column; justify-content: space-around; align-items: center; opacity: 0.07; transform: rotate(-28deg); user-select: none;">
-                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
-                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
-                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
-                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
-                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
-                </div>
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; max-width: 950px; margin: 0 auto; box-sizing: border-box; position: relative;">
+                <!-- Marca d'água: logo repetido em toda a página -->
+                ${gerarGridLogo(logoBase64)}
 
                 <div style="position: relative; z-index: 1;">
                     <!-- Header -->
@@ -5274,7 +5286,22 @@ document.addEventListener('DOMContentLoaded', () => {
         tempDiv.style.top = '-9999px';
         tempDiv.style.width = '1000px';
         tempDiv.style.background = '#ffffff';
-        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings);
+        // Carregar logo (2).png como base64 para a marca d'água
+        let logoWatermarkBase64 = null;
+        try {
+            const logoRes = await fetch('/assets/img/logo%20(2).png');
+            if (logoRes.ok) {
+                const blob = await logoRes.blob();
+                logoWatermarkBase64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            }
+        } catch(e) {
+            console.warn('Logo watermark não carregou, usando fallback:', e);
+        }
+        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, logoWatermarkBase64);
         document.body.appendChild(tempDiv);
 
         try {
