@@ -4921,11 +4921,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color: #ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Ent. (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Col. (%)</th>
-                                <th style="padding:10px; text-align:right; color:#d4b896;">Diferença (%)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
                                 <th style="padding:10px; text-align:center; width:100px;">Ações</th>
@@ -4933,11 +4932,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         </thead>
                         <tbody>
                             ${precosCat.map(p => {
-                                const lucroEnt = p.venda_ref - p.preco_entregar;
-                                const margemEnt = p.venda_ref > 0 ? (lucroEnt / p.venda_ref) * 100 : 0;
-                                const lucroCol = p.venda_ref - p.preco_coletar;
-                                const margemCol = p.venda_ref > 0 ? (lucroCol / p.venda_ref) * 100 : 0;
-                                const dif = margemCol - margemEnt;
+                                const comissao = parseFloat(p.comissao || 0);
+                                const pisCofins = parseFloat(p.pis_cofins || 0);
+                                const fidc = parseFloat(p.fidc || 0);
+                                const icms = parseFloat(p.icms || 0);
+                                const freteColeta = parseFloat(p.frete_coleta || 0);
+
+                                const totalDedPct = comissao + pisCofins + fidc + icms;
+                                const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                                const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+
+                                const lucroEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                                const margemEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+
+                                const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
+                                const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
 
                                 return `
                                     <tr>
@@ -4947,21 +4956,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                         ${showCompleta ? `
                                         <td style="padding:10px; text-align:right; color: #ffeb3b; font-weight: bold;">R$ ${fmtBRL(p.venda_ref)}</td>
                                         <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${fmtBRL(lucroEnt)}</td>
-                                        <td style="padding:10px; text-align:right; color:#2AD07A;">${fmtBRL(margemEnt)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A; font-weight:bold;">${fmtBRL(margemEnt)}%</td>
                                         <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${fmtBRL(lucroCol)}</td>
-                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">${fmtBRL(margemCol)}%</td>
-                                        <td style="padding:10px; text-align:right; color:#d4b896;">${fmtBRL(dif)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
                                         ` : ''}
                                         <td style="padding:10px;">${p.material_ncm || '-'}</td>
                                         <td style="padding:10px; text-align:center;">
-                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#3e7cb1; margin-right:5px;" onclick="editarPreco(${p.id})"><i class="fa-solid fa-pen"></i></button>
-                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#ff4d4d;" onclick="deletarPreco(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#3e7cb1; margin-right:5px; cursor:pointer;" onclick="editarPreco(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#ff4d4d; cursor:pointer;" onclick="deletarPreco(${p.id})"><i class="fa-solid fa-trash"></i></button>
                                         </td>
                                     </tr>
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 11 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
+                                <td colspan="${showCompleta ? 10 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
                                     DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
@@ -4980,10 +4988,57 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prc-entregar-pct').value = '';
         document.getElementById('prc-coletar-pct').value = '';
         document.getElementById('modal-preco').style.display = 'flex';
+        window.calcularMargemLiquidaModal();
     };
 
     window.fecharModalPreco = function() {
         document.getElementById('modal-preco').style.display = 'none';
+    };
+
+    window.calcularMargemLiquidaModal = function() {
+        const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+        const vendaRef = parseVal('prc-venda');
+        const precoEnt = parseVal('prc-entregar');
+        const precoCol = parseVal('prc-coletar');
+        const comissao = parseVal('prc-comissao');
+        const pisCofins = parseVal('prc-piscofins');
+        const fidc = parseVal('prc-fidc');
+        const icms = parseVal('prc-icms');
+        const freteColeta = parseVal('prc-frete-coleta');
+
+        const pctDeducoesTotal = comissao + pisCofins + fidc + icms;
+        const valDeducoes = vendaRef * (pctDeducoesTotal / 100);
+        const vendaLiquida = vendaRef - valDeducoes;
+
+        const lucroEnt = vendaLiquida - precoEnt;
+        const margemEnt = vendaRef > 0 ? (lucroEnt / vendaRef) * 100 : 0;
+
+        const lucroCol = vendaLiquida - precoCol - freteColeta;
+        const margemCol = vendaRef > 0 ? (lucroCol / vendaRef) * 100 : 0;
+
+        const elDedPct = document.getElementById('prc-live-deducoes-pct');
+        const elVendaLiq = document.getElementById('prc-live-venda-liquida');
+        const elFreteDisp = document.getElementById('prc-live-frete-display');
+        const elMargEnt = document.getElementById('prc-live-margem-entrega');
+        const elLucrEnt = document.getElementById('prc-live-lucro-entrega');
+        const elMargCol = document.getElementById('prc-live-margem-coleta');
+        const elLucrCol = document.getElementById('prc-live-lucro-coleta');
+
+        if (elDedPct) elDedPct.textContent = `${fmtBRL(pctDeducoesTotal)}% (R$ ${fmtBRL(valDeducoes)}/kg)`;
+        if (elVendaLiq) elVendaLiq.textContent = `R$ ${fmtBRL(vendaLiquida)}/kg`;
+        if (elFreteDisp) elFreteDisp.textContent = `R$ ${fmtBRL(freteColeta)}/kg`;
+
+        if (elMargEnt) {
+            elMargEnt.textContent = `${fmtBRL(margemEnt)}%`;
+            elMargEnt.style.color = margemEnt >= 15 ? '#2AD07A' : (margemEnt >= 5 ? '#f0b800' : '#ff4d4d');
+        }
+        if (elLucrEnt) elLucrEnt.textContent = `Lucro: R$ ${fmtBRL(lucroEnt)}/kg`;
+
+        if (elMargCol) {
+            elMargCol.textContent = `${fmtBRL(margemCol)}%`;
+            elMargCol.style.color = margemCol >= 15 ? '#4fc3f7' : (margemCol >= 5 ? '#f0b800' : '#ff4d4d');
+        }
+        if (elLucrCol) elLucrCol.textContent = `Lucro: R$ ${fmtBRL(lucroCol)}/kg`;
     };
 
     window.editarPreco = function(id) {
@@ -4991,20 +5046,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!p) return;
         document.getElementById('prc-id').value = p.id;
         document.getElementById('prc-material').value = p.material_id;
-        // Formata com 2 casas decimais nos inputs (usando ponto para o input number)
-        document.getElementById('prc-entregar').value = parseFloat(p.preco_entregar).toFixed(2);
-        document.getElementById('prc-coletar').value = parseFloat(p.preco_coletar).toFixed(2);
-        document.getElementById('prc-venda').value = parseFloat(p.venda_ref).toFixed(2);
-        document.getElementById('prc-validade').value = p.validade.split('T')[0];
+        document.getElementById('prc-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
+        document.getElementById('prc-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
+        document.getElementById('prc-venda').value = parseFloat(p.venda_ref || 0).toFixed(2);
+        document.getElementById('prc-comissao').value = parseFloat(p.comissao || 0).toFixed(2);
+        document.getElementById('prc-piscofins').value = parseFloat(p.pis_cofins || 0).toFixed(2);
+        document.getElementById('prc-fidc').value = parseFloat(p.fidc || 0).toFixed(2);
+        document.getElementById('prc-icms').value = parseFloat(p.icms || 0).toFixed(2);
+        document.getElementById('prc-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
+        document.getElementById('prc-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
         document.getElementById('modal-preco').style.display = 'flex';
         window.calcularPorcentagemDeEntregar();
         window.calcularPorcentagemDeColetar();
+        window.calcularMargemLiquidaModal();
     };
 
     window.salvarPreco = async function(e) {
         e.preventDefault();
         const id = document.getElementById('prc-id').value;
-        const parseVal = v => parseFloat(String(v).replace(',', '.')) || 0;
+        const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
         const escopoValidade = document.querySelector('input[name="escopo-validade"]:checked')?.value || 'todos';
 
         const data = {
@@ -5012,6 +5072,11 @@ document.addEventListener('DOMContentLoaded', () => {
             preco_entregar: parseVal(document.getElementById('prc-entregar').value),
             preco_coletar: parseVal(document.getElementById('prc-coletar').value),
             venda_ref: parseVal(document.getElementById('prc-venda').value),
+            comissao: parseVal(document.getElementById('prc-comissao').value),
+            pis_cofins: parseVal(document.getElementById('prc-piscofins').value),
+            fidc: parseVal(document.getElementById('prc-fidc').value),
+            icms: parseVal(document.getElementById('prc-icms').value),
+            frete_coleta: parseVal(document.getElementById('prc-frete-coleta').value),
             validade: document.getElementById('prc-validade').value,
             aplicar_todos: (escopoValidade === 'todos')
         };
@@ -6596,6 +6661,71 @@ document.addEventListener('DOMContentLoaded', () => {
                     scales: { y: { grid: { color: '#222' } } }
                 }
             });
+
+            // ── TOP 10 Melhores Produtos (Margem Líquida) ──
+            const topBody = document.getElementById('bi-top10-table-body');
+            if (topBody && localPrecos && localPrecos.length > 0) {
+                const listComMargem = localPrecos.map(p => {
+                    const com = parseFloat(p.comissao || 0);
+                    const pis = parseFloat(p.pis_cofins || 0);
+                    const fdc = parseFloat(p.fidc || 0);
+                    const icm = parseFloat(p.icms || 0);
+                    const frete = parseFloat(p.frete_coleta || 0);
+
+                    const totalDedPct = com + pis + fdc + icm;
+                    const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                    const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+
+                    const lucroLiqEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                    const margemLiqEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroLiqEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+
+                    const lucroLiqCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - frete;
+                    const margemLiqCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroLiqCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+
+                    return {
+                        ...p,
+                        vendaLiquida,
+                        lucroLiqEnt,
+                        margemLiqEnt,
+                        lucroLiqCol,
+                        margemLiqCol
+                    };
+                });
+
+                listComMargem.sort((a, b) => b.margemLiqEnt - a.margemLiqEnt);
+                const top10 = listComMargem.slice(0, 10);
+
+                topBody.innerHTML = '';
+                top10.forEach((item, idx) => {
+                    const pos = idx + 1;
+                    let posBadge = `<span style="background:#223547; color:#fff; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:0.8rem;">#${pos}</span>`;
+                    if (pos === 1) posBadge = `<span style="background:#ffb703; color:#000; padding:4px 10px; border-radius:12px; font-weight:bold; font-size:0.85rem;"><i class="fa-solid fa-crown"></i> #1</span>`;
+                    else if (pos === 2) posBadge = `<span style="background:#c0c0c0; color:#000; padding:4px 9px; border-radius:12px; font-weight:bold; font-size:0.85rem;">#2</span>`;
+                    else if (pos === 3) posBadge = `<span style="background:#cd7f32; color:#fff; padding:4px 9px; border-radius:12px; font-weight:bold; font-size:0.85rem;">#3</span>`;
+
+                    let statusBadge = '<span style="background:#0d3020; color:#2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Excelente</span>';
+                    if (item.margemLiqEnt < 5) {
+                        statusBadge = '<span style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Atenção/Baixa</span>';
+                    } else if (item.margemLiqEnt < 15) {
+                        statusBadge = '<span style="background:#3a2e00; color:#f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Boa</span>';
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #1a2a3a';
+                    tr.innerHTML = `
+                        <td style="padding:10px 12px; text-align:center;">${posBadge}</td>
+                        <td style="padding:10px 12px;"><strong style="color:#fff;">${item.material_nome || '-'}</strong></td>
+                        <td style="padding:10px 12px; color:#aaa;">${item.material_categoria || '-'}</td>
+                        <td style="padding:10px 12px; text-align:right; color:#ffeb3b; font-weight:bold;">R$ ${fmtBRL(item.venda_ref)}</td>
+                        <td style="padding:10px 12px; text-align:right;">R$ ${fmtBRL(item.preco_entregar)}</td>
+                        <td style="padding:10px 12px; text-align:right;">R$ ${fmtBRL(item.preco_coletar)}</td>
+                        <td style="padding:10px 12px; text-align:right; color:#2AD07A; font-weight:bold; font-size:0.9rem;">${fmtBRL(item.margemLiqEnt)}%</td>
+                        <td style="padding:10px 12px; text-align:right; color:#4fc3f7; font-weight:bold; font-size:0.9rem;">${fmtBRL(item.margemLiqCol)}%</td>
+                        <td style="padding:10px 12px; text-align:center;">${statusBadge}</td>
+                    `;
+                    topBody.appendChild(tr);
+                });
+            }
 
         } catch (err) {
             console.error(err);

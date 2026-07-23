@@ -2001,6 +2001,38 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Ranking TOP 10 Produtos Mais Rentáveis -->
+                <div class="kpi-card" style="padding:20px; border-radius:8px; margin-top:25px; border-top:4px solid #2AD07A;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div>
+                            <h3 style="margin:0; color:#fff; display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-trophy" style="color:#ffb703; font-size:1.2rem;"></i> TOP 10 Melhores Produtos da Tabela (Margem Líquida)
+                            </h3>
+                            <p style="font-size:0.8rem; color:#aaa; margin:4px 0 0 0;">Ranking dos 10 materiais com melhor resultado financeiro após deduções (Comissão, PIS/COFINS, FIDC, ICMS e Frete).</p>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                            <thead>
+                                <tr style="background:#1b2d3d; text-align:left; color:#7fa8c8;">
+                                    <th style="padding:10px 12px; width:60px; text-align:center;">Posição</th>
+                                    <th style="padding:10px 12px;">Produto / Material</th>
+                                    <th style="padding:10px 12px;">Categoria</th>
+                                    <th style="padding:10px 12px; text-align:right;">Venda Ref</th>
+                                    <th style="padding:10px 12px; text-align:right;">Preço Entregar</th>
+                                    <th style="padding:10px 12px; text-align:right;">Preço Coletar</th>
+                                    <th style="padding:10px 12px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                    <th style="padding:10px 12px; text-align:right; color:#4fc3f7;">Margem Líq. Col (%)</th>
+                                    <th style="padding:10px 12px; text-align:center;">Status Rentabilidade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bi-top10-table-body">
+                                <tr><td colspan="9" style="text-align:center; padding:20px; color:#5a738e;"><i class="fa-solid fa-circle-notch fa-spin"></i> Gerando BI Top 10...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- ═══════════════════════════════════════════════════════════
@@ -2663,6 +2695,68 @@
                         <input type="number" step="0.1" id="prc-coletar-pct" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetar()">
                     </div>
                 </div>
+                <!-- Composição Fiscal e Financeira -->
+                <div style="background:#162432; padding:12px; border-radius:8px; border:1px solid #1e4e8c; margin-bottom:15px;">
+                    <div style="font-weight:bold; color:#3e7cb1; font-size:0.85rem; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-percent"></i> Composição Fiscal & Deduções (% e R$/kg)
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Comissão (%)</label>
+                            <input type="number" step="0.1" id="prc-comissao" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModal()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">PIS/COFINS (%)</label>
+                            <input type="number" step="0.1" id="prc-piscofins" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModal()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">FIDC (%)</label>
+                            <input type="number" step="0.1" id="prc-fidc" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModal()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">ICMS (%)</label>
+                            <input type="number" step="0.1" id="prc-icms" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModal()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.75rem;">Custo de Frete Coleta (R$/kg)</label>
+                        <input type="number" step="0.01" id="prc-frete-coleta" class="noble-input" placeholder="0.00" oninput="calcularMargemLiquidaModal()">
+                    </div>
+                </div>
+
+                <!-- Resumo em Tempo Real da Margem Líquida -->
+                <div style="background:#0a1622; padding:12px 16px; border-radius:8px; border-left:4px solid #2AD07A; margin-bottom:15px;">
+                    <div style="font-size:0.8rem; text-transform:uppercase; font-weight:bold; color:#aaa; margin-bottom:6px;">
+                        <i class="fa-solid fa-calculator" style="color:#2AD07A;"></i> Simulação de Margem Líquida Real
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; font-size:0.82rem; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #1a2a3a;">
+                        <div>
+                            <span style="color:#888;">Total Deduções:</span>
+                            <div style="color:#ff6b6b; font-weight:bold;" id="prc-live-deducoes-pct">0.00% (R$ 0,00)</div>
+                        </div>
+                        <div>
+                            <span style="color:#888;">Venda Líquida:</span>
+                            <div style="color:#ffeb3b; font-weight:bold;" id="prc-live-venda-liquida">R$ 0,00/kg</div>
+                        </div>
+                        <div>
+                            <span style="color:#888;">Frete Coleta:</span>
+                            <div style="color:#aaa; font-weight:bold;" id="prc-live-frete-display">R$ 0,00/kg</div>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.85rem;">
+                        <div style="background:#0f251d; padding:8px; border-radius:6px; border:1px solid #1a4d36;">
+                            <span style="color:#a8e6cf; font-size:0.75rem; text-transform:uppercase; font-weight:bold;">Margem Líquida Entrega</span>
+                            <div style="font-size:1.05rem; font-weight:bold; color:#2AD07A;" id="prc-live-margem-entrega">0.00%</div>
+                            <div style="font-size:0.75rem; color:#aaa;" id="prc-live-lucro-entrega">Lucro: R$ 0,00/kg</div>
+                        </div>
+                        <div style="background:#0f2030; padding:8px; border-radius:6px; border:1px solid #1e3a5f;">
+                            <span style="color:#a0c4ff; font-size:0.75rem; text-transform:uppercase; font-weight:bold;">Margem Líquida Coleta</span>
+                            <div style="font-size:1.05rem; font-weight:bold; color:#4fc3f7;" id="prc-live-margem-coleta">0.00%</div>
+                            <div style="font-size:0.75rem; color:#aaa;" id="prc-live-lucro-coleta">Lucro: R$ 0,00/kg</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Válido Até *</label>
                     <input type="date" id="prc-validade" required class="noble-input">
@@ -2916,7 +3010,7 @@
         </div>
     </div>
 
-<script src="admin.js?v=45"></script>
+<script src="admin.js?v=50"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ═══════════════════════════════════════════════════════════

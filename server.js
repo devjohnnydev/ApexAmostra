@@ -376,6 +376,13 @@ async function initDatabase() {
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_validade TIMESTAMP;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS autorizado_por TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS obs_diretoria TEXT;
+
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS comissao NUMERIC(10,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS pis_cofins NUMERIC(10,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS fidc NUMERIC(10,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS icms NUMERIC(10,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS frete_coleta NUMERIC(10,2) DEFAULT 0.00;
+
             CREATE TABLE IF NOT EXISTS fotos_amostra (
                 id         SERIAL PRIMARY KEY,
                 amostra_id INTEGER NOT NULL,
@@ -952,22 +959,23 @@ app.get('/api/tabela-precos', async (req, res) => {
 
 app.post('/api/tabela-precos', async (req, res) => {
     try {
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade } = req.body;
+        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade)
-                 VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-                [material_id, preco_entregar, preco_coletar, venda_ref, validade]
+                `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+                [material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao || 0, pis_cofins || 0, fidc || 0, icms || 0, frete_coleta || 0]
             );
             await atualizarDataUltimaModificacaoPrecos();
             return res.json(result.rows[0]);
         } else {
-            const newP = { id: nextId++, material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar), preco_coletar: parseFloat(preco_coletar), venda_ref: parseFloat(venda_ref), validade };
+            const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar), preco_coletar: parseFloat(preco_coletar), venda_ref: parseFloat(venda_ref), validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
             memStore.tabela_precos.push(newP);
             await atualizarDataUltimaModificacaoPrecos();
             return res.json(newP);
         }
     } catch (err) {
+        console.error('Erro ao criar preço:', err);
         res.status(500).json({ error: 'Erro ao salvar preço.' });
     }
 });
@@ -994,15 +1002,16 @@ app.put('/api/tabela-precos-validade-geral', async (req, res) => {
 app.put('/api/tabela-precos/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { preco_entregar, preco_coletar, venda_ref, validade, aplicar_todos } = req.body;
+        const { preco_entregar, preco_coletar, venda_ref, validade, aplicar_todos, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             if (aplicar_todos && validade) {
                 await pool.query('UPDATE tabela_precos SET validade = $1', [validade]);
             }
             const result = await pool.query(
-                `UPDATE tabela_precos SET preco_entregar=$1, preco_coletar=$2, venda_ref=$3, validade=$4
-                 WHERE id=$5 RETURNING *`,
-                [preco_entregar, preco_coletar, venda_ref, validade, id]
+                `UPDATE tabela_precos SET preco_entregar=$1, preco_coletar=$2, venda_ref=$3, validade=$4,
+                        comissao=$5, pis_cofins=$6, fidc=$7, icms=$8, frete_coleta=$9
+                 WHERE id=$10 RETURNING *`,
+                [preco_entregar, preco_coletar, venda_ref, validade, comissao || 0, pis_cofins || 0, fidc || 0, icms || 0, frete_coleta || 0, id]
             );
             await atualizarDataUltimaModificacaoPrecos();
             return res.json(result.rows[0]);
@@ -1016,10 +1025,16 @@ app.put('/api/tabela-precos/:id', async (req, res) => {
             memStore.tabela_precos[idx].preco_coletar = parseFloat(preco_coletar);
             memStore.tabela_precos[idx].venda_ref = parseFloat(venda_ref);
             memStore.tabela_precos[idx].validade = validade;
+            memStore.tabela_precos[idx].comissao = parseFloat(comissao)||0;
+            memStore.tabela_precos[idx].pis_cofins = parseFloat(pis_cofins)||0;
+            memStore.tabela_precos[idx].fidc = parseFloat(fidc)||0;
+            memStore.tabela_precos[idx].icms = parseFloat(icms)||0;
+            memStore.tabela_precos[idx].frete_coleta = parseFloat(frete_coleta)||0;
             await atualizarDataUltimaModificacaoPrecos();
             return res.json(memStore.tabela_precos[idx]);
         }
     } catch (err) {
+        console.error('Erro ao atualizar preço:', err);
         res.status(500).json({ error: 'Erro ao atualizar preço.' });
     }
 });
