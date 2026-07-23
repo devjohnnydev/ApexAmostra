@@ -2232,7 +2232,59 @@
         </div>
     </section>
 
-    
+    <!-- ═══════════════════════════════════════════════════════════
+         PEDIDOS DE VENDA
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="pedidos-venda-view" class="view-section" style="display:none; padding:20px;">
+        <header class="section-header">
+            <div class="section-header-row">
+                <div>
+                    <h1><i class="fa-solid fa-file-invoice-dollar" style="color:#2AD07A;"></i> Pedidos de Venda</h1>
+                    <p>Emita e gerencie pedidos vinculados aos clientes cadastrados.</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-primary" onclick="abrirNovoPedido()">
+                        <i class="fa-solid fa-plus"></i> Novo Pedido
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filtros -->
+        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="pedidos-search" class="noble-input" placeholder="🔍 Buscar por número, cliente..." style="flex:1; min-width:200px;" oninput="filtrarPedidos()">
+            <select id="pedidos-status-filter" class="noble-input" style="width:160px;" onchange="filtrarPedidos()">
+                <option value="">Todos os Status</option>
+                <option value="Rascunho">Rascunho</option>
+                <option value="Confirmado">Confirmado</option>
+                <option value="Em Separação">Em Separação</option>
+                <option value="Faturado">Faturado</option>
+                <option value="Entregue">Entregue</option>
+                <option value="Cancelado">Cancelado</option>
+            </select>
+        </div>
+
+        <!-- Tabela de pedidos -->
+        <div class="table-container" style="border-radius:10px; overflow:hidden;">
+            <table class="data-table" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Cliente</th>
+                        <th>Emissão</th>
+                        <th>Entrega</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th style="width:100px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidos-tbody">
+                    <tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-circle-notch fa-spin"></i> Carregando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
         </main>
     </div>
 
@@ -3012,62 +3064,7 @@
         </div>
     </div>
 
-<script src="admin.js?v=50"></script>
-    <script src="assets/js/theme-toggle.js"></script>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         PEDIDOS DE VENDA
-    ═══════════════════════════════════════════════════════════ -->
-    <!-- View de listagem de pedidos -->
-    <div id="pedidos-venda-view" class="view-section" style="display:none; padding:20px;">
-        <header class="section-header">
-            <div class="section-header-row">
-                <div>
-                    <h1><i class="fa-solid fa-file-invoice-dollar" style="color:#2AD07A;"></i> Pedidos de Venda</h1>
-                    <p>Emita e gerencie pedidos vinculados aos clientes cadastrados.</p>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-primary" onclick="abrirNovoPedido()">
-                        <i class="fa-solid fa-plus"></i> Novo Pedido
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Filtros -->
-        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center;">
-            <input type="text" id="pedidos-search" class="noble-input" placeholder="🔍 Buscar por número, cliente..." style="flex:1; min-width:200px;" oninput="filtrarPedidos()">
-            <select id="pedidos-status-filter" class="noble-input" style="width:160px;" onchange="filtrarPedidos()">
-                <option value="">Todos os Status</option>
-                <option value="Rascunho">Rascunho</option>
-                <option value="Confirmado">Confirmado</option>
-                <option value="Em Separação">Em Separação</option>
-                <option value="Faturado">Faturado</option>
-                <option value="Entregue">Entregue</option>
-                <option value="Cancelado">Cancelado</option>
-            </select>
-        </div>
-
-        <!-- Tabela de pedidos -->
-        <div class="table-container" style="border-radius:10px; overflow:hidden;">
-            <table class="data-table" style="width:100%;">
-                <thead>
-                    <tr>
-                        <th>Número</th>
-                        <th>Cliente</th>
-                        <th>Emissão</th>
-                        <th>Entrega</th>
-                        <th>Status</th>
-                        <th>Total</th>
-                        <th style="width:100px;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="pedidos-tbody">
-                    <tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-circle-notch fa-spin"></i> Carregando...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
     <!-- Modal: Novo/Editar Pedido de Venda (fullscreen) -->
     <div id="modal-pedido-venda" class="fullscreen-overlay" style="display:none; align-items:flex-start; justify-content:center; z-index:1100; padding-top:20px; overflow-y:auto;">
@@ -3221,5 +3218,7 @@
         </div>
     </div>
 
+    <script src="admin.js?v=50"></script>
+    <script src="assets/js/theme-toggle.js"></script>
 </body>
 </html>
