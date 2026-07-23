@@ -41,6 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (histSec) histSec.classList.remove('active');
                 }
                 target.classList.add('active');
+                if (item.dataset.target === 'permissoes-view' && window.carregarPermissoesView) {
+                    window.carregarPermissoesView();
+                }
+                if (item.dataset.target === 'financeiro-view' && window.carregarFinanceiroView) {
+                    window.carregarFinanceiroView();
+                }
                 setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
             }
         });
@@ -3841,7 +3847,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let permissoes = globalRolePermissions[role] || [];
         if (role === 'Administrador') {
             // Admin vê tudo.
-            permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios"];
+            permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios", "view_permissoes", "view_financeiro"];
         }
 
         const temPermissao = (p) => permissoes.includes(p);
@@ -3861,6 +3867,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setNav('nav-estoque', temPermissao('view_estoque'));
         setNav('nav-bi', temPermissao('view_bi'));
         setNav('nav-usuarios', temPermissao('view_usuarios'));
+        setNav('nav-permissoes', temPermissao('view_permissoes'));
+        setNav('nav-financeiro', temPermissao('view_financeiro'));
 
         // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
         setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
@@ -6907,8 +6915,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let perfilSelecionado = null;
 
-    window.abrirModalPermissoes = function() {
-        document.getElementById('modal-permissoes').style.display = 'flex';
+    window.carregarPermissoesView = function() {
         popularPerfisPermissoes();
         document.getElementById('grid-permissoes').style.opacity = '0.5';
         document.getElementById('grid-permissoes').style.pointerEvents = 'none';
@@ -6918,9 +6925,7 @@ document.addEventListener('DOMContentLoaded', () => {
         perfilSelecionado = null;
     };
 
-    window.fecharModalPermissoes = function() {
-        document.getElementById('modal-permissoes').style.display = 'none';
-    };
+    
 
     function popularPerfisPermissoes() {
         const perfis = ['Administrador', 'Laboratório', 'Compras', 'Produção', 'Financeiro', 'Diretoria'];
@@ -7054,3 +7059,94 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 }); // end DOMContentLoaded
+
+
+// --- MODULO FINANCEIRO ISOLADO ---
+let chartFidcIsolado = null;
+
+window.calcularFidcIsolado = function() {
+    const receita = parseFloat(document.getElementById('fin-sim-receita').value) || 0;
+    const prazo = parseInt(document.getElementById('fin-sim-prazo').value) || 30;
+    const taxa = parseFloat(document.getElementById('fin-sim-taxa').value) || 0;
+
+    const desconto = receita * (taxa / 100);
+    const liquido = receita - desconto;
+
+    document.getElementById('fin-sim-res-com').textContent = 'R$ ' + liquido.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    document.getElementById('fin-sim-res-desc').textContent = 'R$ ' + desconto.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+    const ctx = document.getElementById('chart-fidc-isolado').getContext('2d');
+    if (chartFidcIsolado) chartFidcIsolado.destroy();
+
+    chartFidcIsolado = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Líquido Imediato', 'Desconto FIDC'],
+            datasets: [{
+                data: [liquido, desconto],
+                backgroundColor: ['#2AD07A', '#ff4d4d'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#aaa' } }
+            }
+        }
+    });
+};
+
+window.carregarFinanceiroView = async function() {
+    // Buscar lotes de compras e simulações via API
+    try {
+        const res = await fetch('/api/planejamento-compras'); // Rota a ser checada ou criada
+        if (!res.ok) throw new Error('Falha ao carregar planejamentos');
+        const planejamentos = await res.json();
+        
+        const tbody = document.getElementById('lista-financeiro-historico');
+        tbody.innerHTML = '';
+        
+        let totalReceita = 0;
+        let somaTaxaFidc = 0;
+        let countFidc = 0;
+
+        planejamentos.forEach(plan => {
+            const row = document.createElement('tr');
+            row.style.borderBottom = '1px solid #1a3045';
+            
+            const lucroNum = parseFloat(plan.preco_venda_material) * parseFloat(plan.peso_comprado) * (parseFloat(plan.percentual_rendimento)/100);
+            const custoNum = parseFloat(plan.peso_comprado) * parseFloat(plan.preco_compra);
+            const margemNum = lucroNum > 0 ? ((lucroNum - custoNum) / lucroNum) * 100 : 0;
+            
+            totalReceita += lucroNum;
+            
+            if (plan.fidc) {
+                somaTaxaFidc += parseFloat(plan.fidc);
+                countFidc++;
+            }
+
+            row.innerHTML = `
+                <td style="padding:10px; color:#fff;">${plan.mes || '-'}</td>
+                <td style="padding:10px; color:#fff;">${plan.fornecedor_nome || '-'}</td>
+                <td style="padding:10px; color:#2AD07A;">R$ ${lucroNum.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px; color:#ff4d4d;">R$ ${custoNum.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px; color:#a0b4c8;">${margemNum.toFixed(2)}%</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        document.getElementById('fin-kpi-total').textContent = planejamentos.length;
+        document.getElementById('fin-kpi-lucro').textContent = 'R$ ' + (totalReceita).toLocaleString('pt-BR', {minimumFractionDigits:2});
+        
+        const mediaFidc = countFidc > 0 ? (somaTaxaFidc / countFidc) : 0;
+        document.getElementById('fin-kpi-fidc').textContent = mediaFidc.toFixed(2) + '%';
+        
+        calcularFidcIsolado(); // Inicializa o grafico vazio
+        
+    } catch (e) {
+        console.error('Erro ao carregar dados financeiros', e);
+        calcularFidcIsolado();
+    }
+};
