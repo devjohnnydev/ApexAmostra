@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Apex Gestão Inits
         initApexFornecedores();
+        initApexClientes();
         initApexMateriais();
         initApexPrecos();
         initApexAmostras();
@@ -3974,15 +3975,30 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editarFornecedor = function(id) {
         const f = localFornecedores.find(x => x.id === id);
         if (!f) return;
+        document.getElementById('modal-forn-titulo').textContent = 'Editar Fornecedor';
         document.getElementById('forn-id').value = f.id;
-        document.getElementById('forn-razao').value = f.razao_social;
-        document.getElementById('forn-fantasia').value = f.nome_fantasia;
+        document.getElementById('forn-codfor').value = f.codfor || '';
+        document.getElementById('forn-razao').value = f.razao_social || f.nome || '';
+        document.getElementById('forn-fantasia').value = f.nome_fantasia || f.apelido || '';
         document.getElementById('forn-cnpj').value = f.cnpj || '';
-        document.getElementById('forn-contato').value = f.contato || '';
-        document.getElementById('forn-telefone').value = f.telefone || '';
+        document.getElementById('forn-cpf').value = f.cpf || '';
+        document.getElementById('forn-ie').value = f.ie || '';
+        document.getElementById('forn-contato').value = f.contato || f.comprador || '';
+        document.getElementById('forn-telefone').value = f.telefone || f.fone1 || '';
+        document.getElementById('forn-fone2').value = f.fone2 || '';
+        document.getElementById('forn-whatsapp').value = f.whatsapp || '';
+        document.getElementById('forn-celular').value = f.celular || '';
         document.getElementById('forn-email').value = f.email || '';
         document.getElementById('forn-endereco').value = f.endereco || '';
-        document.getElementById('forn-obs').value = f.observacoes || '';
+        document.getElementById('forn-numero').value = f.numero || '';
+        document.getElementById('forn-bairro').value = f.bairro || '';
+        document.getElementById('forn-cidade').value = f.cidade || '';
+        document.getElementById('forn-uf').value = f.uf || '';
+        document.getElementById('forn-cep').value = f.cep || '';
+        document.getElementById('forn-obs').value = f.complemento || f.observacoes || '';
+        document.getElementById('forn-condicao').value = f.condicao_pagamento || '';
+        document.getElementById('forn-tabela').value = f.tabela || '';
+        document.getElementById('forn-filial').value = f.filial || '';
         document.getElementById('modal-fornecedor').style.display = 'flex';
     };
 
@@ -3993,25 +4009,43 @@ document.addEventListener('DOMContentLoaded', () => {
             razao_social: document.getElementById('forn-razao').value,
             nome_fantasia: document.getElementById('forn-fantasia').value,
             cnpj: document.getElementById('forn-cnpj').value,
+            cpf: document.getElementById('forn-cpf').value,
+            ie: document.getElementById('forn-ie').value,
             contato: document.getElementById('forn-contato').value,
             telefone: document.getElementById('forn-telefone').value,
+            fone2: document.getElementById('forn-fone2').value,
+            whatsapp: document.getElementById('forn-whatsapp').value,
+            celular: document.getElementById('forn-celular').value,
             email: document.getElementById('forn-email').value,
             endereco: document.getElementById('forn-endereco').value,
-            observacoes: document.getElementById('forn-obs').value
+            numero: document.getElementById('forn-numero').value,
+            bairro: document.getElementById('forn-bairro').value,
+            cidade: document.getElementById('forn-cidade').value,
+            uf: document.getElementById('forn-uf').value,
+            cep: document.getElementById('forn-cep').value,
+            observacoes: document.getElementById('forn-obs').value,
+            condicao_pagamento: document.getElementById('forn-condicao').value,
+            tabela: document.getElementById('forn-tabela').value,
+            filial: document.getElementById('forn-filial').value
         };
-
+        const btn = e.target.querySelector('[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
         try {
             const url = id ? `/api/fornecedores/${id}` : '/api/fornecedores';
             const method = id ? 'PUT' : 'POST';
-            await fetch(url, {
+            const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
+            if (!res.ok) throw new Error(await res.text());
             fecharModalFornecedor();
             carregarFornecedores();
         } catch (err) {
+            alert('Erro ao salvar fornecedor: ' + err.message);
             console.error('Erro ao salvar fornecedor:', err);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Fornecedor'; }
         }
     };
 
@@ -4023,6 +4057,163 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error(err);
         }
+    };
+
+    // ═══════════════════════════════════════════════════════════
+    // CLIENTES — CRUD COMPLETO
+    // ═══════════════════════════════════════════════════════════
+    let localClientes = [];
+
+    window.initApexClientes = async function() {
+        await carregarClientes();
+    };
+
+    async function carregarClientes() {
+        try {
+            const res = await fetch('/api/clientes');
+            localClientes = await res.json();
+            renderClientes();
+        } catch (err) {
+            console.error('Erro ao buscar clientes:', err);
+        }
+    }
+
+    function renderClientes() {
+        const body = document.getElementById('clientes-table-body');
+        if (!body) return;
+        body.innerHTML = '';
+        if (!localClientes.length) {
+            body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#5a738e;"><i class="fa-solid fa-users-slash"></i> Nenhum cliente cadastrado.</td></tr>';
+            return;
+        }
+        localClientes.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 12px;"><strong style="color:#fff;">${c.nome || '-'}</strong></td>
+                <td style="padding:10px 12px;color:#aaa;">${c.fantasia || '-'}</td>
+                <td style="padding:10px 12px;">${c.cnpj || c.cpf || '-'}</td>
+                <td style="padding:10px 12px;">${c.telefone1 || '-'}</td>
+                <td style="padding:10px 12px;">${c.email || '-'}</td>
+                <td style="padding:10px 12px;">${c.cidade || '-'}${c.uf ? '/' + c.uf : ''}</td>
+                <td style="padding:10px 12px;">
+                    <span style="padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; background:${c.status === 'ATIVO' ? '#0d3020' : '#2a1515'}; color:${c.status === 'ATIVO' ? '#2AD07A' : '#ff6b6b'};">${c.status || 'ATIVO'}</span>
+                </td>
+                <td style="padding:10px 12px; text-align:center; white-space:nowrap;">
+                    <button class="btn-refresh" style="background:none;border:none;color:#e07b39;margin-right:8px;cursor:pointer;" onclick="editarCliente(${c.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-refresh" style="background:none;border:none;color:#ff4d4d;cursor:pointer;" onclick="deletarCliente(${c.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    window.abrirModalCliente = function() {
+        document.getElementById('form-cliente-apex').reset();
+        document.getElementById('cli-id').value = '';
+        document.getElementById('modal-cli-titulo').textContent = 'Novo Cliente';
+        document.getElementById('modal-cliente').style.display = 'flex';
+    };
+
+    window.fecharModalCliente = function() {
+        document.getElementById('modal-cliente').style.display = 'none';
+    };
+
+    window.editarCliente = function(id) {
+        const c = localClientes.find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('modal-cli-titulo').textContent = 'Editar Cliente';
+        document.getElementById('cli-id').value = c.id;
+        document.getElementById('cli-codigo').value = c.codigo || '';
+        document.getElementById('cli-nome').value = c.nome || '';
+        document.getElementById('cli-fantasia').value = c.fantasia || '';
+        document.getElementById('cli-status').value = c.status || 'ATIVO';
+        document.getElementById('cli-tipo').value = c.tipo_cliente || '';
+        document.getElementById('cli-cnpj').value = c.cnpj || '';
+        document.getElementById('cli-cpf').value = c.cpf || '';
+        document.getElementById('cli-ie').value = c.ie || c.rg || '';
+        document.getElementById('cli-tel1').value = c.telefone1 || '';
+        document.getElementById('cli-tel2').value = c.telefone2 || '';
+        document.getElementById('cli-contato-com').value = c.contato_comercial || '';
+        document.getElementById('cli-contato-fin').value = c.contato_financeiro || '';
+        document.getElementById('cli-email').value = c.email || '';
+        document.getElementById('cli-endereco').value = c.endereco || '';
+        document.getElementById('cli-numero').value = c.numero || '';
+        document.getElementById('cli-bairro').value = c.bairro || '';
+        document.getElementById('cli-cidade').value = c.cidade || '';
+        document.getElementById('cli-uf').value = c.uf || '';
+        document.getElementById('cli-pais').value = c.pais || '';
+        document.getElementById('cli-cep').value = c.cep || '';
+        document.getElementById('cli-vendedor').value = c.vendedor || '';
+        document.getElementById('cli-dias').value = c.dias || 0;
+        document.getElementById('cli-filial').value = c.filial || '';
+        document.getElementById('modal-cliente').style.display = 'flex';
+    };
+
+    window.salvarCliente = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('cli-id').value;
+        const data = {
+            codigo: document.getElementById('cli-codigo').value || null,
+            nome: document.getElementById('cli-nome').value,
+            fantasia: document.getElementById('cli-fantasia').value,
+            status: document.getElementById('cli-status').value,
+            tipo_cliente: document.getElementById('cli-tipo').value,
+            cnpj: document.getElementById('cli-cnpj').value,
+            cpf: document.getElementById('cli-cpf').value,
+            ie: document.getElementById('cli-ie').value,
+            telefone1: document.getElementById('cli-tel1').value,
+            telefone2: document.getElementById('cli-tel2').value,
+            contato_comercial: document.getElementById('cli-contato-com').value,
+            contato_financeiro: document.getElementById('cli-contato-fin').value,
+            email: document.getElementById('cli-email').value,
+            endereco: document.getElementById('cli-endereco').value,
+            numero: document.getElementById('cli-numero').value,
+            bairro: document.getElementById('cli-bairro').value,
+            cidade: document.getElementById('cli-cidade').value,
+            uf: document.getElementById('cli-uf').value,
+            pais: document.getElementById('cli-pais').value,
+            cep: document.getElementById('cli-cep').value,
+            vendedor: document.getElementById('cli-vendedor').value,
+            dias: parseInt(document.getElementById('cli-dias').value) || 0,
+            filial: document.getElementById('cli-filial').value
+        };
+        const btn = e.target.querySelector('[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
+        try {
+            const url = id ? `/api/clientes/${id}` : '/api/clientes';
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error(await res.text());
+            fecharModalCliente();
+            carregarClientes();
+        } catch (err) {
+            alert('Erro ao salvar cliente: ' + err.message);
+            console.error('Erro ao salvar cliente:', err);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Cliente'; }
+        }
+    };
+
+    window.deletarCliente = async function(id) {
+        if (!confirm('Deseja realmente excluir este cliente?')) return;
+        try {
+            await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+            carregarClientes();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.filtrarClientes = function() {
+        const search = document.getElementById('clientes-search')?.value.toLowerCase() || '';
+        const rows = document.querySelectorAll('#clientes-table-body tr');
+        rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+        });
     };
 
     window.filtrarFornecedores = function() {
