@@ -5065,7 +5065,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const id = document.getElementById('prc-id').value;
         const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
-        const escopoValidade = document.querySelector('input[name="escopo-validade"]:checked')?.value || 'todos';
 
         const data = {
             material_id: document.getElementById('prc-material').value,
@@ -5078,7 +5077,7 @@ document.addEventListener('DOMContentLoaded', () => {
             icms: parseVal(document.getElementById('prc-icms').value),
             frete_coleta: parseVal(document.getElementById('prc-frete-coleta').value),
             validade: document.getElementById('prc-validade').value,
-            aplicar_todos: (escopoValidade === 'todos')
+            aplicar_todos: true
         };
 
         const btn = e.target.querySelector('[type="submit"]');
@@ -5135,11 +5134,12 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)');
     };
 
-    function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao) {
+    function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings) {
+        const activeSettings = settings || settingsPrecos || {};
         let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
-        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+        if (activeSettings && activeSettings['categorias_materiais']) {
             try {
-                categorias = JSON.parse(settingsPrecos['categorias_materiais']);
+                categorias = JSON.parse(activeSettings['categorias_materiais']);
             } catch(e) {}
         }
         precos.forEach(p => {
@@ -5148,29 +5148,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         let html = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #fff; max-width: 950px; margin: 0 auto; box-sizing: border-box;">
-                <!-- Header -->
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e4e8c; padding-bottom: 20px; margin-bottom: 25px;">
-                    <div>
-                        <img src="assets/img/apexlogo.png" alt="Apex Tech Metais" style="height: 60px;">
-                    </div>
-                    <div style="text-align: right;">
-                        <h1 style="margin: 0; color: #1e4e8c; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Tabela de Preços Vigente</h1>
-                        <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">Última Atualização: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
-                    </div>
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; max-width: 950px; margin: 0 auto; box-sizing: border-box; position: relative; overflow: hidden;">
+                <!-- Marca d'água de fundo em toda a folha -->
+                <div style="position: absolute; top: -5%; left: -25%; width: 150%; height: 110%; pointer-events: none; z-index: 0; display: flex; flex-direction: column; justify-content: space-around; align-items: center; opacity: 0.07; transform: rotate(-28deg); user-select: none;">
+                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
+                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
+                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
+                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
+                    <div style="font-size: 3.8rem; font-weight: 900; color: #1e4e8c; text-transform: uppercase; letter-spacing: 10px; white-space: nowrap;">APEXTECH METAIS • TABELA DE PREÇOS</div>
                 </div>
 
-                <!-- Diretrizes -->
-                <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                        ⚠️ Diretrizes Gerais de Compra
-                    </h4>
-                    <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
-                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
-                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                        <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
-                    </ul>
-                </div>
+                <div style="position: relative; z-index: 1;">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e4e8c; padding-bottom: 20px; margin-bottom: 25px;">
+                        <div>
+                            <img src="assets/img/apexlogo.png" alt="Apex Tech Metais" style="height: 60px;">
+                        </div>
+                        <div style="text-align: right;">
+                            <h1 style="margin: 0; color: #1e4e8c; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Tabela de Preços Vigente</h1>
+                            <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">Última Atualização: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Diretrizes -->
+                    <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            ⚠️ Diretrizes Gerais de Compra
+                        </h4>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                        </ul>
+                    </div>
         `;
 
         categorias.forEach(cat => {
@@ -5178,10 +5188,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (precosCat.length === 0) return;
 
             const validadeStr = precosCat[0] ? new Date(precosCat[0].validade).toLocaleDateString('pt-BR') : '-';
+            const corCategoria = (activeSettings && activeSettings[`cor_categoria_${cat}`]) || '#1e4e8c';
 
             html += `
-                <div style="margin-bottom: 30px; page-break-inside: avoid; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                    <div style="background: #1e4e8c; color: #fff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="margin-bottom: 30px; page-break-inside: avoid; border: 1px solid ${corCategoria}; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background: ${corCategoria}; color: #ffffff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         <span>${cat}</span>
                         <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
@@ -5222,12 +5233,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Footer with CEO Jose Tiago and date
         html += `
-                <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555;">
-                    <div style="font-weight: bold; color: #1e4e8c; font-size: 0.95rem;">
-                        ✅ Aprovado pelo CEO Jose Tiago
-                    </div>
-                    <div style="text-align: right; color: #888;">
-                        Documento oficial Apex Tech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
+                    <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555;">
+                        <div style="font-weight: bold; color: #1e4e8c; font-size: 0.95rem;">
+                            ✅ Aprovado pelo CEO Jose Tiago
+                        </div>
+                        <div style="text-align: right; color: #888;">
+                            Documento oficial Apex Tech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -5243,9 +5255,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         let lastUpdate = '';
+        let settings = {};
         try {
             const resSet = await fetch('/api/settings');
-            const settings = await resSet.json();
+            settings = await resSet.json();
             lastUpdate = settings.tabela_precos_ultima_atualizacao || '';
         } catch (e) {
             console.error(e);
@@ -5261,7 +5274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tempDiv.style.top = '-9999px';
         tempDiv.style.width = '1000px';
         tempDiv.style.background = '#ffffff';
-        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate);
+        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings);
         document.body.appendChild(tempDiv);
 
         try {

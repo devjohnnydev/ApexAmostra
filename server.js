@@ -35,7 +35,8 @@ if (process.env.DATABASE_URL) {
     const { Pool } = require('pg');
     pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 3000
     });
 
     pool.on('error', (err, client) => {
@@ -959,8 +960,11 @@ app.get('/api/tabela-precos', async (req, res) => {
 
 app.post('/api/tabela-precos', async (req, res) => {
     try {
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, aplicar_todos, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
+            if (aplicar_todos && validade) {
+                await pool.query('UPDATE tabela_precos SET validade = $1', [validade]);
+            }
             const result = await pool.query(
                 `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
@@ -969,6 +973,9 @@ app.post('/api/tabela-precos', async (req, res) => {
             await atualizarDataUltimaModificacaoPrecos();
             return res.json(result.rows[0]);
         } else {
+            if (aplicar_todos && validade) {
+                memStore.tabela_precos.forEach(p => p.validade = validade);
+            }
             const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar), preco_coletar: parseFloat(preco_coletar), venda_ref: parseFloat(venda_ref), validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
             memStore.tabela_precos.push(newP);
             await atualizarDataUltimaModificacaoPrecos();
