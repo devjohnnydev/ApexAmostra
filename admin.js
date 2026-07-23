@@ -4937,7 +4937,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </tr>
                         </thead>
                         <tbody>
-                            ${precosCat.map(p => {
+                            ${precosCat.map((p, idx) => {
                                 const comissao = parseFloat(p.comissao || 0);
                                 const pisCofins = parseFloat(p.pis_cofins || 0);
                                 const fidc = parseFloat(p.fidc || 0);
@@ -4954,11 +4954,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
                                 const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
 
+                                const bgRow = idx % 2 === 0 ? 'background:#0f1d2b;' : 'background:#152637;';
+                                const bgHover = '#1e3c5c';
+
                                 return `
-                                    <tr>
-                                        <td style="padding:10px;"><strong>${p.material_nome}</strong></td>
-                                        <td style="padding:10px; text-align:right;">R$ ${fmtBRL(p.preco_entregar)}</td>
-                                        <td style="padding:10px; text-align:right;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                                    <tr style="${bgRow} border-bottom:1px solid #1c3044; transition:background 0.15s;" onmouseover="this.style.background='${bgHover}'" onmouseout="this.style.background='${idx % 2 === 0 ? '#0f1d2b' : '#152637'}'">
+                                        <td style="padding:10px; color:#fff;"><strong>${p.material_nome}</strong></td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_coletar)}</td>
                                         ${showCompleta ? `
                                         <td style="padding:10px; text-align:right; color: #ffeb3b; font-weight: bold;">R$ ${fmtBRL(p.venda_ref)}</td>
                                         <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${fmtBRL(lucroEnt)}</td>
@@ -4966,7 +4969,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${fmtBRL(lucroCol)}</td>
                                         <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
                                         ` : ''}
-                                        <td style="padding:10px;">${p.material_ncm || '-'}</td>
+                                        <td style="padding:10px; color:#9ab0c7;">${p.material_ncm || '-'}</td>
                                         <td style="padding:10px; text-align:center;">
                                             <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#3e7cb1; margin-right:5px; cursor:pointer;" onclick="editarPreco(${p.id})"><i class="fa-solid fa-pen"></i></button>
                                             <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#ff4d4d; cursor:pointer;" onclick="deletarPreco(${p.id})"><i class="fa-solid fa-trash"></i></button>
@@ -5226,13 +5229,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tbody>
             `;
 
-            precosCat.forEach(p => {
+            precosCat.forEach((p, idx) => {
+                const bgRow = idx % 2 === 0 ? '#ffffff' : '#f0f5fa';
                 html += `
-                    <tr style="border-bottom: 1px solid #eee; background-color: #ffffff;">
-                        <td style="padding: 10px; border: 1px solid #eee; color: #222;"><strong>${p.material_nome}</strong></td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${fmtBRL(p.preco_entregar)}</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 500;">R$ ${fmtBRL(p.preco_coletar)}</td>
-                        <td style="padding: 10px; border: 1px solid #eee; color: #666;">${p.material_ncm || '-'}</td>
+                    <tr style="border-bottom: 1px solid #dce4ed; background-color: ${bgRow};">
+                        <td style="padding: 10px; border: 1px solid #dce4ed; color: #1a2530;"><strong>${p.material_nome}</strong></td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #dce4ed; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                        <td style="padding: 10px; text-align: right; border: 1px solid #dce4ed; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                        <td style="padding: 10px; border: 1px solid #dce4ed; color: #555;">${p.material_ncm || '-'}</td>
                     </tr>
                 `;
             });
