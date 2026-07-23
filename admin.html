@@ -2713,6 +2713,33 @@
         </div>
     </div>
 
+    <!-- Modal Alterar Vigência Geral -->
+    <div id="modal-vigencia-geral" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index:1150;">
+        <div style="width:460px; max-width:95vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; padding:0; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#101a24; padding:16px 20px; border-bottom:1px solid #223547;">
+                <h3 style="margin:0; color:#fff; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-calendar-days" style="color:#3e7cb1;"></i> Alterar Vigência Geral da Tabela
+                </h3>
+                <button type="button" onclick="fecharModalVigenciaGeral()" style="background:none; border:none; color:#aaa; font-size:1.3rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="padding:24px;">
+                <p style="color:#a0b4c8; font-size:0.9rem; margin-top:0; margin-bottom:18px;">
+                    Selecione a nova data de validade/vigência para <strong>todos os materiais</strong> da Tabela de Preços sem alterar os valores.
+                </p>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="color:#fff; font-weight:600; margin-bottom:6px; display:block;">Nova Data de Vigência *</label>
+                    <input type="date" id="input-vigencia-geral-data" class="noble-input" style="width:100%; font-size:1rem; padding:10px 12px;" required>
+                </div>
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
+                    <button type="button" class="btn-secondary" onclick="fecharModalVigenciaGeral()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                    <button type="button" class="btn-primary" id="btn-salvar-vigencia-geral" onclick="salvarVigenciaGeralModal()" style="background:#1e4e8c; border-color:#1e4e8c;">
+                        <i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Preço -->
     <div id="modal-preco" class="fullscreen-overlay" style="display:none;">
         <div class="login-box" style="width:540px; max-width:96vw; padding:18px 22px 16px; background:#101a24; border:1px solid #1e4e8c; margin:auto; max-height:92vh; overflow-y:auto;">
@@ -3218,7 +3245,7 @@
         </div>
     </div>
 
-    <script src="admin.js?v=51"></script>
+    <script src="admin.js?v=52"></script>
     <script src="assets/js/theme-toggle.js"></script>
 </body>
 </html>

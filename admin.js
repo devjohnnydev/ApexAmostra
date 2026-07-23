@@ -4913,7 +4913,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${cat.toUpperCase()}</span>
                         <input type="color" value="${corCategoria}" title="Alterar cor do cabeçalho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
                     </div>
-                    <span style="font-size:0.85rem; font-weight:normal;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vigência geral com calendário" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
                 </div>
                 <div class="categoria-preco-observacao">
                     <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
@@ -5111,10 +5111,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.alterarValidadeGeralPrompt = async function() {
+    window.abrirModalVigenciaGeral = function() {
         const dataAtual = localPrecos[0]?.validade ? localPrecos[0].validade.split('T')[0] : new Date().toISOString().split('T')[0];
-        const novaData = prompt('Digite a nova Data de Validade/Vigência Geral (AAAA-MM-DD):', dataAtual);
-        if (!novaData) return;
+        document.getElementById('input-vigencia-geral-data').value = dataAtual;
+        document.getElementById('modal-vigencia-geral').style.display = 'flex';
+    };
+
+    window.fecharModalVigenciaGeral = function() {
+        document.getElementById('modal-vigencia-geral').style.display = 'none';
+    };
+
+    window.salvarVigenciaGeralModal = async function() {
+        const novaData = document.getElementById('input-vigencia-geral-data').value;
+        if (!novaData) {
+            alert('Por favor, selecione uma data no calendário.');
+            return;
+        }
+        const btn = document.getElementById('btn-salvar-vigencia-geral');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spin fa-spinner"></i> Salvando...'; }
         try {
             const res = await fetch('/api/tabela-precos-validade-geral', {
                 method: 'PUT',
@@ -5122,11 +5136,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ validade: novaData })
             });
             if (!res.ok) throw new Error(await res.text());
+            fecharModalVigenciaGeral();
             alert('Vigência atualizada para todos os materiais com sucesso!');
-            carregarPrecos();
+            await carregarPrecos();
         } catch (err) {
             alert('Erro ao atualizar vigência geral: ' + err.message);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência'; }
         }
+    };
+
+    window.alterarValidadeGeralPrompt = function() {
+        abrirModalVigenciaGeral();
     };
 
     window.deletarPreco = async function(id) {
