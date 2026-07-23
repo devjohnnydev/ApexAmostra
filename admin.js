@@ -53,6 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (item.dataset.target === 'clientes-view' && window.initApexClientes) {
                     window.initApexClientes();
                 }
+                if (item.dataset.target === 'pedidos-venda-view' && window.initApexPedidos) {
+                    window.initApexPedidos();
+                }
                 setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
             }
         });
@@ -93,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initApexEstoque();
         initApexUsuarios();
         initApexBI();
+        initApexPedidos();
         switchSimulatedRole(sessionStorage.getItem('apex_user_role') || 'Administrador');
     }
 
@@ -7095,12 +7099,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const produto = document.getElementById('pl-produto').value || 'N/A';
         const fp = document.getElementById('pl-forma-pagamento').value;
 
-        // Marca D'água APEXTECH
-        doc.setTextColor(240, 240, 240);
-        doc.setFontSize(80);
-        doc.text("APEXTECH", 30, 150, null, 45);
-        doc.text("APEXTECH", 30, 250, null, 45);
-
         // Cabeçalho
         doc.setFontSize(18);
         doc.setTextColor(224, 123, 57);
@@ -7168,9 +7166,68 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.setFontSize(10);
         doc.text(splitText, 15, doc.lastAutoTable.finalY + 18);
 
+        await aplicarMarcaDaguaLogoJsPDF(doc);
+
         doc.save('Relatorio_Financeiro_FIDC.pdf');
     };
     // --- FIM: SIMULADOR FIDC ---
+
+    // ── Helper Marca d'água jsPDF ──────────────────────────────────────────────
+    let cachedLogoWatermarkBase64 = null;
+    async function getLogoWatermarkBase64JsPDF() {
+        if (cachedLogoWatermarkBase64) return cachedLogoWatermarkBase64;
+        try {
+            const res = await fetch('/assets/img/logo%20(2).png');
+            if (res.ok) {
+                const blob = await res.blob();
+                cachedLogoWatermarkBase64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+                return cachedLogoWatermarkBase64;
+            }
+        } catch(e) {
+            console.warn('Erro ao carregar logo para marca dágua:', e);
+        }
+        return null;
+    }
+
+    async function aplicarMarcaDaguaLogoJsPDF(doc) {
+        const logo = await getLogoWatermarkBase64JsPDF();
+        if (!logo) return;
+        
+        if (doc.GState && doc.setGState) {
+            try {
+                doc.setGState(new doc.GState({ opacity: 0.08 }));
+            } catch(e) {}
+        }
+        
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= pageCount; p++) {
+            doc.setPage(p);
+            const pw = doc.internal.pageSize.getWidth();
+            const ph = doc.internal.pageSize.getHeight();
+            const imgW = 45;
+            const imgH = 35;
+            const stepX = 65;
+            const stepY = 55;
+            
+            for (let y = 10; y < ph; y += stepY) {
+                for (let x = 10; x < pw; x += stepX) {
+                    try {
+                        doc.addImage(logo, 'PNG', x, y, imgW, imgH);
+                    } catch(err) {}
+                }
+            }
+        }
+        
+        if (doc.GState && doc.setGState) {
+            try {
+                doc.setGState(new doc.GState({ opacity: 1.0 }));
+            } catch(e) {}
+        }
+    }
 
     window.salvarPlanejamento = async function(e) {
         e.preventDefault();
@@ -7210,47 +7267,31 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Planejamento Mensal exportado com sucesso (PLANEJAMENTO_DE_NVS_FORNECEDOR.xlsx)');
     };
 
-    window.exportarPlanejamentoPDF = function() {
+    window.exportarPlanejamentoPDF = async function() {
         if (!window.jspdf) {
             alert('A biblioteca jsPDF não carregou corretamente.');
             return;
         }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('landscape');
-        
-        // Marca D'água APEXTECH
-        doc.setTextColor(240, 240, 240);
-        doc.setFontSize(80);
-        doc.text("APEXTECH", 30, 100, null, 45);
-        doc.text("APEXTECH", 150, 100, null, 45);
-        doc.text("APEXTECH", 270, 100, null, 45);
-
-        // Cabeçalho
-        doc.setFontSize(18);
-        doc.setTextColor(62, 124, 177); // #3e7cb1
-        doc.text('Relatório de Planejamento Mensal - Fornecedores', 15, 20);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
-        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
 
         // Build Table Body
         const body = [];
         if (typeof localPlanejamento !== 'undefined') {
             localPlanejamento.forEach(pl => {
-                const fornecedorStr = pl.fornecedor_nome || 'N/A';
-                const mes = pl.mes_ref || 'N/A';
-                const reqData = pl.amostra_id ? `Amostra: ${pl.amostra_id}` : `[Avulso] ${pl.produto}`;
+                const fornObj = (window.localFornecedores || []).find(f => f.id == pl.fornecedor_id);
+                const fornecedorStr = pl.fornecedor_nome || (fornObj ? (fornObj.nome || fornObj.nome_fantasia || fornObj.apelido) : '') || (pl.fornecedor_id ? `Fornecedor #${pl.fornecedor_id}` : '-');
+                const mes = pl.mes || pl.mes_ref || (pl.criado_em ? new Date(pl.criado_em).toLocaleDateString('pt-BR', {month:'2-digit', year:'numeric'}) : '-') || '-';
+                const reqData = pl.amostra_id ? `Amostra: ${pl.amostra_id}` : `[Avulso] ${pl.produto || 'Material'}`;
                 const cStr = 'R$ ' + fmtBRL(pl.preco_compra);
                 const vStr = 'R$ ' + fmtBRL(pl.preco_venda_material);
                 
-                const totalC = parseFloat(pl.peso_comprado) * parseFloat(pl.preco_compra);
-                const pesoMat = parseFloat(pl.peso_comprado) * (parseFloat(pl.percentual_rendimento) / 100);
-                const totalV = pesoMat * parseFloat(pl.preco_venda_material);
+                const totalC = parseFloat(pl.peso_comprado || 0) * parseFloat(pl.preco_compra || 0);
+                const pesoMat = parseFloat(pl.peso_comprado || 0) * (parseFloat(pl.percentual_rendimento || 0) / 100);
+                const totalV = pesoMat * parseFloat(pl.preco_venda_material || 0);
                 const lucroB = totalV - totalC;
                 const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
-                const resultadoLiq = pctFat - parseFloat(pl.comissao) - parseFloat(pl.fidc);
+                const resultadoLiq = pctFat - parseFloat(pl.comissao || 0) - parseFloat(pl.fidc || 0);
                 
                 body.push([mes, fornecedorStr, reqData, cStr, vStr, fmtBRL(resultadoLiq) + '%']);
             });
@@ -7264,10 +7305,22 @@ document.addEventListener('DOMContentLoaded', () => {
             headStyles: { fillColor: [27, 45, 61] }
         });
 
+        // Cabeçalho
+        doc.setFontSize(18);
+        doc.setTextColor(62, 124, 177); // #3e7cb1
+        doc.text('Relatório de Planejamento Mensal - Fornecedores', 15, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
+        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
+
+        await aplicarMarcaDaguaLogoJsPDF(doc);
+
         doc.save(`Planejamento_Lote_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
-    window.gerarPdfPlanejamentoModal = function() {
+    window.gerarPdfPlanejamentoModal = async function() {
         if (!window.jspdf) {
             alert('A biblioteca jsPDF não carregou corretamente.');
             return;
@@ -7290,12 +7343,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
-        // Marca D'água APEXTECH
-        doc.setTextColor(240, 240, 240);
-        doc.setFontSize(80);
-        doc.text("APEXTECH", 30, 150, null, 45);
-        doc.text("APEXTECH", 30, 250, null, 45);
 
         // Cabeçalho
         doc.setFontSize(18);
@@ -7342,8 +7389,11 @@ document.addEventListener('DOMContentLoaded', () => {
             headStyles: { fillColor: [42, 208, 122] }
         });
 
+        await aplicarMarcaDaguaLogoJsPDF(doc);
+
         doc.save(`Simulacao_Lote_${new Date().toISOString().split('T')[0]}.pdf`);
     };
+
 
     // --- 6. ESTOQUE INTELIGENTE ---
     window.initApexEstoque = function() {
@@ -7732,3 +7782,319 @@ window.carregarFinanceiroView = async function() {
         calcularFidcIsolado();
     }
 };
+
+// =============================================================================
+// PEDIDOS DE VENDA
+// =============================================================================
+(function() {
+    let localPedidos = [];
+    let itensPedido  = [];
+
+    const fmtR = (v) => 'R$ ' + (parseFloat(v)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const fmtD = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('pt-BR', {timeZone:'UTC'}); } catch(e){ return d; } };
+    const statusColor = { 'Rascunho':'#7fa8c8', 'Confirmado':'#2AD07A', 'Em Separação':'#ffeb3b', 'Faturado':'#4fc3f7', 'Entregue':'#2AD07A', 'Cancelado':'#ff6b6b' };
+
+    window.initApexPedidos = function() {
+        carregarPedidos();
+    };
+
+    async function carregarPedidos() {
+        try {
+            const res  = await fetch('/api/pedidos-venda');
+            localPedidos = Array.isArray(await res.clone().json()) ? await res.json() : [];
+        } catch(e) {
+            localPedidos = [];
+        }
+        renderPedidos(localPedidos);
+    }
+
+    function renderPedidos(lista) {
+        const tbody = document.getElementById('pedidos-tbody');
+        if (!tbody) return;
+        if (!lista || lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-file-invoice-dollar" style="font-size:2rem; margin-bottom:10px; display:block;"></i>Nenhum pedido cadastrado ainda.<br><small>Clique em <strong>+ Novo Pedido</strong> para começar.</small></td></tr>';
+            return;
+        }
+        tbody.innerHTML = lista.map(p => `
+            <tr style="border-bottom:1px solid #1a2a3a; transition:background 0.15s;" onmouseover="this.style.background='#0f2030'" onmouseout="this.style.background=''">
+                <td style="padding:12px 10px; font-weight:bold; color:#2AD07A;">${p.numero || '-'}</td>
+                <td style="padding:12px 10px; color:#fff;">${p.cliente_nome || p.cliente_id || '-'}</td>
+                <td style="padding:12px 10px; color:#aaa;">${fmtD(p.data_emissao)}</td>
+                <td style="padding:12px 10px; color:#aaa;">${fmtD(p.data_entrega)}</td>
+                <td style="padding:12px 10px;">
+                    <span style="background:${statusColor[p.status]||'#666'}22; color:${statusColor[p.status]||'#aaa'}; border:1px solid ${statusColor[p.status]||'#666'}44; padding:3px 10px; border-radius:20px; font-size:0.8rem; font-weight:600;">${p.status||'Rascunho'}</span>
+                </td>
+                <td style="padding:12px 10px; text-align:right; color:#fff; font-weight:600;">${fmtR(p.total_geral)}</td>
+                <td style="padding:12px 10px; text-align:center;">
+                    <button onclick="editarPedido(${p.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; margin-right:5px; font-size:1rem;" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="excluirPedido(${p.id}, '${p.numero}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    window.filtrarPedidos = function() {
+        const txt    = (document.getElementById('pedidos-search')?.value || '').toLowerCase();
+        const status = document.getElementById('pedidos-status-filter')?.value || '';
+        const filtrado = localPedidos.filter(p => {
+            const matchTxt = !txt || (p.numero||'').toLowerCase().includes(txt) || (p.cliente_nome||'').toLowerCase().includes(txt);
+            const matchSt  = !status || p.status === status;
+            return matchTxt && matchSt;
+        });
+        renderPedidos(filtrado);
+    };
+
+    window.abrirNovoPedido = async function() {
+        itensPedido = [];
+        document.getElementById('form-pedido-venda').reset();
+        document.getElementById('pedido-id').value = '';
+        document.getElementById('modal-pedido-titulo').textContent = 'Novo Pedido de Venda';
+        document.getElementById('pedido-data-emissao').value = new Date().toISOString().split('T')[0];
+        limparClientePedido();
+        renderItensPedido();
+        recalcularPedido();
+        try {
+            const r = await fetch('/api/pedidos-venda/proximo-numero');
+            const d = await r.json();
+            document.getElementById('pedido-numero').value = d.numero || 'PV-0001';
+        } catch(e) {
+            document.getElementById('pedido-numero').value = 'PV-' + String(Math.floor(Date.now()/1000)%10000).padStart(4,'0');
+        }
+        document.getElementById('modal-pedido-venda').style.display = 'flex';
+    };
+
+    window.fecharModalPedido = function() {
+        document.getElementById('modal-pedido-venda').style.display = 'none';
+    };
+
+    window.buscarClientePedido = function(val) {
+        const drop = document.getElementById('pedido-cliente-dropdown');
+        if (!val || val.length < 2) { drop.style.display='none'; return; }
+        const q = val.toLowerCase();
+        const resultados = (window.localClientes||[]).filter(c =>
+            (c.nome||'').toLowerCase().includes(q) ||
+            (c.cnpj||'').replace(/\D/g,'').includes(q.replace(/\D/g,''))
+        ).slice(0, 8);
+        if (resultados.length === 0) { drop.innerHTML='<div style="padding:10px; color:#aaa;">Nenhum cliente encontrado</div>'; drop.style.display='block'; return; }
+        drop.innerHTML = resultados.map(c => `
+            <div onclick="selecionarClientePedido(${c.id})" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #1a2a3a;" onmouseover="this.style.background='#1a2a3a'" onmouseout="this.style.background=''">
+                <strong style="color:#fff;">${c.nome||c.razao_social||''}</strong>
+                <span style="color:#7fa8c8; font-size:0.8rem;"> — ${c.cnpj||''} | ${c.cidade||''}-${c.uf||''}</span>
+            </div>
+        `).join('');
+        drop.style.display='block';
+    };
+
+    window.selecionarClientePedido = function(id) {
+        const c = (window.localClientes||[]).find(x => x.id == id);
+        if (!c) return;
+        document.getElementById('pedido-cliente-id').value = c.id;
+        document.getElementById('pedido-cliente-busca').value = c.nome || c.razao_social || '';
+        document.getElementById('pedido-cliente-dropdown').style.display = 'none';
+        document.getElementById('cc-nome').textContent   = c.nome || c.razao_social || '';
+        document.getElementById('cc-cnpj').textContent   = c.cnpj || '';
+        document.getElementById('cc-cidade').textContent = c.cidade || '';
+        document.getElementById('cc-uf').textContent     = c.uf || '';
+        document.getElementById('cc-tel').textContent    = c.telefone1 || c.telefone || '';
+        document.getElementById('cc-email').textContent  = c.email || '';
+        document.getElementById('pedido-cliente-card').style.display = 'block';
+        if (c.condicao_pagamento) {
+            const sel = document.getElementById('pedido-condicao');
+            for (let i=0; i<sel.options.length; i++) {
+                if (sel.options[i].value === c.condicao_pagamento) { sel.selectedIndex=i; break; }
+            }
+        }
+    };
+
+    window.limparClientePedido = function() {
+        document.getElementById('pedido-cliente-id').value = '';
+        document.getElementById('pedido-cliente-busca').value = '';
+        document.getElementById('pedido-cliente-dropdown').style.display = 'none';
+        document.getElementById('pedido-cliente-card').style.display = 'none';
+    };
+
+    window.adicionarItemPedido = function() {
+        itensPedido.push({ descricao:'', unidade:'kg', quantidade:0, preco_unitario:0, desconto_item:0, total_item:0 });
+        renderItensPedido();
+    };
+
+    window.removerItemPedido = function(idx) {
+        itensPedido.splice(idx,1);
+        renderItensPedido();
+        recalcularPedido();
+    };
+
+    window.atualizarItemPedido = function(idx, campo, val) {
+        itensPedido[idx][campo] = campo==='descricao'||campo==='unidade' ? val : parseFloat(val)||0;
+        const it = itensPedido[idx];
+        it.total_item = it.quantidade * it.preco_unitario * (1 - (it.desconto_item||0)/100);
+        renderItensPedido();
+        recalcularPedido();
+    };
+
+    function renderItensPedido() {
+        const tbody = document.getElementById('itens-pedido-tbody');
+        const vazio  = document.getElementById('itens-vazio');
+        if (!tbody) return;
+        if (itensPedido.length === 0) {
+            tbody.innerHTML = '';
+            if (vazio) vazio.style.display = 'block';
+            return;
+        }
+        if (vazio) vazio.style.display = 'none';
+        tbody.innerHTML = itensPedido.map((it,i) => `
+            <tr style="border-bottom:1px solid #1a2a3a;">
+                <td style="padding:6px 4px;">
+                    <input value="${it.descricao||''}" onchange="atualizarItemPedido(${i},'descricao',this.value)" class="noble-input" style="width:100%; padding:5px 8px; font-size:0.82rem;" placeholder="Ex: Fio de cobre 4mm" />
+                </td>
+                <td style="padding:6px 4px; text-align:center;">
+                    <select onchange="atualizarItemPedido(${i},'unidade',this.value)" class="noble-input" style="padding:5px 4px; font-size:0.82rem; width:56px;">
+                        ${['kg','t','un','m','m²','L'].map(u=>`<option value="${u}" ${it.unidade===u?'selected':''}>${u}</option>`).join('')}
+                    </select>
+                </td>
+                <td style="padding:6px 4px;">
+                    <input type="number" min="0" step="0.001" value="${it.quantidade||0}" onchange="atualizarItemPedido(${i},'quantidade',this.value)" class="noble-input" style="width:85px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
+                </td>
+                <td style="padding:6px 4px;">
+                    <input type="number" min="0" step="0.0001" value="${it.preco_unitario||0}" onchange="atualizarItemPedido(${i},'preco_unitario',this.value)" class="noble-input" style="width:105px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
+                </td>
+                <td style="padding:6px 4px;">
+                    <input type="number" min="0" max="100" step="0.01" value="${it.desconto_item||0}" onchange="atualizarItemPedido(${i},'desconto_item',this.value)" class="noble-input" style="width:75px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
+                </td>
+                <td style="padding:6px 4px; text-align:right; color:#2AD07A; font-weight:600;">${fmtR(it.total_item)}</td>
+                <td style="padding:6px 4px; text-align:center;">
+                    <button type="button" onclick="removerItemPedido(${i})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    window.recalcularPedido = function() {
+        const subtotal  = itensPedido.reduce((s,it) => s+(it.total_item||0), 0);
+        const desc      = parseFloat(document.getElementById('pedido-desconto')?.value)||0;
+        const frete     = parseFloat(document.getElementById('pedido-frete')?.value)||0;
+        const total     = subtotal*(1-desc/100)+frete;
+        if (document.getElementById('pedido-total-itens'))  document.getElementById('pedido-total-itens').textContent  = fmtR(subtotal);
+        if (document.getElementById('pedido-total-geral'))  document.getElementById('pedido-total-geral').textContent  = fmtR(total);
+    };
+
+    window.salvarPedido = async function(e) {
+        e.preventDefault();
+        const clienteId = document.getElementById('pedido-cliente-id').value;
+        if (!clienteId) { alert('Selecione um cliente.'); return; }
+        if (itensPedido.length === 0) { alert('Adicione ao menos um item ao pedido.'); return; }
+
+        const payload = {
+            numero:             document.getElementById('pedido-numero').value,
+            cliente_id:         parseInt(clienteId),
+            data_emissao:       document.getElementById('pedido-data-emissao').value,
+            data_entrega:       document.getElementById('pedido-data-entrega').value || null,
+            status:             document.getElementById('pedido-status').value,
+            condicao_pagamento: document.getElementById('pedido-condicao').value,
+            observacoes:        document.getElementById('pedido-obs').value,
+            desconto_pct:       parseFloat(document.getElementById('pedido-desconto').value)||0,
+            frete:              parseFloat(document.getElementById('pedido-frete').value)||0,
+            criado_por:         sessionStorage.getItem('apex_logged_user_name')||'Admin',
+            itens:              itensPedido
+        };
+
+        const id  = document.getElementById('pedido-id').value;
+        const url = id ? `/api/pedidos-venda/${id}` : '/api/pedidos-venda';
+        const met = id ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, { method:met, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+            if (!res.ok) { const err=await res.json(); alert('Erro: '+(err.error||res.status)); return; }
+            fecharModalPedido();
+            await carregarPedidos();
+        } catch(err) {
+            alert('Erro ao salvar pedido: '+err.message);
+        }
+    };
+
+    window.editarPedido = async function(id) {
+        try {
+            const res  = await fetch(`/api/pedidos-venda/${id}`);
+            const data = await res.json();
+            document.getElementById('pedido-id').value             = data.id;
+            document.getElementById('modal-pedido-titulo').textContent = `Editar Pedido ${data.numero}`;
+            document.getElementById('pedido-numero').value          = data.numero;
+            document.getElementById('pedido-data-emissao').value    = (data.data_emissao||'').slice(0,10);
+            document.getElementById('pedido-data-entrega').value    = (data.data_entrega||'').slice(0,10);
+            document.getElementById('pedido-desconto').value        = data.desconto_pct||0;
+            document.getElementById('pedido-frete').value           = data.frete||0;
+            document.getElementById('pedido-obs').value             = data.observacoes||'';
+            const selSt = document.getElementById('pedido-status');
+            for(let i=0;i<selSt.options.length;i++) if(selSt.options[i].value===data.status){selSt.selectedIndex=i;break;}
+            const selCond = document.getElementById('pedido-condicao');
+            for(let i=0;i<selCond.options.length;i++) if(selCond.options[i].value===data.condicao_pagamento){selCond.selectedIndex=i;break;}
+            window.selecionarClientePedido(data.cliente_id);
+            if (data.cliente_nome) document.getElementById('pedido-cliente-busca').value = data.cliente_nome;
+            itensPedido = (data.itens||[]).map(it => ({...it}));
+            renderItensPedido();
+            recalcularPedido();
+            document.getElementById('modal-pedido-venda').style.display = 'flex';
+        } catch(err) {
+            alert('Erro ao carregar pedido: '+err.message);
+        }
+    };
+
+    window.excluirPedido = async function(id, numero) {
+        if (!confirm(`Excluir o pedido ${numero}? Esta ação não pode ser desfeita.`)) return;
+        try {
+            await fetch(`/api/pedidos-venda/${id}`, {method:'DELETE'});
+            await carregarPedidos();
+        } catch(err) {
+            alert('Erro ao excluir: '+err.message);
+        }
+    };
+
+    window.imprimirPedido = function() {
+        const num    = document.getElementById('pedido-numero').value || 'PEDIDO';
+        const cli    = document.getElementById('pedido-cliente-busca').value || '-';
+        const emiss  = document.getElementById('pedido-data-emissao').value;
+        const entrega= document.getElementById('pedido-data-entrega').value;
+        const cond   = document.getElementById('pedido-condicao').value;
+        const obs    = document.getElementById('pedido-obs').value;
+        const desc   = parseFloat(document.getElementById('pedido-desconto').value)||0;
+        const frete  = parseFloat(document.getElementById('pedido-frete').value)||0;
+        const subtot = itensPedido.reduce((s,it)=>s+(it.total_item||0),0);
+        const total  = subtot*(1-desc/100)+frete;
+
+        const itensHtml = itensPedido.map((it,i) => `
+            <tr style="${i%2===0?'background:#f9f9f9':''};">
+                <td style="padding:8px; border:1px solid #ddd;">${it.descricao||''}</td>
+                <td style="padding:8px; text-align:center; border:1px solid #ddd;">${it.unidade}</td>
+                <td style="padding:8px; text-align:right; border:1px solid #ddd;">${(it.quantidade||0).toLocaleString('pt-BR',{minimumFractionDigits:3})}</td>
+                <td style="padding:8px; text-align:right; border:1px solid #ddd;">${fmtR(it.preco_unitario)}</td>
+                <td style="padding:8px; text-align:right; border:1px solid #ddd;">${it.desconto_item||0}%</td>
+                <td style="padding:8px; text-align:right; border:1px solid #ddd; font-weight:bold;">${fmtR(it.total_item)}</td>
+            </tr>`).join('');
+
+        const win = window.open('','_blank');
+        win.document.write(`<!DOCTYPE html><html><head><title>Pedido ${num}</title><style>body{font-family:Arial,sans-serif;margin:30px;color:#333;}h2{color:#1e4e8c;}.total{font-size:1.2rem;font-weight:bold;color:#1e4e8c;}</style></head><body>
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1e4e8c;padding-bottom:15px;margin-bottom:20px;">
+                <div><h2 style="margin:0;">Pedido de Venda</h2><p style="margin:4px 0 0;color:#666;">N° ${num}</p></div>
+                <div style="text-align:right;"><strong>Apex Tech Metais</strong><br><small style="color:#666;">Emissão: ${fmtD(emiss)} | Entrega: ${fmtD(entrega)||'-'}</small></div>
+            </div>
+            <p><strong>Cliente:</strong> ${cli} &nbsp;&nbsp; <strong>Condição:</strong> ${cond||'-'}</p>
+            <table style="width:100%;border-collapse:collapse;margin-top:15px;font-size:0.9rem;">
+                <thead><tr style="background:#1e4e8c;color:#fff;"><th style="padding:8px;text-align:left;border:1px solid #ddd;">Descrição</th><th style="padding:8px;border:1px solid #ddd;">Und</th><th style="padding:8px;border:1px solid #ddd;">Qtd</th><th style="padding:8px;border:1px solid #ddd;">Preço Unit.</th><th style="padding:8px;border:1px solid #ddd;">Desc%</th><th style="padding:8px;border:1px solid #ddd;">Total</th></tr></thead>
+                <tbody>${itensHtml}</tbody>
+            </table>
+            <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+                <div style="min-width:260px;border:1px solid #ddd;border-radius:6px;padding:14px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Subtotal:</span><span>${fmtR(subtot)}</span></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Desconto (${desc}%):</span><span>- ${fmtR(subtot*desc/100)}</span></div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Frete:</span><span>${fmtR(frete)}</span></div>
+                    <div class="total" style="display:flex;justify-content:space-between;border-top:2px solid #1e4e8c;padding-top:8px;margin-top:4px;"><span>Total Geral:</span><span>${fmtR(total)}</span></div>
+                </div>
+            </div>
+            ${obs?`<p style="margin-top:20px;"><strong>Observações:</strong> ${obs}</p>`:''}
+            <p style="margin-top:30px;color:#aaa;font-size:0.8rem;text-align:center;">Documento gerado em ${new Date().toLocaleString('pt-BR')} — Apex Tech Metais</p>
+        </body></html>`);
+        win.document.close();
+        setTimeout(() => win.print(), 800);
+    };
+
+})();
