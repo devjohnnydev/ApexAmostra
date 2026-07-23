@@ -2713,24 +2713,53 @@
         </div>
     </div>
 
-    <!-- Modal Alterar Vigência Geral -->
+    <!-- Modal Alterar Vigência Geral (Calendário Visual Interativo) -->
     <div id="modal-vigencia-geral" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index:1150;">
-        <div style="width:460px; max-width:95vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; padding:0; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+        <div style="width:480px; max-width:95vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; padding:0; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.6);">
             <div style="display:flex; justify-content:space-between; align-items:center; background:#101a24; padding:16px 20px; border-bottom:1px solid #223547;">
                 <h3 style="margin:0; color:#fff; font-size:1.1rem; display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-calendar-days" style="color:#3e7cb1;"></i> Alterar Vigência Geral da Tabela
                 </h3>
                 <button type="button" onclick="fecharModalVigenciaGeral()" style="background:none; border:none; color:#aaa; font-size:1.3rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div style="padding:24px;">
-                <p style="color:#a0b4c8; font-size:0.9rem; margin-top:0; margin-bottom:18px;">
-                    Selecione a nova data de validade/vigência para <strong>todos os materiais</strong> da Tabela de Preços sem alterar os valores.
+            <div style="padding:20px;">
+                <p style="color:#a0b4c8; font-size:0.88rem; margin-top:0; margin-bottom:15px; text-align:center;">
+                    Clique no dia desejado no calendário abaixo para alterar a vigência de <strong>todos os materiais</strong>:
                 </p>
-                <div class="form-group" style="margin-bottom:20px;">
-                    <label style="color:#fff; font-weight:600; margin-bottom:6px; display:block;">Nova Data de Vigência *</label>
-                    <input type="date" id="input-vigencia-geral-data" class="noble-input" style="width:100%; font-size:1rem; padding:10px 12px;" required>
+
+                <!-- Widget Calendário Visual -->
+                <div style="background:#132232; border:1px solid #1e4e8c; border-radius:8px; overflow:hidden; margin-bottom:15px;">
+                    <!-- Top Bar do Mês -->
+                    <div style="background:#1e4e8c; color:#fff; padding:10px 15px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;">
+                        <button type="button" onclick="navCalendarioVigencia(-1)" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer; padding:0 8px;"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span id="cal-vigencia-titulo" style="text-transform:uppercase; letter-spacing:1px; font-size:1rem;">JULHO 2026</span>
+                        <button type="button" onclick="navCalendarioVigencia(1)" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer; padding:0 8px;"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+
+                    <!-- Cabeçalho dos Dias da Semana (D S T Q Q S S) -->
+                    <div style="display:grid; grid-template-columns:repeat(7, 1fr); background:#192b3c; text-align:center; color:#fff; font-weight:bold; font-size:0.85rem; border-bottom:1px solid #223547;">
+                        <div style="padding:8px 0; color:#ff6b6b;">D</div>
+                        <div style="padding:8px 0;">S</div>
+                        <div style="padding:8px 0;">T</div>
+                        <div style="padding:8px 0;">Q</div>
+                        <div style="padding:8px 0;">Q</div>
+                        <div style="padding:8px 0;">S</div>
+                        <div style="padding:8px 0; color:#3e7cb1;">S</div>
+                    </div>
+
+                    <!-- Grid dos Dias do Mês -->
+                    <div id="cal-vigencia-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; background:#1e3448; padding:2px;">
+                    </div>
                 </div>
-                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
+
+                <!-- Preview da Data Selecionada -->
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#162738; padding:10px 14px; border-radius:6px; border:1px solid #223c56; margin-bottom:18px;">
+                    <span style="color:#aaa; font-size:0.88rem;">Data Selecionada:</span>
+                    <strong id="cal-vigencia-data-formatada" style="color:#2AD07A; font-size:1.05rem;">--/--/----</strong>
+                    <input type="hidden" id="input-vigencia-geral-data">
+                </div>
+
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
                     <button type="button" class="btn-secondary" onclick="fecharModalVigenciaGeral()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     <button type="button" class="btn-primary" id="btn-salvar-vigencia-geral" onclick="salvarVigenciaGeralModal()" style="background:#1e4e8c; border-color:#1e4e8c;">
                         <i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência
@@ -3245,7 +3274,7 @@
         </div>
     </div>
 
-    <script src="admin.js?v=53"></script>
+    <script src="admin.js?v=54"></script>
     <script src="assets/js/theme-toggle.js"></script>
 </body>
 </html>

@@ -5125,9 +5125,92 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // ─── Calendário Visual Interativo de Vigência ───
+    let calVigenciaAno = 2026;
+    let calVigenciaMes = 6;
+    let calVigenciaDataSelecionada = new Date().toISOString().split('T')[0];
+    const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    window.renderCalendarioVigencia = function() {
+        const titulo = document.getElementById('cal-vigencia-titulo');
+        const grid = document.getElementById('cal-vigencia-grid');
+        const preview = document.getElementById('cal-vigencia-data-formatada');
+        const inputHidden = document.getElementById('input-vigencia-geral-data');
+        if (!grid) return;
+
+        if (titulo) {
+            titulo.textContent = `${mesesNomes[calVigenciaMes]} ${calVigenciaAno}`;
+        }
+
+        const firstDay = new Date(calVigenciaAno, calVigenciaMes, 1).getDay();
+        const totalDays = new Date(calVigenciaAno, calVigenciaMes + 1, 0).getDate();
+        const prevMonthTotalDays = new Date(calVigenciaAno, calVigenciaMes, 0).getDate();
+
+        let html = '';
+
+        for (let i = firstDay - 1; i >= 0; i--) {
+            const diaPrev = prevMonthTotalDays - i;
+            html += `<div style="background:#0d1824; color:#3a526a; padding:11px 0; text-align:center; font-size:0.9rem; user-select:none;">${diaPrev}</div>`;
+        }
+
+        for (let day = 1; day <= totalDays; day++) {
+            const monthStr = String(calVigenciaMes + 1).padStart(2, '0');
+            const dayStr = String(day).padStart(2, '0');
+            const ymd = `${calVigenciaAno}-${monthStr}-${dayStr}`;
+
+            const isSelected = ymd === calVigenciaDataSelecionada;
+            const bgCell = isSelected ? '#2AD07A' : '#132232';
+            const textCell = isSelected ? '#000' : '#fff';
+            const fontWeight = isSelected ? 'bold' : '500';
+
+            html += `
+                <div onclick="selecionarDiaCalendarioVigencia('${ymd}')"
+                     style="background:${bgCell}; color:${textCell}; font-weight:${fontWeight}; padding:11px 0; text-align:center; font-size:0.92rem; cursor:pointer; transition:all 0.15s; border-radius:4px;"
+                     onmouseover="if('${ymd}'!=='${calVigenciaDataSelecionada}') this.style.background='#1e3b56'"
+                     onmouseout="if('${ymd}'!=='${calVigenciaDataSelecionada}') this.style.background='#132232'">
+                    ${day}
+                </div>
+            `;
+        }
+
+        const totalCellsSoFar = firstDay + totalDays;
+        const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
+        for (let nextDay = 1; nextDay <= remainingCells; nextDay++) {
+            html += `<div style="background:#0d1824; color:#3a526a; padding:11px 0; text-align:center; font-size:0.9rem; user-select:none;">${nextDay}</div>`;
+        }
+
+        grid.innerHTML = html;
+
+        if (inputHidden) inputHidden.value = calVigenciaDataSelecionada;
+        if (preview) preview.textContent = window.formatarDataSemFuso(calVigenciaDataSelecionada);
+    };
+
+    window.navCalendarioVigencia = function(dir) {
+        calVigenciaMes += dir;
+        if (calVigenciaMes < 0) {
+            calVigenciaMes = 11;
+            calVigenciaAno--;
+        } else if (calVigenciaMes > 11) {
+            calVigenciaMes = 0;
+            calVigenciaAno++;
+        }
+        renderCalendarioVigencia();
+    };
+
+    window.selecionarDiaCalendarioVigencia = function(ymd) {
+        calVigenciaDataSelecionada = ymd;
+        renderCalendarioVigencia();
+    };
+
     window.abrirModalVigenciaGeral = function() {
         const dataAtual = localPrecos[0]?.validade ? localPrecos[0].validade.split('T')[0] : new Date().toISOString().split('T')[0];
-        document.getElementById('input-vigencia-geral-data').value = dataAtual;
+        calVigenciaDataSelecionada = dataAtual;
+        const parts = dataAtual.split('-');
+        if (parts.length === 3) {
+            calVigenciaAno = parseInt(parts[0]);
+            calVigenciaMes = parseInt(parts[1]) - 1;
+        }
+        renderCalendarioVigencia();
         document.getElementById('modal-vigencia-geral').style.display = 'flex';
     };
 
@@ -5136,9 +5219,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.salvarVigenciaGeralModal = async function() {
-        const novaData = document.getElementById('input-vigencia-geral-data').value;
+        const novaData = calVigenciaDataSelecionada || document.getElementById('input-vigencia-geral-data').value;
         if (!novaData) {
-            alert('Por favor, selecione uma data no calendário.');
+            alert('Por favor, clique em um dia no calendário.');
             return;
         }
         const btn = document.getElementById('btn-salvar-vigencia-geral');
