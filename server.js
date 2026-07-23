@@ -226,14 +226,15 @@ async function initDatabase() {
             -- NOVAS TABELAS APEX
             CREATE TABLE IF NOT EXISTS fornecedores (
                 id            SERIAL PRIMARY KEY,
-                razao_social  TEXT NOT NULL,
-                nome_fantasia TEXT NOT NULL,
-                cnpj          TEXT,
-                contato       TEXT,
-                telefone      TEXT,
-                email         TEXT,
-                endereco      TEXT,
-                observacoes   TEXT,
+                codfor        INTEGER UNIQUE,
+                nome          VARCHAR(255) NOT NULL,
+                apelido       VARCHAR(255),
+                cnpj          VARCHAR(18),
+                comprador     VARCHAR(150),
+                fone1         VARCHAR(20),
+                email         VARCHAR(150),
+                endereco      VARCHAR(255),
+                complemento   TEXT,
                 criado_em     TIMESTAMP DEFAULT NOW()
             );
 
@@ -359,7 +360,7 @@ async function initDatabase() {
         const { rowCount: fCount } = await client.query('SELECT 1 FROM fornecedores LIMIT 1');
         if (fCount === 0) {
             await client.query(`
-                INSERT INTO fornecedores (razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes)
+                INSERT INTO fornecedores (nome, apelido, cnpj, comprador, fone1, email, endereco, complemento)
                 VALUES ('Davi Reciclagem de Metais LTDA', 'davi', '12.345.678/0001-99', 'Davi', '(11) 98765-4321', 'davi@apextech.com', 'Av. da Reciclagem, 1000', 'Fornecedor Parceiro LME');
             `);
             
@@ -629,7 +630,7 @@ app.delete('/api/usuarios/:id', async (req, res) => {
 app.get('/api/fornecedores', async (req, res) => {
     try {
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM fornecedores ORDER BY razao_social ASC');
+            const result = await pool.query('SELECT id, nome AS razao_social, apelido AS nome_fantasia, cnpj, comprador AS contato, fone1 AS telefone, email, endereco, complemento AS observacoes FROM fornecedores ORDER BY nome ASC');
             return res.json(result.rows);
         }
         res.json(memStore.fornecedores);
@@ -643,7 +644,7 @@ app.post('/api/fornecedores', async (req, res) => {
         const { razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO fornecedores (razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes)
+                `INSERT INTO fornecedores (nome, apelido, cnpj, comprador, fone1, email, endereco, complemento)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
                 [razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes]
             );
@@ -664,7 +665,7 @@ app.put('/api/fornecedores/:id', async (req, res) => {
         const { razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE fornecedores SET razao_social=$1, nome_fantasia=$2, cnpj=$3, contato=$4, telefone=$5, email=$6, endereco=$7, observacoes=$8
+                `UPDATE fornecedores SET nome=$1, apelido=$2, cnpj=$3, comprador=$4, fone1=$5, email=$6, endereco=$7, complemento=$8
                  WHERE id=$9 RETURNING *`,
                 [razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes, id]
             );
@@ -3715,7 +3716,27 @@ app.post('/api/lme/varialme', async (req, res) => {
 });
 
 // ─── Iniciar servidor ─────────────────────────────────────────────────────────
-app.get('/api/admin/run-import-clientes', (req, res) => {\n    const { exec } = require('child_process');\n    exec('npm run import:clientes', (err, stdout, stderr) => {\n        if (err) {\n            return res.status(500).send(<pre>ERRO:\n\n\nSTDOUT:\n</pre>);\n        }\n        res.send(<pre>SUCESSO:\n\n\nAVISOS:\n</pre>);\n    });\n});\n\napp.get('/api/admin/run-import-fornecedores', (req, res) => {\n    const { exec } = require('child_process');\n    exec('npm run import:fornecedores', (err, stdout, stderr) => {\n        if (err) {\n            return res.status(500).send(<pre>ERRO:\n\n\nSTDOUT:\n</pre>);\n        }\n        res.send(<pre>SUCESSO:\n\n\nAVISOS:\n</pre>);\n    });\n});\n\ninitDatabase().then(() => {
+app.get('/api/admin/run-import-clientes', (req, res) => {
+    const { exec } = require('child_process');
+    exec('npm run import:clientes', (err, stdout, stderr) => {
+        if (err) {
+            return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
+        }
+        res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
+    });
+});
+
+app.get('/api/admin/run-import-fornecedores', (req, res) => {
+    const { exec } = require('child_process');
+    exec('npm run import:fornecedores', (err, stdout, stderr) => {
+        if (err) {
+            return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
+        }
+        res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
+    });
+});
+
+initDatabase().then(() => {
     app.listen(PORT, () => {
         console.log(`🌿 Servidor da Apex Tech Metais rodando em http://localhost:${PORT}`);
         console.log(`📦 Modo de dados: ${dbAvailable ? 'PostgreSQL' : 'Memória (local)'}`);
