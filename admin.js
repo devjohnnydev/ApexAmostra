@@ -1247,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ">
                 <div style="font-size:0.75rem;color:#aaa;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">${METAL_LABELS[m]}</div>
                 <div style="font-size:1.6rem;color:${color};line-height:1;">${arrow}</div>
-                <div style="font-size:1rem;color:${color};font-weight:700;margin-top:2px;">${sign}${pct.toFixed(2)}%</div>
+                <div style="font-size:1rem;color:${color};font-weight:700;margin-top:2px;">${sign}${fmtBRL(pct)}%</div>
                 <div style="font-size:0.7rem;color:#666;margin-top:3px;">US$ ${fmtPrice(last5[i])}</div>
             </div>`;
         }).join('');
@@ -5471,9 +5471,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.style.borderBottom = '1px solid #222';
             tr.innerHTML = `
                 <td style="padding:8px 10px;">${mat ? mat.nome : 'Desconhecido'}</td>
-                <td style="padding:8px 10px;text-align:right;">${pct.toFixed(2)}%</td>
+                <td style="padding:8px 10px;text-align:right;">${fmtBRL(pct)}%</td>
                 <td style="padding:8px 10px;text-align:right;color:${precoEntregar!==null?'#2AD07A':'#f0b800'}">
-                    ${precoEntregar!==null ? 'R$ ' + precoEntregar.toFixed(2) : '<i class="fa-solid fa-triangle-exclamation"></i> Sem preco'}
+                    ${precoEntregar!==null ? 'R$ ' + fmtBRL(precoEntregar) : '<i class="fa-solid fa-triangle-exclamation"></i> Sem preco'}
                 </td>
                 <td style="padding:8px 10px;text-align:right;font-weight:700;color:#fff;">
                     ${valorComp!==null ? 'R$ ' + valorComp.toFixed(4) : '---'}
@@ -5496,7 +5496,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const precoSugColetar  = precoSugEntregar * 0.96; // 4% desconto coletar vs entregar
         const margemPct        = Math.round(margemTot * 100);
 
-        const fmt = (v) => 'R$ ' + v.toFixed(2);
+        const fmt = (v) => 'R$ ' + fmtBRL(v);
         const el  = (id) => document.getElementById(id);
 
         if (el('fidc-valor-bruto'))              el('fidc-valor-bruto').innerHTML              = fmt(valorBruto) + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
@@ -5521,7 +5521,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px; text-align:right;">
                     <input type="number" step="0.001" class="noble-input val-comp-peso" style="padding:5px; text-align:right; width:100px;" value="${c.peso}" oninput="atualizarComponenteData(${idx}, 'peso', this.value)">
                 </td>
-                <td style="padding:10px; text-align:right;" class="val-comp-pct">${c.percentual.toFixed(2)} %</td>
+                <td style="padding:10px; text-align:right;" class="val-comp-pct">${fmtBRL(c.percentual)} %</td>
                 <td style="padding:10px;">
                     <select class="noble-input" style="padding:5px;" onchange="atualizarComponenteData(${idx}, 'dificuldade', this.value)">
                         <option value="Fácil" ${c.dificuldade === 'Fácil' ? 'selected' : ''}>Fácil</option>
@@ -5591,7 +5591,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = document.querySelectorAll('#analise-componentes-body tr');
             if (rows[idx]) {
                 const pctCell = rows[idx].querySelector('.val-comp-pct');
-                if (pctCell) pctCell.textContent = c.percentual.toFixed(2) + ' %';
+                if (pctCell) pctCell.textContent = fmtBRL(c.percentual) + ' %';
             }
         });
 
@@ -5604,7 +5604,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('resumo-peso-recuperado').textContent = totalPesos.toFixed(3);
         document.getElementById('resumo-peso-perda').textContent = perdaFisica.toFixed(3);
-        document.getElementById('resumo-percentual-perda').textContent = percentualPerda.toFixed(2);
+        document.getElementById('resumo-percentual-perda').textContent = fmtBRL(percentualPerda);
 
         // Formula Química
         const formulaParts = componentesActivos.map(c => {
@@ -5946,7 +5946,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setFontSize(8.5);
                 pdf.text((c.material_nome || '?') + ' (' + (c.material_categoria || '') + ')', 18, y);
                 pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, y);
-                pdf.text(parseFloat(c.percentual).toFixed(2) + ' %', 148, y);
+                pdf.text(fmtBRL(c.percentual) + ' %', 148, y);
                 if (c.dificuldade) {
                     const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Media' ? [180,130,0] : [30,130,60];
                     pdf.setTextColor(...dc);
@@ -5967,7 +5967,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setFontSize(8.5);
             pdf.text('Residuos Industriais / Perda Fisica', 18, y);
             pdf.text(perda.toLocaleString('pt-BR') + ' kg', 110, y);
-            pdf.text(pctPerda.toFixed(2) + ' %', 148, y);
+            pdf.text(fmtBRL(pctPerda) + ' %', 148, y);
             y += 10;
 
             // Formula quimica
@@ -6057,7 +6057,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (decAprovada && amostra.preco_compra_entregar) {
                 pdf.setTextColor(10, 100, 40);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Preco Autorizado - Entregar: R$ ' + parseFloat(amostra.preco_compra_entregar).toFixed(2) + '/kg  |  Coletar: R$ ' + parseFloat(amostra.preco_compra_coletar || 0).toFixed(2) + '/kg', 22, dy);
+                pdf.text('Preco Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
                 dy += 6;
                 const vf = amostra.preco_validade ? new Date(amostra.preco_validade).toLocaleDateString('pt-BR') : '--';
                 pdf.setFont('helvetica', 'normal');
@@ -6092,7 +6092,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setFont('helvetica', 'bold');
                 pdf.setTextColor(10, 100, 40);
                 pdf.text('Lucro Projetado: R$ ' + lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2}), 115, y + 6);
-                pdf.text('Margem Bruta: ' + margemBruta.toFixed(2) + ' %', 115, y + 12);
+                pdf.text('Margem Bruta: ' + fmtBRL(margemBruta) + ' %', 115, y + 12);
                 y += 26;
             }
 
@@ -6194,8 +6194,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('bi-kpi-peso-total').textContent = pesoTotal.toLocaleString('pt-BR') + ' kg';
             document.getElementById('bi-kpi-faturamento').textContent = 'R$ ' + faturamento.toLocaleString('pt-BR', {minimumFractionDigits:2});
             document.getElementById('bi-kpi-lucro').textContent = 'R$ ' + lucroConsolidado.toLocaleString('pt-BR', {minimumFractionDigits:2});
-            document.getElementById('bi-kpi-margem').textContent = margemConsolidada.toFixed(2) + ' %';
-            document.getElementById('bi-kpi-perda').textContent = taxaPerdaIndustrial.toFixed(2) + ' %';
+            document.getElementById('bi-kpi-margem').textContent = fmtBRL(margemConsolidada) + ' %';
+            document.getElementById('bi-kpi-perda').textContent = fmtBRL(taxaPerdaIndustrial) + ' %';
 
             // ── Gráfico 1: Evolução Mensal ──
             const mesesMap = {};
@@ -6394,19 +6394,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:8px;"><strong>${lc.fornecedor_nome}</strong></td>
                 <td style="padding:8px;">${lc.produto}</td>
                 <td style="padding:8px; text-align:right;">${parseFloat(lc.peso_comprado).toLocaleString('pt-BR')} kg</td>
-                <td style="padding:8px; text-align:right;">R$ ${parseFloat(lc.preco_compra).toFixed(2)}</td>
+                <td style="padding:8px; text-align:right;">R$ ${fmtBRL(lc.preco_compra)}</td>
                 <td style="padding:8px; text-align:right;">R$ ${totalC.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:8px; text-align:right;">${parseFloat(lc.percentual_rendimento).toFixed(1)}%</td>
+                <td style="padding:8px; text-align:right;">${fmtBRL(lc.percentual_rendimento)}%</td>
                 <td style="padding:8px;">${lc.material_nome}</td>
                 <td style="padding:8px; text-align:right;">${pesoMat.toLocaleString('pt-BR')} kg</td>
-                <td style="padding:8px; text-align:right;">R$ ${parseFloat(lc.preco_venda_material).toFixed(2)}</td>
+                <td style="padding:8px; text-align:right;">R$ ${fmtBRL(lc.preco_venda_material)}</td>
                 <td style="padding:8px; text-align:right;">R$ ${totalV.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                 <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:8px; text-align:right;">${pctInv.toFixed(2)}%</td>
-                <td style="padding:8px; text-align:right;">${pctFat.toFixed(2)}%</td>
-                <td style="padding:8px; text-align:right;">${parseFloat(lc.comissao).toFixed(1)}%</td>
-                <td style="padding:8px; text-align:right;">${parseFloat(lc.fidc).toFixed(1)}%</td>
-                <td style="padding:8px; text-align:right; font-weight:bold; color:${resultadoLiq >= 0 ? '#2AD07A' : '#ff4d4d'}">${resultadoLiq.toFixed(2)}%</td>
+                <td style="padding:8px; text-align:right;">${fmtBRL(pctInv)}%</td>
+                <td style="padding:8px; text-align:right;">${fmtBRL(pctFat)}%</td>
+                <td style="padding:8px; text-align:right;">${fmtBRL(lc.comissao)}%</td>
+                <td style="padding:8px; text-align:right;">${fmtBRL(lc.fidc)}%</td>
+                <td style="padding:8px; text-align:right; font-weight:bold; color:${resultadoLiq >= 0 ? '#2AD07A' : '#ff4d4d'}">${fmtBRL(resultadoLiq)}%</td>
             `;
             body.appendChild(tr);
         });
@@ -6423,18 +6423,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr style="background:#0a2342; border-top: 2px solid #3e7cb1;">
                 <td colspan="2" style="padding:10px;"><strong>TOTAIS CONSOLIDADOS</strong></td>
                 <td style="padding:10px; text-align:right;"><strong>${pesoTotal.toLocaleString('pt-BR')} kg</strong></td>
-                <td style="padding:10px; text-align:right;">R$ ${avgPrecoCompra.toFixed(2)}</td>
+                <td style="padding:10px; text-align:right;">R$ ${fmtBRL(avgPrecoCompra)}</td>
                 <td style="padding:10px; text-align:right;"><strong>R$ ${totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
-                <td style="padding:10px; text-align:right;">${avgRendimento.toFixed(1)}%</td>
+                <td style="padding:10px; text-align:right;">${fmtBRL(avgRendimento)}%</td>
                 <td style="padding:10px;">-</td>
                 <td style="padding:10px; text-align:right;"><strong>${pesoMaterialTotal.toLocaleString('pt-BR')} kg</strong></td>
-                <td style="padding:10px; text-align:right;">R$ ${avgPrecoVenda.toFixed(2)}</td>
+                <td style="padding:10px; text-align:right;">R$ ${fmtBRL(avgPrecoVenda)}</td>
                 <td style="padding:10px; text-align:right;"><strong>R$ ${totalVenda.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
                 <td style="padding:10px; text-align:right; color:#2AD07A;"><strong>R$ ${lucroBrutoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
-                <td style="padding:10px; text-align:right;">${overallInv.toFixed(2)}%</td>
-                <td style="padding:10px; text-align:right;">${overallFat.toFixed(2)}%</td>
+                <td style="padding:10px; text-align:right;">${fmtBRL(overallInv)}%</td>
+                <td style="padding:10px; text-align:right;">${fmtBRL(overallFat)}%</td>
                 <td colspan="2" style="padding:10px;">-</td>
-                <td style="padding:10px; text-align:right; color:#2AD07A;"><strong>${overallLiq.toFixed(2)}%</strong></td>
+                <td style="padding:10px; text-align:right; color:#2AD07A;"><strong>${fmtBRL(overallLiq)}%</strong></td>
             </tr>
         `;
     }
@@ -6518,8 +6518,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Exibindo lucro líquido sem considerar o desconto antecipado (já que é opcional)
         document.getElementById('sim-res-liquido').textContent = 'R$ ' + lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
-        document.getElementById('sim-margem').textContent = margem.toFixed(2) + ' %';
-        document.getElementById('sim-roi').textContent = roi.toFixed(2) + ' %';
+        document.getElementById('sim-margem').textContent = fmtBRL(margem) + ' %';
+        document.getElementById('sim-roi').textContent = fmtBRL(roi) + ' %';
         
         // Salvar valores no window para o Simulador usar
         window.currentSimData = {
@@ -6546,7 +6546,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sim-fidc-prazo-s').textContent = prazo;
         document.getElementById('sim-fidc-lucro-s').textContent = 'R$ ' + data.lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
         
-        document.getElementById('sim-fidc-taxa-c').textContent = data.fidc.toFixed(2) + '%';
+        document.getElementById('sim-fidc-taxa-c').textContent = fmtBRL(data.fidc) + '%';
         document.getElementById('sim-fidc-lucro-c').textContent = 'R$ ' + data.lucroLiqComFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
 
         // Alternativas
@@ -6558,7 +6558,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const lucroT = data.lucroLiqSemFidc - valF;
             containerTaxas.innerHTML += `
                 <div style="background:#0d1a26; border:1px solid #1e3a5f; padding:10px; border-radius:6px; text-align:center;">
-                    <div style="color:#e07b39; font-weight:bold; margin-bottom:5px;">${t.toFixed(2)}%</div>
+                    <div style="color:#e07b39; font-weight:bold; margin-bottom:5px;">${fmtBRL(t)}%</div>
                     <div style="color:#2AD07A; font-size:0.9rem;">R$ ${lucroT.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
                 </div>
             `;
@@ -6582,7 +6582,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sim-fidc-indicador-titulo').style.color = cor;
         document.getElementById('sim-fidc-inteligencia-box').style.borderLeftColor = cor;
 
-        let txt = `A antecipação via FIDC reduzirá seu lucro em <strong>R$ ${dif.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> (${data.fidc.toFixed(2)}%), porém disponibilizará o capital imediatamente (economia de ${prazo} dias), aumentando a liquidez da empresa. `;
+        let txt = `A antecipação via FIDC reduzirá seu lucro em <strong>R$ ${dif.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> (${fmtBRL(data.fidc)}%), porém disponibilizará o capital imediatamente (economia de ${prazo} dias), aumentando a liquidez da empresa. `;
         
         if (indicador === '🔴') {
             txt += "Como o impacto do FIDC no lucro bruto é alto ou a margem da operação é baixa, recomenda-se <strong>NÃO antecipar</strong> os recebíveis a menos que haja urgência de caixa.";
@@ -6692,9 +6692,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 'R$ ' + data.totalC.toLocaleString('pt-BR', {minimumFractionDigits:2}),
                 'R$ ' + data.totalV.toLocaleString('pt-BR', {minimumFractionDigits:2}),
                 'R$ ' + data.lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2}),
-                data.comissao.toFixed(2) + '%',
-                data.margem.toFixed(2) + '%',
-                data.roi.toFixed(2) + '%'
+                fmtBRL(data.comissao) + '%',
+                data.fmtBRL(margem) + '%',
+                data.fmtBRL(roi) + '%'
             ]],
             theme: 'grid',
             headStyles: { fillColor: [13, 26, 38] },
@@ -6706,7 +6706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startY: doc.lastAutoTable.finalY + 15,
             head: [['Taxa FIDC', 'Desconto Financeiro', 'Lucro SEM FIDC', 'Lucro COM FIDC', 'Diferença']],
             body: [[
-                data.fidc.toFixed(2) + '%',
+                fmtBRL(data.fidc) + '%',
                 'R$ ' + data.valorFidc.toLocaleString('pt-BR', {minimumFractionDigits:2}),
                 'R$ ' + data.lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2}),
                 'R$ ' + data.lucroLiqComFidc.toLocaleString('pt-BR', {minimumFractionDigits:2}),
@@ -7138,7 +7138,7 @@ window.carregarFinanceiroView = async function() {
                 <td style="padding:10px; color:#fff;">${plan.fornecedor_nome || '-'}</td>
                 <td style="padding:10px; color:#2AD07A;">R$ ${lucroNum.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                 <td style="padding:10px; color:#ff4d4d;">R$ ${custoNum.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:10px; color:#a0b4c8;">${margemNum.toFixed(2)}%</td>
+                <td style="padding:10px; color:#a0b4c8;">${fmtBRL(margemNum)}%</td>
             `;
             tbody.appendChild(row);
         });
@@ -7147,7 +7147,7 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('fin-kpi-lucro').textContent = 'R$ ' + (totalReceita).toLocaleString('pt-BR', {minimumFractionDigits:2});
         
         const mediaFidc = countFidc > 0 ? (somaTaxaFidc / countFidc) : 0;
-        document.getElementById('fin-kpi-fidc').textContent = mediaFidc.toFixed(2) + '%';
+        document.getElementById('fin-kpi-fidc').textContent = fmtBRL(mediaFidc) + '%';
         
         calcularFidcIsolado(); // Inicializa o grafico vazio
         
