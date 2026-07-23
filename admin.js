@@ -47,6 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (item.dataset.target === 'financeiro-view' && window.carregarFinanceiroView) {
                     window.carregarFinanceiroView();
                 }
+                if (item.dataset.target === 'fornecedores-view' && window.initApexFornecedores) {
+                    window.initApexFornecedores();
+                }
+                if (item.dataset.target === 'clientes-view' && window.initApexClientes) {
+                    window.initApexClientes();
+                }
                 setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
             }
         });
@@ -3918,15 +3924,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function carregarFornecedores() {
         try {
-            try {
-                const resAmo = await fetch('/api/amostras');
-                localAmostras = await resAmo.json();
-            } catch (ea) {
-                console.error('Erro ao buscar amostras para fornecedores:', ea);
+            const [resForn, resAmo] = await Promise.allSettled([
+                fetch('/api/fornecedores'),
+                fetch('/api/amostras')
+            ]);
+            if (resForn.status === 'fulfilled' && resForn.value.ok) {
+                localFornecedores = await resForn.value.json();
             }
-            
-            const res = await fetch('/api/fornecedores');
-            localFornecedores = await res.json();
+            if (resAmo.status === 'fulfilled' && resAmo.value.ok) {
+                localAmostras = await resAmo.value.json();
+            }
             renderFornecedores();
             popularSeletoresFornecedores();
         } catch (err) {
@@ -3938,12 +3945,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const body = document.getElementById('fornecedores-table-body');
         if (!body) return;
         body.innerHTML = '';
-        if (!localFornecedores.length) {
-            body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#5a738e;"><i class="fa-solid fa-circle-notch fa-spin"></i> Nenhum fornecedor encontrado.</td></tr>';
+        if (!localFornecedores || !localFornecedores.length) {
+            body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#5a738e;"><i class="fa-solid fa-users-slash"></i> Nenhum fornecedor encontrado.</td></tr>';
             return;
         }
         localFornecedores.forEach(f => {
-            // A API agora retorna as colunas reais: nome, apelido, fone1, comprador, etc.
             const razao = f.nome || f.razao_social || '-';
             const fantasia = f.apelido || f.nome_fantasia || '-';
             const contato = f.comprador || f.contato || '-';
@@ -3955,6 +3961,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 : '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
 
             const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.title = 'Clique para editar este fornecedor';
+            tr.onclick = (e) => {
+                if (e.target.closest('button') || e.target.closest('.badge-status')) return;
+                editarFornecedor(f.id);
+            };
             tr.innerHTML = `
                 <td style="padding:10px 12px;"><strong style="color:#fff;">${razao}</strong></td>
                 <td style="padding:10px 12px;color:#aaa;">${fantasia}</td>
@@ -4099,6 +4111,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         localClientes.forEach(c => {
             const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.title = 'Clique para editar este cliente';
+            tr.onclick = (e) => {
+                if (e.target.closest('button')) return;
+                editarCliente(c.id);
+            };
             tr.innerHTML = `
                 <td style="padding:10px 12px;"><strong style="color:#fff;">${c.nome || '-'}</strong></td>
                 <td style="padding:10px 12px;color:#aaa;">${c.fantasia || '-'}</td>
