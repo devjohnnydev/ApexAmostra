@@ -8006,36 +8006,74 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('modal-pedido-venda').style.display = 'none';
     };
 
+    const normalizeTxt = (str) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
     window.buscarClientePedido = async function(val) {
         const drop = document.getElementById('pedido-cliente-dropdown');
         if (!drop) return;
+
         if (!window.localClientes || window.localClientes.length === 0) {
             try {
                 const res = await fetch('/api/clientes');
                 window.localClientes = await res.json();
             } catch(e){}
         }
-        if (!val || val.trim().length < 1) { drop.style.display='none'; return; }
-        const q = val.toLowerCase().trim();
-        const resultados = (window.localClientes||[]).filter(c =>
-            (c.nome||'').toLowerCase().includes(q) ||
-            (c.fantasia||'').toLowerCase().includes(q) ||
-            (c.cnpj||'').replace(/\D/g,'').includes(q.replace(/\D/g,'')) ||
-            (c.cpf||'').replace(/\D/g,'').includes(q.replace(/\D/g,''))
-        ).slice(0, 8);
 
-        let html = resultados.map(c => `
-            <div onclick="selecionarClientePedido(${c.id})" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #1a2a3a; transition:background 0.15s;" onmouseover="this.style.background='#1a2a3a'" onmouseout="this.style.background=''">
-                <strong style="color:#fff;">${c.nome||c.fantasia||''}</strong>
-                <span style="color:#7fa8c8; font-size:0.8rem;"> — ${c.cnpj||c.cpf||''} | ${c.cidade||''}-${c.uf||''}</span>
-            </div>
-        `).join('');
+        const rawVal = (val || '').trim();
+        const q = normalizeTxt(rawVal);
+        const searchTerms = q.split(/\s+/).filter(Boolean);
 
-        if (resultados.length === 0) {
-            html = `<div style="padding:12px; text-align:center; color:#aaa; font-size:0.85rem;">Nenhum cliente encontrado.<br>
-            <button type="button" onclick="abrirCadastroClienteExpress('${val.replace(/'/g,"\\'")}')" class="btn-primary" style="margin-top:8px; font-size:0.82rem; background:#1b382b; border-color:#2AD07A; color:#2AD07A; padding:6px 12px;"><i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente "${val}"</button></div>`;
+        let resultados = [];
+        if (searchTerms.length === 0) {
+            resultados = (window.localClientes || []).slice(0, 15);
         } else {
-            html += `<div onclick="abrirCadastroClienteExpress('${val.replace(/'/g,"\\'")}')" style="padding:10px 14px; background:#1b382b; color:#2AD07A; cursor:pointer; font-weight:bold; border-top:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#224535'" onmouseout="this.style.background='#1b382b'"><i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente "${val}"</div>`;
+            resultados = (window.localClientes || []).filter(c => {
+                const targetText = normalizeTxt(`${c.nome||''} ${c.fantasia||''} ${c.razao_social||''} ${c.cnpj||''} ${c.cpf||''} ${c.email||''}`);
+                const cleanCnpj = (c.cnpj||'').replace(/\D/g,'');
+                const cleanCpf = (c.cpf||'').replace(/\D/g,'');
+                const cleanQ = q.replace(/\D/g,'');
+
+                const matchesCNPJ = cleanQ.length >= 3 && (cleanCnpj.includes(cleanQ) || cleanCpf.includes(cleanQ));
+                const matchesWords = searchTerms.every(term => targetText.includes(term));
+
+                return matchesCNPJ || matchesWords;
+            });
+        }
+
+        let html = '';
+
+        if (rawVal.length > 0) {
+            html += `
+                <div onclick="abrirCadastroClienteExpress('${rawVal.replace(/'/g,"\\'")}')" style="padding:10px 14px; background:#1b382b; color:#2AD07A; cursor:pointer; font-weight:bold; border-bottom:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#224535'" onmouseout="this.style.background='#1b382b'">
+                    <i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente "${rawVal}"
+                </div>
+            `;
+        } else {
+            html += `
+                <div onclick="abrirCadastroClienteExpress('')" style="padding:10px 14px; background:#162738; color:#7fa8c8; cursor:pointer; font-size:0.85rem; border-bottom:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#1e354d'" onmouseout="this.style.background='#162738'">
+                    <i class="fa-solid fa-plus-circle"></i> + Cadastrar Novo Cliente do Zero
+                </div>
+            `;
+        }
+
+        if (resultados.length > 0) {
+            html += resultados.map(c => `
+                <div onclick="selecionarClientePedido(${c.id})" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #1a2a3a; transition:background 0.15s;" onmouseover="this.style.background='#1a2a3a'" onmouseout="this.style.background=''">
+                    <strong style="color:#fff;">${c.nome||c.fantasia||''}</strong>
+                    <span style="color:#7fa8c8; font-size:0.8rem;"> — ${c.cnpj||c.cpf||'Sem CNPJ'} | ${c.cidade||''}${c.uf?'/'+c.uf:''}</span>
+                </div>
+            `).join('');
+        } else if (rawVal.length > 0) {
+            html += `
+                <div style="padding:14px; text-align:center; color:#aaa; font-size:0.88rem;">
+                    Nenhum cliente cadastrado no banco com o nome "<strong>${rawVal}</strong>".
+                    <div style="margin-top:8px;">
+                        <button type="button" onclick="abrirCadastroClienteExpress('${rawVal.replace(/'/g,"\\'")}')" class="btn-primary" style="font-size:0.82rem; background:#2AD07A; color:#000; border:none; padding:6px 14px; font-weight:bold; cursor:pointer;">
+                            <i class="fa-solid fa-user-plus"></i> Cadastrar "${rawVal}" Agora
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         drop.innerHTML = html;

@@ -3152,12 +3152,14 @@
 
                 <!-- Linha 2: Cliente -->
                 <div style="margin-bottom:18px;">
-                    <div class="form-group">
-                        <label>Cliente *</label>
+                        <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="color:#fff; font-weight:bold;">Cliente *</span>
+                            <button type="button" onclick="abrirCadastroClienteExpress('')" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:2px 10px; border-radius:4px; font-size:0.78rem; cursor:pointer; font-weight:600;"><i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente</button>
+                        </label>
                         <div style="position:relative;">
-                            <input type="text" id="pedido-cliente-busca" class="noble-input" placeholder="Digite o nome ou CNPJ do cliente..." autocomplete="off" oninput="buscarClientePedido(this.value)" required>
+                            <input type="text" id="pedido-cliente-busca" class="noble-input" placeholder="🔍 Digite o nome, fantasia ou CNPJ do cliente..." autocomplete="off" onfocus="buscarClientePedido(this.value)" oninput="buscarClientePedido(this.value)" onkeyup="buscarClientePedido(this.value)" required>
                             <input type="hidden" id="pedido-cliente-id">
-                            <div id="pedido-cliente-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#0d1a26; border:1px solid #1e4e8c; border-radius:6px; z-index:1200; max-height:200px; overflow-y:auto;"></div>
+                            <div id="pedido-cliente-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#0d1a26; border:1px solid #1e4e8c; border-radius:8px; z-index:1200; max-height:260px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.6);"></div>
                         </div>
                         <!-- Card do cliente selecionado -->
                         <div id="pedido-cliente-card" style="display:none; margin-top:10px; background:#162432; border-radius:8px; padding:12px; border-left:3px solid #2AD07A;">
@@ -3274,7 +3276,7 @@
         </div>
     </div>
 
-    <script src="admin.js?v=56"></script>
+    <script src="admin.js?v=57"></script>
     <script src="assets/js/theme-toggle.js"></script>
 </body>
 </html>
