@@ -6654,6 +6654,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const produto = document.getElementById('pl-produto').value || 'N/A';
         const fp = document.getElementById('pl-forma-pagamento').value;
 
+        // Marca D'água APEXTECH
+        doc.setTextColor(240, 240, 240);
+        doc.setFontSize(80);
+        doc.text("APEXTECH", 30, 150, null, 45);
+        doc.text("APEXTECH", 30, 250, null, 45);
+
         // Cabeçalho
         doc.setFontSize(18);
         doc.setTextColor(224, 123, 57);
