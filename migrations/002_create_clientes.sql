@@ -1,0 +1,36 @@
+CREATE TABLE IF NOT EXISTS clientes (
+  id                      SERIAL PRIMARY KEY,
+  codigo                  INTEGER NOT NULL UNIQUE,
+  nome                    VARCHAR(255) NOT NULL,
+  fantasia                VARCHAR(255),
+  telefone1               VARCHAR(20),
+  telefone2               VARCHAR(20),
+  dias                    INTEGER DEFAULT 0,
+  ultima_saida            DATE,
+  endereco                VARCHAR(255),
+  numero                  VARCHAR(20),
+  bairro                  VARCHAR(150),
+  cidade                  VARCHAR(150),
+  uf                      CHAR(2),
+  pais                    VARCHAR(60),
+  cep                     VARCHAR(10),
+  cnpj                    VARCHAR(18),
+  ie                      VARCHAR(30),
+  cpf                     VARCHAR(14),
+  rg                      VARCHAR(20),
+  tipo_cliente            VARCHAR(30),
+  contato_comercial       VARCHAR(150),
+  contato_financeiro      VARCHAR(150),
+  status                  VARCHAR(20) DEFAULT 'ATIVO',
+  email                   VARCHAR(150),
+  usuario_cadastro        VARCHAR(100),
+  ultimo_alterou          VARCHAR(100),
+  vendedor                VARCHAR(150),
+  atualizado              BOOLEAN DEFAULT false,
+  filial                  VARCHAR(50),
+  criado_em               TIMESTAMP DEFAULT NOW(),
+  atualizado_em           TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_clientes_cnpj ON clientes (cnpj);
+CREATE INDEX IF NOT EXISTS idx_clientes_nome ON clientes (nome);

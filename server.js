@@ -3715,7 +3715,7 @@ app.post('/api/lme/varialme', async (req, res) => {
 });
 
 // ─── Iniciar servidor ─────────────────────────────────────────────────────────
-initDatabase().then(() => {
+app.get('/api/admin/run-import-clientes', (req, res) => {\n    const { exec } = require('child_process');\n    exec('npm run import:clientes', (err, stdout, stderr) => {\n        if (err) {\n            return res.status(500).send(<pre>ERRO:\n\n\nSTDOUT:\n</pre>);\n        }\n        res.send(<pre>SUCESSO:\n\n\nAVISOS:\n</pre>);\n    });\n});\n\napp.get('/api/admin/run-import-fornecedores', (req, res) => {\n    const { exec } = require('child_process');\n    exec('npm run import:fornecedores', (err, stdout, stderr) => {\n        if (err) {\n            return res.status(500).send(<pre>ERRO:\n\n\nSTDOUT:\n</pre>);\n        }\n        res.send(<pre>SUCESSO:\n\n\nAVISOS:\n</pre>);\n    });\n});\n\ninitDatabase().then(() => {
     app.listen(PORT, () => {
         console.log(`🌿 Servidor da Apex Tech Metais rodando em http://localhost:${PORT}`);
         console.log(`📦 Modo de dados: ${dbAvailable ? 'PostgreSQL' : 'Memória (local)'}`);
