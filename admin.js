@@ -7088,7 +7088,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-simulador-fidc').style.display = 'none';
     };
 
-    window.gerarPdfFIDC = function() {
+    window.gerarPdfFIDC = async function() {
         if (!window.jspdf) {
             alert('A biblioteca jsPDF não carregou corretamente.');
             return;
