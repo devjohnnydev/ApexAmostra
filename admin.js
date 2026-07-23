@@ -6787,6 +6787,64 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Planejamento Mensal exportado com sucesso (PLANEJAMENTO_DE_NVS_FORNECEDOR.xlsx)');
     };
 
+    window.exportarPlanejamentoPDF = function() {
+        if (!window.jspdf) {
+            alert('A biblioteca jsPDF não carregou corretamente.');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        
+        // Marca D'água APEXTECH
+        doc.setTextColor(240, 240, 240);
+        doc.setFontSize(80);
+        doc.text("APEXTECH", 30, 100, null, 45);
+        doc.text("APEXTECH", 150, 100, null, 45);
+        doc.text("APEXTECH", 270, 100, null, 45);
+
+        // Cabeçalho
+        doc.setFontSize(18);
+        doc.setTextColor(62, 124, 177); // #3e7cb1
+        doc.text('Relatório de Planejamento Mensal - Fornecedores', 15, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
+        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
+
+        // Build Table Body
+        const body = [];
+        if (typeof localPlanejamento !== 'undefined') {
+            localPlanejamento.forEach(pl => {
+                const f = fornecedoresMap && fornecedoresMap[pl.fornecedor_id];
+                const fornecedorStr = f ? `${f.nome} (${f.estado || '-'})` : `Desconhecido (ID: ${pl.fornecedor_id})`;
+                const mes = pl.mes_ref || 'N/A';
+                const reqData = pl.amostra_id ? `Amostra: ${pl.amostra_id}` : `[Avulso] ${pl.produto}`;
+                const cStr = 'R$ ' + fmtBRL(pl.preco_compra);
+                const vStr = 'R$ ' + fmtBRL(pl.preco_venda_material);
+                
+                const totalC = parseFloat(pl.peso_comprado) * parseFloat(pl.preco_compra);
+                const pesoMat = parseFloat(pl.peso_comprado) * (parseFloat(pl.percentual_rendimento) / 100);
+                const totalV = pesoMat * parseFloat(pl.preco_venda_material);
+                const lucroB = totalV - totalC;
+                const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
+                const resultadoLiq = pctFat - parseFloat(pl.comissao) - parseFloat(pl.fidc);
+                
+                body.push([mes, fornecedorStr, reqData, cStr, vStr, fmtBRL(resultadoLiq) + '%']);
+            });
+        }
+
+        doc.autoTable({
+            startY: 45,
+            head: [['Mês', 'Fornecedor', 'Produto/Referência', 'Preço Compra', 'Preço Venda', 'Margem Líq. Estimada']],
+            body: body,
+            theme: 'grid',
+            headStyles: { fillColor: [27, 45, 61] }
+        });
+
+        doc.save(`Planejamento_Lote_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
     // --- 6. ESTOQUE INTELIGENTE ---
     window.initApexEstoque = function() {
         carregarEstoque();

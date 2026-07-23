@@ -1768,7 +1768,8 @@
                             <p>Aba digitalizada do Planejamento LME. Simule lotes e gerencie margens de compra x venda.</p>
                         </div>
                         <div style="display:flex; gap:10px;">
-                            <button class="btn-secondary" onclick="exportarPlanejamentoExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Tabela Excel</button>
+                            <button class="btn-secondary" onclick="exportarPlanejamentoPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+                            <button class="btn-secondary" onclick="exportarPlanejamentoExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
                             <button class="btn-primary restrito-financeiro" onclick="abrirModalPlanejamento()"><i class="fa-solid fa-plus"></i> Novo Lote Planejado</button>
                         </div>
                     </div>
@@ -2384,7 +2385,7 @@
 
     <!-- Modal Planejamento/Lote Manual -->
     <div id="modal-planejamento" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
-        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c;">
+        <div class="login-box" style="width:500px; padding:25px; background:#101a24; border:1px solid #1e4e8c; max-height:90vh; overflow-y:auto;">
             <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-calculator"></i> Novo Planejamento de Lote</h3>
             <form id="form-planejamento-apex" onsubmit="salvarPlanejamento(event)">
                 <div class="form-group">
