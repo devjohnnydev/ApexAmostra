@@ -3938,24 +3938,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const body = document.getElementById('fornecedores-table-body');
         if (!body) return;
         body.innerHTML = '';
+        if (!localFornecedores.length) {
+            body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#5a738e;"><i class="fa-solid fa-circle-notch fa-spin"></i> Nenhum fornecedor encontrado.</td></tr>';
+            return;
+        }
         localFornecedores.forEach(f => {
+            // A API agora retorna as colunas reais: nome, apelido, fone1, comprador, etc.
+            const razao = f.nome || f.razao_social || '-';
+            const fantasia = f.apelido || f.nome_fantasia || '-';
+            const contato = f.comprador || f.contato || '-';
+            const telefone = f.fone1 || f.telefone || '-';
+
             const amostrasForn = (localAmostras || []).filter(a => a.fornecedor_id === f.id);
-            const amostrasHtml = amostrasForn.length > 0 
-                ? amostrasForn.map(a => `<span class="badge-status em-analise" style="margin: 2px; font-size: 0.75rem; background: #1e4e8c; color: #fff; cursor: pointer; display: inline-block;" onclick="window.abrirAmostraPorNumero('${a.numero_amostra}')">${a.numero_amostra}</span>`).join(' ')
-                : '<span style="color:#666; font-style:italic; font-size:0.8rem;">Nenhuma</span>';
+            const amostrasHtml = amostrasForn.length > 0
+                ? amostrasForn.map(a => `<span class="badge-status em-analise" style="margin:2px;font-size:0.75rem;background:#1e4e8c;color:#fff;cursor:pointer;display:inline-block;" onclick="window.abrirAmostraPorNumero('${a.numero_amostra}')">${a.numero_amostra}</span>`).join(' ')
+                : '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding:12px;"><strong>${f.razao_social}</strong></td>
-                <td style="padding:12px;">${f.nome_fantasia}</td>
-                <td style="padding:12px;">${f.cnpj || '-'}</td>
-                <td style="padding:12px;">${f.contato || '-'}</td>
-                <td style="padding:12px;">${f.telefone || '-'}</td>
-                <td style="padding:12px;">${f.email || '-'}</td>
-                <td style="padding:12px;">${amostrasHtml}</td>
-                <td style="padding:12px; text-align:center;">
-                    <button class="btn-refresh" style="background:none; border:none; color:#3e7cb1; margin-right:8px;" onclick="editarFornecedor(${f.id})"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d;" onclick="deletarFornecedor(${f.id})"><i class="fa-solid fa-trash"></i></button>
+                <td style="padding:10px 12px;"><strong style="color:#fff;">${razao}</strong></td>
+                <td style="padding:10px 12px;color:#aaa;">${fantasia}</td>
+                <td style="padding:10px 12px;">${f.cnpj || '-'}</td>
+                <td style="padding:10px 12px;">${contato}</td>
+                <td style="padding:10px 12px;">${telefone}</td>
+                <td style="padding:10px 12px;">${f.email || '-'}</td>
+                <td style="padding:10px 12px;">${amostrasHtml}</td>
+                <td style="padding:10px 12px; text-align:center; white-space:nowrap;">
+                    <button style="background:#1e3a5f;border:none;color:#4fc3f7;padding:6px 10px;border-radius:6px;cursor:pointer;margin-right:4px;" onclick="editarFornecedor(${f.id})" title="Editar"><i class="fa-solid fa-pen"></i> Editar</button>
+                    <button style="background:#3a1515;border:none;color:#ff6b6b;padding:6px 10px;border-radius:6px;cursor:pointer;" onclick="deletarFornecedor(${f.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             body.appendChild(tr);
@@ -3974,17 +3984,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.editarFornecedor = function(id) {
         const f = localFornecedores.find(x => x.id === id);
-        if (!f) return;
+        if (!f) { alert('Fornecedor não encontrado na lista local. Recarregue a página.'); return; }
         document.getElementById('modal-forn-titulo').textContent = 'Editar Fornecedor';
         document.getElementById('forn-id').value = f.id;
         document.getElementById('forn-codfor').value = f.codfor || '';
-        document.getElementById('forn-razao').value = f.razao_social || f.nome || '';
-        document.getElementById('forn-fantasia').value = f.nome_fantasia || f.apelido || '';
+        // Suporta tanto colunas reais (nome) quanto aliases (razao_social)
+        document.getElementById('forn-razao').value = f.nome || f.razao_social || '';
+        document.getElementById('forn-fantasia').value = f.apelido || f.nome_fantasia || '';
         document.getElementById('forn-cnpj').value = f.cnpj || '';
         document.getElementById('forn-cpf').value = f.cpf || '';
         document.getElementById('forn-ie').value = f.ie || '';
-        document.getElementById('forn-contato').value = f.contato || f.comprador || '';
-        document.getElementById('forn-telefone').value = f.telefone || f.fone1 || '';
+        document.getElementById('forn-contato').value = f.comprador || f.contato || '';
+        document.getElementById('forn-telefone').value = f.fone1 || f.telefone || '';
         document.getElementById('forn-fone2').value = f.fone2 || '';
         document.getElementById('forn-whatsapp').value = f.whatsapp || '';
         document.getElementById('forn-celular').value = f.celular || '';
@@ -4099,8 +4110,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span style="padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; background:${c.status === 'ATIVO' ? '#0d3020' : '#2a1515'}; color:${c.status === 'ATIVO' ? '#2AD07A' : '#ff6b6b'};">${c.status || 'ATIVO'}</span>
                 </td>
                 <td style="padding:10px 12px; text-align:center; white-space:nowrap;">
-                    <button class="btn-refresh" style="background:none;border:none;color:#e07b39;margin-right:8px;cursor:pointer;" onclick="editarCliente(${c.id})" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-refresh" style="background:none;border:none;color:#ff4d4d;cursor:pointer;" onclick="deletarCliente(${c.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    <button style="background:#3a2000;border:none;color:#e07b39;padding:6px 12px;border-radius:6px;cursor:pointer;margin-right:4px;font-size:0.82rem;" onclick="editarCliente(${c.id})" title="Editar"><i class="fa-solid fa-pen"></i> Editar</button>
+                    <button style="background:#3a1515;border:none;color:#ff6b6b;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.82rem;" onclick="deletarCliente(${c.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             body.appendChild(tr);

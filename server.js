@@ -661,54 +661,82 @@ app.delete('/api/usuarios/:id', async (req, res) => {
 app.get('/api/fornecedores', async (req, res) => {
     try {
         if (dbAvailable) {
-            const result = await pool.query('SELECT id, nome AS razao_social, apelido AS nome_fantasia, cnpj, comprador AS contato, fone1 AS telefone, email, endereco, complemento AS observacoes FROM fornecedores ORDER BY nome ASC');
+            const result = await pool.query(`
+                SELECT id, codfor, nome, apelido, fone1, fone2, whatsapp, celular,
+                       tabela, concorrente, status_ok, dias, ultima_entrega,
+                       tipo_pessoa, data_cadastro, endereco, numero, complemento,
+                       bairro, cidade, uf, cep, cnpj, ie, im, rg, emissor, cpf,
+                       comprador, email, condicao_pagamento, usuario_cadastro,
+                       ultimo_alterou, dias_atraso, dias_previsao, filial,
+                       criado_em, atualizado_em
+                FROM fornecedores ORDER BY nome ASC
+            `);
             return res.json(result.rows);
         }
         res.json(memStore.fornecedores);
     } catch (err) {
+        console.error('Erro ao buscar fornecedores:', err);
         res.status(500).json({ error: 'Erro ao buscar fornecedores.' });
     }
 });
 
 app.post('/api/fornecedores', async (req, res) => {
     try {
-        const { razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes } = req.body;
+        const { razao_social, nome_fantasia, cnpj, cpf, ie, contato,
+                telefone, fone2, whatsapp, celular, email,
+                endereco, numero, bairro, cidade, uf, cep,
+                observacoes, condicao_pagamento, tabela, filial } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO fornecedores (nome, apelido, cnpj, comprador, fone1, email, endereco, complemento)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-                [razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes]
+                `INSERT INTO fornecedores (nome, apelido, cnpj, cpf, ie, comprador, fone1, fone2,
+                  whatsapp, celular, email, endereco, numero, bairro, cidade, uf, cep,
+                  complemento, condicao_pagamento, tabela, filial)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+                 RETURNING *`,
+                [razao_social, nome_fantasia, cnpj, cpf, ie, contato,
+                 telefone, fone2, whatsapp, celular, email,
+                 endereco, numero, bairro, cidade, uf, cep,
+                 observacoes, condicao_pagamento, tabela, filial]
             );
             return res.json(result.rows[0]);
-        } else {
-            const newF = { id: nextId++, razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes };
-            memStore.fornecedores.push(newF);
-            return res.json(newF);
         }
+        const newF = { id: Date.now(), nome: razao_social, apelido: nome_fantasia, cnpj, email };
+        memStore.fornecedores.push(newF);
+        return res.json(newF);
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao criar fornecedor.' });
+        console.error('Erro ao criar fornecedor:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
 app.put('/api/fornecedores/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes } = req.body;
+        const { razao_social, nome_fantasia, cnpj, cpf, ie, contato,
+                telefone, fone2, whatsapp, celular, email,
+                endereco, numero, bairro, cidade, uf, cep,
+                observacoes, condicao_pagamento, tabela, filial } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE fornecedores SET nome=$1, apelido=$2, cnpj=$3, comprador=$4, fone1=$5, email=$6, endereco=$7, complemento=$8
-                 WHERE id=$9 RETURNING *`,
-                [razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes, id]
+                `UPDATE fornecedores SET
+                    nome=$1, apelido=$2, cnpj=$3, cpf=$4, ie=$5, comprador=$6,
+                    fone1=$7, fone2=$8, whatsapp=$9, celular=$10, email=$11,
+                    endereco=$12, numero=$13, bairro=$14, cidade=$15, uf=$16,
+                    cep=$17, complemento=$18, condicao_pagamento=$19, tabela=$20,
+                    filial=$21, atualizado_em=NOW()
+                WHERE id=$22 RETURNING *`,
+                [razao_social, nome_fantasia, cnpj, cpf, ie, contato,
+                 telefone, fone2, whatsapp, celular, email,
+                 endereco, numero, bairro, cidade, uf, cep,
+                 observacoes, condicao_pagamento, tabela, filial, id]
             );
+            if (result.rows.length === 0) return res.status(404).json({ error: 'Fornecedor não encontrado.' });
             return res.json(result.rows[0]);
-        } else {
-            const idx = memStore.fornecedores.findIndex(x => x.id === id);
-            if (idx === -1) return res.status(404).json({ error: 'Fornecedor não encontrado.' });
-            memStore.fornecedores[idx] = { id, razao_social, nome_fantasia, cnpj, contato, telefone, email, endereco, observacoes };
-            return res.json(memStore.fornecedores[idx]);
         }
+        res.status(503).json({ error: 'Banco indisponível.' });
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao atualizar fornecedor.' });
+        console.error('Erro ao atualizar fornecedor:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -725,6 +753,7 @@ app.delete('/api/fornecedores/:id', async (req, res) => {
         res.status(500).json({ error: 'Erro ao deletar fornecedor.' });
     }
 });
+
 
 // ─── API: Reparo de Seed (força inserção de dados padrão no banco) ──────────
 app.post('/api/admin/reparo-seed', async (req, res) => {
