@@ -3716,6 +3716,16 @@ app.post('/api/lme/varialme', async (req, res) => {
 });
 
 // ─── Iniciar servidor ─────────────────────────────────────────────────────────
+app.get('/api/admin/run-migrations', (req, res) => {
+    const { exec } = require('child_process');
+    exec('node scripts/force-migrations.js', (err, stdout, stderr) => {
+        if (err) {
+            return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
+        }
+        res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
+    });
+});
+
 app.get('/api/admin/run-import-clientes', (req, res) => {
     const { exec } = require('child_process');
     exec('npm run import:clientes', (err, stdout, stderr) => {
