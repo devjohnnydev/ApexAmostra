@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sections.forEach(sec => {
                 if (sec.id !== 'relatorio-diario-historico') {
                     sec.classList.remove('active');
+                    sec.style.display = 'none';
                 }
             });
             item.classList.add('active');
@@ -52,9 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Se o target for relatorio-diario, garante que historico fique oculto
                 if (item.dataset.target === 'relatorio-diario') {
                     const histSec = document.getElementById('relatorio-diario-historico');
-                    if (histSec) histSec.classList.remove('active');
+                    if (histSec) {
+                        histSec.classList.remove('active');
+                        histSec.style.display = 'none';
+                    }
                 }
                 target.classList.add('active');
+                target.style.display = 'block';
                 if (item.dataset.target === 'permissoes-view' && window.carregarPermissoesView) {
                     window.carregarPermissoesView();
                 }
@@ -3872,7 +3877,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let permissoes = globalRolePermissions[role] || [];
         if (role === 'Administrador') {
             // Admin vê tudo.
-            permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios", "view_permissoes", "view_financeiro"];
+            permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios", "view_permissoes", "view_financeiro", "view_pedidos"];
         }
 
         const temPermissao = (p) => permissoes.includes(p);
@@ -3894,6 +3899,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setNav('nav-usuarios', temPermissao('view_usuarios'));
         setNav('nav-permissoes', temPermissao('view_permissoes'));
         setNav('nav-financeiro', temPermissao('view_financeiro'));
+        setNav('nav-pedidos-venda', temPermissao('view_pedidos') || role === 'Administrador');
 
         // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
         setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
