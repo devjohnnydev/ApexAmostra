@@ -7,6 +7,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
+    window.formatarDataSemFuso = function(dStr) {
+        if (!dStr) return '-';
+        const s = String(dStr).split('T')[0];
+        const parts = s.split('-');
+        if (parts.length === 3) {
+            return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+        }
+        try {
+            return new Date(dStr).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+        } catch (e) {
+            return dStr;
+        }
+    };
+
     let globalRolePermissions = {};
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -4901,7 +4915,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const precosCat = localPrecos.filter(p => p.material_categoria === cat);
             if (precosCat.length === 0) return;
 
-            const validadeStr = precosCat[0] ? new Date(precosCat[0].validade).toLocaleDateString('pt-BR') : '-';
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
             const corCategoria = settingsPrecos[`cor_categoria_${cat}`] || '#1e4e8c';
 
             const box = document.createElement('div');
@@ -5229,7 +5243,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const precosCat = precos.filter(p => p.material_categoria === cat);
             if (precosCat.length === 0) return;
 
-            const validadeStr = precosCat[0] ? new Date(precosCat[0].validade).toLocaleDateString('pt-BR') : '-';
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
             const corCategoria = (activeSettings && activeSettings[`cor_categoria_${cat}`]) || '#1e4e8c';
 
             html += `
