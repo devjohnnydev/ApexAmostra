@@ -6845,6 +6845,84 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.save(`Planejamento_Lote_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
+    window.gerarPdfPlanejamentoModal = function() {
+        if (!window.jspdf) {
+            alert('A biblioteca jsPDF não carregou corretamente.');
+            return;
+        }
+        
+        const amostraTxt = document.getElementById('pl-amostra').options[document.getElementById('pl-amostra').selectedIndex]?.text || '';
+        const fornecedor = document.getElementById('pl-fornecedor').options[document.getElementById('pl-fornecedor').selectedIndex]?.text || '';
+        const produto = document.getElementById('pl-produto').value || '';
+        const pesoComprado = document.getElementById('pl-peso-comprado').value || '0';
+        const precoCompra = document.getElementById('pl-preco-compra').value || '0';
+        const rendimento = document.getElementById('pl-rendimento').value || '0';
+        const material = document.getElementById('pl-material').options[document.getElementById('pl-material').selectedIndex]?.text || '';
+        const precoVenda = document.getElementById('pl-preco-venda-material').value || '0';
+        const comissao = document.getElementById('pl-comissao').value || '0';
+        const fidc = document.getElementById('pl-fidc').value || '0';
+        
+        const lucroBruto = document.getElementById('sim-lucro-bruto').innerText;
+        const lucroLiq = document.getElementById('sim-res-liquido').innerText;
+        const margem = document.getElementById('sim-margem').innerText;
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Marca D'água APEXTECH
+        doc.setTextColor(240, 240, 240);
+        doc.setFontSize(80);
+        doc.text("APEXTECH", 30, 150, null, 45);
+        doc.text("APEXTECH", 30, 250, null, 45);
+
+        // Cabeçalho
+        doc.setFontSize(18);
+        doc.setTextColor(62, 124, 177);
+        doc.text('Relatório Executivo - Simulação de Lote', 15, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
+        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
+
+        // Dados
+        doc.setFontSize(12);
+        doc.setTextColor(40);
+        
+        doc.autoTable({
+            startY: 45,
+            head: [['Campo', 'Valor Informado']],
+            body: [
+                ['Amostra', amostraTxt],
+                ['Fornecedor', fornecedor],
+                ['Produto', produto],
+                ['Material Resultante', material],
+                ['Peso Comprado', pesoComprado + ' kg'],
+                ['Preço de Compra', 'R$ ' + parseFloat(precoCompra).toFixed(2)],
+                ['Rendimento Estimado', rendimento + '%'],
+                ['Preço Venda Estimado', 'R$ ' + parseFloat(precoVenda).toFixed(2)],
+                ['Comissão', comissao + '%'],
+                ['Taxa FIDC', fidc + '%']
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: [27, 45, 61] }
+        });
+        
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 10,
+            head: [['Indicador de Rentabilidade', 'Resultado']],
+            body: [
+                ['Lucro Bruto', lucroBruto],
+                ['Lucro Líquido Estimado', lucroLiq],
+                ['Margem', margem]
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: [42, 208, 122] }
+        });
+
+        doc.save(`Simulacao_Lote_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
     // --- 6. ESTOQUE INTELIGENTE ---
     window.initApexEstoque = function() {
         carregarEstoque();
