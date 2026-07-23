@@ -556,12 +556,12 @@ app.post('/api/login', async (req, res) => {
             const result = await pool.query('SELECT * FROM usuarios WHERE "user" = $1 AND pass = $2', [user, pass]);
             if (result.rows.length > 0) {
                 const u = result.rows[0];
-                return res.json({ success: true, user: { user: u.user, perfil: u.perfil, nome: u.nome } });
+                return res.json({ success: true, user: { user: u.user, perfil: (u.user === 'admin' ? 'Administrador' : u.perfil), nome: u.nome } });
             }
         } else {
             const u = memStore.usuarios.find(x => x.user === user && x.pass === pass);
             if (u) {
-                return res.json({ success: true, user: { user: u.user, perfil: u.perfil, nome: u.nome } });
+                return res.json({ success: true, user: { user: u.user, perfil: (u.user === 'admin' ? 'Administrador' : u.perfil), nome: u.nome } });
             }
         }
 
