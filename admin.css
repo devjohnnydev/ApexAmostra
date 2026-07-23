@@ -18,6 +18,27 @@ body {
     font-family: 'Lato', sans-serif;
     background-color: var(--bg-dark);
     color: var(--cor-branco);
+    color-scheme: dark;
+}
+
+/* ─── NATIVE CALENDAR DARK THEME ─── */
+input[type="date"], input[type="datetime-local"], input[type="month"] {
+    color-scheme: dark !important;
+    background-color: #162432 !important;
+    color: #ffffff !important;
+    border: 1px solid #1e4e8c !important;
+    border-radius: 6px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(110deg);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background: rgba(42, 208, 122, 0.2);
 }
 
 h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
