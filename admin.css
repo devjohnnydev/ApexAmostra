@@ -867,6 +867,13 @@ input:checked + .toggle-slider:before { transform: translateX(24px); background-
 .form-group select:focus { outline: none; border-color: var(--cor-verde); }
 .form-group select option { background: #0a1911; color: #fff; }
 
+/* Modal de Preço mais compacto */
+#modal-preco .form-group { margin-bottom: 8px; }
+#modal-preco .form-group label { margin-bottom: 4px; }
+#modal-preco .form-group input,
+#modal-preco .form-group select { padding: 7px 10px; font-size: 0.85rem; }
+
+
 .btn-primary {
     background: var(--cor-verde);
     color: var(--cor-escuro);

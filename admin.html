@@ -2663,17 +2663,19 @@
 
     <!-- Modal Preço -->
     <div id="modal-preco" class="fullscreen-overlay" style="display:none;">
-        <div class="login-box" style="width:520px; max-width:96vw; padding:25px; background:#101a24; border:1px solid #1e4e8c; margin:auto;">
-            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff;"><i class="fa-solid fa-dollar-sign"></i> Definir Preço de Compra</h3>
+        <div class="login-box" style="width:540px; max-width:96vw; padding:18px 22px 16px; background:#101a24; border:1px solid #1e4e8c; margin:auto; max-height:92vh; overflow-y:auto;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:8px; color:#fff; font-size:1rem;"><i class="fa-solid fa-dollar-sign"></i> Definir Preço de Compra</h3>
             <form id="form-preco-apex" onsubmit="salvarPreco(event)">
                 <input type="hidden" id="prc-id" value="">
-                <div class="form-group">
-                    <label>Material *</label>
-                    <select id="prc-material" required class="noble-input"></select>
-                </div>
-                <div class="form-group">
-                    <label>Preço Venda Ref. (R$/kg) *</label>
-                    <input type="number" step="0.01" id="prc-venda" required class="noble-input" oninput="calcularValoresDeAcordoComPorcentagem()">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Material *</label>
+                        <select id="prc-material" required class="noble-input"></select>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Preço Venda Ref. (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-venda" required class="noble-input" oninput="calcularValoresDeAcordoComPorcentagem()">
+                    </div>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div class="form-group">
@@ -2696,11 +2698,11 @@
                     </div>
                 </div>
                 <!-- Composição Fiscal e Financeira -->
-                <div style="background:#162432; padding:12px; border-radius:8px; border:1px solid #1e4e8c; margin-bottom:15px;">
-                    <div style="font-weight:bold; color:#3e7cb1; font-size:0.85rem; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                <div style="background:#162432; padding:8px 12px; border-radius:8px; border:1px solid #1e4e8c; margin-bottom:10px;">
+                    <div style="font-weight:bold; color:#3e7cb1; font-size:0.8rem; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
                         <i class="fa-solid fa-percent"></i> Composição Fiscal & Deduções (% e R$/kg)
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
                         <div class="form-group">
                             <label style="font-size:0.75rem;">Comissão (%)</label>
                             <input type="number" step="0.1" id="prc-comissao" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModal()">
@@ -2719,13 +2721,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label style="font-size:0.75rem;">Custo de Frete Coleta (R$/kg)</label>
+                        <label style="font-size:0.75rem;">Frete Coleta (R$/kg)</label>
                         <input type="number" step="0.01" id="prc-frete-coleta" class="noble-input" placeholder="0.00" oninput="calcularMargemLiquidaModal()">
                     </div>
                 </div>
 
                 <!-- Resumo em Tempo Real da Margem Líquida -->
-                <div style="background:#0a1622; padding:12px 16px; border-radius:8px; border-left:4px solid #2AD07A; margin-bottom:15px;">
+                <div style="background:#0a1622; padding:8px 12px; border-radius:8px; border-left:4px solid #2AD07A; margin-bottom:10px;">
                     <div style="font-size:0.8rem; text-transform:uppercase; font-weight:bold; color:#aaa; margin-bottom:6px;">
                         <i class="fa-solid fa-calculator" style="color:#2AD07A;"></i> Simulação de Margem Líquida Real
                     </div>
@@ -2757,8 +2759,8 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Válido Até *</label>
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="font-size:0.8rem;">Válido Até * <span style="color:#aaa; font-size:0.75rem; font-weight:normal;">(aplicado a todos os materiais)</span></label>
                     <input type="date" id="prc-validade" required class="noble-input">
                 </div>
                 <div class="form-group" style="margin-top:10px; margin-bottom:15px; display:none;">
@@ -2776,7 +2778,7 @@
                         </label>
                     </div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:20px;">
+                <div style="display:flex; gap:10px; margin-top:14px;">
                     <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
                     <button type="button" class="btn-secondary" onclick="fecharModalPreco()" style="flex:1;">Cancelar</button>
                 </div>
