@@ -1484,6 +1484,7 @@
                             <button class="btn-secondary" onclick="exportarTabelaPrecosExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
                             <button class="btn-secondary" onclick="exportarTabelaPrecosPdf()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
                             <button class="btn-secondary" onclick="enviarTabelaPrecosEmail()"><i class="fa-solid fa-paper-plane"></i> Enviar E-mail</button>
+                             <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralPrompt()" style="background:#1e4e8c; color:#fff; border-color:#1e4e8c;"><i class="fa-solid fa-calendar-days"></i> Alterar Vigência Geral</button>
                             <button class="btn-primary restrito-financeiro" onclick="abrirModalPreco()"><i class="fa-solid fa-plus"></i> Novo Item de Preço</button>
                         </div>
                     </div>
@@ -2666,6 +2667,21 @@
                     <label>Válido Até *</label>
                     <input type="date" id="prc-validade" required class="noble-input">
                 </div>
+                <div class="form-group" style="margin-top:10px; margin-bottom:15px;">
+                    <label style="font-weight:600; color:#fff; font-size:0.85rem; display:block; margin-bottom:6px;">
+                        <i class="fa-solid fa-calendar-check" style="color:#2AD07A;"></i> Aplicar esta Vigência/Validade para:
+                    </label>
+                    <div style="display:flex; gap:15px; background:#162432; padding:12px; border-radius:8px; border:1px solid #223547;">
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:#fff; font-size:0.88rem; font-weight:600;">
+                            <input type="radio" name="escopo-validade" value="todos" checked style="accent-color:#2AD07A;">
+                            Todos os Materiais (Geral)
+                        </label>
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:#aaa; font-size:0.88rem;">
+                            <input type="radio" name="escopo-validade" value="item" style="accent-color:#2AD07A;">
+                            Apenas este Item
+                        </label>
+                    </div>
+                </div>
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
                     <button type="button" class="btn-secondary" onclick="fecharModalPreco()" style="flex:1;">Cancelar</button>
@@ -2900,7 +2916,7 @@
         </div>
     </div>
 
-<script src="admin.js?v=40"></script>
+<script src="admin.js?v=45"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ═══════════════════════════════════════════════════════════

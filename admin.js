@@ -5004,28 +5004,55 @@ document.addEventListener('DOMContentLoaded', () => {
     window.salvarPreco = async function(e) {
         e.preventDefault();
         const id = document.getElementById('prc-id').value;
-        // Parse value: replace comma with dot to handle pt-BR input
         const parseVal = v => parseFloat(String(v).replace(',', '.')) || 0;
+        const escopoValidade = document.querySelector('input[name="escopo-validade"]:checked')?.value || 'todos';
+
         const data = {
             material_id: document.getElementById('prc-material').value,
             preco_entregar: parseVal(document.getElementById('prc-entregar').value),
             preco_coletar: parseVal(document.getElementById('prc-coletar').value),
             venda_ref: parseVal(document.getElementById('prc-venda').value),
-            validade: document.getElementById('prc-validade').value
+            validade: document.getElementById('prc-validade').value,
+            aplicar_todos: (escopoValidade === 'todos')
         };
+
+        const btn = e.target.querySelector('[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
 
         try {
             const url = id ? `/api/tabela-precos/${id}` : '/api/tabela-precos';
             const method = id ? 'PUT' : 'POST';
-            await fetch(url, {
+            const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
+            if (!res.ok) throw new Error(await res.text());
             fecharModalPreco();
             carregarPrecos();
         } catch (err) {
+            alert('Erro ao salvar preço: ' + err.message);
             console.error(err);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
+        }
+    };
+
+    window.alterarValidadeGeralPrompt = async function() {
+        const dataAtual = localPrecos[0]?.validade ? localPrecos[0].validade.split('T')[0] : new Date().toISOString().split('T')[0];
+        const novaData = prompt('Digite a nova Data de Validade/Vigência Geral (AAAA-MM-DD):', dataAtual);
+        if (!novaData) return;
+        try {
+            const res = await fetch('/api/tabela-precos-validade-geral', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ validade: novaData })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            alert('Vigência atualizada para todos os materiais com sucesso!');
+            carregarPrecos();
+        } catch (err) {
+            alert('Erro ao atualizar vigência geral: ' + err.message);
         }
     };
 
@@ -5286,11 +5313,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function carregarAmostras() {
         try {
             const res = await fetch('/api/amostras');
-            localAmostras = await res.json();
+            const data = await res.json();
+            localAmostras = Array.isArray(data) ? data : [];
             renderAmostras();
             popularSeletoresAmostras();
         } catch (err) {
-            console.error(err);
+            console.error('Erro ao carregar amostras:', err);
+            localAmostras = [];
         }
     }
 
@@ -6591,10 +6620,12 @@ document.addEventListener('DOMContentLoaded', () => {
     async function carregarPlanejamento() {
         try {
             const res = await fetch('/api/planejamento-compras');
-            localPlanejamento = await res.json();
+            const data = await res.json();
+            localPlanejamento = Array.isArray(data) ? data : [];
             renderPlanejamento();
         } catch (err) {
-            console.error(err);
+            console.error('Erro ao carregar planejamento:', err);
+            localPlanejamento = [];
         }
     }
 

@@ -972,11 +972,33 @@ app.post('/api/tabela-precos', async (req, res) => {
     }
 });
 
+app.put('/api/tabela-precos-validade-geral', async (req, res) => {
+    try {
+        const { validade } = req.body;
+        if (!validade) return res.status(400).json({ error: 'Data de validade é obrigatória.' });
+        if (dbAvailable) {
+            await pool.query('UPDATE tabela_precos SET validade = $1', [validade]);
+            await atualizarDataUltimaModificacaoPrecos();
+            return res.json({ success: true, validade });
+        } else {
+            memStore.tabela_precos.forEach(p => p.validade = validade);
+            await atualizarDataUltimaModificacaoPrecos();
+            return res.json({ success: true, validade });
+        }
+    } catch (err) {
+        console.error('Erro ao atualizar validade geral:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.put('/api/tabela-precos/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { preco_entregar, preco_coletar, venda_ref, validade } = req.body;
+        const { preco_entregar, preco_coletar, venda_ref, validade, aplicar_todos } = req.body;
         if (dbAvailable) {
+            if (aplicar_todos && validade) {
+                await pool.query('UPDATE tabela_precos SET validade = $1', [validade]);
+            }
             const result = await pool.query(
                 `UPDATE tabela_precos SET preco_entregar=$1, preco_coletar=$2, venda_ref=$3, validade=$4
                  WHERE id=$5 RETURNING *`,
@@ -985,6 +1007,9 @@ app.put('/api/tabela-precos/:id', async (req, res) => {
             await atualizarDataUltimaModificacaoPrecos();
             return res.json(result.rows[0]);
         } else {
+            if (aplicar_todos && validade) {
+                memStore.tabela_precos.forEach(p => p.validade = validade);
+            }
             const idx = memStore.tabela_precos.findIndex(x => x.id === id);
             if (idx === -1) return res.status(404).json({ error: 'Preço não encontrado.' });
             memStore.tabela_precos[idx].preco_entregar = parseFloat(preco_entregar);
@@ -1020,9 +1045,9 @@ app.get('/api/amostras', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query(`
-                SELECT a.*, f.nome_fantasia as fornecedor_nome
+                SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome
                 FROM amostras a
-                JOIN fornecedores f ON a.fornecedor_id = f.id
+                LEFT JOIN fornecedores f ON a.fornecedor_id = f.id
                 ORDER BY a.data DESC, a.id DESC
             `);
             return res.json(result.rows);
@@ -1031,12 +1056,13 @@ app.get('/api/amostras', async (req, res) => {
             const f = memStore.fornecedores.find(x => x.id === a.fornecedor_id);
             return {
                 ...a,
-                fornecedor_nome: f ? f.nome_fantasia : ''
+                fornecedor_nome: f ? (f.apelido || f.nome || f.nome_fantasia) : ''
             };
         });
         res.json(data);
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao buscar amostras.' });
+        console.error('Erro ao buscar amostras:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -1047,14 +1073,14 @@ app.get('/api/amostras/:id', async (req, res) => {
         let componentes;
 
         if (dbAvailable) {
-            const aRes = await pool.query('SELECT a.*, f.nome_fantasia as fornecedor_nome FROM amostras a JOIN fornecedores f ON a.fornecedor_id = f.id WHERE a.id=$1', [id]);
+            const aRes = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id = f.id WHERE a.id=$1', [id]);
             if (aRes.rows.length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
             amostra = aRes.rows[0];
 
             const cRes = await pool.query(`
                 SELECT ca.*, mc.nome as material_nome, mc.categoria as material_categoria
                 FROM componentes_amostra ca
-                JOIN materiais_catalogo mc ON ca.material_id = mc.id
+                LEFT JOIN materiais_catalogo mc ON ca.material_id = mc.id
                 WHERE ca.amostra_id=$1
             `, [id]);
             componentes = cRes.rows;
@@ -1062,7 +1088,7 @@ app.get('/api/amostras/:id', async (req, res) => {
             amostra = memStore.amostras.find(x => x.id === id);
             if (!amostra) return res.status(404).json({ error: 'Amostra não encontrada.' });
             const f = memStore.fornecedores.find(x => x.id === amostra.fornecedor_id);
-            amostra.fornecedor_nome = f ? f.nome_fantasia : '';
+            amostra.fornecedor_nome = f ? (f.apelido || f.nome || f.nome_fantasia) : '';
 
             componentes = memStore.componentes_amostra.filter(x => x.amostra_id === id).map(ca => {
                 const mc = memStore.materiais_catalogo.find(x => x.id === ca.material_id);
@@ -1490,10 +1516,10 @@ app.get('/api/planejamento-compras', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query(`
-                SELECT lc.*, f.nome_fantasia as fornecedor_nome, mc.nome as material_nome, a.numero_amostra
+                SELECT lc.*, COALESCE(f.apelido, f.nome) as fornecedor_nome, mc.nome as material_nome, a.numero_amostra
                 FROM lotes_compra lc
-                JOIN fornecedores f ON lc.fornecedor_id = f.id
-                JOIN materiais_catalogo mc ON lc.material_id = mc.id
+                LEFT JOIN fornecedores f ON lc.fornecedor_id = f.id
+                LEFT JOIN materiais_catalogo mc ON lc.material_id = mc.id
                 LEFT JOIN amostras a ON lc.amostra_id = a.id
                 ORDER BY lc.id DESC
             `);
@@ -1506,14 +1532,15 @@ app.get('/api/planejamento-compras', async (req, res) => {
             const a = memStore.amostras.find(x => x.id === lc.amostra_id);
             return {
                 ...lc,
-                fornecedor_nome: f ? f.nome_fantasia : '',
+                fornecedor_nome: f ? (f.apelido || f.nome || f.nome_fantasia) : '',
                 material_nome: mc ? mc.nome : '',
                 numero_amostra: a ? a.numero_amostra : ''
             };
         });
         res.json(data);
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao carregar planejamento.' });
+        console.error('Erro ao carregar planejamento:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
