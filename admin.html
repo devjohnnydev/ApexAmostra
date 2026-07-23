@@ -3142,11 +3142,17 @@
                     </div>
                     <div class="form-group">
                         <label>Data de Emissão *</label>
-                        <input type="date" id="pedido-data-emissao" class="noble-input" required>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="date" id="pedido-data-emissao" class="noble-input" style="flex:1;" required>
+                            <button type="button" onclick="document.getElementById('pedido-data-emissao').showPicker()" style="background:#162738; border:1px solid #1e4e8c; color:#2AD07A; padding:8px 11px; border-radius:6px; cursor:pointer;" title="Abrir Calendário"><i class="fa-solid fa-calendar-days"></i></button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Data de Entrega</label>
-                        <input type="date" id="pedido-data-entrega" class="noble-input">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="date" id="pedido-data-entrega" class="noble-input" style="flex:1;">
+                            <button type="button" onclick="document.getElementById('pedido-data-entrega').showPicker()" style="background:#162738; border:1px solid #1e4e8c; color:#2AD07A; padding:8px 11px; border-radius:6px; cursor:pointer;" title="Abrir Calendário"><i class="fa-solid fa-calendar-days"></i></button>
+                        </div>
                     </div>
                 </div>
 
@@ -3154,7 +3160,7 @@
                 <div style="margin-bottom:18px;">
                         <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                             <span style="color:#fff; font-weight:bold;">Cliente *</span>
-                            <button type="button" onclick="abrirCadastroClienteExpress('')" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:2px 10px; border-radius:4px; font-size:0.78rem; cursor:pointer; font-weight:600;"><i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente</button>
+                            <button type="button" onclick="redirecionarParaCadastroCliente('')" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:4px 12px; border-radius:6px; font-size:0.82rem; cursor:pointer; font-weight:600;"><i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente</button>
                         </label>
                         <div style="position:relative;">
                             <input type="text" id="pedido-cliente-busca" class="noble-input" placeholder="🔍 Digite o nome, fantasia ou CNPJ do cliente..." autocomplete="off" onfocus="buscarClientePedido(this.value)" oninput="buscarClientePedido(this.value)" onkeyup="buscarClientePedido(this.value)" required>

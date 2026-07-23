@@ -3855,19 +3855,41 @@ app.get('/api/clientes/:id', async (req, res) => {
 
 app.post('/api/clientes', async (req, res) => {
     try {
-        const { codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status } = req.body;
+        const { codigo, nome, fantasia, telefone1, telefone2, cnpj, cpf, ie, rg,
+                email, endereco, numero, bairro, cidade, uf, pais, cep,
+                tipo_cliente, contato_comercial, contato_financeiro, status,
+                vendedor, dias, filial } = req.body;
+
         if (!nome) return res.status(400).json({ error: 'Nome é obrigatório.' });
+
         if (dbAvailable) {
+            let codigoNum = parseInt(codigo);
+            if (isNaN(codigoNum) || !codigoNum) {
+                const maxRes = await pool.query('SELECT COALESCE(MAX(codigo), 0) + 1 AS proximo FROM clientes');
+                codigoNum = parseInt(maxRes.rows[0].proximo) || Math.floor(Date.now() % 100000);
+            }
+
             const result = await pool.query(
-                'INSERT INTO clientes (codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
-                [codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status || 'ATIVO']
+                `INSERT INTO clientes (
+                    codigo, nome, fantasia, telefone1, telefone2,
+                    cnpj, cpf, ie, rg, email,
+                    endereco, numero, bairro, cidade, uf,
+                    pais, cep, tipo_cliente, contato_comercial,
+                    contato_financeiro, status, vendedor, dias, filial
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+                RETURNING *`,
+                [codigoNum, nome, fantasia, telefone1, telefone2,
+                 cnpj, cpf, ie, rg, email,
+                 endereco, numero, bairro, cidade, uf,
+                 pais || 'BR', cep, tipo_cliente, contato_comercial,
+                 contato_financeiro, status || 'ATIVO', vendedor, parseInt(dias) || 0, filial || '01']
             );
             return res.json(result.rows[0]);
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
     } catch (err) {
         console.error('Erro ao criar cliente:', err);
-        res.status(500).json({ error: 'Erro ao criar cliente.' });
+        res.status(500).json({ error: err.message });
     }
 });
 

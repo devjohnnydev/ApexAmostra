@@ -8080,19 +8080,36 @@ window.carregarFinanceiroView = async function() {
         drop.style.display = 'block';
     };
 
-    window.abrirCadastroClienteExpress = function(nomePrefill) {
+    window.redirecionarParaCadastroCliente = function(nomePrefill) {
         const drop = document.getElementById('pedido-cliente-dropdown');
         if (drop) drop.style.display = 'none';
-        window.clienteCadastradoCallback = (novoId) => {
-            window.selecionarClientePedido(novoId);
-        };
-        abrirModalCliente();
-        if (nomePrefill) {
-            const elNome = document.getElementById('cli-nome');
-            const elFant = document.getElementById('cli-fantasia');
-            if (elNome) elNome.value = nomePrefill;
-            if (elFant) elFant.value = nomePrefill;
+
+        fecharModalPedido();
+
+        const navClientes = document.getElementById('nav-clientes') || document.querySelector('.nav-item[data-target="clientes-view"]');
+        if (navClientes) {
+            navClientes.click();
+        } else {
+            document.querySelectorAll('.view-section').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+            const cliSec = document.getElementById('clientes-view');
+            if (cliSec) { cliSec.classList.add('active'); cliSec.style.display = 'block'; }
         }
+
+        if (window.initApexClientes) window.initApexClientes();
+
+        setTimeout(() => {
+            if (window.abrirModalCliente) window.abrirModalCliente();
+            if (nomePrefill) {
+                const elNome = document.getElementById('cli-nome');
+                const elFant = document.getElementById('cli-fantasia');
+                if (elNome) elNome.value = nomePrefill;
+                if (elFant) elFant.value = nomePrefill;
+            }
+        }, 150);
+    };
+
+    window.abrirCadastroClienteExpress = function(nomePrefill) {
+        redirecionarParaCadastroCliente(nomePrefill);
     };
 
     window.selecionarClientePedido = function(id) {
