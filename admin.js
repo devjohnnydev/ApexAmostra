@@ -6816,8 +6816,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const body = [];
         if (typeof localPlanejamento !== 'undefined') {
             localPlanejamento.forEach(pl => {
-                const f = fornecedoresMap && fornecedoresMap[pl.fornecedor_id];
-                const fornecedorStr = f ? `${f.nome} (${f.estado || '-'})` : `Desconhecido (ID: ${pl.fornecedor_id})`;
+                const fornecedorStr = pl.fornecedor_nome || 'N/A';
                 const mes = pl.mes_ref || 'N/A';
                 const reqData = pl.amostra_id ? `Amostra: ${pl.amostra_id}` : `[Avulso] ${pl.produto}`;
                 const cStr = 'R$ ' + fmtBRL(pl.preco_compra);
