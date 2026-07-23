@@ -4241,8 +4241,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(data)
             });
             if (!res.ok) throw new Error(await res.text());
+            const savedData = await res.clone().json().catch(() => ({}));
             fecharModalCliente();
-            carregarClientes();
+            await carregarClientes();
+            if (!id && window.clienteCadastradoCallback) {
+                const targetId = savedData.id || (localClientes[0] ? localClientes[0].id : null);
+                if (targetId) window.clienteCadastradoCallback(targetId);
+                window.clienteCadastradoCallback = null;
+            }
         } catch (err) {
             alert('Erro ao salvar cliente: ' + err.message);
             console.error('Erro ao salvar cliente:', err);
@@ -7954,7 +7960,8 @@ window.carregarFinanceiroView = async function() {
                 </td>
                 <td style="padding:12px 10px; text-align:right; color:#fff; font-weight:600;">${fmtR(p.total_geral)}</td>
                 <td style="padding:12px 10px; text-align:center;">
-                    <button onclick="editarPedido(${p.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; margin-right:5px; font-size:1rem;" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="exportarPedidoPdfPorId(${p.id})" style="background:none; border:none; color:#2AD07A; cursor:pointer; margin-right:6px; font-size:1rem;" title="Baixar PDF com Marca d'Água"><i class="fa-solid fa-file-pdf"></i></button>
+                    <button onclick="editarPedido(${p.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; margin-right:6px; font-size:1rem;" title="Editar"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="excluirPedido(${p.id}, '${p.numero}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
@@ -7982,6 +7989,10 @@ window.carregarFinanceiroView = async function() {
         renderItensPedido();
         recalcularPedido();
         try {
+            const res = await fetch('/api/clientes');
+            window.localClientes = await res.json();
+        } catch(e){}
+        try {
             const r = await fetch('/api/pedidos-venda/proximo-numero');
             const d = await r.json();
             document.getElementById('pedido-numero').value = d.numero || 'PV-0001';
@@ -7995,35 +8006,75 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('modal-pedido-venda').style.display = 'none';
     };
 
-    window.buscarClientePedido = function(val) {
+    window.buscarClientePedido = async function(val) {
         const drop = document.getElementById('pedido-cliente-dropdown');
-        if (!val || val.length < 2) { drop.style.display='none'; return; }
-        const q = val.toLowerCase();
+        if (!drop) return;
+        if (!window.localClientes || window.localClientes.length === 0) {
+            try {
+                const res = await fetch('/api/clientes');
+                window.localClientes = await res.json();
+            } catch(e){}
+        }
+        if (!val || val.trim().length < 1) { drop.style.display='none'; return; }
+        const q = val.toLowerCase().trim();
         const resultados = (window.localClientes||[]).filter(c =>
             (c.nome||'').toLowerCase().includes(q) ||
-            (c.cnpj||'').replace(/\D/g,'').includes(q.replace(/\D/g,''))
+            (c.fantasia||'').toLowerCase().includes(q) ||
+            (c.cnpj||'').replace(/\D/g,'').includes(q.replace(/\D/g,'')) ||
+            (c.cpf||'').replace(/\D/g,'').includes(q.replace(/\D/g,''))
         ).slice(0, 8);
-        if (resultados.length === 0) { drop.innerHTML='<div style="padding:10px; color:#aaa;">Nenhum cliente encontrado</div>'; drop.style.display='block'; return; }
-        drop.innerHTML = resultados.map(c => `
-            <div onclick="selecionarClientePedido(${c.id})" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #1a2a3a;" onmouseover="this.style.background='#1a2a3a'" onmouseout="this.style.background=''">
-                <strong style="color:#fff;">${c.nome||c.razao_social||''}</strong>
-                <span style="color:#7fa8c8; font-size:0.8rem;"> — ${c.cnpj||''} | ${c.cidade||''}-${c.uf||''}</span>
+
+        let html = resultados.map(c => `
+            <div onclick="selecionarClientePedido(${c.id})" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #1a2a3a; transition:background 0.15s;" onmouseover="this.style.background='#1a2a3a'" onmouseout="this.style.background=''">
+                <strong style="color:#fff;">${c.nome||c.fantasia||''}</strong>
+                <span style="color:#7fa8c8; font-size:0.8rem;"> — ${c.cnpj||c.cpf||''} | ${c.cidade||''}-${c.uf||''}</span>
             </div>
         `).join('');
-        drop.style.display='block';
+
+        if (resultados.length === 0) {
+            html = `<div style="padding:12px; text-align:center; color:#aaa; font-size:0.85rem;">Nenhum cliente encontrado.<br>
+            <button type="button" onclick="abrirCadastroClienteExpress('${val.replace(/'/g,"\\'")}')" class="btn-primary" style="margin-top:8px; font-size:0.82rem; background:#1b382b; border-color:#2AD07A; color:#2AD07A; padding:6px 12px;"><i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente "${val}"</button></div>`;
+        } else {
+            html += `<div onclick="abrirCadastroClienteExpress('${val.replace(/'/g,"\\'")}')" style="padding:10px 14px; background:#1b382b; color:#2AD07A; cursor:pointer; font-weight:bold; border-top:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#224535'" onmouseout="this.style.background='#1b382b'"><i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente "${val}"</div>`;
+        }
+
+        drop.innerHTML = html;
+        drop.style.display = 'block';
+    };
+
+    window.abrirCadastroClienteExpress = function(nomePrefill) {
+        const drop = document.getElementById('pedido-cliente-dropdown');
+        if (drop) drop.style.display = 'none';
+        window.clienteCadastradoCallback = (novoId) => {
+            window.selecionarClientePedido(novoId);
+        };
+        abrirModalCliente();
+        if (nomePrefill) {
+            const elNome = document.getElementById('cli-nome');
+            const elFant = document.getElementById('cli-fantasia');
+            if (elNome) elNome.value = nomePrefill;
+            if (elFant) elFant.value = nomePrefill;
+        }
     };
 
     window.selecionarClientePedido = function(id) {
+        if (!window.localClientes || window.localClientes.length === 0) {
+            fetch('/api/clientes').then(r=>r.json()).then(clis=>{
+                window.localClientes = clis;
+                window.selecionarClientePedido(id);
+            });
+            return;
+        }
         const c = (window.localClientes||[]).find(x => x.id == id);
         if (!c) return;
         document.getElementById('pedido-cliente-id').value = c.id;
-        document.getElementById('pedido-cliente-busca').value = c.nome || c.razao_social || '';
+        document.getElementById('pedido-cliente-busca').value = c.nome || c.fantasia || '';
         document.getElementById('pedido-cliente-dropdown').style.display = 'none';
-        document.getElementById('cc-nome').textContent   = c.nome || c.razao_social || '';
-        document.getElementById('cc-cnpj').textContent   = c.cnpj || '';
+        document.getElementById('cc-nome').textContent   = c.nome || c.fantasia || '';
+        document.getElementById('cc-cnpj').textContent   = c.cnpj || c.cpf || 'CNPJ Não informado';
         document.getElementById('cc-cidade').textContent = c.cidade || '';
         document.getElementById('cc-uf').textContent     = c.uf || '';
-        document.getElementById('cc-tel').textContent    = c.telefone1 || c.telefone || '';
+        document.getElementById('cc-tel').textContent    = c.telefone1 || c.telefone2 || '';
         document.getElementById('cc-email').textContent  = c.email || '';
         document.getElementById('pedido-cliente-card').style.display = 'block';
         if (c.condicao_pagamento) {
@@ -8178,51 +8229,238 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.imprimirPedido = function() {
-        const num    = document.getElementById('pedido-numero').value || 'PEDIDO';
-        const cli    = document.getElementById('pedido-cliente-busca').value || '-';
-        const emiss  = document.getElementById('pedido-data-emissao').value;
-        const entrega= document.getElementById('pedido-data-entrega').value;
-        const cond   = document.getElementById('pedido-condicao').value;
-        const obs    = document.getElementById('pedido-obs').value;
-        const desc   = parseFloat(document.getElementById('pedido-desconto').value)||0;
-        const frete  = parseFloat(document.getElementById('pedido-frete').value)||0;
-        const subtot = itensPedido.reduce((s,it)=>s+(it.total_item||0),0);
-        const total  = subtot*(1-desc/100)+frete;
-
-        const itensHtml = itensPedido.map((it,i) => `
-            <tr style="${i%2===0?'background:#f9f9f9':''};">
-                <td style="padding:8px; border:1px solid #ddd;">${it.descricao||''}</td>
-                <td style="padding:8px; text-align:center; border:1px solid #ddd;">${it.unidade}</td>
-                <td style="padding:8px; text-align:right; border:1px solid #ddd;">${(it.quantidade||0).toLocaleString('pt-BR',{minimumFractionDigits:3})}</td>
-                <td style="padding:8px; text-align:right; border:1px solid #ddd;">${fmtR(it.preco_unitario)}</td>
-                <td style="padding:8px; text-align:right; border:1px solid #ddd;">${it.desconto_item||0}%</td>
-                <td style="padding:8px; text-align:right; border:1px solid #ddd; font-weight:bold;">${fmtR(it.total_item)}</td>
-            </tr>`).join('');
-
-        const win = window.open('','_blank');
-        win.document.write(`<!DOCTYPE html><html><head><title>Pedido ${num}</title><style>body{font-family:Arial,sans-serif;margin:30px;color:#333;}h2{color:#1e4e8c;}.total{font-size:1.2rem;font-weight:bold;color:#1e4e8c;}</style></head><body>
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1e4e8c;padding-bottom:15px;margin-bottom:20px;">
-                <div><h2 style="margin:0;">Pedido de Venda</h2><p style="margin:4px 0 0;color:#666;">N° ${num}</p></div>
-                <div style="text-align:right;"><strong>Apex Tech Metais</strong><br><small style="color:#666;">Emissão: ${fmtD(emiss)} | Entrega: ${fmtD(entrega)||'-'}</small></div>
-            </div>
-            <p><strong>Cliente:</strong> ${cli} &nbsp;&nbsp; <strong>Condição:</strong> ${cond||'-'}</p>
-            <table style="width:100%;border-collapse:collapse;margin-top:15px;font-size:0.9rem;">
-                <thead><tr style="background:#1e4e8c;color:#fff;"><th style="padding:8px;text-align:left;border:1px solid #ddd;">Descrição</th><th style="padding:8px;border:1px solid #ddd;">Und</th><th style="padding:8px;border:1px solid #ddd;">Qtd</th><th style="padding:8px;border:1px solid #ddd;">Preço Unit.</th><th style="padding:8px;border:1px solid #ddd;">Desc%</th><th style="padding:8px;border:1px solid #ddd;">Total</th></tr></thead>
-                <tbody>${itensHtml}</tbody>
-            </table>
-            <div style="display:flex;justify-content:flex-end;margin-top:20px;">
-                <div style="min-width:260px;border:1px solid #ddd;border-radius:6px;padding:14px;">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Subtotal:</span><span>${fmtR(subtot)}</span></div>
-                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Desconto (${desc}%):</span><span>- ${fmtR(subtot*desc/100)}</span></div>
-                    <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Frete:</span><span>${fmtR(frete)}</span></div>
-                    <div class="total" style="display:flex;justify-content:space-between;border-top:2px solid #1e4e8c;padding-top:8px;margin-top:4px;"><span>Total Geral:</span><span>${fmtR(total)}</span></div>
-                </div>
-            </div>
-            ${obs?`<p style="margin-top:20px;"><strong>Observações:</strong> ${obs}</p>`:''}
-            <p style="margin-top:30px;color:#aaa;font-size:0.8rem;text-align:center;">Documento gerado em ${new Date().toLocaleString('pt-BR')} — Apex Tech Metais</p>
-        </body></html>`);
-        win.document.close();
-        setTimeout(() => win.print(), 800);
+        exportarPedidoPdfDoForm();
     };
+
+    window.exportarPedidoPdfPorId = async function(id) {
+        let p = localPedidos.find(x => x.id == id);
+        if (!p) {
+            try {
+                const r = await fetch(`/api/pedidos-venda/${id}`);
+                p = await r.json();
+            } catch(e){}
+        }
+        if (!p) { alert('Pedido não encontrado.'); return; }
+        await gerarPdfPedidoVenda(p);
+    };
+
+    window.exportarPedidoPdfDoForm = async function() {
+        const num    = document.getElementById('pedido-numero').value || 'PV-0000';
+        const cliId  = document.getElementById('pedido-cliente-id').value;
+        const c      = (window.localClientes||[]).find(x => x.id == cliId) || {};
+        const p = {
+            numero: num,
+            cliente_nome: document.getElementById('cc-nome').textContent || document.getElementById('pedido-cliente-busca').value || '-',
+            cliente_cnpj: document.getElementById('cc-cnpj').textContent || c.cnpj || c.cpf || '-',
+            cliente_cidade: document.getElementById('cc-cidade').textContent || c.cidade || '-',
+            cliente_uf: document.getElementById('cc-uf').textContent || c.uf || '-',
+            cliente_telefone: document.getElementById('cc-tel').textContent || c.telefone1 || '-',
+            cliente_email: document.getElementById('cc-email').textContent || c.email || '-',
+            cliente_endereco: c.endereco || '-',
+            data_emissao: document.getElementById('pedido-data-emissao').value,
+            data_entrega: document.getElementById('pedido-data-entrega').value,
+            condicao_pagamento: document.getElementById('pedido-condicao').value,
+            status: document.getElementById('pedido-status').value,
+            observacoes: document.getElementById('pedido-obs').value,
+            desconto_pct: parseFloat(document.getElementById('pedido-desconto').value)||0,
+            frete: parseFloat(document.getElementById('pedido-frete').value)||0,
+            itens: itensPedido
+        };
+        await gerarPdfPedidoVenda(p);
+    };
+
+    async function gerarPdfPedidoVenda(p) {
+        if (!window.jspdf) { alert('Biblioteca jsPDF não carregada.'); return; }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        // Marca d'água do logo (2).png em toda a folha
+        await aplicarMarcaDaguaLogoJsPDF(doc);
+
+        if (doc.GState && doc.setGState) {
+            try { doc.setGState(new doc.GState({ opacity: 1.0 })); } catch(e){}
+        }
+
+        // Cabeçalho da Empresa
+        doc.setFillColor(30, 78, 140);
+        doc.rect(0, 0, 210, 28, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('APEX TECH METAIS', 14, 14);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('PEDIDO DE VENDA / PROPOSTA COMERCIAL', 14, 21);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text(p.numero || 'PV-0000', 196, 14, { align: 'right' });
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Emissão: ${fmtD(p.data_emissao)}`, 196, 21, { align: 'right' });
+
+        // Box 1: Dados do Cliente
+        doc.setFillColor(240, 244, 248);
+        doc.setDrawColor(200, 212, 224);
+        doc.roundedRect(14, 34, 182, 38, 2, 2, 'FD');
+
+        doc.setTextColor(30, 78, 140);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('DADOS DO CLIENTE', 18, 41);
+
+        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Razão Social / Nome: ', 18, 47);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(p.cliente_nome || p.cliente_id || 'Não informado'), 55, 47);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('CNPJ/CPF: ', 18, 53);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(p.cliente_cnpj || '-'), 38, 53);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Telefone: ', 115, 53);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(p.cliente_telefone || '-'), 132, 53);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Endereço: ', 18, 59);
+        doc.setFont('helvetica', 'normal');
+        const endStr = `${p.cliente_endereco || ''} ${p.cliente_cidade ? '- ' + p.cliente_cidade : ''}${p.cliente_uf ? '/' + p.cliente_uf : ''}`;
+        doc.text(endStr.trim() ? endStr : '-', 37, 59);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('E-mail: ', 18, 65);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(p.cliente_email || '-'), 33, 65);
+
+        // Box 2: Condições do Pedido
+        doc.setFillColor(248, 249, 250);
+        doc.roundedRect(14, 76, 182, 18, 2, 2, 'FD');
+
+        doc.setTextColor(30, 78, 140);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('Condição de Pagamento: ', 18, 83);
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(p.condicao_pagamento || 'À Vista'), 58, 83);
+
+        doc.setTextColor(30, 78, 140);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Previsão de Entrega: ', 105, 83);
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'normal');
+        doc.text(fmtD(p.data_entrega), 140, 83);
+
+        doc.setTextColor(30, 78, 140);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Status: ', 18, 89);
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(p.status || 'Rascunho'), 32, 89);
+
+        // Tabela de Itens
+        const tableItens = (p.itens || []).map((it, idx) => [
+            String(idx + 1),
+            it.descricao || '-',
+            it.unidade || 'kg',
+            (parseFloat(it.quantidade) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 3 }),
+            fmtR(it.preco_unitario),
+            (parseFloat(it.desconto_item) || 0) + '%',
+            fmtR(it.total_item)
+        ]);
+
+        doc.autoTable({
+            startY: 98,
+            head: [['Item', 'Descrição do Produto/Material', 'Und', 'Qtd', 'Preço Unit.', 'Desc%', 'Total (R$)']],
+            body: tableItens.length > 0 ? tableItens : [['1', 'Nenhum item adicionado', '-', '0', 'R$ 0,00', '0%', 'R$ 0,00']],
+            theme: 'grid',
+            headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+            bodyStyles: { fontSize: 8.5, textColor: [30, 30, 30] },
+            alternateRowStyles: { fillColor: [240, 245, 250] },
+            columnStyles: {
+                0: { cellWidth: 12, halign: 'center' },
+                1: { cellWidth: 'auto' },
+                2: { cellWidth: 15, halign: 'center' },
+                3: { cellWidth: 22, halign: 'right' },
+                4: { cellWidth: 28, halign: 'right' },
+                5: { cellWidth: 18, halign: 'right' },
+                6: { cellWidth: 32, halign: 'right', fontStyle: 'bold' }
+            },
+            margin: { left: 14, right: 14 }
+        });
+
+        let finalY = doc.lastAutoTable.finalY + 8;
+
+        // Resumo de Totais
+        const subtot = (p.itens || []).reduce((s, it) => s + (parseFloat(it.total_item) || 0), 0);
+        const descPct = parseFloat(p.desconto_pct) || 0;
+        const descVal = subtot * (descPct / 100);
+        const freteVal = parseFloat(p.frete) || 0;
+        const totalGeral = subtot - descVal + freteVal;
+
+        doc.setFillColor(240, 244, 248);
+        doc.setDrawColor(200, 212, 224);
+        doc.roundedRect(120, finalY, 76, 32, 2, 2, 'FD');
+
+        doc.setFontSize(8.5);
+        doc.setTextColor(60, 60, 60);
+        doc.text('Subtotal Itens:', 124, finalY + 7);
+        doc.text(fmtR(subtot), 192, finalY + 7, { align: 'right' });
+
+        doc.text(`Desconto Geral (${descPct}%):`, 124, finalY + 13);
+        doc.text(`- ${fmtR(descVal)}`, 192, finalY + 13, { align: 'right' });
+
+        doc.text('Frete:', 124, finalY + 19);
+        doc.text(fmtR(freteVal), 192, finalY + 19, { align: 'right' });
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(30, 78, 140);
+        doc.text('TOTAL DO PEDIDO:', 124, finalY + 27);
+        doc.text(fmtR(p.total_geral || totalGeral), 192, finalY + 27, { align: 'right' });
+
+        // Observações
+        if (p.observacoes) {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(30, 78, 140);
+            doc.text('OBSERVAÇÕES / INSTRUÇÕES DE ENTREGA:', 14, finalY + 7);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(50, 50, 50);
+            const splitObs = doc.splitTextToSize(p.observacoes, 95);
+            doc.text(splitObs, 14, finalY + 13);
+        }
+
+        // Assinaturas
+        const sigY = Math.min(Math.max(finalY + 45, 245), 265);
+        doc.setDrawColor(180, 180, 180);
+        doc.line(20, sigY, 90, sigY);
+        doc.line(120, sigY, 190, sigY);
+
+        doc.setFontSize(8);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Apex Tech Metais (Vendedor)', 55, sigY + 5, { align: 'center' });
+        doc.text('Aceito e De Acordo (Cliente)', 155, sigY + 5, { align: 'center' });
+
+        // Rodapé
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(7.5);
+            doc.setTextColor(130, 130, 130);
+            doc.text(`Apex Tech Metais — Documento de Pedido de Venda ${p.numero || ''} | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+        }
+
+        doc.save(`Pedido_Venda_${p.numero || 'PV'}.pdf`);
+    }
 
 })();
