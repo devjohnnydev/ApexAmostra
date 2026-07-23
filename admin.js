@@ -5144,6 +5144,24 @@ document.addEventListener('DOMContentLoaded', () => {
     window.abrirModalAmostra = function() {
         document.getElementById('form-amostra-apex').reset();
         document.getElementById('amo-id').value = '';
+        
+        // Auto-incrementar número da amostra
+        let nextNumber = 1;
+        if (typeof localAmostras !== 'undefined' && localAmostras.length > 0) {
+            let maxNum = 0;
+            localAmostras.forEach(a => {
+                if (a.numero_amostra) {
+                    let match = a.numero_amostra.match(/\d+/);
+                    if (match) {
+                        let num = parseInt(match[0], 10);
+                        if (num > maxNum) maxNum = num;
+                    }
+                }
+            });
+            nextNumber = maxNum + 1;
+        }
+        document.getElementById('amo-numero').value = "AM-" + nextNumber.toString().padStart(3, '0');
+        
         document.getElementById('modal-amostra').style.display = 'flex';
         document.getElementById('amo-data').value = new Date().toISOString().split('T')[0];
     };
