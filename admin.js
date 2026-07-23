@@ -4257,16 +4257,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function popularSeletoresFornecedores() {
         const amoF = document.getElementById('amo-fornecedor');
         const plF = document.getElementById('pl-fornecedor');
+        // Compatibilidade: banco usa 'nome', mock em memória usa 'nome_fantasia'
+        const getNomeFornecedor = (f) => f.nome || f.nome_fantasia || f.apelido || `Fornecedor #${f.id}`;
         if (amoF) {
             amoF.innerHTML = '';
             localFornecedores.forEach(f => {
-                amoF.innerHTML += `<option value="${f.id}">${f.nome_fantasia}</option>`;
+                amoF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
             });
         }
         if (plF) {
             plF.innerHTML = '';
             localFornecedores.forEach(f => {
-                plF.innerHTML += `<option value="${f.id}">${f.nome_fantasia}</option>`;
+                plF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
             });
         }
     }
