@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS clientes (
   usuario_cadastro        TEXT,
   ultimo_alterou          TEXT,
   vendedor                TEXT,
-  atualizado              DATE,
+  atualizado              TEXT,
   filial                  TEXT,
   criado_em               TIMESTAMP DEFAULT NOW()
 );
