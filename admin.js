@@ -21,6 +21,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // ─── Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ───
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            const drop = document.getElementById('pedido-cliente-dropdown');
+            if (drop && drop.style.display !== 'none') {
+                drop.style.display = 'none';
+                return;
+            }
+
+            if (window.fecharModalPedido) window.fecharModalPedido();
+            if (window.fecharModalCliente) window.fecharModalCliente();
+            if (window.fecharModalVigenciaGeral) window.fecharModalVigenciaGeral();
+            if (window.fecharModalFornecedor) window.fecharModalFornecedor();
+            if (window.fecharModalMaterial) window.fecharModalMaterial();
+            if (window.fecharModalPreco) window.fecharModalPreco();
+            if (window.fecharModalAmostra) window.fecharModalAmostra();
+            if (window.fecharModalPlanejamento) window.fecharModalPlanejamento();
+            if (window.fecharModalFidc) window.fecharModalFidc();
+            if (window.fecharModalUsuario) window.fecharModalUsuario();
+            if (window.fecharModalReprovacao) window.fecharModalReprovacao();
+
+            document.querySelectorAll('.fullscreen-overlay').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    });
+
     let globalRolePermissions = {};
 
     // ─────────────────────────────────────────────────────────────────────────
