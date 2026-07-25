@@ -1305,8 +1305,8 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
         const id = parseInt(req.params.id);
         const { decisao_diretoria, motivo_reprovacao, obs_diretoria, preco_compra_entregar, preco_compra_coletar, preco_validade, user_perfil, user_nome } = req.body;
 
-        if (user_perfil !== 'Administrador') {
-            return res.status(403).json({ error: 'Apenas o Administrador pode tomar esta decisão.' });
+        if (user_perfil !== 'Administrador' && user_perfil !== 'Diretoria') {
+            return res.status(403).json({ error: 'Apenas o Administrador ou Diretoria pode tomar esta decisão.' });
         }
 
         const status = decisao_diretoria === 'Aprovado' ? 'Aprovado - Compra Autorizada' : 'Reprovado';

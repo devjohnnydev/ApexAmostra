@@ -5636,6 +5636,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteBtnHtml = `<button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; margin-left:4px;" onclick="window.deletarAmostra(${a.id})" title="Excluir Amostra"><i class="fa-solid fa-trash"></i></button>`;
             }
 
+            let statusBadgeHtml = `<span class="badge-status ${statusClass}">${a.status}</span>`;
+            if (a.decisao_diretoria === 'Aprovado') {
+                const dtDec = a.data_decisao ? new Date(a.data_decisao).toLocaleDateString('pt-BR') : '';
+                statusBadgeHtml = `<span class="badge-status aprovado-compra-autorizada" style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block;" title="Aprovado por ${a.autorizado_por || 'Diretoria'} em ${dtDec}">
+                    <i class="fa-solid fa-check-circle"></i> Aprovado por ${a.autorizado_por || 'Diretoria'}${dtDec ? ' (' + dtDec + ')' : ''}
+                </span>`;
+            } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra') {
+                statusBadgeHtml = `<span class="badge-status aguardando-decisao-de-compra" style="background:rgba(240,180,0,0.15); color:#f0c040; border:1px solid #f0b800; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block;">
+                    <i class="fa-solid fa-clock"></i> Aguardando Aprovação Diretoria
+                </span>`;
+            }
+
             const tr = document.createElement('tr');
             tr.setAttribute('data-id', a.id);
             tr.setAttribute('data-fornecedor-id', a.fornecedor_id);
@@ -5651,7 +5663,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:12px; color:#2AD07A; font-weight:600;">${a.nome_material || '-'}</td>
                 <td style="padding:12px;">${a.responsavel}</td>
                 <td style="padding:12px; text-align:right;">${parseFloat(a.peso_inicial).toFixed(3)} kg</td>
-                <td style="padding:12px; text-align:center;"><span class="badge-status ${statusClass}">${a.status}</span></td>
+                <td style="padding:12px; text-align:center;">${statusBadgeHtml}</td>
                 <td style="padding:12px; text-align:center;">
                     <button class="btn-refresh" style="background:none; border:none; color:#2AD07A;" onclick="window.gerarLaudoPDF(${a.id})" title="Baixar Laudo PDF"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                 </td>
@@ -6819,57 +6831,115 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setTextColor(42, 208, 122);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(9);
-                pdf.text('REGISTRO FOTOGRAFICO DAS ETAPAS DA AMOSTRA', 17, py + 5.5);
+                pdf.text('REGISTRO FOTOGRAFICO E COMPOSICAO POR ETAPA', 17, py + 5.5);
                 py += 14;
 
-                const gridCols = 2;
-                const boxW = 85;
-                const boxH = 65;
-                let col = 0;
                 let curY = py;
+                const cardH = 58;
 
                 for (let i = 0; i < fotosParaRender.length; i++) {
                     const fotoItem = fotosParaRender[i];
-                    const posX = 15 + col * 95;
 
-                    pdf.setFillColor(240, 245, 240);
-                    pdf.setDrawColor(30, 78, 140);
+                    // Se estourar a página, cria uma nova
+                    if (curY + cardH > 260) {
+                        drawFooter(totalPagesCount, totalPagesCount + 1);
+                        pdf.addPage();
+                        totalPagesCount++;
+                        drawWatermark();
+                        drawHeader();
+
+                        curY = 52;
+                        pdf.setFillColor(13, 36, 22);
+                        pdf.rect(15, curY, 180, 8, 'F');
+                        pdf.setTextColor(42, 208, 122);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.setFontSize(9);
+                        pdf.text('REGISTRO FOTOGRAFICO E COMPOSICAO POR ETAPA (CONT.)', 17, curY + 5.5);
+                        curY += 14;
+                    }
+
+                    // Moldura Externa do Cartão (1 foto por linha)
+                    pdf.setFillColor(248, 252, 249);
+                    pdf.setDrawColor(13, 36, 22);
                     pdf.setLineWidth(0.4);
-                    pdf.rect(posX, curY, boxW, boxH, 'FD');
+                    pdf.rect(15, curY, 180, cardH, 'FD');
 
+                    // Lado Esquerdo: Imagem da Foto
+                    pdf.setDrawColor(42, 208, 122);
+                    pdf.setLineWidth(0.3);
+                    pdf.rect(17, curY + 2, 75, cardH - 4);
                     try {
-                        pdf.addImage(fotoItem.src, 'JPEG', posX + 2.5, curY + 2.5, boxW - 5, boxH - 12, '', 'FAST');
+                        pdf.addImage(fotoItem.src, 'JPEG', 18, curY + 3, 73, cardH - 6, '', 'FAST');
                     } catch(e) {
                         try {
-                            pdf.addImage(fotoItem.src, 'PNG', posX + 2.5, curY + 2.5, boxW - 5, boxH - 12, '', 'FAST');
+                            pdf.addImage(fotoItem.src, 'PNG', 18, curY + 3, 73, cardH - 6, '', 'FAST');
                         } catch(err2) {}
                     }
 
-                    // Badge de Etapa na foto
+                    // Lado Direito: Quadro de Informações Técnicas e Materiais
+                    const infoX = 96;
+
+                    // Badge Cabeçalho da Etapa
                     pdf.setFillColor(13, 36, 22);
-                    pdf.rect(posX + 2.5, curY + boxH - 9.5, boxW - 5, 7, 'F');
+                    pdf.rect(infoX, curY + 2, 97, 7, 'F');
                     pdf.setTextColor(42, 208, 122);
                     pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(7.5);
-                    pdf.text(('ETAPA: ' + fotoItem.etapa).toUpperCase(), posX + 5, curY + boxH - 4.5);
+                    pdf.setFontSize(8);
+                    pdf.text(('ETAPA: ' + fotoItem.etapa).toUpperCase(), infoX + 4, curY + 6.8);
 
-                    col++;
-                    if (col >= gridCols) {
-                        col = 0;
-                        curY += boxH + 10;
-                        if (curY > 230 && i < fotosParaRender.length - 1) {
-                            drawFooter(2, totalPagesCount);
-                            pdf.addPage();
-                            totalPagesCount++;
-                            drawWatermark();
-                            drawHeader();
-                            curY = 52;
+                    let infoY = curY + 13;
+
+                    // Materiais Catalogados
+                    pdf.setTextColor(13, 36, 22);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(7.5);
+                    pdf.text('MATERIAIS IDENTIFICADOS E RENDIMENTO:', infoX, infoY);
+                    infoY += 5;
+
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(50, 50, 50);
+                    pdf.setFontSize(7);
+
+                    if (componentes && componentes.length > 0) {
+                        componentes.slice(0, 3).forEach(c => {
+                            pdf.text(`• ${c.material_nome || 'Material'}: ${parseFloat(c.peso).toLocaleString('pt-BR')} kg (${parseFloat(c.percentual).toFixed(1)}%)`, infoX + 2, infoY);
+                            infoY += 4.5;
+                        });
+                        if (componentes.length > 3) {
+                            pdf.text(`• (+ ${componentes.length - 3} outros materiais componentes)`, infoX + 2, infoY);
+                            infoY += 4.5;
                         }
+                    } else {
+                        pdf.text('• Aguardando desmonte físico de materiais.', infoX + 2, infoY);
+                        infoY += 4.5;
                     }
+
+                    // Observações / Parecer
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(13, 36, 22);
+                    pdf.setFontSize(7.5);
+                    pdf.text('OBSERVACOES DA PECA / FOTO:', infoX, infoY + 1);
+                    infoY += 5.5;
+
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(80, 80, 80);
+                    pdf.setFontSize(7);
+                    const obsTexto = fotoItem.nome ? `Foto: ${fotoItem.nome}. ${amostra.parecer_tecnico || ''}` : (amostra.parecer_tecnico || 'Sem observações registradas.');
+                    pdf.text(pdf.splitTextToSize(obsTexto, 94).slice(0, 2), infoX + 2, infoY);
+
+                    // Rastreabilidade do Lote no Rodapé do Cartão
+                    pdf.setFillColor(230, 242, 234);
+                    pdf.rect(infoX, curY + cardH - 7, 97, 5, 'F');
+                    pdf.setTextColor(10, 80, 40);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(6.5);
+                    pdf.text(`RASTREABILIDADE: LOTE APX-${amostra.numero_amostra} | REGISTRO OK`, infoX + 3, curY + cardH - 3.5);
+
+                    curY += cardH + 6;
                 }
 
                 drawFooter(2, totalPagesCount);
-                // Atualizar o rodape da pagina 1 com o total de paginas correto
+                // Atualizar o rodapé da página 1 com o total de páginas correto
                 pdf.setPage(1);
                 drawFooter(1, totalPagesCount);
             } else {
