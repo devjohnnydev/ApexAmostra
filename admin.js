@@ -6178,10 +6178,14 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarCronometroDisplay();
     };
 
-    // Upload de Fotos Simulado (legado inline de componente - mantido)
+    // Upload de Fotos (redireciona para webcam nativa)
     window.simularUploadFoto = function(idx) {
-        // Redireciona para o painel de fotos
-        document.getElementById('foto-input-bruta').click();
+        if (typeof window.abrirWebcamModal === 'function') {
+            window.abrirWebcamModal('separada', 'Desmonte');
+        } else {
+            const inp = document.getElementById('foto-input-bruta');
+            if (inp) inp.click();
+        }
     };
 
     function atualizarStepperAmostra(status, decisaoDiretoria) {

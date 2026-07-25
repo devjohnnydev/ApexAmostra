@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apextech-v1-cache';
+const CACHE_NAME = 'apextech-v2-cache';
 const ASSETS_TO_CACHE = [
   '/',
   '/admin.html',
@@ -33,6 +33,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) return;
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
@@ -47,7 +49,7 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       }).catch(() => {
         // Fallback quando offline
-        if (event.request.headers.get('accept').includes('text/html')) {
+        if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
           return caches.match('/admin.html');
         }
       });
