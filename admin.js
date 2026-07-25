@@ -7102,6 +7102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
             y += 12;
 
+            // Cabeçalho da Tabela de Componentes
             pdf.setFillColor(20, 60, 35);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -7110,43 +7111,48 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('Peso Liq.', 110, y + 4.8);
             pdf.text('Rendimento', 145, y + 4.8);
             pdf.text('Dificuldade', 170, y + 4.8);
-            y += 8;
+            y += 8.5; // Avança Y completamente para baixo do cabeçalho
 
             let sumPeso = 0;
             pdf.setFont('helvetica', 'normal');
-            componentes.forEach((c, idx) => {
-                checarNovaPagina(8);
-                if (idx % 2 === 0) {
-                    pdf.setFillColor(238, 250, 242);
-                    pdf.rect(15, y - 4, 180, 7, 'F');
-                }
-                pdf.setTextColor(50, 50, 50);
-                pdf.setFontSize(8.5);
-                pdf.text((c.material_nome || '?') + ' (' + (c.material_categoria || '') + ')', 18, y);
-                pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, y);
-                pdf.text(fmtBRL(c.percentual) + ' %', 148, y);
-                if (c.dificuldade) {
-                    const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Média' ? [180,130,0] : [30,130,60];
-                    pdf.setTextColor(...dc);
-                    pdf.setFontSize(7.5);
-                    pdf.text(c.dificuldade, 172, y);
-                }
-                sumPeso += parseFloat(c.peso);
-                y += 7;
-            });
 
-            // Linha de Perda Física
-            const perda = parseFloat(amostra.peso_inicial) - sumPeso;
-            const pctPerda = parseFloat(amostra.peso_inicial) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
+            if (componentes && componentes.length > 0) {
+                componentes.forEach((c, idx) => {
+                    checarNovaPagina(8);
+                    if (idx % 2 === 0) {
+                        pdf.setFillColor(238, 250, 242);
+                        pdf.rect(15, y, 180, 7, 'F');
+                    }
+                    pdf.setTextColor(50, 50, 50);
+                    pdf.setFontSize(8.5);
+                    pdf.text((c.material_nome || '?') + ' (' + (c.material_categoria || '') + ')', 18, y + 4.8);
+                    pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, y + 4.8);
+                    pdf.text(fmtBRL(c.percentual) + ' %', 148, y + 4.8);
+                    if (c.dificuldade) {
+                        const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Média' ? [180,130,0] : [30,130,60];
+                        pdf.setTextColor(...dc);
+                        pdf.setFontSize(7.5);
+                        pdf.text(c.dificuldade, 172, y + 4.8);
+                    }
+                    sumPeso += parseFloat(c.peso);
+                    y += 7.5;
+                });
+            }
+
+            // Linha de Perda Física (sempre posicionada abaixo do último item ou do cabeçalho sem sobreposição)
+            checarNovaPagina(8);
+            const perda = parseFloat(amostra.peso_inicial || 0) - sumPeso;
+            const pctPerda = parseFloat(amostra.peso_inicial || 0) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
+            
             pdf.setFillColor(255, 240, 240);
-            pdf.rect(15, y - 4, 180, 7, 'F');
+            pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(180, 40, 40);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('Resíduos Industriais / Perda Física', 18, y);
-            pdf.text((perda > 0 ? perda : 0).toLocaleString('pt-BR') + ' kg', 110, y);
-            pdf.text(fmtBRL(pctPerda > 0 ? pctPerda : 0) + ' %', 148, y);
-            y += 10;
+            pdf.text('Resíduos Industriais / Perda Física', 18, y + 4.8);
+            pdf.text((perda > 0 ? perda : 0).toLocaleString('pt-BR') + ' kg', 110, y + 4.8);
+            pdf.text(fmtBRL(pctPerda > 0 ? pctPerda : 0) + ' %', 148, y + 4.8);
+            y += 11;
 
             // Consolidação química
             checarNovaPagina(20);
