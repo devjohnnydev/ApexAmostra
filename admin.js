@@ -6772,10 +6772,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             const { amostra, componentes } = data;
 
-            const resPlan = await fetch('/api/planejamento-compras');
-            const planList = await resPlan.json();
-            const lote = planList.find(x => x.amostra_id === amostra.id);
-
             // Carregar dados completos do Fornecedor vinculado
             let fornecedorObj = null;
             try {
@@ -6815,34 +6811,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     reader.readAsDataURL(wBlob);
                 });
             } catch(e) {
-                console.warn('Watermark logo (2).png não carregado, usando fallback:', e);
+                console.warn('Watermark logo (2).png não carregado:', e);
                 watermarkBase64 = logoBase64;
             }
 
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
+            let currentPageNum = 1;
 
             function drawWatermark() {
                 if (watermarkBase64) {
                     try {
                         pdf.saveGraphicsState();
                         pdf.setGState(new pdf.GState({ opacity: 0.09 }));
-                        // Marca d'água grande e centralizada cobrindo o meio da página em A4 (210x297mm)
                         pdf.addImage(watermarkBase64, 'PNG', 25, 60, 160, 160, '', 'FAST');
                         pdf.restoreGraphicsState();
                     } catch(e) { console.warn(e); }
-                } else {
-                    pdf.saveGraphicsState();
-                    pdf.setGState(new pdf.GState({ opacity: 0.04 }));
-                    pdf.setTextColor(42, 208, 122);
-                    pdf.setFontSize(42);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('APEXTECH METAIS', 105, 195, { angle: 45, align: 'center' });
-                    pdf.restoreGraphicsState();
                 }
             }
 
-            function drawFooter(pageNum, totalPages = 1) {
+            function drawFooter(pageNum = 1) {
                 pdf.setFillColor(13, 36, 22);
                 pdf.rect(0, 283, 210, 14, 'F');
                 pdf.setFillColor(42, 208, 122);
@@ -6855,7 +6843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setTextColor(140, 210, 160);
                 pdf.text('Tecnologia e Sustentabilidade na Reciclagem de Metais', 60, 289);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('Página ' + pageNum + ' de ' + totalPages, 195, 289, { align: 'right' });
+                pdf.text('Página ' + pageNum, 195, 289, { align: 'right' });
                 pdf.setFontSize(7);
                 pdf.setTextColor(120, 180, 140);
                 pdf.text('Laudo No. APX-' + (amostra.numero_amostra || '') + '  |  ' + new Date().toLocaleDateString('pt-BR'), 15, 293);
@@ -6889,7 +6877,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setFont('helvetica', 'normal');
                 pdf.setFontSize(8);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('EMISSAO: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
+                pdf.text('EMISSÃO: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
                 const decStatus = amostra.decisao_diretoria || 'AGUARDANDO';
                 const sc = decStatus === 'Aprovado' ? [42, 208, 122] : decStatus === 'Reprovado' ? [255, 80, 80] : [220, 200, 60];
                 pdf.setTextColor(...sc);
@@ -6897,13 +6885,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.text(decStatus.toUpperCase(), 195, 26, { align: 'right' });
             }
 
-            // === PÁGINA 1: DADOS GERAIS E LAUDO DE ANÁLISE ===
+            function checarNovaPagina(necessarioMm = 20) {
+                if (y + necessarioMm > 275) {
+                    drawFooter(currentPageNum);
+                    pdf.addPage();
+                    currentPageNum++;
+                    drawWatermark();
+                    drawHeader();
+                    y = 50;
+                }
+            }
+
             drawWatermark();
             drawHeader();
 
-            let y = 52;
+            let y = 50;
 
-            // Bloco de Dados do Fornecedor e Lote
+            // ─── SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ─────────
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -6977,19 +6975,131 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             y += 2;
 
-            // Divisor
             pdf.setDrawColor(42, 208, 122);
             pdf.setLineWidth(0.5);
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // Tabela de componentes
+            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO E COMPOSIÇÃO POR ETAPA ──────────────
+            checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RESULTADO DA ANALISE FISICA E DESMONTE', 17, y + 5.5);
+            pdf.text('REGISTRO FOTOGRÁFICO E COMPOSIÇÃO POR ETAPA', 17, y + 5.5);
+            y += 12;
+
+            const fotosParaRender = [];
+            if (amostra.foto_original) {
+                fotosParaRender.push({ etapa: 'Recebimento', src: amostra.foto_original, nome: 'Foto Lote Bruto Recebido' });
+            }
+
+            for (const f of fotosAmostraList) {
+                try {
+                    const imgUrl = `/api/amostras/${amostraId}/fotos/${f.id}/img`;
+                    const imgRes = await fetch(imgUrl);
+                    if (imgRes.ok) {
+                        const imgBlob = await imgRes.blob();
+                        const b64 = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.readAsDataURL(imgBlob);
+                        });
+                        fotosParaRender.push({ etapa: f.etapa || 'Desmonte', src: b64, nome: f.nome });
+                    }
+                } catch(e) { console.warn('Erro ao carregar imagem para PDF:', e); }
+            }
+
+            if (fotosParaRender.length > 0) {
+                const cardH = 55;
+                for (let i = 0; i < fotosParaRender.length; i++) {
+                    const fotoItem = fotosParaRender[i];
+                    checarNovaPagina(cardH + 8);
+
+                    // Moldura Externa do Cartão de Foto por Linha
+                    pdf.setFillColor(248, 252, 249);
+                    pdf.setDrawColor(13, 36, 22);
+                    pdf.setLineWidth(0.4);
+                    pdf.rect(15, y, 180, cardH, 'FD');
+
+                    // Foto à Esquerda (70x49mm)
+                    pdf.setDrawColor(42, 208, 122);
+                    pdf.setLineWidth(0.3);
+                    pdf.rect(17, y + 3, 70, cardH - 6);
+                    try {
+                        pdf.addImage(fotoItem.src, 'JPEG', 18, y + 4, 68, cardH - 8, '', 'FAST');
+                    } catch(e) {
+                        try { pdf.addImage(fotoItem.src, 'PNG', 18, y + 4, 68, cardH - 8, '', 'FAST'); } catch(err2) {}
+                    }
+
+                    // Detalhes Técnicos da Etapa à Direita
+                    const infoX = 92;
+                    pdf.setFillColor(13, 36, 22);
+                    pdf.rect(infoX, y + 3, 100, 7, 'F');
+                    pdf.setTextColor(42, 208, 122);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(8);
+                    pdf.text(`ETAPA ${i+1}: ${fotoItem.etapa.toUpperCase()}`, infoX + 4, y + 7.8);
+
+                    let infoY = y + 14;
+                    pdf.setTextColor(13, 36, 22);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(7.5);
+                    pdf.text('MATERIAIS IDENTIFICADOS NA ETAPA:', infoX, infoY);
+                    infoY += 5;
+
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(50, 50, 50);
+                    pdf.setFontSize(7);
+
+                    if (componentes && componentes.length > 0) {
+                        componentes.slice(0, 3).forEach(c => {
+                            pdf.text(`• ${c.material_nome || 'Material'}: ${parseFloat(c.peso).toLocaleString('pt-BR')} kg (${parseFloat(c.percentual).toFixed(1)}%)`, infoX + 2, infoY);
+                            infoY += 4.5;
+                        });
+                    } else {
+                        pdf.text('• Lote em fase inicial de triagem e pesagem.', infoX + 2, infoY);
+                        infoY += 4.5;
+                    }
+
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(13, 36, 22);
+                    pdf.setFontSize(7.5);
+                    pdf.text('OBSERVAÇÕES DA ETAPA:', infoX, infoY + 1);
+                    infoY += 5.5;
+
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(80, 80, 80);
+                    pdf.setFontSize(7);
+                    const obsTexto = fotoItem.nome ? `Foto: ${fotoItem.nome}. ${amostra.parecer_tecnico || ''}` : (amostra.parecer_tecnico || 'Sem observações registradas.');
+                    pdf.text(pdf.splitTextToSize(obsTexto, 98).slice(0, 2), infoX + 2, infoY);
+
+                    pdf.setFillColor(230, 242, 234);
+                    pdf.rect(infoX, y + cardH - 7, 100, 5, 'F');
+                    pdf.setTextColor(10, 80, 40);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(6.5);
+                    pdf.text(`RASTREABILIDADE: LOTE APX-${amostra.numero_amostra} | FOTO OK`, infoX + 3, y + cardH - 3.5);
+
+                    y += cardH + 6;
+                }
+            } else {
+                pdf.setFont('helvetica', 'italic');
+                pdf.setFontSize(8);
+                pdf.setTextColor(120, 120, 120);
+                pdf.text('Nenhum registro fotográfico anexado até o momento.', 17, y);
+                y += 8;
+            }
+
+            // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
+            checarNovaPagina(40);
+            pdf.setFillColor(13, 36, 22);
+            pdf.rect(15, y, 180, 8, 'F');
+            pdf.setTextColor(42, 208, 122);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(9);
+            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
             y += 12;
 
             pdf.setFillColor(20, 60, 35);
@@ -7005,6 +7115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let sumPeso = 0;
             pdf.setFont('helvetica', 'normal');
             componentes.forEach((c, idx) => {
+                checarNovaPagina(8);
                 if (idx % 2 === 0) {
                     pdf.setFillColor(238, 250, 242);
                     pdf.rect(15, y - 4, 180, 7, 'F');
@@ -7015,7 +7126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, y);
                 pdf.text(fmtBRL(c.percentual) + ' %', 148, y);
                 if (c.dificuldade) {
-                    const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Media' ? [180,130,0] : [30,130,60];
+                    const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Média' ? [180,130,0] : [30,130,60];
                     pdf.setTextColor(...dc);
                     pdf.setFontSize(7.5);
                     pdf.text(c.dificuldade, 172, y);
@@ -7024,7 +7135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 y += 7;
             });
 
-            // Linha de perda
+            // Linha de Perda Física
             const perda = parseFloat(amostra.peso_inicial) - sumPeso;
             const pctPerda = parseFloat(amostra.peso_inicial) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
             pdf.setFillColor(255, 240, 240);
@@ -7032,18 +7143,19 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(180, 40, 40);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('Residuos Industriais / Perda Fisica', 18, y);
-            pdf.text(perda.toLocaleString('pt-BR') + ' kg', 110, y);
-            pdf.text(fmtBRL(pctPerda) + ' %', 148, y);
+            pdf.text('Resíduos Industriais / Perda Física', 18, y);
+            pdf.text((perda > 0 ? perda : 0).toLocaleString('pt-BR') + ' kg', 110, y);
+            pdf.text(fmtBRL(pctPerda > 0 ? pctPerda : 0) + ' %', 148, y);
             y += 10;
 
             // Consolidação química
+            checarNovaPagina(20);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 15, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('COMPOSICAO CONSOLIDADA:', 18, y + 5);
+            pdf.text('COMPOSIÇÃO CONSOLIDADA / FÓRMULA QUÍMICA:', 18, y + 5);
             pdf.setFont('courier', 'normal');
             pdf.setTextColor(170, 255, 200);
             pdf.setFontSize(7.5);
@@ -7051,23 +7163,14 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 11);
             y += 19;
 
-            if (amostra.tempo_desmonte) {
-                const min = Math.floor(parseInt(amostra.tempo_desmonte) / 60);
-                const seg = parseInt(amostra.tempo_desmonte) % 60;
-                pdf.setTextColor(13, 90, 40);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(8.5);
-                pdf.text('Tempo de Desmonte: ' + String(min).padStart(2,'0') + 'h ' + String(seg).padStart(2,'0') + 'min', 17, y);
-                y += 7;
-            }
-
-            // Pareceres
+            // ─── SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA ───────────────────
+            checarNovaPagina(45);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('PARECERES TECNICO E DECISAO DE COMPRA', 17, y + 5);
+            pdf.text('PARECERES TÉCNICO E DECISÃO DE COMPRA', 17, y + 5);
             y += 10;
 
             // Parecer técnico
@@ -7081,10 +7184,10 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(10, 70, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text('PARECER TECNICO (LABORATORIO):', 22, y + 5);
+            pdf.text('PARECER TÉCNICO (LABORATÓRIO):', 22, y + 5);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
-            const pt = amostra.parecer_tecnico || '(nao preenchido)';
+            const pt = amostra.parecer_tecnico || '(sem observações informadas)';
             pdf.text(pdf.splitTextToSize(pt, 168).slice(0, 2), 22, y + 11);
             y += 22;
 
@@ -7105,7 +7208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(...txtDec);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('DECISAO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
+            pdf.text('DECISÃO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
             pdf.setFontSize(8);
@@ -7117,183 +7220,63 @@ document.addEventListener('DOMContentLoaded', () => {
             if (amostra.motivo_reprovacao) {
                 pdf.setTextColor(160, 30, 30);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Motivo da Reprovacao: ' + amostra.motivo_reprovacao, 22, dy);
+                pdf.text('Motivo da Reprovação: ' + amostra.motivo_reprovacao, 22, dy);
                 dy += 5;
             }
             if (decAprovada && amostra.preco_compra_entregar) {
                 pdf.setTextColor(10, 100, 40);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Preco Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
+                pdf.text('Preço Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
                 dy += 5;
             }
             y += 28;
 
-            // Assinaturas e Rodapé da Página 1
-            const sigY = 258;
-            pdf.setDrawColor(80, 160, 100);
+            // ─── SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA ────────
+            checarNovaPagina(40);
+            pdf.setFillColor(13, 36, 22);
+            pdf.rect(15, y, 180, 7, 'F');
+            pdf.setTextColor(42, 208, 122);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8.5);
+            pdf.text('ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA', 17, y + 5);
+            y += 12;
+
+            const sigBoxWidth = 85;
+            const sigY = y;
+
+            // Assinatura Técnico Executor
+            pdf.setDrawColor(42, 140, 80);
             pdf.setLineWidth(0.4);
-            pdf.line(17, sigY, 97, sigY);
-            pdf.line(115, sigY, 195, sigY);
-            pdf.setTextColor(80, 80, 80);
+            pdf.line(17, sigY + 12, 17 + sigBoxWidth, sigY + 12);
+            pdf.setTextColor(30, 30, 30);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8);
+            pdf.text((amostra.tecnico_analise || amostra.responsavel || 'Analista de Laboratório').toUpperCase(), 17, sigY + 16);
             pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(7.5);
-            pdf.text('RESPONSAVEL TECNICO / ANALISTA', 20, sigY + 4);
-            pdf.text('DIRETOR / APROVADOR ADM', 120, sigY + 4);
+            pdf.setTextColor(100, 100, 100);
             pdf.setFontSize(7);
-            pdf.setTextColor(130, 130, 130);
-            pdf.text('Laudo gerado com marca d\'água de autenticidade APEXTECH METAIS.', 15, sigY + 12);
+            pdf.text('Perfil: Técnico Responsável / Laboratório', 17, sigY + 20);
+            pdf.text('Status Execução: Desmonte e Triagem OK', 17, sigY + 24);
 
-            let totalPagesCount = 1;
+            // Assinatura Diretoria / Aprovador
+            const dirX = 110;
+            pdf.setDrawColor(42, 140, 80);
+            pdf.setLineWidth(0.4);
+            pdf.line(dirX, sigY + 12, dirX + sigBoxWidth, sigY + 12);
+            pdf.setTextColor(30, 30, 30);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8);
+            pdf.text((amostra.autorizado_por || 'Diretoria ApexTech').toUpperCase(), dirX, sigY + 16);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(100, 100, 100);
+            pdf.setFontSize(7);
+            pdf.text('Perfil: Diretoria / Autorização Estratégica', dirX, sigY + 20);
+            pdf.text('Decisão: ' + (amostra.decisao_diretoria || 'Aguardando'), dirX, sigY + 24);
 
-            // === PÁGINA 2: REGISTRO FOTOGRÁFICO DAS ETAPAS DA AMOSTRA ===
-            // Carregar imagens das fotos enviadas para incluir na galeria do PDF
-            const fotosParaRender = [];
-            if (amostra.foto_original) {
-                fotosParaRender.push({ etapa: 'Recebimento', src: amostra.foto_original });
-            }
+            y += 30;
 
-            for (const f of fotosAmostraList) {
-                try {
-                    const imgUrl = `/api/amostras/${amostraId}/fotos/${f.id}/img`;
-                    const imgRes = await fetch(imgUrl);
-                    if (imgRes.ok) {
-                        const imgBlob = await imgRes.blob();
-                        const b64 = await new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => resolve(reader.result);
-                            reader.readAsDataURL(imgBlob);
-                        });
-                        fotosParaRender.push({ etapa: f.etapa || 'Recebimento', src: b64, nome: f.nome });
-                    }
-                } catch(e) { console.warn('Erro ao carregar imagem para PDF:', e); }
-            }
-
-            if (fotosParaRender.length > 0) {
-                totalPagesCount = 2;
-                pdf.addPage();
-                drawWatermark();
-                drawHeader();
-
-                let py = 52;
-                pdf.setFillColor(13, 36, 22);
-                pdf.rect(15, py, 180, 8, 'F');
-                pdf.setTextColor(42, 208, 122);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9);
-                pdf.text('REGISTRO FOTOGRAFICO E COMPOSICAO POR ETAPA', 17, py + 5.5);
-                py += 14;
-
-                let curY = py;
-                const cardH = 58;
-
-                for (let i = 0; i < fotosParaRender.length; i++) {
-                    const fotoItem = fotosParaRender[i];
-
-                    // Se estourar a página, cria uma nova
-                    if (curY + cardH > 260) {
-                        drawFooter(totalPagesCount, totalPagesCount + 1);
-                        pdf.addPage();
-                        totalPagesCount++;
-                        drawWatermark();
-                        drawHeader();
-
-                        curY = 52;
-                        pdf.setFillColor(13, 36, 22);
-                        pdf.rect(15, curY, 180, 8, 'F');
-                        pdf.setTextColor(42, 208, 122);
-                        pdf.setFont('helvetica', 'bold');
-                        pdf.setFontSize(9);
-                        pdf.text('REGISTRO FOTOGRAFICO E COMPOSICAO POR ETAPA (CONT.)', 17, curY + 5.5);
-                        curY += 14;
-                    }
-
-                    // Moldura Externa do Cartão (1 foto por linha)
-                    pdf.setFillColor(248, 252, 249);
-                    pdf.setDrawColor(13, 36, 22);
-                    pdf.setLineWidth(0.4);
-                    pdf.rect(15, curY, 180, cardH, 'FD');
-
-                    // Lado Esquerdo: Imagem da Foto
-                    pdf.setDrawColor(42, 208, 122);
-                    pdf.setLineWidth(0.3);
-                    pdf.rect(17, curY + 2, 75, cardH - 4);
-                    try {
-                        pdf.addImage(fotoItem.src, 'JPEG', 18, curY + 3, 73, cardH - 6, '', 'FAST');
-                    } catch(e) {
-                        try {
-                            pdf.addImage(fotoItem.src, 'PNG', 18, curY + 3, 73, cardH - 6, '', 'FAST');
-                        } catch(err2) {}
-                    }
-
-                    // Lado Direito: Quadro de Informações Técnicas e Materiais
-                    const infoX = 96;
-
-                    // Badge Cabeçalho da Etapa
-                    pdf.setFillColor(13, 36, 22);
-                    pdf.rect(infoX, curY + 2, 97, 7, 'F');
-                    pdf.setTextColor(42, 208, 122);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(8);
-                    pdf.text(('ETAPA: ' + fotoItem.etapa).toUpperCase(), infoX + 4, curY + 6.8);
-
-                    let infoY = curY + 13;
-
-                    // Materiais Catalogados
-                    pdf.setTextColor(13, 36, 22);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(7.5);
-                    pdf.text('MATERIAIS IDENTIFICADOS E RENDIMENTO:', infoX, infoY);
-                    infoY += 5;
-
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.setTextColor(50, 50, 50);
-                    pdf.setFontSize(7);
-
-                    if (componentes && componentes.length > 0) {
-                        componentes.slice(0, 3).forEach(c => {
-                            pdf.text(`• ${c.material_nome || 'Material'}: ${parseFloat(c.peso).toLocaleString('pt-BR')} kg (${parseFloat(c.percentual).toFixed(1)}%)`, infoX + 2, infoY);
-                            infoY += 4.5;
-                        });
-                        if (componentes.length > 3) {
-                            pdf.text(`• (+ ${componentes.length - 3} outros materiais componentes)`, infoX + 2, infoY);
-                            infoY += 4.5;
-                        }
-                    } else {
-                        pdf.text('• Aguardando desmonte físico de materiais.', infoX + 2, infoY);
-                        infoY += 4.5;
-                    }
-
-                    // Observações / Parecer
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setTextColor(13, 36, 22);
-                    pdf.setFontSize(7.5);
-                    pdf.text('OBSERVACOES DA PECA / FOTO:', infoX, infoY + 1);
-                    infoY += 5.5;
-
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.setTextColor(80, 80, 80);
-                    pdf.setFontSize(7);
-                    const obsTexto = fotoItem.nome ? `Foto: ${fotoItem.nome}. ${amostra.parecer_tecnico || ''}` : (amostra.parecer_tecnico || 'Sem observações registradas.');
-                    pdf.text(pdf.splitTextToSize(obsTexto, 94).slice(0, 2), infoX + 2, infoY);
-
-                    // Rastreabilidade do Lote no Rodapé do Cartão
-                    pdf.setFillColor(230, 242, 234);
-                    pdf.rect(infoX, curY + cardH - 7, 97, 5, 'F');
-                    pdf.setTextColor(10, 80, 40);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(6.5);
-                    pdf.text(`RASTREABILIDADE: LOTE APX-${amostra.numero_amostra} | REGISTRO OK`, infoX + 3, curY + cardH - 3.5);
-
-                    curY += cardH + 6;
-                }
-
-                drawFooter(2, totalPagesCount);
-                // Atualizar o rodapé da página 1 com o total de páginas correto
-                pdf.setPage(1);
-                drawFooter(1, totalPagesCount);
-            } else {
-                drawFooter(1, 1);
-            }
+            // Rodapé final com total de páginas
+            drawFooter(currentPageNum);
 
             pdf.save('LAUDO_APEXTECH_' + (amostra.numero_amostra || 'PDF') + '.pdf');
 
