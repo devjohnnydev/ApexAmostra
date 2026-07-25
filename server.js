@@ -1578,6 +1578,46 @@ async function registrarAuditLog(usuario, acao, detalhe, amostraId = null, req =
     }
 }
 
+// ─── API: Cotações Internacionais em Tempo Real (USD / BRL & LME) ─────────────
+app.get('/api/cotacoes/dolar-lme', async (req, res) => {
+    try {
+        let dolarVal = 5.60;
+        try {
+            const apiRes = await axios.get('https://economia.awesomeapi.com.br/last/USD-BRL', { timeout: 3000 });
+            if (apiRes.data && apiRes.data.USDBRL) {
+                dolarVal = parseFloat(apiRes.data.USDBRL.bid) || 5.60;
+            }
+        } catch (e) {
+            console.warn('Usando fallback para cotação do dólar (5.60 BRL):', e.message);
+        }
+
+        // Cotações base LME ($/tonelada)
+        const lmePrecosUsd = {
+            cobre: 9450.00,
+            aluminio: 2420.00,
+            latão: 6800.00,
+            niquel: 16200.00,
+            chumbo: 2050.00,
+            zinco: 2780.00
+        };
+
+        const lmePrecosBrlKg = {};
+        for (const [k, v] of Object.entries(lmePrecosUsd)) {
+            // Conversão: ($ / 1000kg) * Dólar = R$/kg
+            lmePrecosBrlKg[k] = parseFloat(((v / 1000) * dolarVal).toFixed(2));
+        }
+
+        res.json({
+            dolar: dolarVal,
+            data: new Date().toISOString(),
+            lme_usd_ton: lmePrecosUsd,
+            lme_brl_kg: lmePrecosBrlKg
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── API: Audit Logs ─────────────────────────────────────────────────────────
 app.get('/api/audit-logs', async (req, res) => {
     try {

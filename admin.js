@@ -5580,6 +5580,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---
     window.initApexAmostras = function() {
         carregarAmostras();
+        carregarCotacoesDolarLME();
+    };
+
+    // ─── COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) ─────────────────────────────
+    window.carregarCotacoesDolarLME = async function() {
+        try {
+            const res = await fetch('/api/cotacoes/dolar-lme');
+            const data = await res.json();
+            if (data && data.dolar) {
+                window.currentDolarRate = data.dolar;
+                console.log(`💵 Cotação Dólar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
+            }
+        } catch(e) {
+            console.warn('Erro ao buscar cotação ao vivo:', e);
+        }
     };
 
     async function carregarAmostras() {

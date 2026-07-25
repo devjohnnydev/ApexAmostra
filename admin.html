@@ -13,6 +13,29 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d2416">
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #etiqueta-print-area, #etiqueta-print-area * { visibility: visible; }
+            #etiqueta-print-area {
+                position: absolute; left: 0; top: 0;
+                width: 100mm !important; height: 50mm !important;
+                margin: 0 !important; padding: 5mm !important;
+                border: none !important; box-shadow: none !important;
+            }
+        }
+    </style>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('PWA ServiceWorker registrado com sucesso:', reg.scope))
+                    .catch(err => console.warn('Erro ao registrar ServiceWorker:', err));
+            });
+        }
+    </script>
 </head>
 <body>
     <!-- Login Overlay -->
