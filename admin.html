@@ -1698,13 +1698,18 @@
                             <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px;">Tire fotos do lote bruto no momento do recebimento e verifique o peso inicial recebido.</p>
                             
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-                                <label class="btn-secondary" style="cursor:pointer; font-size:0.85rem; padding:8px 14px; display:inline-flex; align-items:center; gap:6px; background:#1e3a5f; color:#fff;" title="Etapa 1: Foto do lote original recebido">
-                                    <i class="fa-solid fa-camera"></i> Anexar Foto do Lote Bruto
-                                    <input type="file" id="foto-input-recebimento" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'bruta','Recebimento')">
-                                </label>
-                                <span id="foto-input-spinner" style="display:none; color:#2AD07A; font-size:0.85rem; align-items:center; gap:6px;">
-                                    <i class="fa-solid fa-spinner fa-spin"></i> Enviando foto...
-                                </span>
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                    <label class="btn-secondary" style="cursor:pointer; font-size:0.85rem; padding:8px 14px; display:inline-flex; align-items:center; gap:6px; background:#1e3a5f; color:#fff;" title="Etapa 1: Foto do lote original recebido">
+                                        <i class="fa-solid fa-upload"></i> Anexar Foto do Lote Bruto
+                                        <input type="file" id="foto-input-recebimento" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'bruta','Recebimento')">
+                                    </label>
+                                    <button type="button" class="btn-primary" style="background:#2AD07A; color:#000; font-weight:bold; padding:8px 14px; font-size:0.85rem;" onclick="abrirWebcamModal('bruta', 'Recebimento')">
+                                        <i class="fa-solid fa-camera"></i> Capturar Foto com Webcam ao Vivo
+                                    </button>
+                                    <span id="foto-input-spinner" style="display:none; color:#2AD07A; font-size:0.85rem; align-items:center; gap:6px;">
+                                        <i class="fa-solid fa-spinner fa-spin"></i> Enviando foto...
+                                    </span>
+                                </div>
                             </div>
 
                             <div id="fotos-gallery" style="display:flex; flex-wrap:wrap; gap:12px; min-height:80px; align-items:flex-start; margin-bottom:20px;">
@@ -1730,22 +1735,25 @@
                             <h3 style="margin-top:0; color:#f0c040;"><i class="fa-solid fa-screwdriver-wrench"></i> TELA 2 — Triagem Física & Desmonte de Componentes</h3>
                             <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px;">Separe as partes do lote, pesando cada tipo de material extraído após a desmontagem.</p>
 
-                            <div style="display:flex; gap:8px; margin-bottom:15px;">
-                                <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1e3a5f; color:#fff;">
-                                    <i class="fa-solid fa-camera"></i> Foto da Peça Desmontada
+                            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                <label class="btn-secondary" style="cursor:pointer; font-size:0.85rem; padding:8px 14px; display:inline-flex; align-items:center; gap:6px; background:#1e3a5f; color:#fff;">
+                                    <i class="fa-solid fa-upload"></i> Anexar Foto da Peça
                                     <input type="file" id="foto-input-desmonte" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'separada','Desmonte')">
                                 </label>
+                                <button type="button" class="btn-primary" style="background:#2AD07A; color:#000; font-weight:bold; padding:8px 14px; font-size:0.85rem;" onclick="abrirWebcamModal('separada', 'Desmonte')">
+                                    <i class="fa-solid fa-camera"></i> Capturar Foto Peça com Webcam
+                                </button>
                             </div>
 
                             <table class="admin-table" style="width:100%; border-collapse:collapse; margin-bottom:15px;">
                                 <thead>
                                     <tr style="background:#1b2d3d; text-align:left;">
-                                        <th style="padding:10px; font-size:0.8rem;">Material Catalisado</th>
-                                        <th style="padding:10px; text-align:right; width:130px; font-size:0.8rem;">Peso (kg)</th>
-                                        <th style="padding:10px; text-align:right; width:100px; font-size:0.8rem;">Rend (%)</th>
-                                        <th style="padding:10px; width:120px; font-size:0.8rem;">Dificuldade</th>
-                                        <th style="padding:10px; width:150px; font-size:0.8rem;">Foto URL / Mock</th>
-                                        <th style="padding:10px; font-size:0.8rem;">Observações</th>
+                                        <th style="padding:10px; font-size:0.85rem;">Material Catalisado (Seleção ou Novo)</th>
+                                        <th style="padding:10px; text-align:right; width:130px; font-size:0.85rem;">Peso (kg)</th>
+                                        <th style="padding:10px; text-align:right; width:100px; font-size:0.85rem;">Rend (%)</th>
+                                        <th style="padding:10px; width:120px; font-size:0.85rem;">Dificuldade</th>
+                                        <th style="padding:10px; width:150px; font-size:0.85rem;">Foto URL / Mock</th>
+                                        <th style="padding:10px; font-size:0.85rem;">Observações</th>
                                         <th style="padding:10px; text-align:center; width:40px;">-</th>
                                     </tr>
                                 </thead>
@@ -1753,7 +1761,7 @@
                                     <!-- Dynamic rows -->
                                 </tbody>
                             </table>
-                            <button class="btn-secondary" onclick="adicionarLinhaComponente()"><i class="fa-solid fa-plus"></i> Adicionar Componente</button>
+                            <button class="btn-secondary" style="padding:10px 16px; font-size:0.9rem;" onclick="adicionarLinhaComponente()"><i class="fa-solid fa-plus"></i> Adicionar Componente</button>
 
                             <div style="display:flex; justify-content:space-between; border-top:1px solid #223547; padding-top:15px; margin-top:20px;">
                                 <button type="button" class="btn-secondary" onclick="mudarTelaEtapa(1)"><i class="fa-solid fa-arrow-left"></i> Voltar Tela 1</button>
@@ -1808,18 +1816,21 @@
                                 </div>
                             </div>
 
-                            <div style="background:rgba(62,124,177,0.07); border:1.5px solid #1e4e8c; border-radius:8px; padding:15px; margin-bottom:15px;">
-                                <h4 style="margin:0 0 10px; color:#3e7cb1; border-bottom:1px solid #1e4e8c; padding-bottom:8px;">
-                                    <i class="fa-solid fa-microscope"></i> Parecer Técnico do Laboratório
+                            <div style="background:rgba(62,124,177,0.07); border:1.5px solid #1e4e8c; border-radius:8px; padding:18px; margin-bottom:15px;">
+                                <h4 style="margin:0 0 10px; color:#3e7cb1; border-bottom:1px solid #1e4e8c; padding-bottom:8px; font-size:1.05rem;">
+                                    <i class="fa-solid fa-microscope"></i> Parecer Técnico e Observações do Laboratório
                                 </h4>
-                                <div class="form-group" style="margin-bottom:12px;">
-                                    <textarea id="analise-parecer-tecnico" class="noble-input" rows="3" style="height:auto; font-size:0.85rem;" placeholder="Descreva o estado do material, dificuldades no desmonte, contaminações e observações relevantes..."></textarea>
+                                <div class="form-group" style="margin-bottom:14px;">
+                                    <textarea id="analise-parecer-tecnico" class="noble-input" rows="5" style="height:auto; font-size:0.95rem; line-height:1.5; padding:12px;" placeholder="Descreva detalhadamente o estado do material, composição observada, contaminações, nível de dificuldade e recomendações técnicas..."></textarea>
                                 </div>
-                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <button class="btn-primary" style="flex:1; min-width:180px; background:#2AD07A; color:#000; font-weight:bold;" onclick="salvarAnaliseLaboratorial()">
-                                        <i class="fa-solid fa-paper-plane"></i> Salvar e Enviar para Diretoria
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                    <button class="btn-primary" style="flex:1; min-width:200px; background:#2AD07A; color:#000; font-weight:bold; padding:12px; font-size:0.95rem;" onclick="salvarAnaliseLaboratorial()">
+                                        <i class="fa-solid fa-paper-plane"></i> Finalizar Desmonte e Enviar para Diretoria
                                     </button>
-                                    <button class="btn-secondary" onclick="window.gerarLaudoPDF()" style="min-width:150px;">
+                                    <button type="button" class="btn-primary" style="background:#1e4e8c; color:#fff; padding:12px 18px; font-size:0.9rem;" onclick="abrirWebcamModal('componente', 'Viabilidade')">
+                                        <i class="fa-solid fa-camera"></i> Foto Webcam
+                                    </button>
+                                    <button class="btn-secondary" onclick="window.gerarLaudoPDF()" style="min-width:150px; padding:12px; font-size:0.9rem;">
                                         <i class="fa-solid fa-file-pdf"></i> Imprimir Laudo
                                     </button>
                                 </div>
@@ -3503,6 +3514,39 @@
                     <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Pedido</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL WEBCAM AO VIVO EM TEMPO REAL -->
+    <div id="modal-webcam-capture" class="fullscreen-overlay" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); z-index: 99999;">
+        <div class="login-box" style="width: 600px; max-width: 95vw; padding: 20px; background: #0d1a24; border: 2px solid #2AD07A; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e3a5f; padding-bottom: 12px; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: #2AD07A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-camera"></i> Capturar Foto com Webcam ao Vivo
+                </h3>
+                <button type="button" onclick="fecharWebcamModal()" style="background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div style="position: relative; background: #000; border-radius: 8px; overflow: hidden; height: 340px; display: flex; align-items: center; justify-content: center; border: 1px solid #1e4e8c; margin-bottom: 15px;">
+                <video id="webcam-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <img id="webcam-snapshot-preview" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                <canvas id="webcam-canvas" style="display: none;"></canvas>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <button type="button" class="btn-secondary" onclick="fecharWebcamModal()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btn-webcam-snap" class="btn-primary" style="background: #1e4e8c; color: #fff;" onclick="tirarFotoWebcam()">
+                        <i class="fa-solid fa-camera-retro"></i> Tirar Foto
+                    </button>
+                    <button type="button" id="btn-webcam-retry" class="btn-secondary" style="display: none; background: #555; color: #fff;" onclick="refazerFotoWebcam()">
+                        <i class="fa-solid fa-rotate-left"></i> Refazer
+                    </button>
+                    <button type="button" id="btn-webcam-confirm" class="btn-primary" style="display: none; background: #2AD07A; color: #000; font-weight: bold;" onclick="confirmarFotoWebcam()">
+                        <i class="fa-solid fa-check"></i> Anexar Foto
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

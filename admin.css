@@ -2105,3 +2105,26 @@ tr.bg-orange-light .rel-label-col {
         font-size: 0.78rem !important;
     }
 }
+
+/* ── Painel de Desmonte em Tela Cheia (Full Width & Intuitivo) ── */
+#analise-desmonte-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 25px 30px !important;
+    margin-top: 20px !important;
+    background: #0d1a24 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+.tela-etapa-box {
+    width: 100% !important;
+}
+
+.tela-etapa-box textarea {
+    min-height: 120px !important;
+    font-size: 0.95rem !important;
+    line-height: 1.6 !important;
+    padding: 12px !important;
+}

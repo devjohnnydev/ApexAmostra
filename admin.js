@@ -6388,6 +6388,106 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el('fidc-preco-sugerido-coletar'))    el('fidc-preco-sugerido-coletar').innerHTML   = fmt(precoSugColetar)  + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
     }
 
+    // ─── MÓDULO DE CAPTURA DE FOTOS VIA WEBCAM AO VIVO ─────────────────────────
+    let currentWebcamStream = null;
+    let currentWebcamTipo = 'bruta';
+    let currentWebcamEtapa = 'Recebimento';
+    let capturedImageData = null;
+
+    window.abrirWebcamModal = async function(tipo, etapa) {
+        currentWebcamTipo = tipo || 'bruta';
+        currentWebcamEtapa = etapa || 'Recebimento';
+        capturedImageData = null;
+
+        document.getElementById('webcam-snapshot-preview').style.display = 'none';
+        document.getElementById('webcam-video').style.display = 'block';
+        document.getElementById('btn-webcam-snap').style.display = 'inline-flex';
+        document.getElementById('btn-webcam-retry').style.display = 'none';
+        document.getElementById('btn-webcam-confirm').style.display = 'none';
+        document.getElementById('modal-webcam-capture').style.display = 'flex';
+
+        try {
+            currentWebcamStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
+            });
+            const video = document.getElementById('webcam-video');
+            video.srcObject = currentWebcamStream;
+        } catch(e) {
+            console.error('Erro ao acessar webcam:', e);
+            alert('Não foi possível acessar a câmera do dispositivo. Por favor, verifique as permissões no navegador.');
+        }
+    };
+
+    window.fecharWebcamModal = function() {
+        if (currentWebcamStream) {
+            currentWebcamStream.getTracks().forEach(track => track.stop());
+            currentWebcamStream = null;
+        }
+        document.getElementById('modal-webcam-capture').style.display = 'none';
+    };
+
+    window.tirarFotoWebcam = function() {
+        const video = document.getElementById('webcam-video');
+        const canvas = document.getElementById('webcam-canvas');
+        const preview = document.getElementById('webcam-snapshot-preview');
+        if (!video || !canvas || !preview) return;
+
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        capturedImageData = canvas.toDataURL('image/jpeg', 0.9);
+        preview.src = capturedImageData;
+        video.style.display = 'none';
+        preview.style.display = 'block';
+
+        document.getElementById('btn-webcam-snap').style.display = 'none';
+        document.getElementById('btn-webcam-retry').style.display = 'inline-flex';
+        document.getElementById('btn-webcam-confirm').style.display = 'inline-flex';
+    };
+
+    window.refazerFotoWebcam = function() {
+        capturedImageData = null;
+        document.getElementById('webcam-snapshot-preview').style.display = 'none';
+        document.getElementById('webcam-video').style.display = 'block';
+        document.getElementById('btn-webcam-snap').style.display = 'inline-flex';
+        document.getElementById('btn-webcam-retry').style.display = 'none';
+        document.getElementById('btn-webcam-confirm').style.display = 'none';
+    };
+
+    window.confirmarFotoWebcam = async function() {
+        if (!capturedImageData || !activeAmostraIdForDesmonte) {
+            alert('Nenhuma foto capturada para salvar.');
+            return;
+        }
+
+        try {
+            const res = await fetch(capturedImageData);
+            const blob = await res.blob();
+
+            const formData = new FormData();
+            formData.append('tipo', currentWebcamTipo);
+            formData.append('etapa', currentWebcamEtapa);
+            formData.append('fotos', blob, `webcam_${Date.now()}.jpg`);
+
+            const uploadRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await uploadRes.json();
+            if (result.success) {
+                await carregarFotosAmostra(activeAmostraIdForDesmonte);
+                fecharWebcamModal();
+            } else {
+                alert('Erro ao salvar foto da webcam: ' + (result.error || 'erro desconhecido'));
+            }
+        } catch(e) {
+            console.error('confirmarFotoWebcam:', e);
+        }
+    };
+
     function renderComponentesDesmonte() {
         const body = document.getElementById('analise-componentes-body');
         if (!body) return;
@@ -6395,18 +6495,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         componentesActivos.forEach((c, idx) => {
             const tr = document.createElement('tr');
+            const isCustom = c.material_id === 'NEW' || !!c.custom_name;
+
             tr.innerHTML = `
                 <td style="padding:10px;">
-                    <select class="noble-input sel-comp-material" style="padding:5px;" onchange="atualizarComponenteData(${idx}, 'material_id', this.value)">
-                        ${localMateriais.map(m => `<option value="${m.id}" ${m.id === c.material_id ? 'selected' : ''}>${m.nome} (${m.categoria})</option>`).join('')}
-                    </select>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <select class="noble-input sel-comp-material" style="padding:6px; font-size:0.85rem;" onchange="alterarSelecaoMaterialComp(${idx}, this.value)">
+                            ${localMateriais.map(m => `<option value="${m.id}" ${(!isCustom && m.id === c.material_id) ? 'selected' : ''}>${m.nome} (${m.categoria})</option>`).join('')}
+                            <option value="NEW" ${isCustom ? 'selected' : ''}>➕ Digitar Novo Material...</option>
+                        </select>
+                        <input type="text" class="noble-input inp-comp-custom" style="display:${isCustom ? 'block' : 'none'}; padding:6px; font-size:0.85rem; border-color:#2AD07A;" placeholder="Digite o nome do novo material..." value="${c.custom_name || ''}" oninput="atualizarComponenteData(${idx}, 'custom_name', this.value)">
+                    </div>
                 </td>
                 <td style="padding:10px; text-align:right;">
-                    <input type="number" step="0.001" class="noble-input val-comp-peso" style="padding:5px; text-align:right; width:100px;" value="${c.peso}" oninput="atualizarComponenteData(${idx}, 'peso', this.value)">
+                    <input type="number" step="0.001" class="noble-input val-comp-peso" style="padding:6px; text-align:right; width:110px; font-size:0.85rem;" value="${c.peso}" oninput="atualizarComponenteData(${idx}, 'peso', this.value)">
                 </td>
-                <td style="padding:10px; text-align:right;" class="val-comp-pct">${fmtBRL(c.percentual)} %</td>
+                <td style="padding:10px; text-align:right; font-weight:bold; font-size:0.9rem; color:#2AD07A;" class="val-comp-pct">${fmtBRL(c.percentual)} %</td>
                 <td style="padding:10px;">
-                    <select class="noble-input" style="padding:5px;" onchange="atualizarComponenteData(${idx}, 'dificuldade', this.value)">
+                    <select class="noble-input" style="padding:6px; font-size:0.85rem;" onchange="atualizarComponenteData(${idx}, 'dificuldade', this.value)">
                         <option value="Fácil" ${c.dificuldade === 'Fácil' ? 'selected' : ''}>Fácil</option>
                         <option value="Média" ${c.dificuldade === 'Média' ? 'selected' : ''}>Média</option>
                         <option value="Alta" ${c.dificuldade === 'Alta' ? 'selected' : ''}>Alta</option>
@@ -6414,15 +6520,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td style="padding:10px;">
                     <div style="display:flex; gap:5px; align-items:center;">
-                        <input type="text" class="noble-input" style="padding:5px; font-size:0.75rem; width:100px;" placeholder="Foto URL" value="${c.foto}" onchange="atualizarComponenteData(${idx}, 'foto', this.value)">
-                        <button class="btn-refresh" type="button" style="padding:3px; color:#2AD07A;" onclick="simularUploadFoto(${idx})" title="Tirar foto"><i class="fa-solid fa-camera"></i></button>
+                        <input type="text" class="noble-input" style="padding:5px; font-size:0.75rem; width:90px;" placeholder="Foto URL" value="${c.foto}" onchange="atualizarComponenteData(${idx}, 'foto', this.value)">
+                        <button class="btn-primary" type="button" style="padding:4px 8px; background:#2AD07A; color:#000; font-size:0.75rem;" onclick="abrirWebcamModal('separada', 'Desmonte')" title="Tirar foto via webcam"><i class="fa-solid fa-camera"></i></button>
                     </div>
                 </td>
                 <td style="padding:10px;">
-                    <input type="text" class="noble-input val-comp-obs" style="padding:5px;" value="${c.observacoes}" oninput="atualizarComponenteData(${idx}, 'observacoes', this.value)">
+                    <input type="text" class="noble-input val-comp-obs" style="padding:6px; font-size:0.85rem;" value="${c.observacoes}" oninput="atualizarComponenteData(${idx}, 'observacoes', this.value)">
                 </td>
                 <td style="padding:10px; text-align:center;">
-                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d;" onclick="removerLinhaComponente(${idx})"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; font-size:1.1rem;" onclick="removerLinhaComponente(${idx})" title="Remover Peça"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             body.appendChild(tr);
@@ -6430,6 +6536,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         calcularAnaliseAmostra();
     }
+
+    window.alterarSelecaoMaterialComp = function(idx, val) {
+        if (val === 'NEW') {
+            componentesActivos[idx].material_id = 'NEW';
+            componentesActivos[idx].custom_name = componentesActivos[idx].custom_name || '';
+        } else {
+            componentesActivos[idx].material_id = parseInt(val);
+            delete componentesActivos[idx].custom_name;
+        }
+        renderComponentesDesmonte();
+    };
 
     window.adicionarLinhaComponente = function() {
         componentesActivos.push({
@@ -6450,7 +6567,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.atualizarComponenteData = function(idx, field, val) {
         if (field === 'material_id') {
-            componentesActivos[idx].material_id = parseInt(val);
+            componentesActivos[idx].material_id = val === 'NEW' ? 'NEW' : parseInt(val);
+        } else if (field === 'custom_name') {
+            componentesActivos[idx].custom_name = val;
         } else if (field === 'peso') {
             componentesActivos[idx].peso = parseFloat(val) || 0.0;
         } else if (field === 'dificuldade') {
