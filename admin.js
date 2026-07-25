@@ -5614,6 +5614,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:12px;"><strong>${a.numero_amostra}</strong></td>
                 <td style="padding:12px;">${dataFmt}</td>
                 <td style="padding:12px;">${a.fornecedor_nome}</td>
+                <td style="padding:12px; color:#2AD07A; font-weight:600;">${a.nome_material || '-'}</td>
                 <td style="padding:12px;">${a.responsavel}</td>
                 <td style="padding:12px; text-align:right;">${parseFloat(a.peso_inicial).toFixed(3)} kg</td>
                 <td style="padding:12px; text-align:center;"><span class="badge-status ${statusClass}">${a.status}</span></td>
@@ -5693,8 +5694,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.salvarAmostra = async function(e) {
         e.preventDefault();
+        const nomeMaterialEl = document.getElementById('amo-nome-material');
+        const fotoInputEl = document.getElementById('amo-foto-input');
+
         const data = {
             numero_amostra: document.getElementById('amo-numero').value,
+            nome_material: nomeMaterialEl ? nomeMaterialEl.value : '',
             data: document.getElementById('amo-data').value,
             fornecedor_id: document.getElementById('amo-fornecedor').value,
             responsavel: document.getElementById('amo-responsavel').value,
@@ -5704,15 +5709,31 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            await fetch('/api/amostras', {
+            const res = await fetch('/api/amostras', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
+            const newAmostra = await res.json();
+
+            // Se o usuário selecionou uma foto no recebimento (Etapa 1), realiza o envio
+            if (newAmostra && newAmostra.id && fotoInputEl && fotoInputEl.files && fotoInputEl.files.length > 0) {
+                const formData = new FormData();
+                formData.append('tipo', 'bruta');
+                formData.append('etapa', 'Recebimento');
+                for (const file of fotoInputEl.files) {
+                    formData.append('fotos', file);
+                }
+                await fetch(`/api/amostras/${newAmostra.id}/fotos`, {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+
             fecharModalAmostra();
             carregarAmostras();
         } catch (err) {
-            console.error(err);
+            console.error('Erro ao salvar amostra:', err);
         }
     };
 
@@ -5736,8 +5757,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const { amostra, componentes } = data;
 
             document.getElementById('analise-titulo-amostra').textContent = amostra.numero_amostra;
+            const matNomeEl = document.getElementById('analise-material-nome');
+            if (matNomeEl) matNomeEl.textContent = amostra.nome_material || 'Material não informado';
             document.getElementById('analise-fornecedor-nome').textContent = amostra.fornecedor_nome;
             document.getElementById('analise-peso-inicial').textContent = parseFloat(amostra.peso_inicial).toFixed(3);
+
+            // Atualiza os nós visuais do Stepper de Etapas
+            atualizarStepperAmostra(amostra.status, amostra.decisao_diretoria);
 
             componentesActivos = componentes.map(c => ({
                 material_id: c.material_id,
@@ -5895,14 +5921,64 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('foto-input-bruta').click();
     };
 
+    function atualizarStepperAmostra(status, decisaoDiretoria) {
+        const s1 = document.getElementById('step-node-1');
+        const s2 = document.getElementById('step-node-2');
+        const s3 = document.getElementById('step-node-3');
+        const s4 = document.getElementById('step-node-4');
+        if (!s1 || !s2 || !s3 || !s4) return;
+
+        const setStepState = (el, active, completed, color = '#2AD07A') => {
+            const badge = el.querySelector('span');
+            if (completed) {
+                el.style.borderLeftColor = color;
+                el.style.background = 'rgba(42, 208, 122, 0.1)';
+                if (badge) { badge.style.background = color; badge.style.color = '#000'; badge.innerHTML = '<i class="fa-solid fa-check"></i>'; }
+            } else if (active) {
+                el.style.borderLeftColor = '#3e7cb1';
+                el.style.background = '#18324a';
+                if (badge) { badge.style.background = '#3e7cb1'; badge.style.color = '#fff'; }
+            } else {
+                el.style.borderLeftColor = '#444';
+                el.style.background = '#162432';
+                if (badge) { badge.style.background = '#444'; badge.style.color = '#aaa'; }
+            }
+        };
+
+        // Etapa 1 sempre concluída após criação do recebimento
+        setStepState(s1, false, true);
+
+        // Etapa 2: Desmonte (Ativa se Em Análise, Concluída se status for além de Em Análise)
+        if (status === 'Em Análise') {
+            setStepState(s2, true, false);
+            setStepState(s3, false, false);
+            setStepState(s4, false, false);
+        } else {
+            setStepState(s2, false, true);
+            setStepState(s3, true, false);
+            
+            if (status === 'Aguardando Decisão de Compra') {
+                setStepState(s3, false, true);
+                setStepState(s4, true, false);
+            } else if (decisaoDiretoria === 'Aprovado' || status === 'Aprovado - Compra Autorizada' || status === 'Aguardando Liberação PCP' || status === 'Liberado para Produção' || status === 'Processado') {
+                setStepState(s3, false, true);
+                setStepState(s4, false, true, '#2AD07A');
+            } else if (decisaoDiretoria === 'Reprovado') {
+                setStepState(s3, false, true);
+                setStepState(s4, false, true, '#ff4d4d');
+            }
+        }
+    }
+
     // ─── UPLOAD REAL DE FOTOS ───────────────────────────────────────────────────
-    window.uploadFotos = async function(input, tipo) {
+    window.uploadFotos = async function(input, tipo, etapa) {
         if (!activeAmostraIdForDesmonte || !input.files || input.files.length === 0) return;
         const spinner = document.getElementById('foto-input-spinner');
         if (spinner) spinner.style.display = 'inline-flex';
         try {
             const formData = new FormData();
-            formData.append('tipo', tipo);
+            formData.append('tipo', tipo || 'bruta');
+            formData.append('etapa', etapa || 'Recebimento');
             for (const file of input.files) formData.append('fotos', file);
             const res = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`, { method: 'POST', body: formData });
             const result = await res.json();
@@ -5940,10 +6016,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (placeholder) placeholder.style.display = 'none';
         fotos.forEach(foto => {
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'position:relative; width:110px; height:90px; border-radius:8px; overflow:hidden; border:2px solid #333; flex-shrink:0;';
+            wrapper.style.cssText = 'position:relative; width:125px; height:100px; border-radius:8px; overflow:hidden; border:2px solid #1e4e8c; flex-shrink:0; background:#0a141d;';
             const badge = document.createElement('span');
-            badge.textContent = foto.tipo === 'bruta' ? 'Bruta' : 'Separada';
-            badge.style.cssText = `position:absolute;top:4px;left:4px;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:700;background:${foto.tipo==='bruta'?'#f0b800':'#2AD07A'};color:#000;z-index:2;`;
+            const etapaTexto = foto.etapa || (foto.tipo === 'bruta' ? 'Recebimento' : 'Desmonte');
+            badge.textContent = etapaTexto;
+            
+            let badgeBg = '#3e7cb1';
+            if (etapaTexto === 'Recebimento') badgeBg = '#f0b800';
+            else if (etapaTexto === 'Desmonte') badgeBg = '#3e7cb1';
+            else if (etapaTexto === 'Viabilidade') badgeBg = '#9c27b0';
+            else if (etapaTexto === 'Aprovação' || etapaTexto === 'Aprovação Adm') badgeBg = '#2AD07A';
+
+            badge.style.cssText = `position:absolute;top:4px;left:4px;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;background:${badgeBg};color:#000;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.5);`;
+            
             const img = document.createElement('img');
             img.src = `/api/amostras/${amostraId}/fotos/${foto.id}/img`;
             img.alt = foto.nome || 'Foto';

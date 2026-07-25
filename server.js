@@ -127,9 +127,9 @@ const memStore = {
         { id: 14, material_id: 14, preco_entregar: 4.00, preco_coletar: 3.80, venda_ref: 5.30, validade: "2026-12-31" }
     ],
     amostras: [
-        { id: 1, numero_amostra: "AM-001", data: "2026-07-15", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 5000, status: "Processado", observacoes: "Fio de Instalação do Fornecedor davi", foto_original: "assets/img/photo-1595246140625-573b715d11dc.jpg" },
-        { id: 2, numero_amostra: "AM-002", data: "2026-07-16", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 20000, status: "Liberado para Produção", observacoes: "Fio Misto", foto_original: "" },
-        { id: 3, numero_amostra: "AM-003", data: "2026-07-17", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 15000, status: "Aguardando Liberação PCP", observacoes: "Fio Terminais", foto_original: "" }
+        { id: 1, numero_amostra: "AM-001", nome_material: "Fio de Instalação 1.5mm", data: "2026-07-15", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 5000, status: "Processado", observacoes: "Fio de Instalação do Fornecedor davi", foto_original: "assets/img/photo-1595246140625-573b715d11dc.jpg" },
+        { id: 2, numero_amostra: "AM-002", nome_material: "Fio Misto Comercial", data: "2026-07-16", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 20000, status: "Liberado para Produção", observacoes: "Fio Misto", foto_original: "" },
+        { id: 3, numero_amostra: "AM-003", nome_material: "Fio Terminais Industrial", data: "2026-07-17", fornecedor_id: 1, responsavel: "Eng. Roberto", peso_inicial: 15000, status: "Aguardando Liberação PCP", observacoes: "Fio Terminais", foto_original: "" }
     ],
     componentes_amostra: [
         { id: 1, amostra_id: 1, material_id: 5, peso: 3100, percentual: 62.0, observacoes: "Cobre 1" },
@@ -294,6 +294,7 @@ async function initDatabase() {
             CREATE TABLE IF NOT EXISTS amostras (
                 id             SERIAL PRIMARY KEY,
                 numero_amostra TEXT NOT NULL UNIQUE,
+                nome_material  TEXT,
                 data           DATE NOT NULL,
                 fornecedor_id  INTEGER NOT NULL,
                 responsavel    TEXT NOT NULL,
@@ -365,6 +366,7 @@ async function initDatabase() {
             -- Alterar tabelas existentes para adicionar novas colunas do fluxo de desmonte e decisão da diretoria
             ALTER TABLE componentes_amostra ADD COLUMN IF NOT EXISTS foto TEXT;
             ALTER TABLE componentes_amostra ADD COLUMN IF NOT EXISTS dificuldade TEXT;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS nome_material TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS tempo_desmonte INTEGER DEFAULT 0;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS parecer_tecnico TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS decisao_diretoria TEXT DEFAULT 'Aguardando';
@@ -388,11 +390,13 @@ async function initDatabase() {
                 id         SERIAL PRIMARY KEY,
                 amostra_id INTEGER NOT NULL,
                 tipo       TEXT DEFAULT 'bruta',
+                etapa      TEXT DEFAULT 'Recebimento',
                 data_b64   TEXT NOT NULL,
                 mimetype   TEXT DEFAULT 'image/jpeg',
                 nome       TEXT,
                 criado_em  TIMESTAMP DEFAULT NOW()
             );
+            ALTER TABLE fotos_amostra ADD COLUMN IF NOT EXISTS etapa TEXT DEFAULT 'Recebimento';
         `);
 
         // Semeando fornecedores e amostras
@@ -1129,16 +1133,16 @@ app.get('/api/amostras/:id', async (req, res) => {
 
 app.post('/api/amostras', async (req, res) => {
     try {
-        const { numero_amostra, data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original } = req.body;
+        const { numero_amostra, nome_material, data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO amostras (numero_amostra, data, fornecedor_id, responsavel, peso_inicial, status, observacoes, foto_original)
-                 VALUES ($1, $2, $3, $4, $5, 'Em Análise', $6, $7) RETURNING *`,
-                [numero_amostra, data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original]
+                `INSERT INTO amostras (numero_amostra, nome_material, data, fornecedor_id, responsavel, peso_inicial, status, observacoes, foto_original)
+                 VALUES ($1, $2, $3, $4, $5, $6, 'Em Análise', $7, $8) RETURNING *`,
+                [numero_amostra, nome_material || '', data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original || '']
             );
             return res.json(result.rows[0]);
         } else {
-            const newA = { id: nextId++, numero_amostra, data, fornecedor_id: parseInt(fornecedor_id), responsavel, peso_inicial: parseFloat(peso_inicial), status: 'Em Análise', observacoes, foto_original };
+            const newA = { id: nextId++, numero_amostra, nome_material: nome_material || '', data, fornecedor_id: parseInt(fornecedor_id), responsavel, peso_inicial: parseFloat(peso_inicial), status: 'Em Análise', observacoes, foto_original: foto_original || '' };
             memStore.amostras.push(newA);
             return res.json(newA);
         }
@@ -1365,12 +1369,12 @@ app.get('/api/amostras/:id/fotos', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            const r = await pool.query('SELECT id, amostra_id, tipo, mimetype, nome, criado_em FROM fotos_amostra WHERE amostra_id=$1 ORDER BY criado_em ASC', [id]);
+            const r = await pool.query('SELECT id, amostra_id, tipo, COALESCE(etapa, \'Recebimento\') as etapa, mimetype, nome, criado_em FROM fotos_amostra WHERE amostra_id=$1 ORDER BY criado_em ASC', [id]);
             return res.json(r.rows);
         }
         // memStore: retorna sem data_b64 (pesado), frontend busca /api/amostras/:id/fotos/:fotoId para a imagem
         const fotos = (memStore.fotos_amostra || []).filter(f => f.amostra_id === id)
-            .map(f => ({ id: f.id, amostra_id: f.amostra_id, tipo: f.tipo, mimetype: f.mimetype, nome: f.nome, criado_em: f.criado_em }));
+            .map(f => ({ id: f.id, amostra_id: f.amostra_id, tipo: f.tipo, etapa: f.etapa || 'Recebimento', mimetype: f.mimetype, nome: f.nome, criado_em: f.criado_em }));
         res.json(fotos);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -1396,8 +1400,9 @@ app.get('/api/amostras/:id/fotos/:fotoId/img', async (req, res) => {
 
 app.post('/api/amostras/:id/fotos', uploadMemory.array('fotos', 10), async (req, res) => {
     try {
-        const id   = parseInt(req.params.id);
-        const tipo = req.body.tipo || 'bruta';
+        const id    = parseInt(req.params.id);
+        const tipo  = req.body.tipo || 'bruta';
+        const etapa = req.body.etapa || 'Recebimento';
         if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
         const inseridas = [];
         for (const file of req.files) {
@@ -1406,15 +1411,15 @@ app.post('/api/amostras/:id/fotos', uploadMemory.array('fotos', 10), async (req,
             const nome     = file.originalname;
             if (dbAvailable) {
                 const r = await pool.query(
-                    'INSERT INTO fotos_amostra (amostra_id, tipo, data_b64, mimetype, nome) VALUES ($1,$2,$3,$4,$5) RETURNING id, amostra_id, tipo, mimetype, nome, criado_em',
-                    [id, tipo, b64, mimetype, nome]
+                    'INSERT INTO fotos_amostra (amostra_id, tipo, etapa, data_b64, mimetype, nome) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, amostra_id, tipo, etapa, mimetype, nome, criado_em',
+                    [id, tipo, etapa, b64, mimetype, nome]
                 );
                 inseridas.push(r.rows[0]);
             } else {
-                const f = { id: nextId++, amostra_id: id, tipo, data_b64: b64, mimetype, nome, criado_em: new Date().toISOString() };
+                const f = { id: nextId++, amostra_id: id, tipo, etapa, data_b64: b64, mimetype, nome, criado_em: new Date().toISOString() };
                 if (!memStore.fotos_amostra) memStore.fotos_amostra = [];
                 memStore.fotos_amostra.push(f);
-                inseridas.push({ id: f.id, amostra_id: f.amostra_id, tipo: f.tipo, mimetype: f.mimetype, nome: f.nome, criado_em: f.criado_em });
+                inseridas.push({ id: f.id, amostra_id: f.amostra_id, tipo: f.tipo, etapa: f.etapa, mimetype: f.mimetype, nome: f.nome, criado_em: f.criado_em });
             }
         }
         res.json({ success: true, fotos: inseridas });
