@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apextech-v2-cache';
+const CACHE_NAME = 'apextech-v3-cache';
 const ASSETS_TO_CACHE = [
   '/',
   '/admin.html',
@@ -12,10 +12,11 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
@@ -24,7 +25,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          return caches.delete(key);
         })
       );
     }).then(() => self.clients.claim())
@@ -35,24 +36,18 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) return;
 
+  // Estratégia Network-First: busca sempre a versão mais recente do servidor
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
-        }
+    fetch(event.request).then((networkResponse) => {
+      if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
-        return networkResponse;
-      }).catch(() => {
-        // Fallback quando offline
-        if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('/admin.html');
-        }
-      });
+      }
+      return networkResponse;
+    }).catch(() => {
+      return caches.match(event.request);
     })
   );
 });

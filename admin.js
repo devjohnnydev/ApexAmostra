@@ -7117,7 +7117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('Peso Liq.', 110, y + 4.8);
             pdf.text('Rendimento', 145, y + 4.8);
             pdf.text('Dificuldade', 170, y + 4.8);
-            y += 7.5; // Avança 7.5mm para posicionar a próxima linha EXATAMENTE abaixo do cabeçalho
+            y += 9.0; // Avança 9.0mm garantindo que a próxima linha fique 2mm abaixo da borda inferior do cabeçalho
 
             let sumPeso = 0;
             pdf.setFont('helvetica', 'normal');
@@ -7141,11 +7141,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         pdf.text(c.dificuldade, 172, y + 4.8);
                     }
                     sumPeso += parseFloat(c.peso);
-                    y += 7.5;
+                    y += 8.0;
                 });
             }
 
-            // Linha de Perda Física / Resíduos Industriais (Altura 7mm, posicionada exatamente na sequência Y)
+            // Linha de Perda Física / Resíduos Industriais (Altura 7mm, posicionada com folga de segurança Y)
             checarNovaPagina(8);
             const perda = parseFloat(amostra.peso_inicial || 0) - sumPeso;
             const pctPerda = parseFloat(amostra.peso_inicial || 0) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
@@ -7158,7 +7158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('Resíduos Industriais / Perda Física', 18, y + 4.8);
             pdf.text((perda > 0 ? perda : 0).toLocaleString('pt-BR') + ' kg', 110, y + 4.8);
             pdf.text(fmtBRL(pctPerda > 0 ? pctPerda : 0) + ' %', 148, y + 4.8);
-            y += 11;
+            y += 12;
 
             // Consolidação química
             checarNovaPagina(20);
