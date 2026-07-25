@@ -6394,7 +6394,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const planList = await resPlan.json();
             const lote = planList.find(x => x.amostra_id === amostra.id);
 
-            // Carregar logo como base64
+            // Carregar dados completos do Fornecedor vinculado
+            let fornecedorObj = null;
+            try {
+                const fRes = await fetch('/api/fornecedores');
+                const fList = await fRes.json();
+                fornecedorObj = (fList || []).find(x => x.id === amostra.fornecedor_id);
+            } catch(e) { console.warn('Erro ao carregar dados do fornecedor:', e); }
+
+            // Carregar fotos registradas da amostra (por etapa)
+            let fotosAmostraList = [];
+            try {
+                const ftRes = await fetch(`/api/amostras/${amostraId}/fotos`);
+                const ftData = await ftRes.json();
+                if (Array.isArray(ftData)) fotosAmostraList = ftData;
+            } catch(e) { console.warn('Erro ao carregar fotos:', e); }
+
+            // Carregar logo do cabeçalho
             let logoBase64 = null;
             try {
                 const logoRes = await fetch('/assets/img/apexlogo.png');
@@ -6404,37 +6420,47 @@ document.addEventListener('DOMContentLoaded', () => {
                     reader.onloadend = () => resolve(reader.result);
                     reader.readAsDataURL(logoBlob);
                 });
-            } catch(e) { console.warn('Logo nao carregado:', e); }
+            } catch(e) { console.warn('Logo cabeçalho não carregado:', e); }
+
+            // Carregar Marca d'Água: logo (2).png
+            let watermarkBase64 = null;
+            try {
+                const wRes = await fetch('/assets/img/logo (2).png');
+                const wBlob = await wRes.blob();
+                watermarkBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(wBlob);
+                });
+            } catch(e) {
+                console.warn('Watermark logo (2).png não carregado, usando fallback:', e);
+                watermarkBase64 = logoBase64;
+            }
 
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
 
-            // Paleta de cores da empresa
-            const VERDE_ESCURO = [13, 36, 22];
-            const VERDE_VIVO   = [42, 208, 122];
-            const BRANCO       = [255, 255, 255];
-            const CINZA_TEXTO  = [50, 50, 50];
-
             function drawWatermark() {
-                if (logoBase64) {
+                if (watermarkBase64) {
                     try {
                         pdf.saveGraphicsState();
-                        pdf.setGState(new pdf.GState({ opacity: 0.05 }));
-                        pdf.addImage(logoBase64, 'PNG', 35, 100, 140, 46, '', 'FAST');
+                        pdf.setGState(new pdf.GState({ opacity: 0.09 }));
+                        // Marca d'água grande e centralizada cobrindo o meio da página em A4 (210x297mm)
+                        pdf.addImage(watermarkBase64, 'PNG', 25, 60, 160, 160, '', 'FAST');
                         pdf.restoreGraphicsState();
-                    } catch(e) {}
+                    } catch(e) { console.warn(e); }
+                } else {
+                    pdf.saveGraphicsState();
+                    pdf.setGState(new pdf.GState({ opacity: 0.04 }));
+                    pdf.setTextColor(42, 208, 122);
+                    pdf.setFontSize(42);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('APEXTECH METAIS', 105, 195, { angle: 45, align: 'center' });
+                    pdf.restoreGraphicsState();
                 }
-                // Texto diagonal
-                pdf.saveGraphicsState();
-                pdf.setGState(new pdf.GState({ opacity: 0.04 }));
-                pdf.setTextColor(42, 208, 122);
-                pdf.setFontSize(42);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text('APEXTECH METAIS', 105, 195, { angle: 45, align: 'center' });
-                pdf.restoreGraphicsState();
             }
 
-            function drawFooter(pageNum) {
+            function drawFooter(pageNum, totalPages = 1) {
                 pdf.setFillColor(13, 36, 22);
                 pdf.rect(0, 283, 210, 14, 'F');
                 pdf.setFillColor(42, 208, 122);
@@ -6442,12 +6468,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setTextColor(42, 208, 122);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(7.5);
-                pdf.text('APEXTECH METAIS', 15, 289);
+                pdf.text('APEXTECH METAIS ERP', 15, 289);
                 pdf.setFont('helvetica', 'normal');
                 pdf.setTextColor(140, 210, 160);
                 pdf.text('Tecnologia e Sustentabilidade na Reciclagem de Metais', 60, 289);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('Pagina ' + pageNum, 195, 289, { align: 'right' });
+                pdf.text('Página ' + pageNum + ' de ' + totalPages, 195, 289, { align: 'right' });
                 pdf.setFontSize(7);
                 pdf.setTextColor(120, 180, 140);
                 pdf.text('Laudo No. APX-' + (amostra.numero_amostra || '') + '  |  ' + new Date().toLocaleDateString('pt-BR'), 15, 293);
@@ -6489,47 +6515,82 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.text(decStatus.toUpperCase(), 195, 26, { align: 'right' });
             }
 
-            // === PAGINA 1 ===
+            // === PÁGINA 1: DADOS GERAIS E LAUDO DE ANÁLISE ===
             drawWatermark();
             drawHeader();
-            drawFooter(1);
 
-            let y = 54;
+            let y = 52;
 
-            // Dados Gerais
+            // Bloco de Dados do Fornecedor e Lote
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('DADOS GERAIS DO LOTE / FORNECEDOR', 17, y + 5.5);
+            pdf.text('DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE', 17, y + 5.5);
             y += 12;
+
+            const fnome = fornecedorObj ? (fornecedorObj.nome || fornecedorObj.apelido || amostra.fornecedor_nome) : (amostra.fornecedor_nome || '---');
+            const fcnpj = fornecedorObj ? (fornecedorObj.cnpj || '---') : '---';
+            const fcomp = fornecedorObj ? (fornecedorObj.comprador || '---') : '---';
+            const ftel  = fornecedorObj ? ((fornecedorObj.fone1 || '') + ' ' + (fornecedorObj.email || '')).trim() : '---';
+            const fend  = fornecedorObj ? ((fornecedorObj.endereco || '') + ' ' + (fornecedorObj.complemento || '')).trim() : '---';
 
             pdf.setFontSize(8.5);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(50, 50, 50);
             pdf.text('Fornecedor:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            pdf.text((amostra.fornecedor_nome || '---').toUpperCase(), 45, y);
+            pdf.text(fnome.toUpperCase(), 42, y);
+
             pdf.setFont('helvetica', 'bold');
-            pdf.text('Data:', 138, y);
+            pdf.text('CNPJ/CPF:', 138, y);
             pdf.setFont('helvetica', 'normal');
-            pdf.text(new Date(amostra.data).toLocaleDateString('pt-BR'), 150, y);
+            pdf.text(fcnpj, 160, y);
             y += 6;
+
             pdf.setFont('helvetica', 'bold');
-            pdf.text('Responsavel:', 17, y);
+            pdf.text('Material Recebido:', 17, y);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(10, 120, 50);
+            pdf.text((amostra.nome_material || 'Material não informado').toUpperCase(), 48, y);
+            pdf.setTextColor(50, 50, 50);
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Data Lote:', 138, y);
             pdf.setFont('helvetica', 'normal');
-            pdf.text(amostra.responsavel || '---', 50, y);
+            pdf.text(new Date(amostra.data).toLocaleDateString('pt-BR'), 160, y);
+            y += 6;
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Comprador / Contato:', 17, y);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(fcomp + (ftel ? ' (' + ftel + ')' : ''), 52, y);
+
             pdf.setFont('helvetica', 'bold');
             pdf.text('Peso Inicial:', 138, y);
             pdf.setFont('helvetica', 'normal');
             pdf.text(parseFloat(amostra.peso_inicial || 0).toLocaleString('pt-BR') + ' kg', 160, y);
             y += 6;
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Responsável Téc:', 17, y);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(amostra.responsavel || 'Eng. Roberto', 48, y);
+
+            if (fend) {
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Endereço:', 138, y);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(pdf.splitTextToSize(fend, 38)[0], 156, y);
+            }
+            y += 6;
+
             if (amostra.observacoes) {
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Obs:', 17, y);
+                pdf.text('Observações:', 17, y);
                 pdf.setFont('helvetica', 'normal');
-                pdf.text(pdf.splitTextToSize(amostra.observacoes, 155)[0], 30, y);
+                pdf.text(pdf.splitTextToSize(amostra.observacoes, 155)[0], 42, y);
                 y += 6;
             }
             y += 2;
@@ -6594,19 +6655,19 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text(fmtBRL(pctPerda) + ' %', 148, y);
             y += 10;
 
-            // Formula quimica
+            // Consolidação química
             pdf.setFillColor(13, 36, 22);
-            pdf.rect(15, y, 180, 16, 'F');
+            pdf.rect(15, y, 180, 15, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('COMPOSICAO CONSOLIDADA:', 18, y + 5.5);
+            pdf.text('COMPOSICAO CONSOLIDADA:', 18, y + 5);
             pdf.setFont('courier', 'normal');
             pdf.setTextColor(170, 255, 200);
             pdf.setFontSize(7.5);
             const fstr = componentes.map(c => parseFloat(c.percentual).toFixed(1) + '% ' + (c.material_nome || '?').toUpperCase()).join('  -  ');
-            pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 12);
-            y += 20;
+            pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 11);
+            y += 19;
 
             if (amostra.tempo_desmonte) {
                 const min = Math.floor(parseInt(amostra.tempo_desmonte) / 60);
@@ -6615,38 +6676,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(8.5);
                 pdf.text('Tempo de Desmonte: ' + String(min).padStart(2,'0') + 'h ' + String(seg).padStart(2,'0') + 'min', 17, y);
-                y += 8;
+                y += 7;
             }
 
-            y += 3;
             // Pareceres
             pdf.setFillColor(13, 36, 22);
-            pdf.rect(15, y, 180, 8, 'F');
+            pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9);
-            pdf.text('PARECERES TECNICO E DECISAO DE COMPRA', 17, y + 5.5);
-            y += 12;
+            pdf.setFontSize(8.5);
+            pdf.text('PARECERES TECNICO E DECISAO DE COMPRA', 17, y + 5);
+            y += 10;
 
-            // Parecer tecnico
+            // Parecer técnico
             pdf.setFillColor(235, 248, 240);
-            pdf.rect(15, y, 180, 22, 'F');
+            pdf.rect(15, y, 180, 18, 'F');
             pdf.setFillColor(42, 140, 80);
-            pdf.rect(15, y, 4, 22, 'F');
+            pdf.rect(15, y, 4, 18, 'F');
             pdf.setDrawColor(42, 140, 80);
             pdf.setLineWidth(0.3);
-            pdf.rect(15, y, 180, 22);
+            pdf.rect(15, y, 180, 18);
             pdf.setTextColor(10, 70, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text('PARECER TECNICO (LABORATORIO):', 22, y + 6);
+            pdf.text('PARECER TECNICO (LABORATORIO):', 22, y + 5);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
             const pt = amostra.parecer_tecnico || '(nao preenchido)';
-            pdf.text(pdf.splitTextToSize(pt, 168).slice(0, 2), 22, y + 13);
-            y += 26;
+            pdf.text(pdf.splitTextToSize(pt, 168).slice(0, 2), 22, y + 11);
+            y += 22;
 
-            // Decisao diretoria
+            // Decisão diretoria
             const decAprovada = amostra.decisao_diretoria === 'Aprovado';
             const isReprov = amostra.decisao_diretoria === 'Reprovado';
             const bgDec = decAprovada ? [235, 252, 240] : isReprov ? [252, 235, 235] : [248, 248, 235];
@@ -6654,74 +6714,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const txtDec = decAprovada ? [10, 70, 30] : isReprov ? [130, 20, 20] : [80, 70, 10];
 
             pdf.setFillColor(...bgDec);
-            pdf.rect(15, y, 180, 32, 'F');
+            pdf.rect(15, y, 180, 24, 'F');
             pdf.setFillColor(...barDec);
-            pdf.rect(15, y, 4, 32, 'F');
+            pdf.rect(15, y, 4, 24, 'F');
             pdf.setDrawColor(...barDec);
             pdf.setLineWidth(0.3);
-            pdf.rect(15, y, 180, 32);
+            pdf.rect(15, y, 180, 24);
             pdf.setTextColor(...txtDec);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('DECISAO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 7);
+            pdf.text('DECISAO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
             pdf.setFontSize(8);
-            let dy = y + 14;
+            let dy = y + 12;
             if (amostra.obs_diretoria) {
                 pdf.text(pdf.splitTextToSize('Obs: ' + amostra.obs_diretoria, 168).slice(0,1), 22, dy);
-                dy += 6;
+                dy += 5;
             }
             if (amostra.motivo_reprovacao) {
                 pdf.setTextColor(160, 30, 30);
                 pdf.setFont('helvetica', 'bold');
                 pdf.text('Motivo da Reprovacao: ' + amostra.motivo_reprovacao, 22, dy);
-                dy += 6;
+                dy += 5;
             }
             if (decAprovada && amostra.preco_compra_entregar) {
                 pdf.setTextColor(10, 100, 40);
                 pdf.setFont('helvetica', 'bold');
                 pdf.text('Preco Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
-                dy += 6;
-                const vf = amostra.preco_validade ? new Date(amostra.preco_validade).toLocaleDateString('pt-BR') : '--';
-                pdf.setFont('helvetica', 'normal');
-                pdf.setTextColor(50, 50, 50);
-                pdf.text('Valido ate: ' + vf + '   |   Autorizado por: ' + (amostra.autorizado_por || 'Diretoria'), 22, dy);
+                dy += 5;
             }
-            y += 36;
+            y += 28;
 
-            // Modulo financeiro
-            if (currentSimulatedRole !== 'Laboratorio' && lote) {
-                y += 4;
-                pdf.setFillColor(13, 36, 22);
-                pdf.rect(15, y, 180, 8, 'F');
-                pdf.setTextColor(42, 208, 122);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9);
-                pdf.text('RESUMO FINANCEIRO DO LOTE', 17, y + 5.5);
-                y += 12;
-
-                const totalCompra = parseFloat(lote.peso_comprado) * parseFloat(lote.preco_compra);
-                const totalVenda = (parseFloat(lote.peso_comprado) * (parseFloat(lote.percentual_rendimento) / 100)) * parseFloat(lote.preco_venda_material);
-                const lucroB = totalVenda - totalCompra;
-                const margemBruta = totalVenda > 0 ? (lucroB / totalVenda) * 100 : 0;
-
-                pdf.setFillColor(238, 250, 242);
-                pdf.rect(15, y, 180, 20, 'F');
-                pdf.setTextColor(50, 50, 50);
-                pdf.setFontSize(8.5);
-                pdf.setFont('helvetica', 'normal');
-                pdf.text('Investimento Compra: R$ ' + totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2}), 18, y + 6);
-                pdf.text('Faturamento Projetado: R$ ' + totalVenda.toLocaleString('pt-BR', {minimumFractionDigits:2}), 18, y + 12);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setTextColor(10, 100, 40);
-                pdf.text('Lucro Projetado: R$ ' + lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2}), 115, y + 6);
-                pdf.text('Margem Bruta: ' + fmtBRL(margemBruta) + ' %', 115, y + 12);
-                y += 26;
-            }
-
-            // Rodape com assinatura
-            const sigY = 260;
+            // Assinaturas e Rodapé da Página 1
+            const sigY = 258;
             pdf.setDrawColor(80, 160, 100);
             pdf.setLineWidth(0.4);
             pdf.line(17, sigY, 97, sigY);
@@ -6730,25 +6756,104 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(7.5);
             pdf.text('RESPONSAVEL TECNICO / ANALISTA', 20, sigY + 4);
-            pdf.text('DIRETOR / APROVADOR', 120, sigY + 4);
+            pdf.text('DIRETOR / APROVADOR ADM', 120, sigY + 4);
             pdf.setFontSize(7);
             pdf.setTextColor(130, 130, 130);
-            pdf.text('Laudo gerado automaticamente pelo sistema APEXTECH METAIS ERP.', 15, sigY + 13);
-            pdf.text('Nao valido sem aprovacao da Diretoria.', 15, sigY + 17);
+            pdf.text('Laudo gerado com marca d\'água de autenticidade APEXTECH METAIS.', 15, sigY + 12);
 
-            // QR Code decorativo
-            pdf.setFillColor(255, 255, 255);
-            pdf.setDrawColor(13, 36, 22);
-            pdf.setLineWidth(0.5);
-            pdf.rect(155, 247, 30, 30, 'FD');
-            pdf.setFillColor(13, 36, 22);
-            pdf.rect(157, 249, 9, 9, 'F'); pdf.rect(171, 249, 9, 9, 'F'); pdf.rect(157, 263, 9, 9, 'F');
-            pdf.setFillColor(42, 208, 122);
-            pdf.rect(159, 251, 5, 5, 'F'); pdf.rect(173, 251, 5, 5, 'F'); pdf.rect(159, 265, 5, 5, 'F');
-            pdf.rect(169, 259, 4, 4, 'F'); pdf.rect(175, 261, 5, 5, 'F');
-            pdf.setTextColor(13, 36, 22);
-            pdf.setFontSize(5.5);
-            pdf.text('CODIGO DE VERIFICACAO', 155, 280);
+            let totalPagesCount = 1;
+
+            // === PÁGINA 2: REGISTRO FOTOGRÁFICO DAS ETAPAS DA AMOSTRA ===
+            // Carregar imagens das fotos enviadas para incluir na galeria do PDF
+            const fotosParaRender = [];
+            if (amostra.foto_original) {
+                fotosParaRender.push({ etapa: 'Recebimento', src: amostra.foto_original });
+            }
+
+            for (const f of fotosAmostraList) {
+                try {
+                    const imgUrl = `/api/amostras/${amostraId}/fotos/${f.id}/img`;
+                    const imgRes = await fetch(imgUrl);
+                    if (imgRes.ok) {
+                        const imgBlob = await imgRes.blob();
+                        const b64 = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.readAsDataURL(imgBlob);
+                        });
+                        fotosParaRender.push({ etapa: f.etapa || 'Recebimento', src: b64, nome: f.nome });
+                    }
+                } catch(e) { console.warn('Erro ao carregar imagem para PDF:', e); }
+            }
+
+            if (fotosParaRender.length > 0) {
+                totalPagesCount = 2;
+                pdf.addPage();
+                drawWatermark();
+                drawHeader();
+
+                let py = 52;
+                pdf.setFillColor(13, 36, 22);
+                pdf.rect(15, py, 180, 8, 'F');
+                pdf.setTextColor(42, 208, 122);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(9);
+                pdf.text('REGISTRO FOTOGRAFICO DAS ETAPAS DA AMOSTRA', 17, py + 5.5);
+                py += 14;
+
+                const gridCols = 2;
+                const boxW = 85;
+                const boxH = 65;
+                let col = 0;
+                let curY = py;
+
+                for (let i = 0; i < fotosParaRender.length; i++) {
+                    const fotoItem = fotosParaRender[i];
+                    const posX = 15 + col * 95;
+
+                    pdf.setFillColor(240, 245, 240);
+                    pdf.setDrawColor(30, 78, 140);
+                    pdf.setLineWidth(0.4);
+                    pdf.rect(posX, curY, boxW, boxH, 'FD');
+
+                    try {
+                        pdf.addImage(fotoItem.src, 'JPEG', posX + 2.5, curY + 2.5, boxW - 5, boxH - 12, '', 'FAST');
+                    } catch(e) {
+                        try {
+                            pdf.addImage(fotoItem.src, 'PNG', posX + 2.5, curY + 2.5, boxW - 5, boxH - 12, '', 'FAST');
+                        } catch(err2) {}
+                    }
+
+                    // Badge de Etapa na foto
+                    pdf.setFillColor(13, 36, 22);
+                    pdf.rect(posX + 2.5, curY + boxH - 9.5, boxW - 5, 7, 'F');
+                    pdf.setTextColor(42, 208, 122);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(7.5);
+                    pdf.text(('ETAPA: ' + fotoItem.etapa).toUpperCase(), posX + 5, curY + boxH - 4.5);
+
+                    col++;
+                    if (col >= gridCols) {
+                        col = 0;
+                        curY += boxH + 10;
+                        if (curY > 230 && i < fotosParaRender.length - 1) {
+                            drawFooter(2, totalPagesCount);
+                            pdf.addPage();
+                            totalPagesCount++;
+                            drawWatermark();
+                            drawHeader();
+                            curY = 52;
+                        }
+                    }
+                }
+
+                drawFooter(2, totalPagesCount);
+                // Atualizar o rodape da pagina 1 com o total de paginas correto
+                pdf.setPage(1);
+                drawFooter(1, totalPagesCount);
+            } else {
+                drawFooter(1, 1);
+            }
 
             pdf.save('LAUDO_APEXTECH_' + (amostra.numero_amostra || 'PDF') + '.pdf');
 
