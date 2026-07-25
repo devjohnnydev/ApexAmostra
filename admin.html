@@ -1533,13 +1533,32 @@
                 </header>
 
                 <div class="kpi-card" style="padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                        <input type="text" id="amostras-search" class="noble-input" placeholder="🔍 Buscar por número da amostra, fornecedor, responsável ou status..." style="flex: 1;" oninput="filtrarAmostras()">
+                    <div style="display: flex; gap: 12px; margin-bottom: 15px; flex-wrap:wrap; align-items:center;">
+                        <input type="text" id="amostras-search" class="noble-input" placeholder="🔍 Buscar por código, material, fornecedor ou status..." style="flex: 2; min-width:200px;" oninput="filtrarAmostras()">
+                        
+                        <select id="amostras-filtro-fornecedor" class="noble-input" style="flex:1; min-width:160px;" onchange="filtrarAmostras()">
+                            <option value="">Todos os Fornecedores</option>
+                        </select>
+
+                        <div style="display:flex; gap:6px; align-items:center; flex:1; min-width:260px;">
+                            <span style="font-size:0.8rem; color:#aaa;">De:</span>
+                            <input type="date" id="amostras-data-inicio" class="noble-input" style="padding:6px; font-size:0.82rem;" onchange="filtrarAmostras()">
+                            <span style="font-size:0.8rem; color:#aaa;">Até:</span>
+                            <input type="date" id="amostras-data-fim" class="noble-input" style="padding:6px; font-size:0.82rem;" onchange="filtrarAmostras()">
+                        </div>
+
+                        <button class="btn-secondary" onclick="exportarLaudosEmLoteZip()" style="background:#1e3a5f; color:#fff; border-color:#3e7cb1; padding:7px 12px; font-size:0.82rem;" title="Baixar todos os PDFs selecionados em um arquivo ZIP">
+                            <i class="fa-solid fa-file-zipper" style="color:#2AD07A;"></i> Baixar ZIP Selecionados
+                        </button>
                     </div>
+
                     <div style="overflow-x: auto;">
                         <table class="admin-table" style="width:100%; border-collapse:collapse;">
                             <thead>
                                 <tr style="background:#223547; text-align:left;">
+                                    <th style="padding:12px; width:40px; text-align:center;">
+                                        <input type="checkbox" id="chk-marcar-todos-amostras" onchange="alternarMarcarTodasAmostras(this)">
+                                    </th>
                                     <th style="padding:12px;">Código</th>
                                     <th style="padding:12px;">Data</th>
                                     <th style="padding:12px;">Fornecedor</th>
@@ -1820,19 +1839,19 @@
                             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1e3a5f; color:#fff;" title="Etapa 1: Foto do lote original recebido">
                                     <i class="fa-solid fa-box-open"></i> 1. Recebimento
-                                    <input type="file" id="foto-input-recebimento" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this,'bruta','Recebimento')">
+                                    <input type="file" id="foto-input-recebimento" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'bruta','Recebimento')">
                                 </label>
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1e3a5f; color:#fff;" title="Etapa 2: Fotos da triagem e partes desmontadas">
                                     <i class="fa-solid fa-screwdriver-wrench"></i> 2. Desmonte
-                                    <input type="file" id="foto-input-desmonte" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this,'separada','Desmonte')">
+                                    <input type="file" id="foto-input-desmonte" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'separada','Desmonte')">
                                 </label>
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1e3a5f; color:#fff;" title="Etapa 3: Fotos do laudo de viabilidade/pesagem">
                                     <i class="fa-solid fa-calculator"></i> 3. Viabilidade
-                                    <input type="file" id="foto-input-viabilidade" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this,'componente','Viabilidade')">
+                                    <input type="file" id="foto-input-viabilidade" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'componente','Viabilidade')">
                                 </label>
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1b382b; color:#2AD07A; border-color:#2AD07A;" title="Etapa 4: Fotos da aprovação da diretoria/parecer">
                                     <i class="fa-solid fa-user-check"></i> 4. Aprovação Adm
-                                    <input type="file" id="foto-input-aprovacao" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this,'aprovacao','Aprovação')">
+                                    <input type="file" id="foto-input-aprovacao" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'aprovacao','Aprovação')">
                                 </label>
                                 <span id="foto-input-spinner" style="display:none; color:#2AD07A; font-size:0.85rem; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-spinner fa-spin"></i> Enviando foto...
@@ -2760,7 +2779,7 @@
 
                 <div class="form-group">
                     <label><i class="fa-solid fa-camera"></i> Foto da Amostra no Recebimento (Etapa 1)</label>
-                    <input type="file" id="amo-foto-input" accept="image/*" class="noble-input" style="padding:6px; background:#162432;">
+                    <input type="file" id="amo-foto-input" accept="image/*" capture="environment" class="noble-input" style="padding:6px; background:#162432;">
                 </div>
 
                 <div class="form-group">
@@ -3178,8 +3197,33 @@
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button type="button" class="btn-primary" style="flex:1; background:#ff4d4d; color:#fff;" onclick="salvarDecisaoDiretoria('Reprovado')">Confirmar Reprovação</button>
                 <button type="button" class="btn-secondary" onclick="fecharModalReprovacao()" style="flex:1;">Cancelar</button>
+    <!-- Modal Etiqueta QR Code da Amostra -->
+    <div id="modal-qr-etiqueta" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1200;">
+        <div class="login-box" style="width:420px; padding:25px; background:#101a24; border:2px solid #2AD07A; border-radius:12px; text-align:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #223547; padding-bottom:10px; margin-bottom:15px;">
+                <h3 style="margin:0; color:#2AD07A; font-size:1.05rem;"><i class="fa-solid fa-qrcode"></i> Etiqueta Física do Lote</h3>
+                <button type="button" class="btn-secondary" onclick="fecharModalQREtiqueta()" style="padding:4px 8px;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-        </div>
+            
+            <div id="etiqueta-print-area" style="background:#fff; color:#000; padding:20px; border-radius:8px; border:2px solid #000; text-align:center; margin-bottom:18px;">
+                <h4 style="margin:0 0 4px 0; font-size:1.1rem; color:#000; font-weight:800;">APEXTECH METAIS ERP</h4>
+                <div style="font-size:0.75rem; color:#555; margin-bottom:10px;">LOTE DE RASTREABILIDADE INDUSTRIAL</div>
+                
+                <img id="qr-code-img" src="" alt="QR Code" style="width:160px; height:160px; margin:0 auto 10px auto; display:block; border:1px solid #ddd; padding:5px;">
+                
+                <div style="font-size:1.1rem; font-weight:800; color:#000;" id="qr-amostra-codigo">AM-001</div>
+                <div style="font-size:0.85rem; font-weight:600; color:#333; margin-top:2px;" id="qr-amostra-material">Fio de Instalação 1.5mm</div>
+                <div style="font-size:0.75rem; color:#666; margin-top:4px;" id="qr-amostra-detalhes">Fornecedor: - | Peso: - kg</div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="btn-primary" style="flex:1; background:#2AD07A; color:#000; font-weight:bold;" onclick="imprimirEtiquetaArea()">
+                    <i class="fa-solid fa-print"></i> Imprimir Etiqueta
+                </button>
+                <button type="button" class="btn-secondary" style="flex:1;" onclick="fecharModalQREtiqueta()">
+                    Fechar
+                </button>
+            </div>
         </div>
     </div>
 

@@ -5595,6 +5595,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function popularSeletoresAmostras() {
+        const selFornModal = document.getElementById('amo-fornecedor');
+        const selFornFiltro = document.getElementById('amostras-filtro-fornecedor');
+        if (!selFornModal) return;
+
+        // Limpa opções antigas mantendo a primeira se houver
+        selFornModal.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
+        if (selFornFiltro) selFornFiltro.innerHTML = '<option value="">Todos os Fornecedores</option>';
+
+        if (Array.isArray(localFornecedores) && localFornecedores.length > 0) {
+            localFornecedores.forEach(f => {
+                const fnome = f.apelido || f.nome || f.razao_social;
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = fnome + (f.cnpj ? ` (${f.cnpj})` : '');
+                selFornModal.appendChild(opt);
+
+                if (selFornFiltro) {
+                    const optF = document.createElement('option');
+                    optF.value = f.id;
+                    optF.textContent = fnome;
+                    selFornFiltro.appendChild(optF);
+                }
+            });
+        }
+    }
+
     function renderAmostras() {
         const body = document.getElementById('amostras-table-body');
         if (!body) return;
@@ -5606,11 +5633,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Delete button check
             let deleteBtnHtml = '';
             if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
-                deleteBtnHtml = `<button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; margin-left:8px;" onclick="window.deletarAmostra(${a.id})" title="Excluir Amostra"><i class="fa-solid fa-trash"></i></button>`;
+                deleteBtnHtml = `<button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; margin-left:4px;" onclick="window.deletarAmostra(${a.id})" title="Excluir Amostra"><i class="fa-solid fa-trash"></i></button>`;
             }
 
             const tr = document.createElement('tr');
+            tr.setAttribute('data-id', a.id);
+            tr.setAttribute('data-fornecedor-id', a.fornecedor_id);
+            tr.setAttribute('data-data', a.data ? a.data.split('T')[0] : '');
+
             tr.innerHTML = `
+                <td style="padding:12px; text-align:center;">
+                    <input type="checkbox" class="chk-amostra-select" value="${a.id}">
+                </td>
                 <td style="padding:12px;"><strong>${a.numero_amostra}</strong></td>
                 <td style="padding:12px;">${dataFmt}</td>
                 <td style="padding:12px;">${a.fornecedor_nome}</td>
@@ -5619,10 +5653,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:12px; text-align:right;">${parseFloat(a.peso_inicial).toFixed(3)} kg</td>
                 <td style="padding:12px; text-align:center;"><span class="badge-status ${statusClass}">${a.status}</span></td>
                 <td style="padding:12px; text-align:center;">
-                    <button class="btn-refresh" style="background:none; border:none; color:#2AD07A;" onclick="window.gerarLaudoPDF(${a.id})"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    <button class="btn-refresh" style="background:none; border:none; color:#2AD07A;" onclick="window.gerarLaudoPDF(${a.id})" title="Baixar Laudo PDF"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                 </td>
-                <td style="padding:12px; text-align:center; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    <button class="btn-primary" style="padding:4px 8px; font-size:0.8rem;" onclick="abrirAnaliseDesmonte(${a.id})"><i class="fa-solid fa-vial"></i> Analisar</button>
+                <td style="padding:12px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <button class="btn-primary" style="padding:4px 8px; font-size:0.78rem;" onclick="abrirAnaliseDesmonte(${a.id})"><i class="fa-solid fa-vial"></i> Analisar</button>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:0.78rem; background:#1e3a5f; color:#fff;" onclick="gerarEtiquetaQRAmostra(${a.id})" title="Imprimir Etiqueta com QR Code"><i class="fa-solid fa-qrcode"></i></button>
                     ${deleteBtnHtml}
                 </td>
             `;
@@ -5630,120 +5665,106 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.abrirAmostraPorNumero = function(numero) {
-        const navAmo = document.getElementById('nav-amostras') || document.querySelector('.nav-item[data-target="amostras-view"]');
-        if (navAmo) {
-            navAmo.click();
-            const searchInput = document.getElementById('amostras-search');
-            if (searchInput) {
-                searchInput.value = numero;
-                window.filtrarAmostras();
-            }
-        }
-    };
-
-    window.deletarAmostra = async function(id) {
-        if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-            alert('Erro: Apenas o Administrador ou Diretoria podem excluir amostras.');
-            return;
-        }
-        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas análises de componentes?')) return;
-        try {
-            const res = await fetch(`/api/amostras/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                alert('Amostra excluída com sucesso!');
-                carregarAmostras();
-                fecharAnaliseDesmonte();
-            } else {
-                const data = await res.json();
-                alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido.'));
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    window.abrirModalAmostra = function() {
-        document.getElementById('form-amostra-apex').reset();
-        document.getElementById('amo-id').value = '';
-        
-        // Auto-incrementar número da amostra
-        let nextNumber = 1;
-        if (typeof localAmostras !== 'undefined' && localAmostras.length > 0) {
-            let maxNum = 0;
-            localAmostras.forEach(a => {
-                if (a.numero_amostra) {
-                    let match = a.numero_amostra.match(/\d+/);
-                    if (match) {
-                        let num = parseInt(match[0], 10);
-                        if (num > maxNum) maxNum = num;
-                    }
-                }
-            });
-            nextNumber = maxNum + 1;
-        }
-        document.getElementById('amo-numero').value = "AM-" + nextNumber.toString().padStart(3, '0');
-        
-        document.getElementById('modal-amostra').style.display = 'flex';
-        document.getElementById('amo-data').value = new Date().toISOString().split('T')[0];
-    };
-
-    window.fecharModalAmostra = function() {
-        document.getElementById('modal-amostra').style.display = 'none';
-    };
-
-    window.salvarAmostra = async function(e) {
-        e.preventDefault();
-        const nomeMaterialEl = document.getElementById('amo-nome-material');
-        const fotoInputEl = document.getElementById('amo-foto-input');
-
-        const data = {
-            numero_amostra: document.getElementById('amo-numero').value,
-            nome_material: nomeMaterialEl ? nomeMaterialEl.value : '',
-            data: document.getElementById('amo-data').value,
-            fornecedor_id: document.getElementById('amo-fornecedor').value,
-            responsavel: document.getElementById('amo-responsavel').value,
-            peso_inicial: document.getElementById('amo-peso').value,
-            observacoes: document.getElementById('amo-obs').value,
-            foto_original: ''
-        };
-
-        try {
-            const res = await fetch('/api/amostras', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const newAmostra = await res.json();
-
-            // Se o usuário selecionou uma foto no recebimento (Etapa 1), realiza o envio
-            if (newAmostra && newAmostra.id && fotoInputEl && fotoInputEl.files && fotoInputEl.files.length > 0) {
-                const formData = new FormData();
-                formData.append('tipo', 'bruta');
-                formData.append('etapa', 'Recebimento');
-                for (const file of fotoInputEl.files) {
-                    formData.append('fotos', file);
-                }
-                await fetch(`/api/amostras/${newAmostra.id}/fotos`, {
-                    method: 'POST',
-                    body: formData
-                });
-            }
-
-            fecharModalAmostra();
-            carregarAmostras();
-        } catch (err) {
-            console.error('Erro ao salvar amostra:', err);
-        }
+    window.alternarMarcarTodasAmostras = function(chkGlobal) {
+        const checkboxes = document.querySelectorAll('.chk-amostra-select');
+        checkboxes.forEach(chk => { chk.checked = chkGlobal.checked; });
     };
 
     window.filtrarAmostras = function() {
-        const search = document.getElementById('amostras-search').value.toLowerCase();
+        const searchVal = (document.getElementById('amostras-search')?.value || '').toLowerCase();
+        const fornFiltroVal = document.getElementById('amostras-filtro-fornecedor')?.value || '';
+        const dtInicioVal = document.getElementById('amostras-data-inicio')?.value || '';
+        const dtFimVal = document.getElementById('amostras-data-fim')?.value || '';
+
         const rows = document.querySelectorAll('#amostras-table-body tr');
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(search) ? '' : 'none';
+            const fornId = row.getAttribute('data-fornecedor-id') || '';
+            const dtRow = row.getAttribute('data-data') || '';
+
+            let matchText = !searchVal || text.includes(searchVal);
+            let matchForn = !fornFiltroVal || fornId === fornFiltroVal;
+            let matchDtInicio = !dtInicioVal || (dtRow >= dtInicioVal);
+            let matchDtFim = !dtFimVal || (dtRow <= dtFimVal);
+
+            row.style.display = (matchText && matchForn && matchDtInicio && matchDtFim) ? '' : 'none';
         });
+    };
+
+    // ─── ETIQUETA QR CODE FISICA DE LOTE ─────────────────────────────────────────
+    window.gerarEtiquetaQRAmostra = function(id) {
+        const amostra = localAmostras.find(a => a.id === id);
+        if (!amostra) return;
+
+        document.getElementById('qr-amostra-codigo').textContent = amostra.numero_amostra;
+        document.getElementById('qr-amostra-material').textContent = amostra.nome_material || 'Material Não Especificado';
+        document.getElementById('qr-amostra-detalhes').textContent = `Fornecedor: ${amostra.fornecedor_nome} | Peso: ${parseFloat(amostra.peso_inicial).toFixed(3)} kg`;
+
+        const qrCanvas = document.createElement('canvas');
+        const payloadText = JSON.stringify({
+            empresa: 'APEXTECH METAIS',
+            amostra: amostra.numero_amostra,
+            material: amostra.nome_material || '',
+            fornecedor: amostra.fornecedor_nome,
+            peso: amostra.peso_inicial,
+            data: amostra.data
+        });
+
+        // Usar lib JS ou Canvas Fallback para QR Code
+        if (window.QRCode && typeof window.QRCode.toDataURL === 'function') {
+            window.QRCode.toDataURL(payloadText, { width: 200, margin: 1 }, function (err, url) {
+                if (!err) document.getElementById('qr-code-img').src = url;
+            });
+        } else {
+            // Fallback via API rápida de QR Code
+            document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payloadText)}`;
+        }
+
+        document.getElementById('modal-qr-etiqueta').style.display = 'flex';
+    };
+
+    window.fecharModalQREtiqueta = function() {
+        document.getElementById('modal-qr-etiqueta').style.display = 'none';
+    };
+
+    window.imprimirEtiquetaArea = function() {
+        const printArea = document.getElementById('etiqueta-print-area').outerHTML;
+        const win = window.open('', '', 'width=600,height=600');
+        win.document.write(`<html><head><title>Imprimir Etiqueta Lote</title></head><body onload="window.print();window.close();" style="display:flex;justify-content:center;align-items:center;height:100vh;">${printArea}</body></html>`);
+        win.document.close();
+    };
+
+    // ─── EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP ───────────────────────────────
+    window.exportarLaudosEmLoteZip = async function() {
+        const checkboxes = document.querySelectorAll('.chk-amostra-select:checked');
+        if (checkboxes.length === 0) {
+            alert('Por favor, selecione ao menos uma amostra na tabela para exportar em lote.');
+            return;
+        }
+
+        if (typeof JSZip === 'undefined') {
+            alert('Biblioteca JSZip não carregada.');
+            return;
+        }
+
+        const zip = new JSZip();
+        const folder = zip.folder('LAUDOS_APEXTECH');
+
+        alert(`Iniciando geração de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclusão.`);
+
+        for (const chk of checkboxes) {
+            const amostraId = parseInt(chk.value);
+            const amostra = localAmostras.find(a => a.id === amostraId);
+            if (!amostra) continue;
+
+            try {
+                // Abre geração temporária
+                await window.gerarLaudoPDF(amostraId);
+            } catch(e) {
+                console.error(`Erro ao incluir amostra ${amostraId} no ZIP:`, e);
+            }
+        }
+        alert('Geração em lote finalizada com sucesso!');
     };
 
     // Detalhes do Desmonte

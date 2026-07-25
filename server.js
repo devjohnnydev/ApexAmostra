@@ -3,13 +3,17 @@ if (dns.setDefaultResultOrder) {
     dns.setDefaultResultOrder('ipv4first');
 }
 
-const express = require('express');
-const dotenv  = require('dotenv');
-const path    = require('path');
-const axios   = require('axios');
-const cheerio = require('cheerio');
+const express   = require('express');
+const dotenv    = require('dotenv');
+const path      = require('path');
+const axios     = require('axios');
+const cheerio   = require('cheerio');
 const puppeteer = require('puppeteer');
 const multer    = require('multer');
+const bcrypt    = require('bcryptjs');
+const jwt       = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'apextech_secret_key_2026_safe';
 
 // ─── Multer: armazenamento em memória (fotos de amostras) ──────────────────────
 const uploadMemory = multer({
@@ -397,6 +401,16 @@ async function initDatabase() {
                 criado_em  TIMESTAMP DEFAULT NOW()
             );
             ALTER TABLE fotos_amostra ADD COLUMN IF NOT EXISTS etapa TEXT DEFAULT 'Recebimento';
+
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id         SERIAL PRIMARY KEY,
+                usuario    TEXT DEFAULT 'Sistema',
+                acao       TEXT NOT NULL,
+                detalhe    TEXT,
+                amostra_id INTEGER,
+                ip         TEXT,
+                criado_em  TIMESTAMP DEFAULT NOW()
+            );
         `);
 
         // Semeando fornecedores e amostras
@@ -1535,6 +1549,45 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
     } catch (err) {
         console.error('Erro ao enviar e-mail de laudo:', err);
         res.json({ success: true, enviado: false, motivo: err.message });
+    }
+});
+
+async function registrarAuditLog(usuario, acao, detalhe, amostraId = null, req = null) {
+    try {
+        const ip = req ? (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1') : '127.0.0.1';
+        const usr = usuario || 'Sistema';
+        if (dbAvailable) {
+            await pool.query(
+                `INSERT INTO audit_logs (usuario, acao, detalhe, amostra_id, ip) VALUES ($1, $2, $3, $4, $5)`,
+                [usr, acao, detalhe || '', amostraId, ip]
+            );
+        } else {
+            if (!memStore.audit_logs) memStore.audit_logs = [];
+            memStore.audit_logs.push({
+                id: (memStore.audit_logs.length + 1),
+                usuario: usr,
+                acao,
+                detalhe: detalhe || '',
+                amostra_id: amostraId,
+                ip,
+                criado_em: new Date().toISOString()
+            });
+        }
+    } catch (err) {
+        console.error('Erro ao registrar log de auditoria:', err);
+    }
+}
+
+// ─── API: Audit Logs ─────────────────────────────────────────────────────────
+app.get('/api/audit-logs', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM audit_logs ORDER BY criado_em DESC LIMIT 100');
+            return res.json(result.rows);
+        }
+        res.json((memStore.audit_logs || []).slice(-100).reverse());
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
