@@ -104,9 +104,10 @@
                     <i class="fa-solid fa-dollar-sign"></i>
                     <span>Tabela de Preços</span>
                 </a>
-                <a href="#" class="nav-item" data-target="amostras-view" id="nav-amostras">
+                <a href="#" class="nav-item" data-target="amostras-view" id="nav-amostras" style="position:relative;">
                     <i class="fa-solid fa-flask"></i>
                     <span>Análise de Amostras</span>
+                    <span id="badge-nav-aprovacoes" class="pulse-badge" style="display:none; background:#ff4d4d; color:#fff; font-weight:800; font-size:0.7rem; padding:2px 7px; border-radius:10px; margin-left:auto; box-shadow:0 0 8px rgba(255,77,77,0.8);">0</span>
                 </a>
                 <a href="#" class="nav-item" data-target="planejamento-view" id="nav-planejamento">
                     <i class="fa-solid fa-calculator"></i>
@@ -157,7 +158,27 @@
                             <h1><i class="fa-solid fa-chart-line"></i> Central de Decisão LME</h1>
                             <p>Dados em tempo real · Decida o melhor momento de vender cada metal</p>
                         </div>
-                        <div class="dashboard-controls">
+                        <div class="dashboard-controls" style="display:flex; align-items:center; gap:12px; position:relative;">
+                            <!-- Sininho de Notificações de Aprovação Pendente (ADM/Diretoria) -->
+                            <div id="admin-bell-container" style="position:relative;">
+                                <button type="button" id="btn-bell-notif" onclick="togglePainelNotificacoes()" style="position:relative; background:#1e3a5f; border:1px solid #3e7cb1; color:#fff; padding:8px 14px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.9rem;" title="Aprovações de Amostras Pendentes">
+                                    <i class="fa-solid fa-bell" id="bell-icon-animated" style="color:#f0c040; font-size:1.1rem;"></i>
+                                    <span style="font-weight:600;">Aprovações</span>
+                                    <span id="bell-counter-badge" style="display:none; background:#ff4d4d; color:#fff; font-size:0.75rem; font-weight:800; padding:2px 7px; border-radius:10px; box-shadow:0 0 6px rgba(255,77,77,0.9);">0</span>
+                                </button>
+
+                                <!-- Dropdown de Notificações -->
+                                <div id="bell-dropdown-panel" style="display:none; position:absolute; top:110%; right:0; width:340px; background:#101a24; border:2px solid #2AD07A; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.6); z-index:1050; padding:15px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #223547; padding-bottom:8px; margin-bottom:10px;">
+                                        <h4 style="margin:0; color:#2AD07A; font-size:0.9rem;"><i class="fa-solid fa-bell"></i> Amostras Aguardando Aprovação</h4>
+                                        <button type="button" onclick="togglePainelNotificacoes()" style="background:none; border:none; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                    <div id="bell-notif-list" style="max-height:260px; overflow-y:auto;">
+                                        <div style="color:#aaa; font-size:0.8rem; text-align:center; padding:10px;">Nenhuma aprovação pendente no momento.</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <select id="mes-selector" class="mes-select"></select>
                             <button id="btn-refresh-lme" class="btn-refresh">
                                 <i class="fa-solid fa-rotate-right"></i> Atualizar

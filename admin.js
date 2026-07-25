@@ -5589,11 +5589,84 @@ document.addEventListener('DOMContentLoaded', () => {
             localAmostras = Array.isArray(data) ? data : [];
             renderAmostras();
             popularSeletoresAmostras();
+            atualizarNotificacoesAprovacao();
         } catch (err) {
             console.error('Erro ao carregar amostras:', err);
             localAmostras = [];
         }
     }
+
+    // ─── MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) ─────────────────────
+    window.atualizarNotificacoesAprovacao = function() {
+        if (!Array.isArray(localAmostras)) return;
+
+        const pendentes = localAmostras.filter(a => 
+            a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra'
+        );
+
+        const count = pendentes.length;
+        const bNav = document.getElementById('badge-nav-aprovacoes');
+        const bHeader = document.getElementById('bell-counter-badge');
+        const bellIcon = document.getElementById('bell-icon-animated');
+        const listEl = document.getElementById('bell-notif-list');
+
+        if (bNav) {
+            bNav.textContent = count;
+            bNav.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+
+        if (bHeader) {
+            bHeader.textContent = count;
+            bHeader.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+
+        if (bellIcon) {
+            if (count > 0) {
+                bellIcon.style.color = '#ff4d4d';
+                bellIcon.classList.add('fa-bounce');
+            } else {
+                bellIcon.style.color = '#f0c040';
+                bellIcon.classList.remove('fa-bounce');
+            }
+        }
+
+        if (listEl) {
+            if (count === 0) {
+                listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprovação pendente no momento.</div>';
+            } else {
+                listEl.innerHTML = pendentes.map(p => `
+                    <div style="background:#162432; border:1px solid #1e4e8c; border-radius:6px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:bold; color:#2AD07A; font-size:0.85rem;">${p.numero_amostra} - ${p.nome_material || 'Material'}</div>
+                            <div style="font-size:0.75rem; color:#ccc;">Forn: ${p.fornecedor_nome}</div>
+                            <div style="font-size:0.72rem; color:#888;">Peso: ${parseFloat(p.peso_inicial).toFixed(3)} kg</div>
+                        </div>
+                        <button type="button" class="btn-primary" style="padding:4px 8px; font-size:0.75rem; background:#2AD07A; color:#000; font-weight:bold;" onclick="abrirAmostraEDesmonte(${p.id})">
+                            <i class="fa-solid fa-gavel"></i> Aprovar
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+    };
+
+    window.togglePainelNotificacoes = function() {
+        const p = document.getElementById('bell-dropdown-panel');
+        if (!p) return;
+        p.style.display = (p.style.display === 'none' || !p.style.display) ? 'block' : 'none';
+    };
+
+    window.abrirAmostraEDesmonte = function(id) {
+        document.getElementById('bell-dropdown-panel').style.display = 'none';
+        const navAmo = document.getElementById('nav-amostras') || document.querySelector('.nav-item[data-target="amostras-view"]');
+        if (navAmo) navAmo.click();
+        abrirAnaliseDesmonte(id);
+    };
+
+    // Polling automático a cada 10 segundos
+    setInterval(() => {
+        if (typeof carregarAmostras === 'function') carregarAmostras();
+    }, 10000);
 
     function popularSeletoresAmostras() {
         const selFornModal = document.getElementById('amo-fornecedor');
