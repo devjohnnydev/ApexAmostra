@@ -5791,6 +5791,144 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    window.abrirAmostraPorNumero = function(numero) {
+        const navAmo = document.getElementById('nav-amostras') || document.querySelector('.nav-item[data-target="amostras-view"]');
+        if (navAmo) {
+            navAmo.click();
+            const searchInput = document.getElementById('amostras-search');
+            if (searchInput) {
+                searchInput.value = numero;
+                window.filtrarAmostras();
+            }
+        }
+    };
+
+    window.deletarAmostra = async function(id) {
+        if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
+            alert('Erro: Apenas o Administrador ou Diretoria podem excluir amostras.');
+            return;
+        }
+        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas análises de componentes?')) return;
+        try {
+            const res = await fetch(`/api/amostras/${id}?user_perfil=${currentSimulatedRole}`, { method: 'DELETE' });
+            if (res.ok) {
+                alert('Amostra excluída com sucesso!');
+                carregarAmostras();
+                fecharAnaliseDesmonte();
+            } else {
+                const data = await res.json();
+                alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido.'));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.abrirModalAmostra = function() {
+        const form = document.getElementById('form-amostra-apex');
+        if (form) form.reset();
+        const idEl = document.getElementById('amo-id');
+        if (idEl) idEl.value = '';
+        
+        let nextNumber = 1;
+        if (typeof localAmostras !== 'undefined' && localAmostras.length > 0) {
+            let maxNum = 0;
+            localAmostras.forEach(a => {
+                if (a.numero_amostra) {
+                    let match = a.numero_amostra.match(/\d+/);
+                    if (match) {
+                        let num = parseInt(match[0], 10);
+                        if (num > maxNum) maxNum = num;
+                    }
+                }
+            });
+            nextNumber = maxNum + 1;
+        }
+        const numEl = document.getElementById('amo-numero');
+        if (numEl) numEl.value = "AM-" + nextNumber.toString().padStart(3, '0');
+        
+        const modal = document.getElementById('modal-amostra');
+        if (modal) modal.style.display = 'flex';
+        const dataEl = document.getElementById('amo-data');
+        if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+    };
+
+    window.fecharModalAmostra = function() {
+        const modal = document.getElementById('modal-amostra');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.salvarAmostra = async function(e) {
+        e.preventDefault();
+        const nomeMaterialEl = document.getElementById('amo-nome-material');
+        const fotoInputEl = document.getElementById('amo-foto-input');
+
+        const data = {
+            numero_amostra: document.getElementById('amo-numero').value,
+            nome_material: nomeMaterialEl ? nomeMaterialEl.value : '',
+            data: document.getElementById('amo-data').value,
+            fornecedor_id: document.getElementById('amo-fornecedor').value,
+            responsavel: document.getElementById('amo-responsavel').value,
+            peso_inicial: document.getElementById('amo-peso').value,
+            observacoes: document.getElementById('amo-obs').value,
+            foto_original: ''
+        };
+
+        try {
+            const res = await fetch('/api/amostras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const newAmostra = await res.json();
+
+            if (newAmostra && newAmostra.id && fotoInputEl && fotoInputEl.files && fotoInputEl.files.length > 0) {
+                const formData = new FormData();
+                formData.append('tipo', 'bruta');
+                formData.append('etapa', 'Recebimento');
+                for (const file of fotoInputEl.files) {
+                    formData.append('fotos', file);
+                }
+                await fetch(`/api/amostras/${newAmostra.id}/fotos`, {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+
+            fecharModalAmostra();
+            carregarAmostras();
+        } catch (err) {
+            console.error('Erro ao salvar amostra:', err);
+        }
+    };
+
+    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
+    window.mudarTelaEtapa = function(etapaNum) {
+        // Bloqueio de Segurança da Tela 4 para o Operacional
+        if (etapaNum === 4 && currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
+            alert('🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.');
+            return;
+        }
+
+        // Esconder todas as telas de etapa
+        for (let i = 1; i <= 4; i++) {
+            const t = document.getElementById(`tela-etapa-${i}`);
+            const btn = document.getElementById(`btn-stepper-etapa-${i}`);
+            if (t) t.style.display = (i === etapaNum) ? 'block' : 'none';
+            if (btn) {
+                if (i === etapaNum) {
+                    btn.style.background = '#1e4e8c';
+                    btn.style.borderColor = '#2AD07A';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.style.background = '#101a24';
+                    btn.style.borderColor = '#1e3a5f';
+                    btn.style.color = '#aaa';
+                }
+            }
+        }
+    };
+
     // ─── ETIQUETA QR CODE FISICA DE LOTE ─────────────────────────────────────────
     window.gerarEtiquetaQRAmostra = function(id) {
         const amostra = localAmostras.find(a => a.id === id);
