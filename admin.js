@@ -5650,14 +5650,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprovação pendente no momento.</div>';
             } else {
                 listEl.innerHTML = pendentes.map(p => `
-                    <div style="background:#162432; border:1px solid #1e4e8c; border-radius:6px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="background:#162432; border:1px solid #1e4e8c; border-radius:6px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:all 0.2s;" onclick="abrirAmostraEDesmonte(${p.id})" onmouseover="this.style.borderColor='#2AD07A'" onmouseout="this.style.borderColor='#1e4e8c'" title="Clique para abrir e ver os detalhes desta amostra">
                         <div>
-                            <div style="font-weight:bold; color:#2AD07A; font-size:0.85rem;">${p.numero_amostra} - ${p.nome_material || 'Material'}</div>
-                            <div style="font-size:0.75rem; color:#ccc;">Forn: ${p.fornecedor_nome}</div>
+                            <div style="font-weight:bold; color:#2AD07A; font-size:0.85rem; text-decoration:underline;">
+                                <i class="fa-solid fa-up-right-from-square" style="font-size:0.75rem; margin-right:4px;"></i> ${p.numero_amostra} - ${p.nome_material || 'Material'}
+                            </div>
+                            <div style="font-size:0.75rem; color:#ccc; margin-top:2px;">Forn: ${p.fornecedor_nome}</div>
                             <div style="font-size:0.72rem; color:#888;">Peso: ${parseFloat(p.peso_inicial).toFixed(3)} kg</div>
                         </div>
-                        <button type="button" class="btn-primary" style="padding:4px 8px; font-size:0.75rem; background:#2AD07A; color:#000; font-weight:bold;" onclick="abrirAmostraEDesmonte(${p.id})">
-                            <i class="fa-solid fa-gavel"></i> Aprovar
+                        <button type="button" class="btn-primary" style="padding:5px 10px; font-size:0.75rem; background:#2AD07A; color:#000; font-weight:bold; border:none; border-radius:4px; cursor:pointer;" onclick="event.stopPropagation(); abrirAmostraEDesmonte(${p.id});">
+                            <i class="fa-solid fa-gavel"></i> Analisar
                         </button>
                     </div>
                 `).join('');
@@ -5724,14 +5726,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteBtnHtml = `<button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; margin-left:4px;" onclick="window.deletarAmostra(${a.id})" title="Excluir Amostra"><i class="fa-solid fa-trash"></i></button>`;
             }
 
-            let statusBadgeHtml = `<span class="badge-status ${statusClass}">${a.status}</span>`;
+            let statusBadgeHtml = `<span class="badge-status ${statusClass}" style="cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Clique para ver os detalhes">${a.status}</span>`;
             if (a.decisao_diretoria === 'Aprovado') {
                 const dtDec = a.data_decisao ? new Date(a.data_decisao).toLocaleDateString('pt-BR') : '';
-                statusBadgeHtml = `<span class="badge-status aprovado-compra-autorizada" style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block;" title="Aprovado por ${a.autorizado_por || 'Diretoria'} em ${dtDec}">
+                statusBadgeHtml = `<span class="badge-status aprovado-compra-autorizada" style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Aprovado por ${a.autorizado_por || 'Diretoria'} em ${dtDec}. Clique para ver os detalhes.">
                     <i class="fa-solid fa-check-circle"></i> Aprovado por ${a.autorizado_por || 'Diretoria'}${dtDec ? ' (' + dtDec + ')' : ''}
                 </span>`;
             } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra') {
-                statusBadgeHtml = `<span class="badge-status aguardando-decisao-de-compra" style="background:rgba(240,180,0,0.15); color:#f0c040; border:1px solid #f0b800; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block;">
+                statusBadgeHtml = `<span class="badge-status aguardando-decisao-de-compra" style="background:rgba(240,180,0,0.15); color:#f0c040; border:1px solid #f0b800; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Clique para analisar e aprovar">
                     <i class="fa-solid fa-clock"></i> Aguardando Aprovação Diretoria
                 </span>`;
             }
@@ -5745,10 +5747,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:12px; text-align:center;">
                     <input type="checkbox" class="chk-amostra-select" value="${a.id}">
                 </td>
-                <td style="padding:12px;"><strong>${a.numero_amostra}</strong></td>
+                <td style="padding:12px;">
+                    <a href="#" onclick="event.preventDefault(); abrirAnaliseDesmonte(${a.id});" style="color:#2AD07A; font-weight:bold; text-decoration:underline;" title="Clique para ver os detalhes da amostra">${a.numero_amostra}</a>
+                </td>
                 <td style="padding:12px;">${dataFmt}</td>
                 <td style="padding:12px;">${a.fornecedor_nome}</td>
-                <td style="padding:12px; color:#2AD07A; font-weight:600;">${a.nome_material || '-'}</td>
+                <td style="padding:12px; color:#2AD07A; font-weight:600; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Clique para ver os detalhes">${a.nome_material || '-'}</td>
                 <td style="padding:12px;">${a.responsavel}</td>
                 <td style="padding:12px; text-align:right;">${parseFloat(a.peso_inicial).toFixed(3)} kg</td>
                 <td style="padding:12px; text-align:center;">${statusBadgeHtml}</td>
