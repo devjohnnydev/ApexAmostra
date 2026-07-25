@@ -7093,25 +7093,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
-            checarNovaPagina(40);
+            checarNovaPagina(55); // Garante 55mm livres para o bloco completo (título + tabela + perda + fórmula)
+
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
             pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
-            y += 12;
+            y += 10;
 
-            // Cabeçalho da Tabela de Componentes
+            // Cabeçalho da Tabela de Componentes (Altura 7mm)
             pdf.setFillColor(20, 60, 35);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
+            pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
             pdf.text('Material Recuperado', 18, y + 4.8);
             pdf.text('Peso Liq.', 110, y + 4.8);
             pdf.text('Rendimento', 145, y + 4.8);
             pdf.text('Dificuldade', 170, y + 4.8);
-            y += 8.5; // Avança Y completamente para baixo do cabeçalho
+            y += 7.5; // Avança 7.5mm para posicionar a próxima linha EXATAMENTE abaixo do cabeçalho
 
             let sumPeso = 0;
             pdf.setFont('helvetica', 'normal');
@@ -7139,7 +7141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Linha de Perda Física (sempre posicionada abaixo do último item ou do cabeçalho sem sobreposição)
+            // Linha de Perda Física / Resíduos Industriais (Altura 7mm, posicionada exatamente na sequência Y)
             checarNovaPagina(8);
             const perda = parseFloat(amostra.peso_inicial || 0) - sumPeso;
             const pctPerda = parseFloat(amostra.peso_inicial || 0) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
