@@ -6502,9 +6502,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     const fotoId = result.ids ? result.ids[0] : null;
                     if (fotoId) {
                         const fotoUrl = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${fotoId}/img`;
-                        componentesActivos[activeWebcamCompIdx].foto = fotoUrl;
-                        adicionarPreviaLaudo(activeWebcamCompIdx, capturedImageData);
-                        renderComponentesDesmonte();
+                        const compIdx = activeWebcamCompIdx;
+                        componentesActivos[compIdx].foto = fotoUrl;
+                        componentesActivos[compIdx].fotoBase64 = capturedImageData; // base64 para preview imediato
+
+                        // Atualiza SOMENTE a célula da thumbnail desta linha (sem re-renderizar a tabela)
+                        const thumbCell = document.getElementById(`thumb-cell-${compIdx}`);
+                        if (thumbCell) {
+                            thumbCell.innerHTML = `
+                                <div class="comp-thumb-card" style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                                    <div style="position:relative; width:70px; height:70px; border-radius:8px; overflow:hidden;
+                                         border:2px solid #2AD07A; box-shadow:0 2px 8px rgba(42,208,122,0.3);">
+                                        <img src="${capturedImageData}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                                    </div>
+                                    <div style="display:flex; gap:4px;">
+                                        <button type="button" onclick="abrirWebcamModalComp(${compIdx})" title="Refazer foto"
+                                            style="background:#1e3a5f; border:1px solid #2AD07A; border-radius:4px;
+                                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
+                                                   justify-content:center; color:#2AD07A; font-size:0.7rem;">
+                                            <i class="fa-solid fa-rotate-right"></i>
+                                        </button>
+                                        <button type="button" onclick="ampliarFotoComp(${compIdx})" title="Ampliar foto"
+                                            style="background:#1e3a5f; border:1px solid #7ec8e3; border-radius:4px;
+                                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
+                                                   justify-content:center; color:#7ec8e3; font-size:0.7rem;">
+                                            <i class="fa-solid fa-magnifying-glass"></i>
+                                        </button>
+                                    </div>
+                                </div>`;
+                        }
+
+                        adicionarPreviaLaudo(compIdx, capturedImageData);
                     }
                 }
                 await carregarFotosAmostra(activeAmostraIdForDesmonte);
@@ -6525,48 +6553,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
         componentesActivos.forEach((c, idx) => {
             const tr = document.createElement('tr');
+            tr.style.cssText = 'position:relative; border-bottom:1px solid #1e3a5f;';
             const isCustom = c.material_id === 'NEW' || !!c.custom_name;
 
-            const fotoPreviewHtml = c.foto ? `
-                <div style="position:relative; width:45px; height:45px; border-radius:6px; overflow:hidden; border:2px solid #2AD07A; flex-shrink:0; cursor:pointer;" onclick="window.open('${c.foto}', '_blank')" title="Ver foto ampliada">
-                    <img src="${c.foto}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/img/apexlogo.png'">
-                </div>` : '';
+            // Thumbnail ancorado na linha: usa base64 para exibição imediata
+            const thumbSrc = c.fotoBase64 || c.foto || '';
+            const thumbHtml = thumbSrc ? `
+                <div class="comp-thumb-card" style="
+                    display:flex; flex-direction:column;
+                    align-items:center; gap:4px;">
+                    <div style="position:relative; width:70px; height:70px; border-radius:8px; overflow:hidden;
+                         border:2px solid #2AD07A; box-shadow:0 2px 8px rgba(42,208,122,0.3); flex-shrink:0;">
+                        <img src="${thumbSrc}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" onclick="abrirWebcamModalComp(${idx})" title="Refazer foto"
+                            style="background:#1e3a5f; border:1px solid #2AD07A; border-radius:4px;
+                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
+                                   justify-content:center; color:#2AD07A; font-size:0.7rem;">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                        <button type="button" onclick="ampliarFotoComp(${idx})" title="Ampliar foto"
+                            style="background:#1e3a5f; border:1px solid #7ec8e3; border-radius:4px;
+                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
+                                   justify-content:center; color:#7ec8e3; font-size:0.7rem;">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                </div>` : `
+                <button class="btn-primary" type="button"
+                    style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.78rem; font-weight:bold;
+                           border-radius:6px; white-space:nowrap;"
+                    onclick="abrirWebcamModalComp(${idx})" title="Capturar foto desta peça">
+                    <i class="fa-solid fa-camera"></i> Foto
+                </button>`;
 
             tr.innerHTML = `
                 <td style="padding:8px 10px; min-width:220px;">
                     <div style="display:flex; flex-direction:column; gap:5px;">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button type="button" onclick="alterarSelecaoMaterialComp(${idx},'NEW')" title="Adicionar material não cadastrado" style="flex-shrink:0; background:${isCustom ? '#2AD07A' : '#1e3a5f'}; color:${isCustom ? '#000' : '#2AD07A'}; border:1px solid #2AD07A; border-radius:5px; width:28px; height:28px; font-size:1rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
-                            <select class="noble-input sel-comp-material" style="flex:1; padding:5px; font-size:0.82rem; display:${isCustom ? 'none' : 'block'};" onchange="alterarSelecaoMaterialComp(${idx}, this.value)">
+                            <button type="button" onclick="alterarSelecaoMaterialComp(${idx},'NEW')"
+                                title="Material não cadastrado"
+                                style="flex-shrink:0; background:${isCustom ? '#2AD07A' : '#1e3a5f'};
+                                       color:${isCustom ? '#000' : '#2AD07A'}; border:1px solid #2AD07A;
+                                       border-radius:5px; width:28px; height:28px; font-size:1rem;
+                                       font-weight:bold; cursor:pointer; display:flex;
+                                       align-items:center; justify-content:center;">+</button>
+                            <select class="noble-input sel-comp-material"
+                                style="flex:1; padding:5px; font-size:0.82rem; display:${isCustom ? 'none' : 'block'};"
+                                onchange="alterarSelecaoMaterialComp(${idx}, this.value)">
                                 ${localMateriais.map(m => `<option value="${m.id}" ${(!isCustom && m.id === c.material_id) ? 'selected' : ''}>${m.nome} (${m.categoria})</option>`).join('')}
                             </select>
                         </div>
-                        <input type="text" class="noble-input inp-comp-custom" style="display:${isCustom ? 'block' : 'none'}; padding:5px; font-size:0.82rem; border-color:#2AD07A;" placeholder="Nome do material novo (ex: Ouro)..." value="${c.custom_name || ''}" oninput="atualizarComponenteData(${idx}, 'custom_name', this.value)">
+                        <input type="text" class="noble-input inp-comp-custom"
+                            style="display:${isCustom ? 'block' : 'none'}; padding:5px; font-size:0.82rem; border-color:#2AD07A;"
+                            placeholder="Nome do material novo (ex: Ouro)..."
+                            value="${c.custom_name || ''}"
+                            oninput="atualizarComponenteData(${idx}, 'custom_name', this.value)">
                     </div>
                 </td>
                 <td style="padding:10px; text-align:right;">
-                    <input type="number" step="0.001" class="noble-input val-comp-peso" style="padding:6px; text-align:right; width:110px; font-size:0.85rem;" value="${c.peso}" oninput="atualizarComponenteData(${idx}, 'peso', this.value)">
+                    <input type="number" step="0.001" class="noble-input val-comp-peso"
+                        style="padding:6px; text-align:right; width:100px; font-size:0.85rem;"
+                        value="${c.peso}"
+                        oninput="atualizarComponenteData(${idx}, 'peso', this.value)">
                 </td>
                 <td style="padding:10px; text-align:right; font-weight:bold; font-size:0.9rem; color:#2AD07A;" class="val-comp-pct">${fmtBRL(c.percentual)} %</td>
                 <td style="padding:10px;">
-                    <select class="noble-input" style="padding:6px; font-size:0.85rem;" onchange="atualizarComponenteData(${idx}, 'dificuldade', this.value)">
+                    <select class="noble-input" style="padding:6px; font-size:0.85rem;"
+                        onchange="atualizarComponenteData(${idx}, 'dificuldade', this.value)">
                         <option value="Fácil" ${c.dificuldade === 'Fácil' ? 'selected' : ''}>Fácil</option>
                         <option value="Média" ${c.dificuldade === 'Média' ? 'selected' : ''}>Média</option>
                         <option value="Alta" ${c.dificuldade === 'Alta' ? 'selected' : ''}>Alta</option>
                     </select>
                 </td>
-                <td style="padding:10px;">
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        ${fotoPreviewHtml}
-                        <input type="text" class="noble-input" style="padding:5px; font-size:0.75rem; width:80px;" placeholder="Foto URL" value="${c.foto}" onchange="atualizarComponenteData(${idx}, 'foto', this.value)">
-                        <button class="btn-primary" type="button" style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.8rem; font-weight:bold;" onclick="abrirWebcamModalComp(${idx})" title="Tirar foto via webcam para esta peça"><i class="fa-solid fa-camera"></i> Foto</button>
-                    </div>
+                <td style="padding:8px 10px; vertical-align:middle;" id="thumb-cell-${idx}">
+                    ${thumbHtml}
                 </td>
                 <td style="padding:10px;">
-                    <input type="text" class="noble-input val-comp-obs" style="padding:6px; font-size:0.85rem;" value="${c.observacoes}" oninput="atualizarComponenteData(${idx}, 'observacoes', this.value)">
+                    <input type="text" class="noble-input val-comp-obs"
+                        style="padding:6px; font-size:0.85rem;"
+                        value="${c.observacoes}"
+                        oninput="atualizarComponenteData(${idx}, 'observacoes', this.value)">
                 </td>
                 <td style="padding:10px; text-align:center;">
-                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; font-size:1.1rem;" onclick="removerLinhaComponente(${idx})" title="Remover Peça"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn-refresh" style="background:none; border:none; color:#ff4d4d; font-size:1.1rem;"
+                        onclick="removerLinhaComponente(${idx})" title="Remover">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </td>
             `;
             body.appendChild(tr);
@@ -6574,6 +6648,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         calcularAnaliseAmostra();
     }
+
+    // Amplia a foto do componente em lightbox simples
+    window.ampliarFotoComp = function(idx) {
+        const c = componentesActivos[idx];
+        if (!c) return;
+        const src = c.fotoBase64 || c.foto;
+        if (!src) return;
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:flex; align-items:center; justify-content:center; cursor:pointer;';
+        overlay.onclick = () => document.body.removeChild(overlay);
+        overlay.innerHTML = `<img src="${src}" style="max-width:90vw; max-height:90vh; border-radius:10px; border:2px solid #2AD07A;">`;
+        document.body.appendChild(overlay);
+    };
+
 
     // ─── PRÉVIA VISUAL DO LAUDO ─────────────────────────────────────────────────
     const previaLaudoItens = [];
