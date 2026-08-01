@@ -6525,12 +6525,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             const isCustom = c.material_id === 'NEW' || !!c.custom_name;
 
+            const fotoPreviewHtml = c.foto ? `
+                <div style="position:relative; width:45px; height:45px; border-radius:6px; overflow:hidden; border:2px solid #2AD07A; flex-shrink:0; cursor:pointer;" onclick="window.open('${c.foto}', '_blank')" title="Clique para ver a foto em tamanho grande">
+                    <img src="${c.foto}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/img/apexlogo.png'">
+                </div>` : '';
+
             tr.innerHTML = `
                 <td style="padding:10px;">
                     <div style="display:flex; flex-direction:column; gap:6px;">
-                        <select class="noble-input sel-comp-material" style="padding:6px; font-size:0.85rem;" onchange="alterarSelecaoMaterialComp(${idx}, this.value)">
-                            ${localMateriais.map(m => `<option value="${m.id}" ${(!isCustom && m.id === c.material_id) ? 'selected' : ''}>${m.nome} (${m.categoria})</option>`).join('')}
-                            <option value="NEW" ${isCustom ? 'selected' : ''}>➕ Digitar Novo Material...</option>
+                        <select class="noble-input sel-comp-material" style="padding:6px; font-size:0.85rem; font-weight:bold; color:#2AD07A;" onchange="alterarSelecaoMaterialComp(${idx}, this.value)">
+                            <option value="NEW" ${isCustom ? 'selected' : ''} style="color:#2AD07A; font-weight:bold;">➕ Digitar Novo Material (Não Cadastrado)...</option>
+                            ${localMateriais.map(m => `<option value="${m.id}" ${(!isCustom && m.id === c.material_id) ? 'selected' : ''} style="color:#fff;">${m.nome} (${m.categoria})</option>`).join('')}
                         </select>
                         <input type="text" class="noble-input inp-comp-custom" style="display:${isCustom ? 'block' : 'none'}; padding:6px; font-size:0.85rem; border-color:#2AD07A;" placeholder="Digite o nome do novo material..." value="${c.custom_name || ''}" oninput="atualizarComponenteData(${idx}, 'custom_name', this.value)">
                     </div>
@@ -6547,9 +6552,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </select>
                 </td>
                 <td style="padding:10px;">
-                    <div style="display:flex; gap:5px; align-items:center;">
-                        <input type="text" class="noble-input" style="padding:5px; font-size:0.75rem; width:90px;" placeholder="Foto URL" value="${c.foto}" onchange="atualizarComponenteData(${idx}, 'foto', this.value)">
-                        <button class="btn-primary" type="button" style="padding:4px 8px; background:#2AD07A; color:#000; font-size:0.75rem;" onclick="abrirWebcamModalComp(${idx})" title="Tirar foto via webcam para esta peça"><i class="fa-solid fa-camera"></i></button>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        ${fotoPreviewHtml}
+                        <input type="text" class="noble-input" style="padding:5px; font-size:0.75rem; width:80px;" placeholder="Foto URL" value="${c.foto}" onchange="atualizarComponenteData(${idx}, 'foto', this.value)">
+                        <button class="btn-primary" type="button" style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.8rem; font-weight:bold;" onclick="abrirWebcamModalComp(${idx})" title="Tirar foto via webcam para esta peça"><i class="fa-solid fa-camera"></i> Foto</button>
                     </div>
                 </td>
                 <td style="padding:10px;">
