@@ -6574,6 +6574,15 @@ document.addEventListener('DOMContentLoaded', () => {
             delete componentesActivos[idx].custom_name;
         }
         renderComponentesDesmonte();
+        if (val === 'NEW') {
+            setTimeout(() => {
+                const rows = document.querySelectorAll('#analise-componentes-body tr');
+                if (rows[idx]) {
+                    const inpCustom = rows[idx].querySelector('.inp-comp-custom');
+                    if (inpCustom) inpCustom.focus();
+                }
+            }, 50);
+        }
     };
 
     window.adicionarLinhaComponente = function() {
