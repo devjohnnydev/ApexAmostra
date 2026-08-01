@@ -6494,73 +6494,89 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.confirmarFotoWebcam = async function() {
-        if (!capturedImageData || !activeAmostraIdForDesmonte) {
-            alert('Nenhuma foto capturada para salvar.');
+        if (!capturedImageData) {
+            alert('Tire a foto primeiro clicando em "Capturar Foto Agora".');
             return;
         }
 
-        try {
-            const res = await fetch(capturedImageData);
-            const blob = await res.blob();
+        const imgBase64 = capturedImageData;
+        const compIdx   = activeWebcamCompIdx;
 
-            const formData = new FormData();
-            formData.append('tipo', currentWebcamTipo);
-            formData.append('etapa', currentWebcamEtapa);
-            formData.append('fotos', blob, `webcam_${Date.now()}.jpg`);
+        // ── 1. EXIBE THUMBNAIL IMEDIATAMENTE (base64 local — não depende do servidor) ──
+        if (compIdx !== null && componentesActivos[compIdx]) {
+            componentesActivos[compIdx].fotoBase64 = imgBase64;
 
-            const uploadRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`, {
-                method: 'POST',
-                body: formData
-            });
-            const result = await uploadRes.json();
-            if (result.success) {
-                if (activeWebcamCompIdx !== null && componentesActivos[activeWebcamCompIdx]) {
-                    const fotoId = result.ids ? result.ids[0] : null;
-                    if (fotoId) {
-                        const fotoUrl = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${fotoId}/img`;
-                        const compIdx = activeWebcamCompIdx;
-                        componentesActivos[compIdx].foto = fotoUrl;
-                        componentesActivos[compIdx].fotoBase64 = capturedImageData; // base64 para preview imediato
-
-                        // Atualiza SOMENTE a célula da thumbnail desta linha (sem re-renderizar a tabela)
-                        const thumbCell = document.getElementById(`thumb-cell-${compIdx}`);
-                        if (thumbCell) {
-                            thumbCell.innerHTML = `
-                                <div class="comp-thumb-card" style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                                    <div style="position:relative; width:70px; height:70px; border-radius:8px; overflow:hidden;
-                                         border:2px solid #2AD07A; box-shadow:0 2px 8px rgba(42,208,122,0.3);">
-                                        <img src="${capturedImageData}" style="width:100%; height:100%; object-fit:cover; display:block;">
-                                    </div>
-                                    <div style="display:flex; gap:4px;">
-                                        <button type="button" onclick="abrirWebcamModalComp(${compIdx})" title="Refazer foto"
-                                            style="background:#1e3a5f; border:1px solid #2AD07A; border-radius:4px;
-                                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
-                                                   justify-content:center; color:#2AD07A; font-size:0.7rem;">
-                                            <i class="fa-solid fa-rotate-right"></i>
-                                        </button>
-                                        <button type="button" onclick="ampliarFotoComp(${compIdx})" title="Ampliar foto"
-                                            style="background:#1e3a5f; border:1px solid #7ec8e3; border-radius:4px;
-                                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
-                                                   justify-content:center; color:#7ec8e3; font-size:0.7rem;">
-                                            <i class="fa-solid fa-magnifying-glass"></i>
-                                        </button>
-                                    </div>
-                                </div>`;
-                        }
-
-                        adicionarPreviaLaudo(compIdx, capturedImageData);
-                    }
-                }
-                await carregarFotosAmostra(activeAmostraIdForDesmonte);
-                activeWebcamCompIdx = null;
-                fecharWebcamModal();
-            } else {
-                alert('Erro ao salvar foto da webcam: ' + (result.error || 'erro desconhecido'));
+            const thumbCell = document.getElementById(`thumb-cell-${compIdx}`);
+            if (thumbCell) {
+                thumbCell.innerHTML = _buildThumbHtml(compIdx, imgBase64);
             }
-        } catch(e) {
-            console.error('confirmarFotoWebcam:', e);
+            adicionarPreviaLaudo(compIdx, imgBase64);
         }
+
+        fecharWebcamModal();
+
+        // ── 2. UPLOAD EM BACKGROUND (só se a amostra estiver aberta) ──
+        if (activeAmostraIdForDesmonte) {
+            try {
+                const fetchRes  = await fetch(imgBase64);
+                const blob      = await fetchRes.blob();
+                const formData  = new FormData();
+                formData.append('tipo',  currentWebcamTipo  || 'separada');
+                formData.append('etapa', currentWebcamEtapa || 'Desmonte');
+                formData.append('fotos', blob, `webcam_${Date.now()}.jpg`);
+
+                const uploadRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await uploadRes.json();
+
+                if (result.success && result.ids && result.ids[0]) {
+                    const fotoId  = result.ids[0];
+                    const fotoUrl = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${fotoId}/img`;
+
+                    // Guarda URL definitiva no estado
+                    if (compIdx !== null && componentesActivos[compIdx]) {
+                        componentesActivos[compIdx].foto = fotoUrl;
+                    }
+
+                    // Atualiza a galeria geral de fotos sem re-renderizar a tabela
+                    await carregarFotosAmostra(activeAmostraIdForDesmonte);
+                }
+            } catch(e) {
+                console.warn('Upload background falhou (foto salva localmente apenas):', e);
+            }
+        }
+
+        activeWebcamCompIdx = null;
     };
+
+    // Gera o HTML do card thumbnail — reutilizado em render e no patch cirúrgico
+    function _buildThumbHtml(compIdx, src) {
+        return `
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div style="width:70px; height:70px; border-radius:8px; overflow:hidden;
+                     border:2px solid #2AD07A; box-shadow:0 2px 8px rgba(42,208,122,0.3); flex-shrink:0;">
+                    <img src="${src}" style="width:100%; height:100%; object-fit:cover; display:block;"
+                         onerror="this.style.display='none'">
+                </div>
+                <div style="display:flex; gap:4px;">
+                    <button type="button" onclick="abrirWebcamModalComp(${compIdx})" title="Refazer foto"
+                        style="background:#1e3a5f; border:1px solid #2AD07A; border-radius:4px;
+                               width:28px; height:24px; cursor:pointer; display:flex;
+                               align-items:center; justify-content:center; color:#2AD07A; font-size:0.72rem;">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button type="button" onclick="ampliarFotoComp(${compIdx})" title="Ampliar foto"
+                        style="background:#1e3a5f; border:1px solid #7ec8e3; border-radius:4px;
+                               width:28px; height:24px; cursor:pointer; display:flex;
+                               align-items:center; justify-content:center; color:#7ec8e3; font-size:0.72rem;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </div>`;
+    }
+
 
     function renderComponentesDesmonte() {
         const body = document.getElementById('analise-componentes-body');
@@ -6574,35 +6590,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Thumbnail ancorado na linha: usa base64 para exibição imediata
             const thumbSrc = c.fotoBase64 || c.foto || '';
-            const thumbHtml = thumbSrc ? `
-                <div class="comp-thumb-card" style="
-                    display:flex; flex-direction:column;
-                    align-items:center; gap:4px;">
-                    <div style="position:relative; width:70px; height:70px; border-radius:8px; overflow:hidden;
-                         border:2px solid #2AD07A; box-shadow:0 2px 8px rgba(42,208,122,0.3); flex-shrink:0;">
-                        <img src="${thumbSrc}" style="width:100%; height:100%; object-fit:cover; display:block;">
-                    </div>
-                    <div style="display:flex; gap:4px;">
-                        <button type="button" onclick="abrirWebcamModalComp(${idx})" title="Refazer foto"
-                            style="background:#1e3a5f; border:1px solid #2AD07A; border-radius:4px;
-                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
-                                   justify-content:center; color:#2AD07A; font-size:0.7rem;">
-                            <i class="fa-solid fa-rotate-right"></i>
-                        </button>
-                        <button type="button" onclick="ampliarFotoComp(${idx})" title="Ampliar foto"
-                            style="background:#1e3a5f; border:1px solid #7ec8e3; border-radius:4px;
-                                   width:28px; height:24px; cursor:pointer; display:flex; align-items:center;
-                                   justify-content:center; color:#7ec8e3; font-size:0.7rem;">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                    </div>
-                </div>` : `
-                <button class="btn-primary" type="button"
-                    style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.78rem; font-weight:bold;
-                           border-radius:6px; white-space:nowrap;"
-                    onclick="abrirWebcamModalComp(${idx})" title="Capturar foto desta peça">
-                    <i class="fa-solid fa-camera"></i> Foto
-                </button>`;
+            const thumbHtml = thumbSrc
+                ? _buildThumbHtml(idx, thumbSrc)
+                : `<button class="btn-primary" type="button"
+                       style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.78rem; font-weight:bold;
+                              border-radius:6px; white-space:nowrap;"
+                       onclick="abrirWebcamModalComp(${idx})" title="Capturar foto desta peça">
+                       <i class="fa-solid fa-camera"></i> Foto
+                   </button>`;
 
             tr.innerHTML = `
                 <td style="padding:8px 10px; min-width:220px;">
