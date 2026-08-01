@@ -2128,3 +2128,30 @@ tr.bg-orange-light .rel-label-col {
     line-height: 1.6 !important;
     padding: 12px !important;
 }
+
+/* ─── RESPONSIVIDADE CROSS-DEVICE (MELHORIAS 6 & 12) ─── */
+@media (max-width: 992px) {
+    #amostra-stepper-flow {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    #analise-desmonte-container {
+        padding: 15px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    #amostra-stepper-flow {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-table th, .admin-table td {
+        padding: 6px 8px !important;
+        font-size: 0.78rem !important;
+    }
+
+    #fotos-gallery {
+        justify-content: center !important;
+    }
+}

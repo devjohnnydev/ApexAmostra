@@ -6595,12 +6595,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.calcularAnaliseAmostra = function() {
         const pesoInicial = parseFloat(document.getElementById('analise-peso-inicial').textContent) || 0.0;
-        let totalPesos = 0.0;
+        
+        // Executar cálculo centralizado no ApexEngine
+        const resEngine = window.ApexEngine.calcularViabilidadeCompleta({
+            pesoBruto: pesoInicial,
+            componentes: componentesActivos,
+            tabelaPrecos: fidcPrecosCache || [],
+            margemPct: parseFloat(document.getElementById('fidc-margem')?.value || 100),
+            dificuldadeBonusPct: parseFloat(document.getElementById('fidc-dificuldade')?.value || 0)
+        });
 
         componentesActivos.forEach((c, idx) => {
-            totalPesos += c.peso;
-            c.percentual = pesoInicial > 0 ? (c.peso / pesoInicial) * 100 : 0.0;
-            
+            if (resEngine.componentes[idx]) {
+                c.percentual = resEngine.componentes[idx].percentual;
+            }
             const rows = document.querySelectorAll('#analise-componentes-body tr');
             if (rows[idx]) {
                 const pctCell = rows[idx].querySelector('.val-comp-pct');
@@ -6608,26 +6616,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (totalPesos > pesoInicial) {
+        if (resEngine.totalPesoRecuperado > pesoInicial) {
             alert('Atenção: A soma do peso dos componentes não pode exceder o peso inicial da amostra!');
         }
 
-        const perdaFisica = pesoInicial - totalPesos;
-        const percentualPerda = pesoInicial > 0 ? (perdaFisica / pesoInicial) * 100 : 0.0;
-
-        document.getElementById('resumo-peso-recuperado').textContent = totalPesos.toFixed(3);
-        document.getElementById('resumo-peso-perda').textContent = perdaFisica.toFixed(3);
-        document.getElementById('resumo-percentual-perda').textContent = fmtBRL(percentualPerda);
+        document.getElementById('resumo-peso-recuperado').textContent = resEngine.totalPesoRecuperado.toFixed(3);
+        document.getElementById('resumo-peso-perda').textContent = resEngine.perdaFisicaKg.toFixed(3);
+        document.getElementById('resumo-percentual-perda').textContent = fmtBRL(resEngine.percentualPerda);
 
         // Formula Química
         const formulaParts = componentesActivos.map(c => {
             const m = localMateriais.find(x => x.id === c.material_id);
-            return `${c.percentual.toFixed(1)}% ${m ? m.nome : 'Desconhecido'}`;
+            return `${c.percentual.toFixed(1)}% ${m ? m.nome : (c.custom_name || 'Desconhecido')}`;
         });
-        if (perdaFisica > 0) {
-            formulaParts.push(`${percentualPerda.toFixed(1)}% Perda/Resíduos`);
+        if (resEngine.perdaFisicaKg > 0) {
+            formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Resíduos`);
         }
         document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' · ');
+
+        if (window.recalcularFIDC) {
+            window.recalcularFIDC();
+        }
     };
 
     window.salvarAnaliseLaboratorial = async function() {
@@ -6987,19 +6996,26 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO E COMPOSIÇÃO POR ETAPA ──────────────
+            // ─── SEÇÃO 2: ESTRUTURAÇÃO RIGOROSA POR ETAPAS DE DESMONTE (MELHORIAS 7 A 10) ──────────────
             checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('REGISTRO FOTOGRÁFICO E COMPOSIÇÃO POR ETAPA', 17, y + 5.5);
+            pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÁFICO POR ETAPA', 17, y + 5.5);
             y += 12;
 
-            const fotosParaRender = [];
+            // Mapeamento de fotos por etapa sem repetição
+            const fotosPorEtapaMap = {
+                'Recebimento': [],
+                'Desmonte': [],
+                'Viabilidade': [],
+                'Aprovação': []
+            };
+
             if (amostra.foto_original) {
-                fotosParaRender.push({ etapa: 'Recebimento', src: amostra.foto_original, nome: 'Foto Lote Bruto Recebido' });
+                fotosPorEtapaMap['Recebimento'].push({ src: amostra.foto_original, nome: 'Foto do Produto/Lote Bruto' });
             }
 
             for (const f of fotosAmostraList) {
@@ -7013,90 +7029,99 @@ document.addEventListener('DOMContentLoaded', () => {
                             reader.onloadend = () => resolve(reader.result);
                             reader.readAsDataURL(imgBlob);
                         });
-                        fotosParaRender.push({ etapa: f.etapa || 'Desmonte', src: b64, nome: f.nome });
+                        const key = f.etapa || 'Desmonte';
+                        if (!fotosPorEtapaMap[key]) fotosPorEtapaMap[key] = [];
+                        fotosPorEtapaMap[key].push({ src: b64, nome: f.nome || `Foto ${key}` });
                     }
                 } catch(e) { console.warn('Erro ao carregar imagem para PDF:', e); }
             }
 
-            if (fotosParaRender.length > 0) {
-                const cardH = 55;
-                for (let i = 0; i < fotosParaRender.length; i++) {
-                    const fotoItem = fotosParaRender[i];
-                    checarNovaPagina(cardH + 8);
+            const etapasConfig = [
+                { num: 1, titulo: 'ETAPA 1 — Produto Bruto & Recebimento', tipoMaterial: 'Produto Bruto', fotoKey: 'Recebimento' },
+                { num: 2, titulo: 'ETAPA 2 — Triagem de Plásticos / Isolamentos', tipoMaterial: 'Plástico', fotoKey: 'Desmonte' },
+                { num: 3, titulo: 'ETAPA 3 — Sucata de Cobre', tipoMaterial: 'Cobre', fotoKey: 'Viabilidade' },
+                { num: 4, titulo: 'ETAPA 4 — Alumínio / Zamac / Outros Metais', tipoMaterial: 'Alumínio', fotoKey: 'Aprovação' }
+            ];
 
-                    // Moldura Externa do Cartão de Foto por Linha
-                    pdf.setFillColor(248, 252, 249);
-                    pdf.setDrawColor(13, 36, 22);
-                    pdf.setLineWidth(0.4);
-                    pdf.rect(15, y, 180, cardH, 'FD');
+            const cardH = 48;
+            for (const cfg of etapasConfig) {
+                checarNovaPagina(cardH + 8);
+                const listaFotos = fotosPorEtapaMap[cfg.fotoKey] || [];
+                const fotoItem = listaFotos.length > 0 ? listaFotos[0] : null;
 
-                    // Foto à Esquerda (70x49mm)
-                    pdf.setDrawColor(42, 208, 122);
-                    pdf.setLineWidth(0.3);
-                    pdf.rect(17, y + 3, 70, cardH - 6);
+                // Moldura da Etapa
+                pdf.setFillColor(248, 252, 249);
+                pdf.setDrawColor(13, 36, 22);
+                pdf.setLineWidth(0.4);
+                pdf.rect(15, y, 180, cardH, 'FD');
+
+                // Imagem à esquerda (60x40mm)
+                pdf.setDrawColor(42, 208, 122);
+                pdf.setLineWidth(0.3);
+                pdf.rect(17, y + 4, 60, cardH - 8);
+
+                if (fotoItem && fotoItem.src) {
                     try {
-                        pdf.addImage(fotoItem.src, 'JPEG', 18, y + 4, 68, cardH - 8, '', 'FAST');
+                        pdf.addImage(fotoItem.src, 'JPEG', 18, y + 5, 58, cardH - 10, '', 'FAST');
                     } catch(e) {
-                        try { pdf.addImage(fotoItem.src, 'PNG', 18, y + 4, 68, cardH - 8, '', 'FAST'); } catch(err2) {}
+                        try { pdf.addImage(fotoItem.src, 'PNG', 18, y + 5, 58, cardH - 10, '', 'FAST'); } catch(err2) {}
                     }
-
-                    // Detalhes Técnicos da Etapa à Direita
-                    const infoX = 92;
-                    pdf.setFillColor(13, 36, 22);
-                    pdf.rect(infoX, y + 3, 100, 7, 'F');
-                    pdf.setTextColor(42, 208, 122);
+                } else {
+                    pdf.setFillColor(230, 235, 238);
+                    pdf.rect(18, y + 5, 58, cardH - 10, 'F');
+                    pdf.setTextColor(120, 120, 120);
                     pdf.setFont('helvetica', 'bold');
                     pdf.setFontSize(8);
-                    pdf.text(`ETAPA ${i+1}: ${fotoItem.etapa.toUpperCase()}`, infoX + 4, y + 7.8);
+                    pdf.text('Foto não cadastrada.', 28, y + (cardH / 2));
+                }
 
-                    let infoY = y + 14;
-                    pdf.setTextColor(13, 36, 22);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(7.5);
-                    pdf.text('MATERIAIS IDENTIFICADOS NA ETAPA:', infoX, infoY);
-                    infoY += 5;
+                // Conteúdo Técnico à Direita
+                const infoX = 82;
+                pdf.setFillColor(13, 36, 22);
+                pdf.rect(infoX, y + 4, 110, 6, 'F');
+                pdf.setTextColor(42, 208, 122);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(8);
+                pdf.text(cfg.titulo.toUpperCase(), infoX + 4, y + 8.2);
 
+                let infoY = y + 14;
+                pdf.setTextColor(50, 50, 50);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(7.5);
+
+                if (cfg.num === 1) {
+                    pdf.text(`Nome do Produto: ${(amostra.nome_material || 'Não Informado').toUpperCase()}`, infoX, infoY); infoY += 4.5;
+                    pdf.text(`Código: APX-${amostra.numero_amostra || '000'} | Categoria: Industrial`, infoX, infoY); infoY += 4.5;
+                    pdf.text(`Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')} | Operador: ${amostra.responsavel || 'Eng. Roberto'}`, infoX, infoY); infoY += 4.5;
+                    pdf.text(`Peso Bruto: ${parseFloat(amostra.peso_inicial || 0).toLocaleString('pt-BR')} kg`, infoX, infoY); infoY += 4.5;
                     pdf.setFont('helvetica', 'normal');
-                    pdf.setTextColor(50, 50, 50);
-                    pdf.setFontSize(7);
+                    pdf.text(`Observações: ${amostra.observacoes || 'Sem observações iniciais.'}`, infoX, infoY);
+                } else {
+                    const matsRelacionados = (componentes || []).filter(c => 
+                        (c.material_nome || '').toLowerCase().includes(cfg.tipoMaterial.toLowerCase()) ||
+                        (c.material_categoria || '').toLowerCase().includes(cfg.tipoMaterial.toLowerCase())
+                    );
 
-                    if (componentes && componentes.length > 0) {
-                        componentes.slice(0, 3).forEach(c => {
-                            pdf.text(`• ${c.material_nome || 'Material'}: ${parseFloat(c.peso).toLocaleString('pt-BR')} kg (${parseFloat(c.percentual).toFixed(1)}%)`, infoX + 2, infoY);
+                    if (matsRelacionados.length > 0) {
+                        pdf.text(`Materiais Identificados (${cfg.tipoMaterial}):`, infoX, infoY); infoY += 4.5;
+                        pdf.setFont('helvetica', 'normal');
+                        matsRelacionados.forEach(mr => {
+                            pdf.text(`• ${mr.material_nome}: ${parseFloat(mr.peso).toLocaleString('pt-BR')} kg (${parseFloat(mr.percentual).toFixed(1)}%)`, infoX + 2, infoY);
                             infoY += 4.5;
                         });
                     } else {
-                        pdf.text('• Lote em fase inicial de triagem e pesagem.', infoX + 2, infoY);
+                        pdf.text(`Triagem de ${cfg.tipoMaterial}:`, infoX, infoY); infoY += 4.5;
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.text(`• Sem componente isolado registrado especificamente nesta fração.`, infoX + 2, infoY);
                         infoY += 4.5;
                     }
-
                     pdf.setFont('helvetica', 'bold');
-                    pdf.setTextColor(13, 36, 22);
-                    pdf.setFontSize(7.5);
-                    pdf.text('OBSERVAÇÕES DA ETAPA:', infoX, infoY + 1);
-                    infoY += 5.5;
-
+                    pdf.text('Parecer Técnico:', infoX, infoY); infoY += 4;
                     pdf.setFont('helvetica', 'normal');
-                    pdf.setTextColor(80, 80, 80);
-                    pdf.setFontSize(7);
-                    const obsTexto = fotoItem.nome ? `Foto: ${fotoItem.nome}. ${amostra.parecer_tecnico || ''}` : (amostra.parecer_tecnico || 'Sem observações registradas.');
-                    pdf.text(pdf.splitTextToSize(obsTexto, 98).slice(0, 2), infoX + 2, infoY);
-
-                    pdf.setFillColor(230, 242, 234);
-                    pdf.rect(infoX, y + cardH - 7, 100, 5, 'F');
-                    pdf.setTextColor(10, 80, 40);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(6.5);
-                    pdf.text(`RASTREABILIDADE: LOTE APX-${amostra.numero_amostra} | FOTO OK`, infoX + 3, y + cardH - 3.5);
-
-                    y += cardH + 6;
+                    pdf.text(pdf.splitTextToSize(amostra.parecer_tecnico || 'Desmonte executado conforme padrão.', 105).slice(0, 2), infoX, infoY);
                 }
-            } else {
-                pdf.setFont('helvetica', 'italic');
-                pdf.setFontSize(8);
-                pdf.setTextColor(120, 120, 120);
-                pdf.text('Nenhum registro fotográfico anexado até o momento.', 17, y);
-                y += 8;
+
+                y += cardH + 5;
             }
 
             // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
