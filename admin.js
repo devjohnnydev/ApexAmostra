@@ -6037,11 +6037,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 observacoes: c.observacoes || ''
             }));
 
-            // Inicializa cronômetro com tempo já salvo (se houver)
+            // Inicializa cronômetro com tempo já salvo (se houver) e inicia a contagem automaticamente
             resetCronometro();
             if (amostra.tempo_desmonte) {
                 cronSegundos = parseInt(amostra.tempo_desmonte);
                 atualizarCronometroDisplay();
+            }
+            if (!cronInterval) {
+                window.toggleCronometro();
             }
 
             // Parecer Técnico
