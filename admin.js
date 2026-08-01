@@ -6399,183 +6399,258 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el('fidc-preco-sugerido-coletar'))    el('fidc-preco-sugerido-coletar').innerHTML   = fmt(precoSugColetar)  + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
     }
 
-    // ─── MÓDULO DE CAPTURA DE FOTOS VIA WEBCAM AO VIVO ─────────────────────────
-    let currentWebcamStream = null;
-    let currentWebcamTipo = 'bruta';
-    let currentWebcamEtapa = 'Recebimento';
-    let activeWebcamCompIdx = null;
-    let capturedImageData = null;
+    // ══════════════════════════════════════════════════════════════════════════════
+    // MÓDULO WEBCAM — completamente autocontido, modal criado via JS
+    // ══════════════════════════════════════════════════════════════════════════════
+    (function() {
+        let _stream    = null;   // MediaStream ativo
+        let _compIdx   = null;   // índice da linha que pediu a foto
+        let _tipo      = 'separada';
+        let _etapa     = 'Desmonte';
+        let _captured  = null;   // base64 da foto capturada
+        let _modal     = null;   // elemento DOM do modal
+        let _video     = null;
+        let _canvas    = null;
+        let _preview   = null;
 
-    window.abrirWebcamModalComp = function(compIdx) {
-        activeWebcamCompIdx = compIdx;
-        window.abrirWebcamModal('separada', 'Desmonte');
-    };
+        /* ── Cria o modal no DOM (uma única vez) ── */
+        function _criarModal() {
+            if (document.getElementById('_wcm_overlay')) return;
 
-    window.abrirWebcamModal = async function(tipo, etapa) {
-        currentWebcamTipo = tipo || 'bruta';
-        currentWebcamEtapa = etapa || 'Recebimento';
-        if (typeof activeWebcamCompIdx === 'undefined' || activeWebcamCompIdx === null) {
-            activeWebcamCompIdx = null;
-        }
-        capturedImageData = null;
+            const o = document.createElement('div');
+            o.id = '_wcm_overlay';
+            o.style.cssText = [
+                'position:fixed', 'inset:0', 'background:rgba(0,0,0,0.9)',
+                'z-index:999999', 'display:flex', 'align-items:center',
+                'justify-content:center', 'display:none'
+            ].join(';');
 
-        document.getElementById('webcam-snapshot-preview').style.display = 'none';
-        document.getElementById('webcam-video').style.display = 'block';
-        document.getElementById('btn-webcam-snap').style.display = 'inline-flex';
-        document.getElementById('btn-webcam-retry').style.display = 'none';
-        document.getElementById('btn-webcam-confirm').style.display = 'none';
-        document.getElementById('modal-webcam-capture').style.display = 'flex';
+            o.innerHTML = `
+              <div style="width:96vw;max-width:1100px;background:#0d1a24;border:2px solid #2AD07A;
+                          border-radius:14px;padding:22px;display:flex;flex-direction:column;
+                          box-shadow:0 10px 60px #000;gap:14px;max-height:95vh;">
+                <!-- cabeçalho -->
+                <div style="display:flex;justify-content:space-between;align-items:center;
+                            border-bottom:1px solid #1e3a5f;padding-bottom:12px;">
+                  <h3 style="margin:0;color:#2AD07A;font-size:1.15rem;display:flex;align-items:center;gap:8px;">
+                    <i class='fa-solid fa-camera'></i> Capturar Foto com Webcam
+                  </h3>
+                  <button id="_wcm_fechar" style="background:#e63946;color:#fff;border:none;
+                    border-radius:6px;padding:7px 16px;font-weight:bold;cursor:pointer;font-size:0.9rem;">
+                    ✕ Desligar e Sair
+                  </button>
+                </div>
+                <!-- área de vídeo -->
+                <div style="flex:1;background:#000;border-radius:10px;overflow:hidden;
+                            border:2px solid #1e4e8c;position:relative;min-height:300px;
+                            display:flex;align-items:center;justify-content:center;">
+                  <video id="_wcm_video" autoplay playsinline muted
+                         style="width:100%;height:100%;max-height:55vh;object-fit:contain;display:block;"></video>
+                  <img   id="_wcm_preview"
+                         style="display:none;width:100%;height:100%;max-height:55vh;object-fit:contain;">
+                  <canvas id="_wcm_canvas" style="display:none;"></canvas>
+                </div>
+                <!-- botões -->
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                  <button id="_wcm_sair" style="background:#e63946;color:#fff;border:none;border-radius:8px;
+                    padding:10px 22px;font-size:1rem;cursor:pointer;font-weight:bold;">
+                    <i class='fa-solid fa-video-slash'></i> Cancelar
+                  </button>
+                  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <button id="_wcm_snap" style="background:#1e4e8c;color:#fff;border:none;border-radius:8px;
+                      padding:10px 26px;font-size:1.05rem;cursor:pointer;font-weight:bold;">
+                      <i class='fa-solid fa-camera-retro'></i> Capturar Foto
+                    </button>
+                    <button id="_wcm_retry" style="display:none;background:#555;color:#fff;border:none;
+                      border-radius:8px;padding:10px 20px;font-size:1rem;cursor:pointer;">
+                      <i class='fa-solid fa-rotate-left'></i> Refazer
+                    </button>
+                    <button id="_wcm_ok" style="display:none;background:#2AD07A;color:#000;border:none;
+                      border-radius:8px;padding:10px 26px;font-size:1.05rem;cursor:pointer;font-weight:bold;">
+                      <i class='fa-solid fa-check'></i> ✔ Usar esta Foto
+                    </button>
+                  </div>
+                </div>
+              </div>`;
 
-        try {
-            currentWebcamStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-                audio: false
-            });
-            const video = document.getElementById('webcam-video');
-            video.srcObject = currentWebcamStream;
-        } catch(e) {
-            console.error('Erro ao acessar webcam:', e);
-            alert('Não foi possível acessar a câmera do dispositivo. Por favor, verifique as permissões no navegador.');
-        }
-    };
+            document.body.appendChild(o);
+            _modal   = o;
+            _video   = o.querySelector('#_wcm_video');
+            _canvas  = o.querySelector('#_wcm_canvas');
+            _preview = o.querySelector('#_wcm_preview');
 
-    window.fecharWebcamModal = function() {
-        if (currentWebcamStream) {
-            currentWebcamStream.getTracks().forEach(track => track.stop());
-            currentWebcamStream = null;
-        }
-        const video = document.getElementById('webcam-video');
-        if (video) { video.srcObject = null; video.style.display = 'block'; }
-        const preview = document.getElementById('webcam-snapshot-preview');
-        if (preview) { preview.src = ''; preview.style.display = 'none'; }
-        const modal = document.getElementById('modal-webcam-capture');
-        if (modal) modal.style.display = 'none';
-        capturedImageData = null;
-    };
-
-    window.tirarFotoWebcam = function() {
-        const video = document.getElementById('webcam-video');
-        const canvas = document.getElementById('webcam-canvas');
-        const preview = document.getElementById('webcam-snapshot-preview');
-        if (!video || !canvas || !preview) { alert('Erro: elementos de c\u00e2mera n\u00e3o encontrados.'); return; }
-
-        // Garante que o v\u00eddeo est\u00e1 com dimens\u00f5es v\u00e1lidas antes de capturar
-        const w = video.videoWidth > 0 ? video.videoWidth : 640;
-        const h = video.videoHeight > 0 ? video.videoHeight : 480;
-        canvas.width = w;
-        canvas.height = h;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, w, h);
-
-        const data = canvas.toDataURL('image/jpeg', 0.92);
-        if (!data || data === 'data:,') {
-            alert('Falha ao capturar imagem. Verifique se a c\u00e2mera est\u00e1 ativa.');
-            return;
-        }
-
-        capturedImageData = data;
-        preview.src = capturedImageData;
-        video.style.display = 'none';
-        preview.style.display = 'block';
-
-        document.getElementById('btn-webcam-snap').style.display = 'none';
-        document.getElementById('btn-webcam-retry').style.display = 'inline-flex';
-        document.getElementById('btn-webcam-confirm').style.display = 'inline-flex';
-    };
-
-    window.refazerFotoWebcam = function() {
-        capturedImageData = null;
-        document.getElementById('webcam-snapshot-preview').style.display = 'none';
-        document.getElementById('webcam-video').style.display = 'block';
-        document.getElementById('btn-webcam-snap').style.display = 'inline-flex';
-        document.getElementById('btn-webcam-retry').style.display = 'none';
-        document.getElementById('btn-webcam-confirm').style.display = 'none';
-    };
-
-    window.confirmarFotoWebcam = async function() {
-        if (!capturedImageData) {
-            alert('Tire a foto primeiro clicando em "Capturar Foto Agora".');
-            return;
+            o.querySelector('#_wcm_fechar').onclick = _fechar;
+            o.querySelector('#_wcm_sair').onclick   = _fechar;
+            o.querySelector('#_wcm_snap').onclick   = _capturar;
+            o.querySelector('#_wcm_retry').onclick  = _refazer;
+            o.querySelector('#_wcm_ok').onclick     = _confirmar;
         }
 
-        const imgBase64 = capturedImageData;
-        const compIdx   = activeWebcamCompIdx;
+        /* ── Abre o modal e inicia a câmera ── */
+        async function _abrir(compIdx, tipo, etapa) {
+            _criarModal();
+            _compIdx  = (compIdx !== undefined && compIdx !== null) ? compIdx : null;
+            _tipo     = tipo  || 'separada';
+            _etapa    = etapa || 'Desmonte';
+            _captured = null;
 
-        // ── 1. EXIBE THUMBNAIL IMEDIATAMENTE (base64 local — não depende do servidor) ──
-        if (compIdx !== null && componentesActivos[compIdx]) {
-            componentesActivos[compIdx].fotoBase64 = imgBase64;
+            // reset visual
+            _video.style.display   = 'block';
+            _preview.style.display = 'none';
+            _modal.querySelector('#_wcm_snap').style.display  = 'inline-block';
+            _modal.querySelector('#_wcm_retry').style.display = 'none';
+            _modal.querySelector('#_wcm_ok').style.display    = 'none';
+            _modal.style.display = 'flex';
 
-            const thumbCell = document.getElementById(`thumb-cell-${compIdx}`);
-            if (thumbCell) {
-                thumbCell.innerHTML = _buildThumbHtml(compIdx, imgBase64);
-            }
-            adicionarPreviaLaudo(compIdx, imgBase64);
-        }
+            // para qualquer stream anterior
+            if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
 
-        fecharWebcamModal();
-
-        // ── 2. UPLOAD EM BACKGROUND (só se a amostra estiver aberta) ──
-        if (activeAmostraIdForDesmonte) {
             try {
-                const fetchRes  = await fetch(imgBase64);
-                const blob      = await fetchRes.blob();
-                const formData  = new FormData();
-                formData.append('tipo',  currentWebcamTipo  || 'separada');
-                formData.append('etapa', currentWebcamEtapa || 'Desmonte');
-                formData.append('fotos', blob, `webcam_${Date.now()}.jpg`);
-
-                const uploadRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`, {
-                    method: 'POST',
-                    body: formData
+                _stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
                 });
-                const result = await uploadRes.json();
-
-                if (result.success && result.ids && result.ids[0]) {
-                    const fotoId  = result.ids[0];
-                    const fotoUrl = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${fotoId}/img`;
-
-                    // Guarda URL definitiva no estado
-                    if (compIdx !== null && componentesActivos[compIdx]) {
-                        componentesActivos[compIdx].foto = fotoUrl;
-                    }
-
-                    // Atualiza a galeria geral de fotos sem re-renderizar a tabela
-                    await carregarFotosAmostra(activeAmostraIdForDesmonte);
-                }
+                _video.srcObject = _stream;
+                await _video.play().catch(() => {});
             } catch(e) {
-                console.warn('Upload background falhou (foto salva localmente apenas):', e);
+                alert('Câmera não disponível: ' + e.message);
+                _fechar();
             }
         }
 
-        activeWebcamCompIdx = null;
-    };
+        /* ── Captura o frame atual para o canvas ── */
+        function _capturar() {
+            if (!_stream || !_video.srcObject) { alert('Câmera não ativa.'); return; }
 
-    // Gera o HTML do card thumbnail — reutilizado em render e no patch cirúrgico
-    function _buildThumbHtml(compIdx, src) {
-        return `
-            <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                <div style="width:70px; height:70px; border-radius:8px; overflow:hidden;
-                     border:2px solid #2AD07A; box-shadow:0 2px 8px rgba(42,208,122,0.3); flex-shrink:0;">
-                    <img src="${src}" style="width:100%; height:100%; object-fit:cover; display:block;"
-                         onerror="this.style.display='none'">
-                </div>
-                <div style="display:flex; gap:4px;">
-                    <button type="button" onclick="abrirWebcamModalComp(${compIdx})" title="Refazer foto"
-                        style="background:#1e3a5f; border:1px solid #2AD07A; border-radius:4px;
-                               width:28px; height:24px; cursor:pointer; display:flex;
-                               align-items:center; justify-content:center; color:#2AD07A; font-size:0.72rem;">
-                        <i class="fa-solid fa-rotate-right"></i>
-                    </button>
-                    <button type="button" onclick="ampliarFotoComp(${compIdx})" title="Ampliar foto"
-                        style="background:#1e3a5f; border:1px solid #7ec8e3; border-radius:4px;
-                               width:28px; height:24px; cursor:pointer; display:flex;
-                               align-items:center; justify-content:center; color:#7ec8e3; font-size:0.72rem;">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </div>
-            </div>`;
-    }
+            const w = _video.videoWidth  || 1280;
+            const h = _video.videoHeight || 720;
+            _canvas.width  = w;
+            _canvas.height = h;
+            _canvas.getContext('2d').drawImage(_video, 0, 0, w, h);
+
+            const data = _canvas.toDataURL('image/jpeg', 0.9);
+            if (!data || data.length < 100) { alert('Falha na captura. Tente novamente.'); return; }
+
+            _captured = data;
+            _preview.src           = _captured;
+            _video.style.display   = 'none';
+            _preview.style.display = 'block';
+
+            _modal.querySelector('#_wcm_snap').style.display  = 'none';
+            _modal.querySelector('#_wcm_retry').style.display = 'inline-block';
+            _modal.querySelector('#_wcm_ok').style.display    = 'inline-block';
+        }
+
+        /* ── Refaz a foto ── */
+        function _refazer() {
+            _captured              = null;
+            _preview.style.display = 'none';
+            _video.style.display   = 'block';
+            _modal.querySelector('#_wcm_snap').style.display  = 'inline-block';
+            _modal.querySelector('#_wcm_retry').style.display = 'none';
+            _modal.querySelector('#_wcm_ok').style.display    = 'none';
+        }
+
+        /* ── Confirma: insere thumbnail na linha IMEDIATAMENTE ── */
+        async function _confirmar() {
+            if (!_captured) { alert('Nenhuma foto capturada.'); return; }
+
+            const img64   = _captured;
+            const cIdx    = _compIdx;
+
+            // 1. Fecha a câmera imediatamente
+            _fechar();
+
+            // 2. Insere thumbnail na célula da linha da tabela
+            if (cIdx !== null && componentesActivos && componentesActivos[cIdx]) {
+                componentesActivos[cIdx].fotoBase64 = img64;
+
+                const cell = document.getElementById('_tc_' + cIdx);
+                if (cell) {
+                    cell.innerHTML = _thumbHtml(cIdx, img64);
+                } else {
+                    // fallback: re-renderiza a tabela inteira
+                    if (typeof renderComponentesDesmonte === 'function') renderComponentesDesmonte();
+                }
+
+                // Alimenta também a Prévia do Laudo
+                if (typeof adicionarPreviaLaudo === 'function') adicionarPreviaLaudo(cIdx, img64);
+            }
+
+            // 3. Upload em background (não bloqueia UI)
+            if (typeof activeAmostraIdForDesmonte !== 'undefined' && activeAmostraIdForDesmonte) {
+                try {
+                    const blob = await (await fetch(img64)).blob();
+                    const fd   = new FormData();
+                    fd.append('tipo',  _tipo);
+                    fd.append('etapa', _etapa);
+                    fd.append('fotos', blob, 'webcam_' + Date.now() + '.jpg');
+                    const r = await (await fetch('/api/amostras/' + activeAmostraIdForDesmonte + '/fotos', { method:'POST', body:fd })).json();
+                    if (r.success && r.ids && r.ids[0] && cIdx !== null && componentesActivos[cIdx]) {
+                        componentesActivos[cIdx].foto = '/api/amostras/' + activeAmostraIdForDesmonte + '/fotos/' + r.ids[0] + '/img';
+                    }
+                } catch(e) { console.warn('Upload webcam (background):', e); }
+            }
+        }
+
+        /* ── Fecha e desliga a câmera ── */
+        function _fechar() {
+            if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
+            if (_video)  { _video.srcObject = null; }
+            if (_modal)  { _modal.style.display = 'none'; }
+            _captured = null;
+        }
+
+        /* ── HTML do card thumbnail ── */
+        function _thumbHtml(idx, src) {
+            return '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;">' +
+              '<div style="width:72px;height:72px;border-radius:8px;overflow:hidden;' +
+                'border:2px solid #2AD07A;box-shadow:0 2px 10px rgba(42,208,122,0.35);">' +
+                '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;" ' +
+                     'onclick="_WCM.ampliar(' + idx + ')" title="Clique para ampliar" ' +
+                     'style="cursor:pointer">' +
+              '</div>' +
+              '<div style="display:flex;gap:4px;">' +
+                '<button onclick="_WCM.abrir(' + idx + ')" title="Refazer foto" ' +
+                  'style="background:#1e3a5f;border:1px solid #2AD07A;border-radius:5px;' +
+                         'width:30px;height:26px;cursor:pointer;color:#2AD07A;font-size:0.75rem;">' +
+                  '&#x21BB;</button>' +
+                '<button onclick="_WCM.ampliar(' + idx + ')" title="Ver foto maior" ' +
+                  'style="background:#1e3a5f;border:1px solid #7ec8e3;border-radius:5px;' +
+                         'width:30px;height:26px;cursor:pointer;color:#7ec8e3;font-size:0.75rem;">' +
+                  '&#x1F50D;</button>' +
+              '</div>' +
+            '</div>';
+        }
+
+        /* ── API pública ── */
+        window._WCM = {
+            abrir: function(compIdx) { _abrir(compIdx, 'separada', 'Desmonte'); },
+            abrirGeral: function(tipo, etapa) { _compIdx = null; _abrir(null, tipo, etapa); },
+            ampliar: function(idx) {
+                const c = componentesActivos && componentesActivos[idx];
+                if (!c) return;
+                const src = c.fotoBase64 || c.foto;
+                if (!src) return;
+                const ov = document.createElement('div');
+                ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+                ov.onclick = () => ov.remove();
+                ov.innerHTML = '<img src="' + src + '" style="max-width:92vw;max-height:92vh;border-radius:10px;border:2px solid #2AD07A;">';
+                document.body.appendChild(ov);
+            }
+        };
+
+        // Mantém compatibilidade com funções antigas chamadas pelo HTML restante
+        window.abrirWebcamModal      = function(tipo, etapa) { window._WCM.abrirGeral(tipo, etapa); };
+        window.abrirWebcamModalComp  = function(idx)         { window._WCM.abrir(idx); };
+        window.fecharWebcamModal     = _fechar;
+        window.tirarFotoWebcam       = _capturar;
+        window.refazerFotoWebcam     = _refazer;
+        window.confirmarFotoWebcam   = _confirmar;
+        window.ampliarFotoComp       = function(idx) { window._WCM.ampliar(idx); };
+    })();
+
+
 
 
     function renderComponentesDesmonte() {
@@ -6638,7 +6713,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="Alta" ${c.dificuldade === 'Alta' ? 'selected' : ''}>Alta</option>
                     </select>
                 </td>
-                <td style="padding:8px 10px; vertical-align:middle;" id="thumb-cell-${idx}">
+                <td style="padding:8px 10px; vertical-align:middle;" id="_tc_${idx}">
                     ${thumbHtml}
                 </td>
                 <td style="padding:10px;">
