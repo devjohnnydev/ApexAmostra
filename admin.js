@@ -6501,7 +6501,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (activeWebcamCompIdx !== null && componentesActivos[activeWebcamCompIdx]) {
                     const fotoId = result.ids ? result.ids[0] : null;
                     if (fotoId) {
-                        componentesActivos[activeWebcamCompIdx].foto = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${fotoId}/img`;
+                        const fotoUrl = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${fotoId}/img`;
+                        componentesActivos[activeWebcamCompIdx].foto = fotoUrl;
+                        adicionarPreviaLaudo(activeWebcamCompIdx, capturedImageData);
                         renderComponentesDesmonte();
                     }
                 }
@@ -6526,18 +6528,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const isCustom = c.material_id === 'NEW' || !!c.custom_name;
 
             const fotoPreviewHtml = c.foto ? `
-                <div style="position:relative; width:45px; height:45px; border-radius:6px; overflow:hidden; border:2px solid #2AD07A; flex-shrink:0; cursor:pointer;" onclick="window.open('${c.foto}', '_blank')" title="Clique para ver a foto em tamanho grande">
+                <div style="position:relative; width:45px; height:45px; border-radius:6px; overflow:hidden; border:2px solid #2AD07A; flex-shrink:0; cursor:pointer;" onclick="window.open('${c.foto}', '_blank')" title="Ver foto ampliada">
                     <img src="${c.foto}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/img/apexlogo.png'">
                 </div>` : '';
 
             tr.innerHTML = `
-                <td style="padding:10px;">
-                    <div style="display:flex; flex-direction:column; gap:6px;">
-                        <select class="noble-input sel-comp-material" style="padding:6px; font-size:0.85rem; font-weight:bold; color:#2AD07A;" onchange="alterarSelecaoMaterialComp(${idx}, this.value)">
-                            <option value="NEW" ${isCustom ? 'selected' : ''} style="color:#2AD07A; font-weight:bold;">➕ Digitar Novo Material (Não Cadastrado)...</option>
-                            ${localMateriais.map(m => `<option value="${m.id}" ${(!isCustom && m.id === c.material_id) ? 'selected' : ''} style="color:#fff;">${m.nome} (${m.categoria})</option>`).join('')}
-                        </select>
-                        <input type="text" class="noble-input inp-comp-custom" style="display:${isCustom ? 'block' : 'none'}; padding:6px; font-size:0.85rem; border-color:#2AD07A;" placeholder="Digite o nome do novo material..." value="${c.custom_name || ''}" oninput="atualizarComponenteData(${idx}, 'custom_name', this.value)">
+                <td style="padding:8px 10px; min-width:220px;">
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <button type="button" onclick="alterarSelecaoMaterialComp(${idx},'NEW')" title="Adicionar material não cadastrado" style="flex-shrink:0; background:${isCustom ? '#2AD07A' : '#1e3a5f'}; color:${isCustom ? '#000' : '#2AD07A'}; border:1px solid #2AD07A; border-radius:5px; width:28px; height:28px; font-size:1rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
+                            <select class="noble-input sel-comp-material" style="flex:1; padding:5px; font-size:0.82rem; display:${isCustom ? 'none' : 'block'};" onchange="alterarSelecaoMaterialComp(${idx}, this.value)">
+                                ${localMateriais.map(m => `<option value="${m.id}" ${(!isCustom && m.id === c.material_id) ? 'selected' : ''}>${m.nome} (${m.categoria})</option>`).join('')}
+                            </select>
+                        </div>
+                        <input type="text" class="noble-input inp-comp-custom" style="display:${isCustom ? 'block' : 'none'}; padding:5px; font-size:0.82rem; border-color:#2AD07A;" placeholder="Nome do material novo (ex: Ouro)..." value="${c.custom_name || ''}" oninput="atualizarComponenteData(${idx}, 'custom_name', this.value)">
                     </div>
                 </td>
                 <td style="padding:10px; text-align:right;">
@@ -6570,6 +6574,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
         calcularAnaliseAmostra();
     }
+
+    // ─── PRÉVIA VISUAL DO LAUDO ─────────────────────────────────────────────────
+    const previaLaudoItens = [];
+
+    function adicionarPreviaLaudo(idx, imgBase64) {
+        if (!imgBase64) return;
+        const comp = componentesActivos[idx] || {};
+        const nomeMaterial = comp.custom_name || (() => {
+            const mat = localMateriais.find(m => m.id === comp.material_id);
+            return mat ? mat.nome : 'Material';
+        })();
+
+        const item = {
+            ts: Date.now(),
+            nome: nomeMaterial,
+            peso: comp.peso || 0,
+            dificuldade: comp.dificuldade || 'Fácil',
+            observacoes: comp.observacoes || '',
+            img: imgBase64
+        };
+        previaLaudoItens.push(item);
+        renderPreviaLaudo();
+    }
+
+    function renderPreviaLaudo() {
+        const container = document.getElementById('previa-laudo-container');
+        const grid = document.getElementById('previa-laudo-grid');
+        if (!grid) return;
+        container.style.display = previaLaudoItens.length > 0 ? 'block' : 'none';
+        grid.innerHTML = previaLaudoItens.map((item, i) => `
+            <div style="background:#0d1a24; border:1px solid #223547; border-radius:10px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+                <div style="position:relative;">
+                    <img src="${item.img}" style="width:100%; height:180px; object-fit:cover; display:block;">
+                    <div style="position:absolute; top:8px; left:8px; background:rgba(13,26,36,0.85); border:1px solid #2AD07A; border-radius:20px; padding:2px 10px; font-size:0.72rem; color:#2AD07A; font-weight:bold;">
+                        📸 #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
+                    </div>
+                </div>
+                <div style="padding:12px;">
+                    <div style="font-weight:bold; color:#fff; font-size:0.95rem; margin-bottom:6px;">${item.nome}</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">⚖ ${parseFloat(item.peso).toFixed(3)} kg</span>
+                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">🔧 ${item.dificuldade}</span>
+                    </div>
+                    ${item.observacoes ? `<div style="color:#aaa; font-size:0.8rem; border-top:1px solid #223547; padding-top:8px;">${item.observacoes}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.limparPreviaLaudo = function() {
+        previaLaudoItens.length = 0;
+        renderPreviaLaudo();
+    };
 
     window.alterarSelecaoMaterialComp = function(idx, val) {
         if (val === 'NEW') {

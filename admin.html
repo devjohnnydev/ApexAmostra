@@ -1776,6 +1776,15 @@
                             </table>
                             <button class="btn-secondary" style="padding:10px 16px; font-size:0.9rem;" onclick="adicionarLinhaComponente()"><i class="fa-solid fa-plus"></i> Adicionar Componente</button>
 
+                            <!-- SEÇÃO: PRÉVIA VISUAL DO LAUDO -->
+                            <div id="previa-laudo-container" style="margin-top:28px; display:none;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #2AD07A; padding-bottom:10px; margin-bottom:16px;">
+                                    <h4 style="margin:0; color:#2AD07A; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-file-image"></i> Prévia Visual do Laudo &mdash; Fotos do Desmonte</h4>
+                                    <button type="button" onclick="limparPreviaLaudo()" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; border-radius:6px; padding:4px 10px; font-size:0.78rem; cursor:pointer;"><i class="fa-solid fa-trash"></i> Limpar Prévia</button>
+                                </div>
+                                <div id="previa-laudo-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px;"></div>
+                            </div>
+
                             <div style="display:flex; justify-content:space-between; border-top:1px solid #223547; padding-top:15px; margin-top:20px;">
                                 <button type="button" class="btn-secondary" onclick="mudarTelaEtapa(1)"><i class="fa-solid fa-arrow-left"></i> Voltar Tela 1</button>
                                 <button type="button" class="btn-primary" style="background:#1e4e8c; color:#fff;" onclick="mudarTelaEtapa(3)">Avançar para Tela 3: Viabilidade Técnica <i class="fa-solid fa-arrow-right"></i></button>
