@@ -6065,7 +6065,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dirObsEl) dirObsEl.value = amostra.obs_diretoria || '';
 
             if (painelDir) {
-                if (currentSimulatedRole === 'Administrador') {
+                if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
                     painelDir.style.display = 'block';
                 } else {
                     painelDir.style.display = 'none';
