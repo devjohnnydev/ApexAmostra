@@ -6444,21 +6444,37 @@ document.addEventListener('DOMContentLoaded', () => {
             currentWebcamStream.getTracks().forEach(track => track.stop());
             currentWebcamStream = null;
         }
-        document.getElementById('modal-webcam-capture').style.display = 'none';
+        const video = document.getElementById('webcam-video');
+        if (video) { video.srcObject = null; video.style.display = 'block'; }
+        const preview = document.getElementById('webcam-snapshot-preview');
+        if (preview) { preview.src = ''; preview.style.display = 'none'; }
+        const modal = document.getElementById('modal-webcam-capture');
+        if (modal) modal.style.display = 'none';
+        capturedImageData = null;
     };
 
     window.tirarFotoWebcam = function() {
         const video = document.getElementById('webcam-video');
         const canvas = document.getElementById('webcam-canvas');
         const preview = document.getElementById('webcam-snapshot-preview');
-        if (!video || !canvas || !preview) return;
+        if (!video || !canvas || !preview) { alert('Erro: elementos de c\u00e2mera n\u00e3o encontrados.'); return; }
 
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
+        // Garante que o v\u00eddeo est\u00e1 com dimens\u00f5es v\u00e1lidas antes de capturar
+        const w = video.videoWidth > 0 ? video.videoWidth : 640;
+        const h = video.videoHeight > 0 ? video.videoHeight : 480;
+        canvas.width = w;
+        canvas.height = h;
+
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, w, h);
 
-        capturedImageData = canvas.toDataURL('image/jpeg', 0.9);
+        const data = canvas.toDataURL('image/jpeg', 0.92);
+        if (!data || data === 'data:,') {
+            alert('Falha ao capturar imagem. Verifique se a c\u00e2mera est\u00e1 ativa.');
+            return;
+        }
+
+        capturedImageData = data;
         preview.src = capturedImageData;
         video.style.display = 'none';
         preview.style.display = 'block';
