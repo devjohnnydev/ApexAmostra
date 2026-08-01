@@ -6403,11 +6403,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentWebcamStream = null;
     let currentWebcamTipo = 'bruta';
     let currentWebcamEtapa = 'Recebimento';
+    let activeWebcamCompIdx = null;
     let capturedImageData = null;
+
+    window.abrirWebcamModalComp = function(compIdx) {
+        activeWebcamCompIdx = compIdx;
+        window.abrirWebcamModal('separada', 'Desmonte');
+    };
 
     window.abrirWebcamModal = async function(tipo, etapa) {
         currentWebcamTipo = tipo || 'bruta';
         currentWebcamEtapa = etapa || 'Recebimento';
+        if (typeof activeWebcamCompIdx === 'undefined' || activeWebcamCompIdx === null) {
+            activeWebcamCompIdx = null;
+        }
         capturedImageData = null;
 
         document.getElementById('webcam-snapshot-preview').style.display = 'none';
@@ -6489,7 +6498,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const result = await uploadRes.json();
             if (result.success) {
+                if (activeWebcamCompIdx !== null && componentesActivos[activeWebcamCompIdx]) {
+                    const fotoId = result.ids ? result.ids[0] : null;
+                    if (fotoId) {
+                        componentesActivos[activeWebcamCompIdx].foto = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${fotoId}/img`;
+                        renderComponentesDesmonte();
+                    }
+                }
                 await carregarFotosAmostra(activeAmostraIdForDesmonte);
+                activeWebcamCompIdx = null;
                 fecharWebcamModal();
             } else {
                 alert('Erro ao salvar foto da webcam: ' + (result.error || 'erro desconhecido'));
@@ -6532,7 +6549,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px;">
                     <div style="display:flex; gap:5px; align-items:center;">
                         <input type="text" class="noble-input" style="padding:5px; font-size:0.75rem; width:90px;" placeholder="Foto URL" value="${c.foto}" onchange="atualizarComponenteData(${idx}, 'foto', this.value)">
-                        <button class="btn-primary" type="button" style="padding:4px 8px; background:#2AD07A; color:#000; font-size:0.75rem;" onclick="abrirWebcamModal('separada', 'Desmonte')" title="Tirar foto via webcam"><i class="fa-solid fa-camera"></i></button>
+                        <button class="btn-primary" type="button" style="padding:4px 8px; background:#2AD07A; color:#000; font-size:0.75rem;" onclick="abrirWebcamModalComp(${idx})" title="Tirar foto via webcam para esta peça"><i class="fa-solid fa-camera"></i></button>
                     </div>
                 </td>
                 <td style="padding:10px;">
