@@ -4049,25 +4049,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const telefone = f.fone1 || f.telefone || '-';
 
             const amostrasForn = (localAmostras || []).filter(a => a.fornecedor_id === f.id);
-            const amostrasHtml = amostrasForn.length > 0
-                ? amostrasForn.map(a => `<span class="badge-status em-analise" style="margin:2px;font-size:0.75rem;background:#1e4e8c;color:#fff;cursor:pointer;display:inline-block;" onclick="window.abrirAmostraPorNumero('${a.numero_amostra}')">${a.numero_amostra}</span>`).join(' ')
-                : '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
+            let amostrasHtml = '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
+            if (amostrasForn.length > 0) {
+                amostrasHtml = `<select style="background:#0d1a24; color:#4fc3f7; border:1px solid #1e3a5f; padding:6px; border-radius:6px; font-size:0.85rem; cursor:pointer; min-width:120px;" onchange="if(this.value) window.abrirAmostraPorNumero(this.value); this.value='';">
+                    <option value="">${amostrasForn.length} Amostra(s) ▾</option>
+                    ${amostrasForn.map(a => `<option value="${a.numero_amostra}">${a.numero_amostra}</option>`).join('')}
+                </select>`;
+            }
 
             const tr = document.createElement('tr');
+            tr.title = 'Clique na linha para editar este fornecedor (exceto botões e selects)';
             tr.style.cursor = 'pointer';
-            tr.title = 'Clique para editar este fornecedor';
             tr.onclick = (e) => {
-                if (e.target.closest('button') || e.target.closest('.badge-status')) return;
+                if (e.target.closest('button') || e.target.closest('select')) return;
                 editarFornecedor(f.id);
             };
             tr.innerHTML = `
-                <td style="padding:10px 12px;"><strong style="color:#fff;">${razao}</strong></td>
-                <td style="padding:10px 12px;color:#aaa;">${fantasia}</td>
-                <td style="padding:10px 12px;">${f.cnpj || '-'}</td>
-                <td style="padding:10px 12px;">${contato}</td>
-                <td style="padding:10px 12px;">${telefone}</td>
-                <td style="padding:10px 12px;">${f.email || '-'}</td>
-                <td style="padding:10px 12px;">${amostrasHtml}</td>
+                <td style="padding:10px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;" title="${razao}"><strong style="color:#fff;">${razao}</strong></td>
+                <td style="padding:10px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;" title="${fantasia}">${fantasia}</td>
+                <td style="padding:10px 12px; white-space:nowrap;">${f.cnpj || '-'}</td>
+                <td style="padding:10px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;" title="${contato}">${contato}</td>
+                <td style="padding:10px 12px; white-space:nowrap;">${telefone}</td>
+                <td style="padding:10px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;" title="${f.email || '-'}">${f.email || '-'}</td>
+                <td style="padding:10px 12px; white-space:nowrap; text-align:center;">${amostrasHtml}</td>
                 <td style="padding:10px 12px; text-align:center; white-space:nowrap;">
                     <button style="background:#1e3a5f;border:none;color:#4fc3f7;padding:6px 10px;border-radius:6px;cursor:pointer;margin-right:4px;" onclick="editarFornecedor(${f.id})" title="Editar"><i class="fa-solid fa-pen"></i> Editar</button>
                     <button style="background:#3a1515;border:none;color:#ff6b6b;padding:6px 10px;border-radius:6px;cursor:pointer;" onclick="deletarFornecedor(${f.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
