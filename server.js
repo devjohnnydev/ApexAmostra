@@ -1463,7 +1463,7 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
         // Buscar dados da amostra
         let amostra, componentes, fornecedor;
         if (dbAvailable) {
-            const ar = await pool.query('SELECT a.*, f.razao_social as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id=f.id WHERE a.id=$1', [id]);
+            const ar = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id=f.id WHERE a.id=$1', [id]);
             amostra = ar.rows[0];
             const cr = await pool.query('SELECT ca.*, mc.nome as material_nome FROM componentes_amostra ca LEFT JOIN materiais_catalogo mc ON ca.material_id=mc.id WHERE ca.amostra_id=$1', [id]);
             componentes = cr.rows;
@@ -1471,7 +1471,7 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
             amostra = memStore.amostras.find(a => a.id === id);
             if (!amostra) return res.status(404).json({ error: 'Amostra não encontrada' });
             const forn = memStore.fornecedores.find(f => f.id === amostra.fornecedor_id);
-            amostra = { ...amostra, fornecedor_nome: forn ? forn.razao_social : 'N/A' };
+            amostra = { ...amostra, fornecedor_nome: forn ? (forn.apelido || forn.nome || 'N/A') : 'N/A' };
             componentes = memStore.componentes_amostra
                 .filter(c => c.amostra_id === id)
                 .map(c => ({ ...c, material_nome: (memStore.materiais_catalogo.find(m => m.id === c.material_id) || {}).nome || 'N/A' }));
