@@ -5907,28 +5907,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
+    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
     window.mudarTelaEtapa = function(etapaNum) {
-        // Bloqueio de Segurança da Tela 4 para o Operacional
-        if (etapaNum === 4 && currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-            alert('🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.');
-            return;
-        }
-
-        // Esconder todas as telas de etapa
-        for (let i = 1; i <= 4; i++) {
-            const t = document.getElementById(`tela-etapa-${i}`);
-            const btn = document.getElementById(`btn-stepper-etapa-${i}`);
-            if (t) t.style.display = (i === etapaNum) ? 'block' : 'none';
-            if (btn) {
-                if (i === etapaNum) {
-                    btn.style.background = '#1e4e8c';
-                    btn.style.borderColor = '#2AD07A';
-                    btn.style.color = '#fff';
-                } else {
-                    btn.style.background = '#101a24';
-                    btn.style.borderColor = '#1e3a5f';
-                    btn.style.color = '#aaa';
+        // Agora exibe todas as etapas de forma contínua em uma única página.
+        // O Stepper Flow vira um indicador de leitura/navegação por âncora suave para a seção.
+        const idMap = {
+            1: 'tela-etapa-1',
+            2: 'tela-etapa-2',
+            3: 'tela-etapa-3',
+            4: 'tela-etapa-4'
+        };
+        const targetId = idMap[etapaNum];
+        if (targetId) {
+            const el = document.getElementById(targetId);
+            if (el) {
+                if (etapaNum === 4 && currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
+                    alert('🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.');
+                    return;
                 }
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
     };
@@ -6028,14 +6025,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // Atualiza os nós visuais do Stepper de Etapas
             atualizarStepperAmostra(amostra.status, amostra.decisao_diretoria);
 
-            componentesActivos = componentes.map(c => ({
-                material_id: c.material_id,
-                peso: parseFloat(c.peso),
-                percentual: parseFloat(c.percentual),
-                dificuldade: c.dificuldade || 'Fácil',
-                foto: c.foto || '',
-                observacoes: c.observacoes || ''
-            }));
+            componentesActivos = componentes.map(c => {
+                const urls = c.foto ? [c.foto] : [];
+                return {
+                    material_id: c.material_id,
+                    peso: parseFloat(c.peso),
+                    percentual: parseFloat(c.percentual),
+                    dificuldade: c.dificuldade || 'Fácil',
+                    foto: c.foto || '',
+                    fotosUrl: urls,
+                    fotosBase64: [],
+                    observacoes: c.observacoes || ''
+                };
+            });
 
             // Inicializa cronômetro com tempo já salvo (se houver) e inicia a contagem automaticamente
             resetCronometro();
@@ -6197,6 +6199,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const s3 = document.getElementById('step-node-3');
         const s4 = document.getElementById('step-node-4');
         if (!s1 || !s2 || !s3 || !s4) return;
+
+        // Exibe todas as etapas em uma única página longa de forma contínua
+        const t1 = document.getElementById('tela-etapa-1');
+        const t2 = document.getElementById('tela-etapa-2');
+        const t3 = document.getElementById('tela-etapa-3');
+        const t4 = document.getElementById('tela-etapa-4');
+
+        if (t1) t1.style.display = 'block';
+        if (t2) t2.style.display = 'block';
+        if (t3) t3.style.display = 'block';
+        if (t4) {
+            if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
+                t4.style.display = 'block';
+            } else {
+                t4.style.display = 'none'; // Segurança ERP para usuários comuns
+            }
+        }
 
         const setStepState = (el, active, completed, color = '#2AD07A') => {
             const badge = el.querySelector('span');
@@ -6561,15 +6580,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Fecha a câmera imediatamente
             _fechar();
 
-            // 2. Insere thumbnail na célula da linha da tabela
+            // 2. Insere thumbnail na célula da linha da tabela (acumulando fotos)
             if (cIdx !== null && componentesActivos && componentesActivos[cIdx]) {
-                componentesActivos[cIdx].fotoBase64 = img64;
+                if (!componentesActivos[cIdx].fotosBase64) {
+                    componentesActivos[cIdx].fotosBase64 = [];
+                }
+                componentesActivos[cIdx].fotosBase64.push(img64);
 
                 const cell = document.getElementById('_tc_' + cIdx);
                 if (cell) {
-                    cell.innerHTML = _thumbHtml(cIdx, img64);
+                    cell.innerHTML = _thumbsHtmlList(cIdx);
                 } else {
-                    // fallback: re-renderiza a tabela inteira
                     if (typeof renderComponentesDesmonte === 'function') renderComponentesDesmonte();
                 }
 
@@ -6587,7 +6608,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     fd.append('fotos', blob, 'webcam_' + Date.now() + '.jpg');
                     const r = await (await fetch('/api/amostras/' + activeAmostraIdForDesmonte + '/fotos', { method:'POST', body:fd })).json();
                     if (r.success && r.ids && r.ids[0] && cIdx !== null && componentesActivos[cIdx]) {
-                        componentesActivos[cIdx].foto = '/api/amostras/' + activeAmostraIdForDesmonte + '/fotos/' + r.ids[0] + '/img';
+                        if (!componentesActivos[cIdx].fotosUrl) {
+                            componentesActivos[cIdx].fotosUrl = [];
+                        }
+                        const url = '/api/amostras/' + activeAmostraIdForDesmonte + '/fotos/' + r.ids[0] + '/img';
+                        componentesActivos[cIdx].fotosUrl.push(url);
+                        componentesActivos[cIdx].foto = url; // Mantém fallback da última foto ativa
                     }
                 } catch(e) { console.warn('Upload webcam (background):', e); }
             }
@@ -6601,43 +6627,62 @@ document.addEventListener('DOMContentLoaded', () => {
             _captured = null;
         }
 
-        /* ── HTML do card thumbnail ── */
-        function _thumbHtml(idx, src) {
-            return '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;">' +
-              '<div style="width:72px;height:72px;border-radius:8px;overflow:hidden;' +
-                'border:2px solid #2AD07A;box-shadow:0 2px 10px rgba(42,208,122,0.35);">' +
-                '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;" ' +
-                     'onclick="_WCM.ampliar(' + idx + ')" title="Clique para ampliar" ' +
-                     'style="cursor:pointer">' +
-              '</div>' +
-              '<div style="display:flex;gap:4px;">' +
-                '<button onclick="_WCM.abrir(' + idx + ')" title="Refazer foto" ' +
-                  'style="background:#1e3a5f;border:1px solid #2AD07A;border-radius:5px;' +
-                         'width:30px;height:26px;cursor:pointer;color:#2AD07A;font-size:0.75rem;">' +
-                  '&#x21BB;</button>' +
-                '<button onclick="_WCM.ampliar(' + idx + ')" title="Ver foto maior" ' +
-                  'style="background:#1e3a5f;border:1px solid #7ec8e3;border-radius:5px;' +
-                         'width:30px;height:26px;cursor:pointer;color:#7ec8e3;font-size:0.75rem;">' +
-                  '&#x1F50D;</button>' +
-              '</div>' +
-            '</div>';
+        /* ── HTML do card thumbnail da lista de fotos por linha ── */
+        function _thumbsHtmlList(idx) {
+            const comp = componentesActivos[idx];
+            if (!comp) return '';
+            const listBase64 = comp.fotosBase64 || [];
+            const listUrl = comp.fotosUrl || [];
+            const defaultFoto = comp.foto ? [comp.foto] : [];
+            const fotosArray = listBase64.length > 0 ? listBase64 : (listUrl.length > 0 ? listUrl : defaultFoto);
+
+            let html = '<div style="display:flex; flex-direction:row; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;">';
+            fotosArray.forEach((src, fIdx) => {
+                html += '<div style="display:flex; flex-direction:column; align-items:center; gap:4px; position:relative;">' +
+                  '<div style="width:64px; height:64px; border-radius:6px; overflow:hidden; border:2px solid #2AD07A; box-shadow:0 1px 6px rgba(0,0,0,0.3);">' +
+                    '<img src="' + src + '" style="width:100%; height:100%; object-fit:cover; cursor:pointer;" onclick="_WCM.ampliarSrc(\'' + src.replace(/'/g, "\\'") + '\')" title="Clique para ampliar">' +
+                  '</div>' +
+                  '<button type="button" onclick="_WCM.removerFotoDoComponente(' + idx + ',' + fIdx + ')" title="Remover esta foto" ' +
+                    'style="position:absolute; top:-4px; right:-4px; background:#ff4d4d; color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">' +
+                    '✕</button>' +
+                '</div>';
+            });
+
+            // Botão Adicionar Mais uma Foto na linha
+            html += '<button type="button" onclick="_WCM.abrir(' + idx + ')" title="Adicionar mais uma foto" ' +
+              'style="background:#1e3a5f; border:1px dashed #2AD07A; border-radius:6px; width:64px; height:64px; cursor:pointer; color:#2AD07A; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:0.75rem;">' +
+              '<i class="fa-solid fa-plus" style="font-size:1.1rem;"></i> Foto</button>';
+
+            html += '</div>';
+            return html;
         }
 
         /* ── API pública ── */
         window._WCM = {
             abrir: function(compIdx) { _abrir(compIdx, 'separada', 'Desmonte'); },
             abrirGeral: function(tipo, etapa) { _compIdx = null; _abrir(null, tipo, etapa); },
-            ampliar: function(idx) {
-                const c = componentesActivos && componentesActivos[idx];
-                if (!c) return;
-                const src = c.fotoBase64 || c.foto;
-                if (!src) return;
+            removerFotoDoComponente: function(compIdx, fIdx) {
+                const comp = componentesActivos[compIdx];
+                if (!comp) return;
+                if (comp.fotosBase64) comp.fotosBase64.splice(fIdx, 1);
+                if (comp.fotosUrl) comp.fotosUrl.splice(fIdx, 1);
+                
+                // Fallback do atributo foto antigo
+                const listBase64 = comp.fotosBase64 || [];
+                const listUrl = comp.fotosUrl || [];
+                comp.foto = listUrl[listUrl.length - 1] || listBase64[listBase64.length - 1] || '';
+
+                const cell = document.getElementById('_tc_' + compIdx);
+                if (cell) cell.innerHTML = _thumbsHtmlList(compIdx);
+            },
+            ampliarSrc: function(src) {
                 const ov = document.createElement('div');
                 ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
                 ov.onclick = () => ov.remove();
                 ov.innerHTML = '<img src="' + src + '" style="max-width:92vw;max-height:92vh;border-radius:10px;border:2px solid #2AD07A;">';
                 document.body.appendChild(ov);
-            }
+            },
+            thumbsHtmlList: _thumbsHtmlList
         };
 
         // Mantém compatibilidade com funções antigas chamadas pelo HTML restante
@@ -6647,7 +6692,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.tirarFotoWebcam       = _capturar;
         window.refazerFotoWebcam     = _refazer;
         window.confirmarFotoWebcam   = _confirmar;
-        window.ampliarFotoComp       = function(idx) { window._WCM.ampliar(idx); };
+        window.ampliarFotoComp       = function(idx) { window._WCM.ampliarSrc(componentesActivos[idx]?.foto); };
     })();
 
 
@@ -6663,10 +6708,10 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.style.cssText = 'position:relative; border-bottom:1px solid #1e3a5f;';
             const isCustom = c.material_id === 'NEW' || !!c.custom_name;
 
-            // Thumbnail ancorado na linha: usa base64 para exibição imediata
-            const thumbSrc = c.fotoBase64 || c.foto || '';
-            const thumbHtml = thumbSrc
-                ? _buildThumbHtml(idx, thumbSrc)
+            // Thumbnail ancorado na linha: usa a lista de fotos acumuladas
+            const hasPhotos = (c.fotosBase64 && c.fotosBase64.length > 0) || (c.fotosUrl && c.fotosUrl.length > 0) || !!c.foto;
+            const thumbHtml = hasPhotos
+                ? window._WCM.thumbsHtmlList(idx)
                 : `<button class="btn-primary" type="button"
                        style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.78rem; font-weight:bold;
                               border-radius:6px; white-space:nowrap;"
@@ -6829,6 +6874,8 @@ document.addEventListener('DOMContentLoaded', () => {
             percentual: 0.0,
             dificuldade: 'Fácil',
             foto: '',
+            fotosUrl: [],
+            fotosBase64: [],
             observacoes: ''
         });
         renderComponentesDesmonte();
