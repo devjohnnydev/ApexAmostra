@@ -5909,8 +5909,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
     // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
     window.mudarTelaEtapa = function(etapaNum) {
-        // Agora exibe todas as etapas de forma contínua em uma única página.
-        // O Stepper Flow vira um indicador de leitura/navegação por âncora suave para a seção.
         const idMap = {
             1: 'tela-etapa-1',
             2: 'tela-etapa-2',
@@ -5918,14 +5916,36 @@ document.addEventListener('DOMContentLoaded', () => {
             4: 'tela-etapa-4'
         };
         const targetId = idMap[etapaNum];
-        if (targetId) {
-            const el = document.getElementById(targetId);
-            if (el) {
-                if (etapaNum === 4 && currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                    alert('🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.');
-                    return;
-                }
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!targetId) return;
+
+        // Etapa 4: acesso restrito
+        if (etapaNum === 4) {
+            if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
+                alert('🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.');
+                return;
+            }
+            // Revela a tela 4 para Admin/Diretoria
+            const el4 = document.getElementById('tela-etapa-4');
+            if (el4) el4.style.display = 'block';
+        }
+
+        const el = document.getElementById(targetId);
+        if (el) {
+            // Garante que o elemento está visível antes de rolar
+            if (el.style.display === 'none') el.style.display = 'block';
+            // Scroll com pequeno offset do topo da janela
+            const yOffset = -80;
+            const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+
+        // Atualiza highlight visual do stepper
+        for (let i = 1; i <= 4; i++) {
+            const btn = document.getElementById(`btn-stepper-etapa-${i}`);
+            if (btn) {
+                btn.style.background = i === etapaNum ? '#1e4e8c' : '#101a24';
+                btn.style.borderColor = i === etapaNum ? '#2AD07A' : '#1e3a5f';
+                btn.style.borderWidth = i === etapaNum ? '2px' : '1px';
             }
         }
     };
