@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const iconEl  = document.getElementById('_apex_notify_icon');
         const titleEl = document.getElementById('_apex_notify_title');
         const msgEl   = document.getElementById('_apex_notify_msg');
-        if (!overlay) { alert(titulo + (mensagem ? '\n' + mensagem : '')); return; }
+        if (!overlay) { _apexNotify('Sistema', titulo + (mensagem ? '\n' + mensagem : ''), 'info'); return; }
 
         const configs = {
             success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.URL.revokeObjectURL(url);
             } catch(e) {
                 console.error(e);
-                alert('Erro ao baixar Excel: ' + e.message);
+                _apexNotify('Atenção', 'Erro ao baixar Excel: ' + e.message, 'error');
             } finally {
                 btnDownload.classList.remove('downloading');
             }
@@ -491,13 +491,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnDownloadPdf) {
             btnDownloadPdf.addEventListener('click', () => {
                 const val = selector.value;
-                if (!val) { alert('Selecione uma semana primeiro.'); return; }
+                if (!val) { _apexNotify('Sistema', 'Selecione uma semana primeiro.', 'info'); return; }
                 const block = excelWeeks.find(b => b.header === val);
                 if (!block) return;
 
                 // Inject/update timestamp into the print area
                 const area = document.getElementById('pdf-print-area');
-                if (!area) { alert('Visualize o relatório antes de baixar o PDF.'); return; }
+                if (!area) { _apexNotify('Sistema', 'Visualize o relatório antes de baixar o PDF.', 'info'); return; }
 
                 const now = new Date();
                 const ts = now.toLocaleString('pt-BR', {
@@ -1813,7 +1813,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    alert('❌ Erro ao adicionar foto. Verifique os dados.');
+                    _apexNotify('Atenção', '❌ Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -1947,9 +1947,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (locationsWrapper) locationsWrapper.innerHTML = '';
                     createLocationField();
                     renderMateriais();
-                    alert('✅ Material cadastrado com sucesso!');
+                    _apexNotify('Sistema', '✅ Material cadastrado com sucesso!', 'info');
                 } else {
-                    alert('❌ Erro ao salvar material.');
+                    _apexNotify('Atenção', '❌ Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2050,9 +2050,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     solIdInput.value = '';
                     if (btnCancelSolucao) btnCancelSolucao.style.display = 'none';
                     renderSolucoesAdmin();
-                    alert('✅ Solução salva com sucesso!');
+                    _apexNotify('Sistema', '✅ Solução salva com sucesso!', 'info');
                 } else {
-                    alert('❌ Erro ao salvar a solução.');
+                    _apexNotify('Atenção', '❌ Erro ao salvar a solução.', 'error');
                 }
             });
         }
@@ -2138,9 +2138,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dEl = document.getElementById('not-data');
                     if (dEl) dEl.value = new Date().toISOString().split('T')[0];
                     renderNoticiasAdmin();
-                    alert('✅ Notícia publicada! Atualize a página inicial para ver.');
+                    _apexNotify('Sistema', '✅ Notícia publicada! Atualize a página inicial para ver.', 'info');
                 } else {
-                    alert('❌ Erro ao publicar notícia.');
+                    _apexNotify('Atenção', '❌ Erro ao publicar notícia.', 'error');
                 }
             });
         }
@@ -2226,13 +2226,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: JSON.stringify(data)
                     });
                     if (res.ok) {
-                        alert('✅ Configuração de agendamento salva com sucesso!');
+                        _apexNotify('Sistema', '✅ Configuração de agendamento salva com sucesso!', 'info');
                     } else {
-                        alert('❌ Erro ao salvar agendamento.');
+                        _apexNotify('Atenção', '❌ Erro ao salvar agendamento.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('❌ Erro de rede ao salvar agendamento.');
+                    _apexNotify('Atenção', '❌ Erro de rede ao salvar agendamento.', 'error');
                 }
             });
         }
@@ -2253,13 +2253,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: JSON.stringify(data)
                     });
                     if (res.ok) {
-                        alert('✅ Configurações do Resend salvas com sucesso!');
+                        _apexNotify('Sistema', '✅ Configurações do Resend salvas com sucesso!', 'info');
                     } else {
-                        alert('❌ Erro ao salvar configurações do Resend.');
+                        _apexNotify('Atenção', '❌ Erro ao salvar configurações do Resend.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('❌ Erro de rede ao salvar configurações do Resend.');
+                    _apexNotify('Atenção', '❌ Erro de rede ao salvar configurações do Resend.', 'error');
                 }
             });
         }
@@ -2330,7 +2330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (res.ok) {
                                 loadDestinatarios();
                             } else {
-                                alert('Erro ao deletar destinatário.');
+                                _apexNotify('Atenção', 'Erro ao deletar destinatário.', 'error');
                             }
                         } catch (err) {
                             console.error(err);
@@ -2377,11 +2377,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         resetDestForm();
                         loadDestinatarios();
                     } else {
-                        alert(result.error || 'Erro ao salvar destinatário.');
+                        _apexNotify('Atenção', result.error || 'Erro ao salvar destinatário.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Erro de rede ao salvar destinatário.');
+                    _apexNotify('Atenção', 'Erro de rede ao salvar destinatário.', 'error');
                 }
             });
         }
@@ -2591,9 +2591,9 @@ document.addEventListener('DOMContentLoaded', () => {
             txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
             navigator.clipboard.writeText(txt).then(() => {
-                alert('Resumo copiado para a área de transferência!');
+                _apexNotify('Sistema', 'Resumo copiado para a área de transferência!', 'info');
             }).catch(err => {
-                alert('Erro ao copiar texto.');
+                _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
                 console.error(err);
             });
         });
@@ -2746,11 +2746,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        alert('Erro ao gerar Excel.');
+                        _apexNotify('Atenção', 'Erro ao gerar Excel.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Erro na conexão com o servidor.');
+                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -3368,9 +3368,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
                 navigator.clipboard.writeText(txt).then(() => {
-                    alert('Resumo histórico copiado!');
+                    _apexNotify('Sistema', 'Resumo histórico copiado!', 'info');
                 }).catch(err => {
-                    alert('Erro ao copiar texto.');
+                    _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
                     console.error(err);
                 });
             });
@@ -3479,11 +3479,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        alert('Erro ao gerar Excel do histórico.');
+                        _apexNotify('Atenção', 'Erro ao gerar Excel do histórico.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Erro na conexão com o servidor.');
+                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -4093,7 +4093,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.editarFornecedor = function(id) {
         const f = localFornecedores.find(x => x.id === id);
-        if (!f) { alert('Fornecedor não encontrado na lista local. Recarregue a página.'); return; }
+        if (!f) { _apexNotify('Sistema', 'Fornecedor não encontrado na lista local. Recarregue a página.', 'info'); return; }
         document.getElementById('modal-forn-titulo').textContent = 'Editar Fornecedor';
         document.getElementById('forn-id').value = f.id;
         document.getElementById('forn-codfor').value = f.codfor || '';
@@ -4162,7 +4162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalFornecedor();
             carregarFornecedores();
         } catch (err) {
-            alert('Erro ao salvar fornecedor: ' + err.message);
+            _apexNotify('Atenção', 'Erro ao salvar fornecedor: ' + err.message, 'error');
             console.error('Erro ao salvar fornecedor:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Fornecedor'; }
@@ -4323,7 +4323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.clienteCadastradoCallback = null;
             }
         } catch (err) {
-            alert('Erro ao salvar cliente: ' + err.message);
+            _apexNotify('Atenção', 'Erro ao salvar cliente: ' + err.message, 'error');
             console.error('Erro ao salvar cliente:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Cliente'; }
@@ -4421,7 +4421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e) e.preventDefault();
         const nome = document.getElementById('mat-nome').value;
         if (!nome) {
-            alert('Por favor, digite o nome do material primeiro.');
+            _apexNotify('Sistema', 'Por favor, digite o nome do material primeiro.', 'info');
             return;
         }
         executarBuscaNcm(nome);
@@ -4441,7 +4441,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.buscarNcmManual = function() {
         const valor = document.getElementById('mat-ncm').value;
         if (!valor) {
-            alert('Digite um termo ou código para buscar.');
+            _apexNotify('Sistema', 'Digite um termo ou código para buscar.', 'info');
             return;
         }
         executarBuscaNcm(valor);
@@ -4626,7 +4626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
-                alert('Erro ao salvar material: ' + (errData.error || resp.statusText));
+                _apexNotify('Atenção', 'Erro ao salvar material: ' + (errData.error || resp.statusText), 'error');
                 return;
             }
             fecharModalMaterial();
@@ -4635,7 +4635,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.carregarPrecos) await window.carregarPrecos();
         } catch (err) {
             console.error(err);
-            alert('Erro de conexão ao salvar material: ' + err.message);
+            _apexNotify('Atenção', 'Erro de conexão ao salvar material: ' + err.message, 'error');
         }
     };
 
@@ -5203,7 +5203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalPreco();
             carregarPrecos();
         } catch (err) {
-            alert('Erro ao salvar preço: ' + err.message);
+            _apexNotify('Atenção', 'Erro ao salvar preço: ' + err.message, 'error');
             console.error(err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
@@ -5306,7 +5306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.salvarVigenciaGeralModal = async function() {
         const novaData = calVigenciaDataSelecionada || document.getElementById('input-vigencia-geral-data').value;
         if (!novaData) {
-            alert('Por favor, clique em um dia no calendário.');
+            _apexNotify('Sistema', 'Por favor, clique em um dia no calendário.', 'info');
             return;
         }
         const btn = document.getElementById('btn-salvar-vigencia-geral');
@@ -5319,10 +5319,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!res.ok) throw new Error(await res.text());
             fecharModalVigenciaGeral();
-            alert('Vigência atualizada para todos os materiais com sucesso!');
+            _apexNotify('Sistema', 'Vigência atualizada para todos os materiais com sucesso!', 'info');
             await carregarPrecos();
         } catch (err) {
-            alert('Erro ao atualizar vigência geral: ' + err.message);
+            _apexNotify('Atenção', 'Erro ao atualizar vigência geral: ' + err.message, 'error');
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência'; }
         }
@@ -5343,7 +5343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.exportarTabelaPrecosExcel = function() {
-        alert('Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)');
+        _apexNotify('Sistema', 'Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
     };
 
     function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64) {
@@ -5561,7 +5561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const base64 = await window.gerarPdfTabelaPrecosBase64();
             if (!base64) {
-                alert('Erro ao gerar o PDF da tabela de preços.');
+                _apexNotify('Atenção', 'Erro ao gerar o PDF da tabela de preços.', 'error');
                 return;
             }
             const linkSource = `data:application/pdf;base64,${base64}`;
@@ -5571,7 +5571,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadLink.click();
         } catch (err) {
             console.error(err);
-            alert('Erro ao exportar PDF: ' + err.message);
+            _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -5612,14 +5612,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await res.json();
             if (res.ok) {
                 setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Tabela de preços enviada com sucesso!'), '#2AD07A');
-                alert('✅ Tabela de preços enviada por e-mail com sucesso!');
+                _apexNotify('Sistema', '✅ Tabela de preços enviada por e-mail com sucesso!', 'info');
             } else {
                 throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
             }
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            alert('❌ Erro ao enviar e-mail: ' + err.message);
+            _apexNotify('Atenção', '❌ Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
@@ -5855,19 +5855,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.deletarAmostra = async function(id) {
         if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-            alert('Erro: Apenas o Administrador ou Diretoria podem excluir amostras.');
+            _apexNotify('Atenção', 'Erro: Apenas o Administrador ou Diretoria podem excluir amostras.', 'error');
             return;
         }
         if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas análises de componentes?')) return;
         try {
             const res = await fetch(`/api/amostras/${id}?user_perfil=${currentSimulatedRole}`, { method: 'DELETE' });
             if (res.ok) {
-                alert('Amostra excluída com sucesso!');
+                _apexNotify('Sistema', 'Amostra excluída com sucesso!', 'info');
                 carregarAmostras();
                 fecharAnaliseDesmonte();
             } else {
                 const data = await res.json();
-                alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido.'));
+                _apexNotify('Atenção', 'Erro ao excluir: ' + (data.error || 'Erro desconhecido.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -5938,7 +5938,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Abre a webcam e, ao confirmar, adiciona a foto ao array _fotosRecebimento
     window.abrirWebcamRecebimento = function() {
-        if (!window._WCM) { alert('Módulo de webcam não inicializado. Tente recarregar a página.'); return; }
+        if (!window._WCM) { _apexNotify('Sistema', 'Módulo de webcam não inicializado. Tente recarregar a página.', 'info'); return; }
         window._WCM.abrirParaRecebimento(function(img64, blob) {
             const nome = 'webcam_recebimento_' + Date.now() + '.jpg';
             _fotosRecebimento.push({ base64: img64, blob: blob, nome: nome });
@@ -6033,7 +6033,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Etapa 4: acesso restrito
         if (etapaNum === 4) {
             if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                alert('🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.');
+                _apexNotify('Sistema', '🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
@@ -6109,19 +6109,19 @@ document.addEventListener('DOMContentLoaded', () => {
     window.exportarLaudosEmLoteZip = async function() {
         const checkboxes = document.querySelectorAll('.chk-amostra-select:checked');
         if (checkboxes.length === 0) {
-            alert('Por favor, selecione ao menos uma amostra na tabela para exportar em lote.');
+            _apexNotify('Sistema', 'Por favor, selecione ao menos uma amostra na tabela para exportar em lote.', 'info');
             return;
         }
 
         if (typeof JSZip === 'undefined') {
-            alert('Biblioteca JSZip não carregada.');
+            _apexNotify('Sistema', 'Biblioteca JSZip não carregada.', 'info');
             return;
         }
 
         const zip = new JSZip();
         const folder = zip.folder('LAUDOS_APEXTECH');
 
-        alert(`Iniciando geração de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclusão.`);
+        _apexNotify('Sistema', `Iniciando geração de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclusão.`, 'info');
 
         for (const chk of checkboxes) {
             const amostraId = parseInt(chk.value);
@@ -6135,7 +6135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(`Erro ao incluir amostra ${amostraId} no ZIP:`, e);
             }
         }
-        alert('Geração em lote finalizada com sucesso!');
+        _apexNotify('Sistema', 'Geração em lote finalizada com sucesso!', 'info');
     };
 
     // Detalhes do Desmonte
@@ -6431,7 +6431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 await carregarFotosAmostra(activeAmostraIdForDesmonte);
             } else {
-                alert('Erro ao enviar foto: ' + (result.error || 'desconhecido'));
+                _apexNotify('Atenção', 'Erro ao enviar foto: ' + (result.error || 'desconhecido'), 'error');
             }
         } catch (err) {
             console.error('uploadFotos:', err);
@@ -6690,14 +6690,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 _video.srcObject = _stream;
                 await _video.play().catch(() => {});
             } catch(e) {
-                alert('Câmera não disponível: ' + e.message);
+                _apexNotify('Sistema', 'Câmera não disponível: ' + e.message, 'info');
                 _fechar();
             }
         }
 
         /* ── Captura o frame atual para o canvas ── */
         function _capturar() {
-            if (!_stream || !_video.srcObject) { alert('Câmera não ativa.'); return; }
+            if (!_stream || !_video.srcObject) { _apexNotify('Sistema', 'Câmera não ativa.', 'info'); return; }
 
             const w = _video.videoWidth  || 1280;
             const h = _video.videoHeight || 720;
@@ -6706,7 +6706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             _canvas.getContext('2d').drawImage(_video, 0, 0, w, h);
 
             const data = _canvas.toDataURL('image/jpeg', 0.9);
-            if (!data || data.length < 100) { alert('Falha na captura. Tente novamente.'); return; }
+            if (!data || data.length < 100) { _apexNotify('Atenção', 'Falha na captura. Tente novamente.', 'error'); return; }
 
             _captured = data;
             _preview.src           = _captured;
@@ -6730,7 +6730,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /* ── Confirma: insere thumbnail na linha IMEDIATAMENTE ── */
         async function _confirmar() {
-            if (!_captured) { alert('Nenhuma foto capturada.'); return; }
+            if (!_captured) { _apexNotify('Sistema', 'Nenhuma foto capturada.', 'info'); return; }
 
             const img64   = _captured;
             const cIdx    = _compIdx;
@@ -7111,7 +7111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (resEngine.totalPesoRecuperado > pesoInicial) {
-            alert('Atenção: A soma do peso dos componentes não pode exceder o peso inicial da amostra!');
+            _apexNotify('Sistema', 'Atenção: A soma do peso dos componentes não pode exceder o peso inicial da amostra!', 'info');
         }
 
         document.getElementById('resumo-peso-recuperado').textContent = resEngine.totalPesoRecuperado.toFixed(3);
@@ -7141,7 +7141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPesos = componentesActivos.reduce((sum, c) => sum + c.peso, 0);
 
         if (totalPesos > pesoInicial) {
-            alert('Erro: A soma do peso dos componentes é maior do que o peso total disponível.');
+            _apexNotify('Atenção', 'Erro: A soma do peso dos componentes é maior do que o peso total disponível.', 'error');
             return;
         }
         
@@ -7199,13 +7199,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const obsDir = (document.getElementById('dir-obs-diretoria') || {}).value || '';
 
         if (decisao === 'Reprovado' && !motivo) {
-            alert('Por favor, informe o motivo da reprovação.');
+            _apexNotify('Sistema', 'Por favor, informe o motivo da reprovação.', 'info');
             return;
         }
 
         if (decisao === 'Aprovado') {
             if (isNaN(precoEntregar) || isNaN(precoColetar) || !validade) {
-                alert('Por favor, preencha os preços autorizados de compra (Entregar e Coletar) e a validade.');
+                _apexNotify('Sistema', 'Por favor, preencha os preços autorizados de compra (Entregar e Coletar) e a validade.', 'info');
                 return;
             }
         }
@@ -7228,12 +7228,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (res.ok) {
                 const emoji = decisao === 'Aprovado' ? '✅' : '❌';
-                alert(`${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`);
+                _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();
                 carregarAmostras();
             } else {
-                alert('Erro: ' + (data.error || 'Não foi possível registrar a decisão.'));
+                _apexNotify('Atenção', 'Erro: ' + (data.error || 'Não foi possível registrar a decisão.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -7248,7 +7248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'Liberado para Produção' })
             });
-            alert('Lote Aprovado e Liberado para Produção/PCP!');
+            _apexNotify('Sistema', 'Lote Aprovado e Liberado para Produção/PCP!', 'info');
             fecharAnaliseDesmonte();
             carregarAmostras();
         } catch (err) {
@@ -7264,7 +7264,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'Processado' })
             });
-            alert('Processamento confirmado! Componentes recuperados adicionados ao estoque.');
+            _apexNotify('Sistema', 'Processamento confirmado! Componentes recuperados adicionados ao estoque.', 'info');
             fecharAnaliseDesmonte();
             carregarAmostras();
             carregarEstoque();
@@ -7863,7 +7863,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Erro ao gerar laudo PDF:', err);
-            alert('Erro ao gerar o laudo. Tente novamente.');
+            _apexNotify('Atenção', 'Erro ao gerar o laudo. Tente novamente.', 'error');
         }
     };
 
@@ -8335,7 +8335,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.abrirSimuladorFIDC = function() {
         if (!window.currentSimData) {
-            alert('Preencha os dados do planejamento primeiro.');
+            _apexNotify('Sistema', 'Preencha os dados do planejamento primeiro.', 'info');
             return;
         }
 
@@ -8441,7 +8441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.gerarPdfFIDC = async function() {
         if (!window.jspdf) {
-            alert('A biblioteca jsPDF não carregou corretamente.');
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
             return;
         }
         
@@ -8619,12 +8619,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.exportarPlanejamentoExcel = function() {
-        alert('Planejamento Mensal exportado com sucesso (PLANEJAMENTO_DE_NVS_FORNECEDOR.xlsx)');
+        _apexNotify('Sistema', 'Planejamento Mensal exportado com sucesso (PLANEJAMENTO_DE_NVS_FORNECEDOR.xlsx)', 'info');
     };
 
     window.exportarPlanejamentoPDF = async function() {
         if (!window.jspdf) {
-            alert('A biblioteca jsPDF não carregou corretamente.');
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
             return;
         }
         const { jsPDF } = window.jspdf;
@@ -8677,7 +8677,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.gerarPdfPlanejamentoModal = async function() {
         if (!window.jspdf) {
-            alert('A biblioteca jsPDF não carregou corretamente.');
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
             return;
         }
         
@@ -8957,7 +8957,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.salvarPermissoesPerfil = async function() {
         if (!perfilSelecionado) {
-            alert('Selecione um perfil primeiro.');
+            _apexNotify('Sistema', 'Selecione um perfil primeiro.', 'info');
             return;
         }
         
@@ -8975,11 +8975,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role_permissions: JSON.stringify(globalRolePermissions) })
             });
-            alert('Permissões salvas com sucesso!');
+            _apexNotify('Sistema', 'Permissões salvas com sucesso!', 'info');
             applyRolePermissions();
         } catch (err) {
             console.error('Erro ao salvar permissões:', err);
-            alert('Erro ao salvar permissões.');
+            _apexNotify('Atenção', 'Erro ao salvar permissões.', 'error');
         }
     };
 
@@ -9436,8 +9436,8 @@ window.carregarFinanceiroView = async function() {
     window.salvarPedido = async function(e) {
         e.preventDefault();
         const clienteId = document.getElementById('pedido-cliente-id').value;
-        if (!clienteId) { alert('Selecione um cliente.'); return; }
-        if (itensPedido.length === 0) { alert('Adicione ao menos um item ao pedido.'); return; }
+        if (!clienteId) { _apexNotify('Sistema', 'Selecione um cliente.', 'info'); return; }
+        if (itensPedido.length === 0) { _apexNotify('Sistema', 'Adicione ao menos um item ao pedido.', 'info'); return; }
 
         const payload = {
             numero:             document.getElementById('pedido-numero').value,
@@ -9459,11 +9459,11 @@ window.carregarFinanceiroView = async function() {
 
         try {
             const res = await fetch(url, { method:met, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-            if (!res.ok) { const err=await res.json(); alert('Erro: '+(err.error||res.status)); return; }
+            if (!res.ok) { const err=await res.json(); _apexNotify('Atenção', 'Erro: '+(err.error||res.status), 'error'); return; }
             fecharModalPedido();
             await carregarPedidos();
         } catch(err) {
-            alert('Erro ao salvar pedido: '+err.message);
+            _apexNotify('Atenção', 'Erro ao salvar pedido: '+err.message, 'error');
         }
     };
 
@@ -9490,7 +9490,7 @@ window.carregarFinanceiroView = async function() {
             recalcularPedido();
             document.getElementById('modal-pedido-venda').style.display = 'flex';
         } catch(err) {
-            alert('Erro ao carregar pedido: '+err.message);
+            _apexNotify('Atenção', 'Erro ao carregar pedido: '+err.message, 'error');
         }
     };
 
@@ -9500,7 +9500,7 @@ window.carregarFinanceiroView = async function() {
             await fetch(`/api/pedidos-venda/${id}`, {method:'DELETE'});
             await carregarPedidos();
         } catch(err) {
-            alert('Erro ao excluir: '+err.message);
+            _apexNotify('Atenção', 'Erro ao excluir: '+err.message, 'error');
         }
     };
 
@@ -9516,7 +9516,7 @@ window.carregarFinanceiroView = async function() {
                 p = await r.json();
             } catch(e){}
         }
-        if (!p) { alert('Pedido não encontrado.'); return; }
+        if (!p) { _apexNotify('Sistema', 'Pedido não encontrado.', 'info'); return; }
         await gerarPdfPedidoVenda(p);
     };
 
@@ -9546,7 +9546,7 @@ window.carregarFinanceiroView = async function() {
     };
 
     async function gerarPdfPedidoVenda(p) {
-        if (!window.jspdf) { alert('Biblioteca jsPDF não carregada.'); return; }
+        if (!window.jspdf) { _apexNotify('Sistema', 'Biblioteca jsPDF não carregada.', 'info'); return; }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 

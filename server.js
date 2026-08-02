@@ -379,6 +379,8 @@ async function initDatabase() {
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS motivo_reprovacao TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS data_decisao TIMESTAMP;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_entregar NUMERIC(10,2);
+            ALTER TABLE clientes ADD COLUMN IF NOT EXISTS vendedor TEXT;
+            ALTER TABLE clientes ADD COLUMN IF NOT EXISTS filial TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_coletar NUMERIC(10,2);
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_validade TIMESTAMP;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS autorizado_por TEXT;
@@ -728,7 +730,12 @@ app.post('/api/fornecedores', async (req, res) => {
             );
             return res.json(result.rows[0]);
         }
-        const newF = { id: Date.now(), nome: razao_social, apelido: nome_fantasia, cnpj, email };
+        const newF = { 
+            id: Date.now(), nome: razao_social, apelido: nome_fantasia, cnpj, cpf, ie, 
+            comprador: contato, fone1: telefone, fone2, whatsapp, celular, email, 
+            endereco, numero, bairro, cidade, uf, cep, 
+            complemento: observacoes, condicao_pagamento, tabela, filial 
+        };
         memStore.fornecedores.push(newF);
         return res.json(newF);
     } catch (err) {
