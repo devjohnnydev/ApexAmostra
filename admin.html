@@ -3553,7 +3553,60 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=90"></script>
+    <script src="admin.js?v=91"></script>
     <script src="assets/js/theme-toggle.js"></script>
+
+    <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
+    <div id="_apex_notify_overlay" style="
+        display:none; position:fixed; inset:0; z-index:9999990;
+        background:rgba(0,0,0,0.55); backdrop-filter:blur(4px);
+        align-items:center; justify-content:center;
+        animation:_apex_fadein 0.2s ease;">
+        <div id="_apex_notify_box" style="
+            background:rgba(13,26,38,0.88);
+            backdrop-filter:blur(24px) saturate(160%);
+            -webkit-backdrop-filter:blur(24px) saturate(160%);
+            border:1px solid rgba(42,208,122,0.35);
+            border-radius:18px;
+            box-shadow:0 8px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(42,208,122,0.12) inset;
+            padding:32px 36px 28px;
+            min-width:320px; max-width:480px; width:90vw;
+            transform:translateY(0); transition:transform 0.25s cubic-bezier(.4,2,.6,1);
+            position:relative; text-align:center;">
+            <!-- Ícone -->
+            <div id="_apex_notify_icon" style="
+                width:56px; height:56px; border-radius:50%;
+                display:flex; align-items:center; justify-content:center;
+                font-size:1.7rem; margin:0 auto 18px;
+                box-shadow:0 0 0 10px rgba(42,208,122,0.07);">
+            </div>
+            <!-- Título -->
+            <div id="_apex_notify_title" style="
+                color:#ffffff; font-size:1.1rem; font-weight:700;
+                margin-bottom:12px; line-height:1.35;"></div>
+            <!-- Mensagem secundária (detalhes) -->
+            <div id="_apex_notify_msg" style="
+                color:#a8c5d8; font-size:0.88rem; line-height:1.6;
+                margin-bottom:24px; white-space:pre-wrap;"></div>
+            <!-- Botão OK -->
+            <button onclick="window._apexNotifyClose()" style="
+                background:linear-gradient(135deg,#2AD07A,#1aab5f);
+                color:#0a1a0f; border:none; border-radius:10px;
+                padding:11px 40px; font-size:0.95rem; font-weight:800;
+                cursor:pointer; letter-spacing:0.03em;
+                box-shadow:0 4px 16px rgba(42,208,122,0.35);
+                transition:transform 0.15s, box-shadow 0.15s;"
+                onmouseover="this.style.transform='scale(1.05)'"
+                onmouseout="this.style.transform='scale(1)'">
+                OK
+            </button>
+        </div>
+    </div>
+    <style>
+        @keyframes _apex_fadein { from{opacity:0} to{opacity:1} }
+        @keyframes _apex_slideup { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
+        #_apex_notify_box { animation: _apex_slideup 0.28s cubic-bezier(.4,2,.6,1) both; }
+    </style>
 </body>
+
 </html>

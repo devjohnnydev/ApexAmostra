@@ -1522,10 +1522,15 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
         }
 
         // Verificar se há configuração de e-mail
-        const settings = dbAvailable
-            ? (await pool.query('SELECT * FROM settings WHERE id=1')).rows[0]
-            : memStore.settings;
-        const resendKey = (settings && settings.lme_resend_api_key) ? settings.lme_resend_api_key : null;
+        const settingsObj = {};
+        if (dbAvailable) {
+            const sr = await pool.query('SELECT key, value FROM settings');
+            sr.rows.forEach(r => { settingsObj[r.key] = r.value; });
+        } else {
+            Object.assign(settingsObj, memStore.settings || {});
+        }
+        const resendKey = settingsObj.lme_resend_api_key || process.env.RESEND_API_KEY || null;
+
 
         if (!resendKey || destinatarios.length === 0) {
             // Sem e-mail configurado: apenas log
@@ -1536,7 +1541,8 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
         // Enviar via Resend (padrão do sistema)
         const { Resend } = require('resend');
         const resend = new Resend(resendKey);
-        const fromEmail = (settings && settings.lme_resend_from) || 'laudo@apextechmetais.com.br';
+        const fromEmail = settingsObj.lme_resend_from || process.env.RESEND_FROM || 'laudo@apextechmetais.com.br';
+
 
         for (const dest of destinatarios) {
             await resend.emails.send({

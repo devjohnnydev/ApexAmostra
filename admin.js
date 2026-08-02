@@ -7,6 +7,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
+    // ─── SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) ────────
+    // Tipos: 'success' | 'error' | 'info' | 'warning'
+    window._apexNotify = function(titulo, mensagem, tipo) {
+        tipo = tipo || 'info';
+        const overlay = document.getElementById('_apex_notify_overlay');
+        const iconEl  = document.getElementById('_apex_notify_icon');
+        const titleEl = document.getElementById('_apex_notify_title');
+        const msgEl   = document.getElementById('_apex_notify_msg');
+        if (!overlay) { alert(titulo + (mensagem ? '\n' + mensagem : '')); return; }
+
+        const configs = {
+            success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
+            error:   { icon:'❌', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            warning: { icon:'⚠️', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
+            info:    { icon:'ℹ️', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
+        };
+        const cfg = configs[tipo] || configs.info;
+
+        iconEl.innerHTML  = cfg.icon;
+        iconEl.style.background = cfg.bg;
+        iconEl.style.border = `2px solid ${cfg.border}`;
+        iconEl.style.boxShadow = `0 0 0 10px ${cfg.glow}`;
+        titleEl.textContent = titulo || '';
+        msgEl.textContent   = mensagem || '';
+        msgEl.style.display = mensagem ? 'block' : 'none';
+
+        overlay.style.display = 'flex';
+        overlay.style.animation = 'none';
+        requestAnimationFrame(() => { overlay.style.animation = '_apex_fadein 0.2s ease'; });
+    };
+
+    window._apexNotifyClose = function() {
+        const overlay = document.getElementById('_apex_notify_overlay');
+        if (overlay) overlay.style.display = 'none';
+    };
+    // Fecha ao clicar fora da caixa
+    document.getElementById('_apex_notify_overlay')?.addEventListener('click', function(e) {
+        if (e.target === this) window._apexNotifyClose();
+    });
+    // ─────────────────────────────────────────────────────────────────────────
+
+
     window.formatarDataSemFuso = function(dStr) {
         if (!dStr) return '-';
         const s = String(dStr).split('T')[0];
@@ -7121,11 +7163,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const emailRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/enviar-laudo-email`, { method: 'POST' });
                 const emailData = await emailRes.json();
                 const emailMsg = emailData.enviado
-                    ? `\n\n📧 E-mail enviado para ${emailData.destinatarios?.length || 0} destinatário(s).`
-                    : `\n\n📧 E-mail não enviado (${emailData.motivo || 'sem config'}).`;
-                alert('Análise salva! A amostra foi enviada para decisão de compra pela Diretoria.' + emailMsg);
+                    ? `E-mail enviado para ${emailData.destinatarios?.length || 0} destinatário(s).`
+                    : `E-mail não enviado (${emailData.motivo || 'sem config'}).`;
+                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.\n\n' + emailMsg, 'success');
             } catch(e) {
-                alert('Análise salva! A amostra foi enviada para decisão de compra pela Diretoria.');
+                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.', 'success');
             }
             fecharAnaliseDesmonte();
             carregarAmostras();
@@ -7409,7 +7451,9 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setFont('helvetica', 'bold');
             pdf.text('Comprador / Contato:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            pdf.text(fcomp + (ftel ? ' (' + ftel + ')' : ''), 52, y);
+            // Trunca para não sobrepor o campo Peso Inicial à direita
+            const compTel = fcomp + (ftel ? ' (' + ftel + ')' : '');
+            pdf.text(pdf.splitTextToSize(compTel, 110)[0], 52, y);
 
             pdf.setFont('helvetica', 'bold');
             pdf.text('Peso Inicial:', 138, y);
@@ -7484,20 +7528,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.text(pdf.splitTextToSize(label, 110), 76, bY + 9);
             }
 
-            // ── ETAPA 1 — RECEBIMENTO: foto_original da amostra ──
+            // ── ETAPA 1 — RECEBIMENTO ──
             {
                 const blocoH = 42;
                 checarNovaPagina(blocoH + 6);
-                // Título da subseção
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
                 pdf.text('ETAPA 1 — PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
                 y += 8;
                 checarNovaPagina(blocoH + 4);
-                const recebimentoFotos = fotosAmostraList.filter(f => (f.etapa || 'Recebimento') === 'Recebimento' && (f.componente_idx === null || f.componente_idx === undefined));
-                // Primeira foto: foto_original da amostra (lote bruto)
-                const fotoOrigB64 = amostra.foto_original ? await _loadImgB64(amostra.foto_original).catch(() => amostra.foto_original) : null;
-                const fotoOrigFinal = fotoOrigB64 || amostra.foto_original || null;
+
+                // Filtra fotos do Recebimento sem componente (fotos gerais de entrada do lote)
+                const recebimentoFotos = fotosAmostraList.filter(f =>
+                    (f.etapa || 'Recebimento') === 'Recebimento' &&
+                    (f.componente_idx === null || f.componente_idx === undefined)
+                );
+
+                // Foto principal: foto_original da amostra OU, se vazia, a 1ª foto do banco
+                let fotoOrigFinal = null;
+                if (amostra.foto_original) {
+                    fotoOrigFinal = await _loadImgB64(amostra.foto_original).catch(() => amostra.foto_original);
+                }
+                // Se foto_original vazio e existem fotos no banco, usa a primeira
+                let recebimentoExtras = recebimentoFotos; // fotos adicionais a exibir abaixo
+                if (!fotoOrigFinal && recebimentoFotos.length > 0) {
+                    const primeiraFoto = recebimentoFotos[0];
+                    fotoOrigFinal = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${primeiraFoto.id}/img`);
+                    recebimentoExtras = recebimentoFotos.slice(1); // as demais ficam como extras
+                }
+
                 const infoTextoRec = [
                     `Produto: ${(amostra.nome_material || 'Não informado').toUpperCase()}`,
                     `Código: APX-${amostra.numero_amostra || '000'}`,
@@ -7506,14 +7565,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     `Responsável: ${amostra.responsavel || '---'}`,
                     `Obs: ${(amostra.observacoes || 'Sem observações.').substring(0, 60)}`
                 ].join('\n');
+
                 _drawFotoBloco(fotoOrigFinal, infoTextoRec, y, blocoH);
-                // Adiciona info extra no bloco
-                let infoYr = y + 16;
-                pdf.setTextColor(50, 50, 50); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7);
-                pdf.text(pdf.splitTextToSize(`Código: APX-${amostra.numero_amostra} | Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')} | Peso Bruto: ${parseFloat(amostra.peso_inicial||0).toFixed(3)} kg`, 108), 76, infoYr);
                 y += blocoH + 4;
-                // Fotos adicionais do Recebimento (se houver)
-                for (const f of recebimentoFotos) {
+
+                // Fotos adicionais do Recebimento (2ª em diante)
+                for (const f of recebimentoExtras) {
                     checarNovaPagina(blocoH + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
                     if (b64) { _drawFotoBloco(b64, `Foto Recebimento — ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
