@@ -4350,10 +4350,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.filtrarFornecedores = function() {
         const search = document.getElementById('fornecedores-search').value.toLowerCase();
+        const selectedRadio = document.querySelector('input[name="fornFilter"]:checked');
+        const colIndex = selectedRadio ? selectedRadio.value : 'all';
         const rows = document.querySelectorAll('#fornecedores-table-body tr');
+        
         rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(search) ? '' : 'none';
+            let match = false;
+            if (colIndex === 'all') {
+                const text = row.textContent.toLowerCase();
+                match = text.includes(search);
+            } else {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > colIndex) {
+                    const text = cells[colIndex].textContent.toLowerCase().trim();
+                    // Conforme solicitado, busca pelas iniciais do termo na coluna específica
+                    match = text.startsWith(search) || text.includes(search);
+                }
+            }
+            row.style.display = match ? '' : 'none';
         });
     };
 

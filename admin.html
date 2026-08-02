@@ -1429,8 +1429,25 @@
                     </div>
                 </header>
                 <div class="kpi-card" style="padding: 20px; border-radius: 8px;">
-                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                        <input type="text" id="fornecedores-search" class="noble-input" placeholder="🔍 Pesquisar por Razão Social, Nome Fantasia ou CNPJ..." style="flex: 1;" oninput="filtrarFornecedores()">
+                    <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                        <input type="text" id="fornecedores-search" class="noble-input" placeholder="🔍 Pesquisar fornecedores (digite para filtrar)..." style="flex: 1;" oninput="filtrarFornecedores()">
+                    </div>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px; font-size: 0.85rem; color: #ccc; flex-wrap: wrap;" id="fornecedores-filter-radios">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="fornFilter" value="all" checked onchange="filtrarFornecedores()"> Tudo
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="fornFilter" value="0" onchange="filtrarFornecedores()"> Razão Social
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="fornFilter" value="1" onchange="filtrarFornecedores()"> Fantasia
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="fornFilter" value="2" onchange="filtrarFornecedores()"> CNPJ
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="fornFilter" value="3" onchange="filtrarFornecedores()"> Contato
+                        </label>
                     </div>
                     <div style="overflow-x: auto;">
                         <table class="admin-table" style="width:100%; border-collapse:collapse;">
