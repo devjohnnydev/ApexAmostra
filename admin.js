@@ -5855,6 +5855,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) modal.style.display = 'flex';
         const dataEl = document.getElementById('amo-data');
         if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+        // Limpa fotos acumuladas de sessões anteriores
+        if (typeof window._limparFotosRecebimento === 'function') window._limparFotosRecebimento();
     };
 
     window.fecharModalAmostra = function() {
@@ -5862,10 +5864,68 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) modal.style.display = 'none';
     };
 
+    // ─── FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) ─────────────────
+    let _fotosRecebimento = []; // Array de { base64, blob, nome }
+
+    // Limpa o array ao abrir o modal (chamado em abrirModalAmostra)
+    window._limparFotosRecebimento = function() {
+        _fotosRecebimento = [];
+        renderFotosRecebimentoPreview();
+    };
+
+    // Adiciona fotos via seleção de arquivo
+    window.adicionarFotosRecebimento = function(input) {
+        if (!input.files || input.files.length === 0) return;
+        const tasks = Array.from(input.files).map(file => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    _fotosRecebimento.push({ base64: reader.result, blob: file, nome: file.name });
+                    resolve();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+        Promise.all(tasks).then(renderFotosRecebimentoPreview);
+        input.value = ''; // Reset para permitir selecionar o mesmo arquivo novamente
+    };
+
+    // Abre a webcam e, ao confirmar, adiciona a foto ao array _fotosRecebimento
+    window.abrirWebcamRecebimento = function() {
+        if (!window._WCM) { alert('Módulo de webcam não inicializado. Tente recarregar a página.'); return; }
+        window._WCM.abrirParaRecebimento(function(img64, blob) {
+            const nome = 'webcam_recebimento_' + Date.now() + '.jpg';
+            _fotosRecebimento.push({ base64: img64, blob: blob, nome: nome });
+            renderFotosRecebimentoPreview();
+        });
+    };
+
+
+    // Renderiza as miniaturas na galeria do formulário
+    function renderFotosRecebimentoPreview() {
+        const container = document.getElementById('amo-fotos-preview');
+        if (!container) return;
+        if (_fotosRecebimento.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        container.innerHTML = _fotosRecebimento.map((f, i) => `
+            <div style="position:relative; display:inline-block;">
+                <img src="${f.base64}" style="width:72px; height:72px; object-fit:cover; border-radius:6px; border:2px solid #2AD07A; display:block;" title="${f.nome}">
+                <button type="button" onclick="removerFotoRecebimento(${i})"
+                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">✕</button>
+            </div>
+        `).join('');
+    }
+
+    window.removerFotoRecebimento = function(idx) {
+        _fotosRecebimento.splice(idx, 1);
+        renderFotosRecebimentoPreview();
+    };
+
     window.salvarAmostra = async function(e) {
         e.preventDefault();
         const nomeMaterialEl = document.getElementById('amo-nome-material');
-        const fotoInputEl = document.getElementById('amo-foto-input');
 
         const data = {
             numero_amostra: document.getElementById('amo-numero').value,
@@ -5886,12 +5946,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const newAmostra = await res.json();
 
-            if (newAmostra && newAmostra.id && fotoInputEl && fotoInputEl.files && fotoInputEl.files.length > 0) {
+            // Upload de todas as fotos acumuladas (via arquivo ou webcam)
+            if (newAmostra && newAmostra.id && _fotosRecebimento.length > 0) {
                 const formData = new FormData();
                 formData.append('tipo', 'bruta');
                 formData.append('etapa', 'Recebimento');
-                for (const file of fotoInputEl.files) {
-                    formData.append('fotos', file);
+                for (const fotoObj of _fotosRecebimento) {
+                    formData.append('fotos', fotoObj.blob, fotoObj.nome);
                 }
                 await fetch(`/api/amostras/${newAmostra.id}/fotos`, {
                     method: 'POST',
@@ -5899,12 +5960,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            // Limpa as fotos após salvar
+            _fotosRecebimento = [];
+            renderFotosRecebimentoPreview();
+
             fecharModalAmostra();
             carregarAmostras();
         } catch (err) {
             console.error('Erro ao salvar amostra:', err);
         }
     };
+
 
     // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
     // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
@@ -6476,6 +6542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let _video     = null;
         let _canvas    = null;
         let _preview   = null;
+        let _onConfirmCallback = null; // callback especial para modos alternativos (ex: Recebimento)
 
         /* ── Cria o modal no DOM (uma única vez) ── */
         function _criarModal() {
@@ -6625,6 +6692,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Fecha a câmera imediatamente
             _fechar();
 
+            // 2. Se há um callback especial (ex: Recebimento), delega a ele e encerra
+            if (typeof _onConfirmCallback === 'function') {
+                const cb = _onConfirmCallback;
+                _onConfirmCallback = null;
+                try {
+                    const blobResp = await fetch(img64);
+                    const blob = await blobResp.blob();
+                    cb(img64, blob);
+                } catch(e) { console.warn('Webcam callback especial:', e); }
+                return;
+            }
+
             // 2. Insere thumbnail na célula da linha da tabela (acumulando fotos)
             if (cIdx !== null && componentesActivos && componentesActivos[cIdx]) {
                 if (!componentesActivos[cIdx].fotosBase64) {
@@ -6713,7 +6792,13 @@ document.addEventListener('DOMContentLoaded', () => {
         /* ── API pública ── */
         window._WCM = {
             abrir: function(compIdx) { _abrir(compIdx, 'separada', 'Desmonte'); },
-            abrirGeral: function(tipo, etapa) { _compIdx = null; _abrir(null, tipo, etapa); },
+            abrirGeral: function(tipo, etapa) { _compIdx = null; _onConfirmCallback = null; _abrir(null, tipo, etapa); },
+            // Modo especial: ao confirmar chama callback(img64, blob) em vez do fluxo normal de componente
+            abrirParaRecebimento: function(callback) {
+                _compIdx = null;
+                _onConfirmCallback = callback;
+                _abrir(null, 'bruta', 'Recebimento');
+            },
             removerFotoDoComponente: function(compIdx, fIdx) {
                 const comp = componentesActivos[compIdx];
                 if (!comp) return;

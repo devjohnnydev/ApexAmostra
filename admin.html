@@ -2929,9 +2929,20 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fa-solid fa-camera"></i> Foto da Amostra no Recebimento (Etapa 1)</label>
-                    <input type="file" id="amo-foto-input" accept="image/*" capture="environment" class="noble-input" style="padding:6px; background:#162432;">
+                    <label><i class="fa-solid fa-camera"></i> Fotos do Recebimento (Etapa 1) — Tire quantas quiser</label>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                        <label class="btn-secondary" style="cursor:pointer; font-size:0.82rem; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; background:#1e3a5f; color:#fff; border-radius:6px;">
+                            <i class="fa-solid fa-upload"></i> Anexar Arquivo(s)
+                            <input type="file" id="amo-foto-input" accept="image/*" multiple style="display:none;" onchange="adicionarFotosRecebimento(this)">
+                        </label>
+                        <button type="button" class="btn-primary" style="background:#2AD07A; color:#000; font-weight:bold; padding:7px 14px; font-size:0.82rem; border-radius:6px;" onclick="abrirWebcamRecebimento()">
+                            <i class="fa-solid fa-video"></i> Capturar com Webcam
+                        </button>
+                    </div>
+                    <!-- Galeria de miniaturas das fotos do recebimento -->
+                    <div id="amo-fotos-preview" style="display:flex; flex-wrap:wrap; gap:8px; min-height:0;"></div>
                 </div>
+
 
                 <div class="form-group">
                     <label>Observações</label>
