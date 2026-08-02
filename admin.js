@@ -6045,19 +6045,44 @@ document.addEventListener('DOMContentLoaded', () => {
             // Atualiza os nós visuais do Stepper de Etapas
             atualizarStepperAmostra(amostra.status, amostra.decisao_diretoria);
 
-            componentesActivos = componentes.map(c => {
+            componentesActivos = componentes.map((c, idx) => {
                 const urls = c.foto ? [c.foto] : [];
                 return {
-                    material_id: c.material_id,
-                    peso: parseFloat(c.peso),
-                    percentual: parseFloat(c.percentual),
-                    dificuldade: c.dificuldade || 'Fácil',
-                    foto: c.foto || '',
-                    fotosUrl: urls,
-                    fotosBase64: [],
-                    observacoes: c.observacoes || ''
+                    material_id:  c.material_id,
+                    peso:         parseFloat(c.peso),
+                    percentual:   parseFloat(c.percentual),
+                    dificuldade:  c.dificuldade || 'Fácil',
+                    foto:         c.foto || '',
+                    fotosUrl:     urls,
+                    fotosBase64:  [],
+                    fotosDbIds:   [],
+                    observacoes:  c.observacoes || ''
                 };
             });
+
+            // Restaurar fotos do banco por componente_idx (garante que fotos anteriores não somem)
+            try {
+                const ftRes  = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`);
+                const ftList = await ftRes.json();
+                if (Array.isArray(ftList)) {
+                    ftList.forEach(f => {
+                        const cidx = f.componente_idx;
+                        if (cidx !== null && cidx !== undefined && componentesActivos[cidx]) {
+                            const url = `/api/amostras/${activeAmostraIdForDesmonte}/fotos/${f.id}/img`;
+                            if (!componentesActivos[cidx].fotosUrl.includes(url)) {
+                                componentesActivos[cidx].fotosUrl.push(url);
+                            }
+                            if (!componentesActivos[cidx].fotosDbIds) componentesActivos[cidx].fotosDbIds = [];
+                            if (!componentesActivos[cidx].fotosDbIds.includes(f.id)) {
+                                componentesActivos[cidx].fotosDbIds.push(f.id);
+                            }
+                            // Atualiza fallback de foto do componente
+                            componentesActivos[cidx].foto = componentesActivos[cidx].foto || url;
+                        }
+                    });
+                }
+            } catch(e) { console.warn('Erro ao restaurar fotos dos componentes:', e); }
+
 
             // Inicializa cronômetro com tempo já salvo (se houver) e inicia a contagem automaticamente
             resetCronometro();
@@ -6624,15 +6649,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     const blob = await (await fetch(img64)).blob();
                     const fd   = new FormData();
                     fd.append('tipo',  _tipo);
-                    fd.append('etapa', _etapa);
-                    fd.append('fotos', blob, 'webcam_' + Date.now() + '.jpg');
+                    fd.append('etapa', _etapa || 'Desmonte');
+                    // Vincula a foto ao componente específico da tabela
+                    if (cIdx !== null) fd.append('componente_idx', String(cIdx));
+                    fd.append('fotos', blob, 'webcam_comp' + (cIdx !== null ? cIdx : '') + '_' + Date.now() + '.jpg');
                     const r = await (await fetch('/api/amostras/' + activeAmostraIdForDesmonte + '/fotos', { method:'POST', body:fd })).json();
-                    if (r.success && r.ids && r.ids[0] && cIdx !== null && componentesActivos[cIdx]) {
+                    // API retorna { success: true, fotos: [{id, ...}] }
+                    if (r.success && r.fotos && r.fotos[0] && cIdx !== null && componentesActivos[cIdx]) {
                         if (!componentesActivos[cIdx].fotosUrl) {
                             componentesActivos[cIdx].fotosUrl = [];
                         }
-                        const url = '/api/amostras/' + activeAmostraIdForDesmonte + '/fotos/' + r.ids[0] + '/img';
+                        if (!componentesActivos[cIdx].fotosDbIds) {
+                            componentesActivos[cIdx].fotosDbIds = [];
+                        }
+                        const fotoId = r.fotos[0].id;
+                        const url = '/api/amostras/' + activeAmostraIdForDesmonte + '/fotos/' + fotoId + '/img';
                         componentesActivos[cIdx].fotosUrl.push(url);
+                        componentesActivos[cIdx].fotosDbIds.push(fotoId);
                         componentesActivos[cIdx].foto = url; // Mantém fallback da última foto ativa
                     }
                 } catch(e) { console.warn('Upload webcam (background):', e); }
@@ -7326,7 +7359,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // ─── SEÇÃO 2: ESTRUTURAÇÃO RIGOROSA POR ETAPAS DE DESMONTE (MELHORIAS 7 A 10) ──────────────
+            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ──────────────────────────────────
             checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
@@ -7336,123 +7369,152 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÁFICO POR ETAPA', 17, y + 5.5);
             y += 12;
 
-            // Mapeamento de fotos por etapa sem repetição
-            const fotosPorEtapaMap = {
-                'Recebimento': [],
-                'Desmonte': [],
-                'Viabilidade': [],
-                'Aprovação': []
-            };
-
-            if (amostra.foto_original) {
-                fotosPorEtapaMap['Recebimento'].push({ src: amostra.foto_original, nome: 'Foto do Produto/Lote Bruto' });
-            }
-
-            for (const f of fotosAmostraList) {
+            // ── Helper: carrega uma imagem da API e retorna base64 ──
+            async function _loadImgB64(url) {
                 try {
-                    const imgUrl = `/api/amostras/${amostraId}/fotos/${f.id}/img`;
-                    const imgRes = await fetch(imgUrl);
-                    if (imgRes.ok) {
-                        const imgBlob = await imgRes.blob();
-                        const b64 = await new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => resolve(reader.result);
-                            reader.readAsDataURL(imgBlob);
-                        });
-                        const key = f.etapa || 'Desmonte';
-                        if (!fotosPorEtapaMap[key]) fotosPorEtapaMap[key] = [];
-                        fotosPorEtapaMap[key].push({ src: b64, nome: f.nome || `Foto ${key}` });
-                    }
-                } catch(e) { console.warn('Erro ao carregar imagem para PDF:', e); }
+                    const r = await fetch(url);
+                    if (!r.ok) return null;
+                    const blob = await r.blob();
+                    return await new Promise(res => { const rd = new FileReader(); rd.onloadend = () => res(rd.result); rd.readAsDataURL(blob); });
+                } catch(e) { return null; }
             }
 
-            const etapasConfig = [
-                { num: 1, titulo: 'ETAPA 1 — Produto Bruto & Recebimento', tipoMaterial: 'Produto Bruto', fotoKey: 'Recebimento' },
-                { num: 2, titulo: 'ETAPA 2 — Triagem de Plásticos / Isolamentos', tipoMaterial: 'Plástico', fotoKey: 'Desmonte' },
-                { num: 3, titulo: 'ETAPA 3 — Sucata de Cobre', tipoMaterial: 'Cobre', fotoKey: 'Viabilidade' },
-                { num: 4, titulo: 'ETAPA 4 — Alumínio / Zamac / Outros Metais', tipoMaterial: 'Alumínio', fotoKey: 'Aprovação' }
-            ];
-
-            const cardH = 48;
-            for (const cfg of etapasConfig) {
-                checarNovaPagina(cardH + 8);
-                const listaFotos = fotosPorEtapaMap[cfg.fotoKey] || [];
-                const fotoItem = listaFotos.length > 0 ? listaFotos[0] : null;
-
-                // Moldura da Etapa
+            // ── Helper: desenha um bloco de foto no PDF ──
+            function _drawFotoBloco(srcB64, label, bY, bH) {
                 pdf.setFillColor(248, 252, 249);
                 pdf.setDrawColor(13, 36, 22);
-                pdf.setLineWidth(0.4);
-                pdf.rect(15, y, 180, cardH, 'FD');
-
-                // Imagem à esquerda (60x40mm)
-                pdf.setDrawColor(42, 208, 122);
                 pdf.setLineWidth(0.3);
-                pdf.rect(17, y + 4, 60, cardH - 8);
-
-                if (fotoItem && fotoItem.src) {
-                    try {
-                        pdf.addImage(fotoItem.src, 'JPEG', 18, y + 5, 58, cardH - 10, '', 'FAST');
-                    } catch(e) {
-                        try { pdf.addImage(fotoItem.src, 'PNG', 18, y + 5, 58, cardH - 10, '', 'FAST'); } catch(err2) {}
-                    }
+                pdf.rect(15, bY, 180, bH, 'FD');
+                pdf.setDrawColor(42, 208, 122);
+                pdf.rect(17, bY + 3, 55, bH - 6);
+                if (srcB64) {
+                    try { pdf.addImage(srcB64, 'JPEG', 18, bY + 4, 53, bH - 8, '', 'FAST'); }
+                    catch(e) { try { pdf.addImage(srcB64, 'PNG', 18, bY + 4, 53, bH - 8, '', 'FAST'); } catch(_) {} }
                 } else {
-                    pdf.setFillColor(230, 235, 238);
-                    pdf.rect(18, y + 5, 58, cardH - 10, 'F');
-                    pdf.setTextColor(120, 120, 120);
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(8);
-                    pdf.text('Foto não cadastrada.', 28, y + (cardH / 2));
+                    pdf.setFillColor(220, 220, 220); pdf.rect(18, bY + 4, 53, bH - 8, 'F');
+                    pdf.setTextColor(130, 130, 130); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5);
+                    pdf.text('Sem foto', 30, bY + (bH / 2));
                 }
-
-                // Conteúdo Técnico à Direita
-                const infoX = 82;
-                pdf.setFillColor(13, 36, 22);
-                pdf.rect(infoX, y + 4, 110, 6, 'F');
-                pdf.setTextColor(42, 208, 122);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(8);
-                pdf.text(cfg.titulo.toUpperCase(), infoX + 4, y + 8.2);
-
-                let infoY = y + 14;
-                pdf.setTextColor(50, 50, 50);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(7.5);
-
-                if (cfg.num === 1) {
-                    pdf.text(`Nome do Produto: ${(amostra.nome_material || 'Não Informado').toUpperCase()}`, infoX, infoY); infoY += 4.5;
-                    pdf.text(`Código: APX-${amostra.numero_amostra || '000'} | Categoria: Industrial`, infoX, infoY); infoY += 4.5;
-                    pdf.text(`Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')} | Operador: ${amostra.responsavel || 'Eng. Roberto'}`, infoX, infoY); infoY += 4.5;
-                    pdf.text(`Peso Bruto: ${parseFloat(amostra.peso_inicial || 0).toLocaleString('pt-BR')} kg`, infoX, infoY); infoY += 4.5;
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(`Observações: ${amostra.observacoes || 'Sem observações iniciais.'}`, infoX, infoY);
-                } else {
-                    const matsRelacionados = (componentes || []).filter(c => 
-                        (c.material_nome || '').toLowerCase().includes(cfg.tipoMaterial.toLowerCase()) ||
-                        (c.material_categoria || '').toLowerCase().includes(cfg.tipoMaterial.toLowerCase())
-                    );
-
-                    if (matsRelacionados.length > 0) {
-                        pdf.text(`Materiais Identificados (${cfg.tipoMaterial}):`, infoX, infoY); infoY += 4.5;
-                        pdf.setFont('helvetica', 'normal');
-                        matsRelacionados.forEach(mr => {
-                            pdf.text(`• ${mr.material_nome}: ${parseFloat(mr.peso).toLocaleString('pt-BR')} kg (${parseFloat(mr.percentual).toFixed(1)}%)`, infoX + 2, infoY);
-                            infoY += 4.5;
-                        });
-                    } else {
-                        pdf.text(`Triagem de ${cfg.tipoMaterial}:`, infoX, infoY); infoY += 4.5;
-                        pdf.setFont('helvetica', 'normal');
-                        pdf.text(`• Sem componente isolado registrado especificamente nesta fração.`, infoX + 2, infoY);
-                        infoY += 4.5;
-                    }
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.text('Parecer Técnico:', infoX, infoY); infoY += 4;
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.text(pdf.splitTextToSize(amostra.parecer_tecnico || 'Desmonte executado conforme padrão.', 105).slice(0, 2), infoX, infoY);
-                }
-
-                y += cardH + 5;
+                pdf.setTextColor(50, 50, 50); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5);
+                pdf.text(pdf.splitTextToSize(label, 110), 76, bY + 9);
             }
+
+            // ── ETAPA 1 — RECEBIMENTO: foto_original da amostra ──
+            {
+                const blocoH = 42;
+                checarNovaPagina(blocoH + 6);
+                // Título da subseção
+                pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
+                pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
+                pdf.text('ETAPA 1 — PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
+                y += 8;
+                checarNovaPagina(blocoH + 4);
+                const recebimentoFotos = fotosAmostraList.filter(f => (f.etapa || 'Recebimento') === 'Recebimento' && (f.componente_idx === null || f.componente_idx === undefined));
+                // Primeira foto: foto_original da amostra (lote bruto)
+                const fotoOrigB64 = amostra.foto_original ? await _loadImgB64(amostra.foto_original).catch(() => amostra.foto_original) : null;
+                const fotoOrigFinal = fotoOrigB64 || amostra.foto_original || null;
+                const infoTextoRec = [
+                    `Produto: ${(amostra.nome_material || 'Não informado').toUpperCase()}`,
+                    `Código: APX-${amostra.numero_amostra || '000'}`,
+                    `Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`,
+                    `Peso Bruto: ${parseFloat(amostra.peso_inicial || 0).toFixed(3)} kg`,
+                    `Responsável: ${amostra.responsavel || '---'}`,
+                    `Obs: ${(amostra.observacoes || 'Sem observações.').substring(0, 60)}`
+                ].join('\n');
+                _drawFotoBloco(fotoOrigFinal, infoTextoRec, y, blocoH);
+                // Adiciona info extra no bloco
+                let infoYr = y + 16;
+                pdf.setTextColor(50, 50, 50); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7);
+                pdf.text(pdf.splitTextToSize(`Código: APX-${amostra.numero_amostra} | Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')} | Peso Bruto: ${parseFloat(amostra.peso_inicial||0).toFixed(3)} kg`, 108), 76, infoYr);
+                y += blocoH + 4;
+                // Fotos adicionais do Recebimento (se houver)
+                for (const f of recebimentoFotos) {
+                    checarNovaPagina(blocoH + 4);
+                    const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
+                    if (b64) { _drawFotoBloco(b64, `Foto Recebimento — ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
+                }
+            }
+
+            // ── ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos ──
+            {
+                pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
+                pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
+                pdf.text('ETAPA 2 — DESMONTE FÍSICO & TRIAGEM DE COMPONENTES', 17, y + 4.3);
+                y += 8;
+
+                // Agrupa fotos por componente_idx
+                const fotosPorComp = {};
+                for (const f of fotosAmostraList) {
+                    if (f.componente_idx !== null && f.componente_idx !== undefined) {
+                        if (!fotosPorComp[f.componente_idx]) fotosPorComp[f.componente_idx] = [];
+                        fotosPorComp[f.componente_idx].push(f);
+                    }
+                }
+                // Fotos do Desmonte não vinculadas a componente específico
+                const fotosDesmonteGeral = fotosAmostraList.filter(f =>
+                    (f.etapa || 'Desmonte') === 'Desmonte' && (f.componente_idx === null || f.componente_idx === undefined)
+                );
+
+                if (componentes && componentes.length > 0) {
+                    for (let cIdx = 0; cIdx < componentes.length; cIdx++) {
+                        const comp = componentes[cIdx];
+                        const nomeComp = comp.material_nome || `Componente ${cIdx + 1}`;
+                        const fotasComp = fotosPorComp[cIdx] || [];
+                        const blocoH = 42;
+                        // Cabeçalho do componente
+                        checarNovaPagina(blocoH + 12);
+                        pdf.setFillColor(30, 78, 140); pdf.rect(15, y, 180, 5, 'F');
+                        pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5);
+                        pdf.text(`COMPONENTE ${cIdx + 1}: ${nomeComp.toUpperCase()} — ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`, 17, y + 3.5);
+                        y += 7;
+
+                        if (fotasComp.length === 0) {
+                            // Sem fotos para este componente
+                            checarNovaPagina(blocoH + 4);
+                            _drawFotoBloco(null, `${nomeComp} | ${parseFloat(comp.peso).toFixed(3)} kg — ${parseFloat(comp.percentual).toFixed(1)}%\nDificuldade: ${comp.dificuldade || 'Fácil'}\nObs: ${(comp.observacoes || '').substring(0, 60) || 'Sem observações.'}`, y, blocoH);
+                            y += blocoH + 4;
+                        } else {
+                            // Exibe TODAS as fotos do componente
+                            for (let fIdx = 0; fIdx < fotasComp.length; fIdx++) {
+                                const f = fotasComp[fIdx];
+                                checarNovaPagina(blocoH + 4);
+                                const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
+                                const label = [
+                                    `${nomeComp} — Foto ${fIdx + 1}/${fotasComp.length}`,
+                                    `Peso: ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`,
+                                    `Dificuldade: ${comp.dificuldade || 'Fácil'}`,
+                                    `Obs: ${(comp.observacoes || 'Sem observações.').substring(0, 60)}`
+                                ].join('\n');
+                                _drawFotoBloco(b64, label, y, blocoH);
+                                y += blocoH + 4;
+                            }
+                        }
+                    }
+                }
+                // Fotos de Desmonte gerais (não vinculadas a componente)
+                for (const f of fotosDesmonteGeral) {
+                    checarNovaPagina(42 + 4);
+                    const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
+                    if (b64) { _drawFotoBloco(b64, `Desmonte Geral — ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                }
+            }
+
+            // ── ETAPA 3 & 4: Viabilidade e Aprovação ──
+            for (const etapaKey of ['Viabilidade', 'Aprovação']) {
+                const fotasEtapa = fotosAmostraList.filter(f => f.etapa === etapaKey);
+                if (fotasEtapa.length === 0) continue;
+                checarNovaPagina(50);
+                pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
+                pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
+                pdf.text(`ETAPA — ${etapaKey.toUpperCase()}`, 17, y + 4.3);
+                y += 8;
+                for (const f of fotasEtapa) {
+                    checarNovaPagina(42 + 4);
+                    const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
+                    if (b64) { _drawFotoBloco(b64, `${etapaKey} — ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                }
+            }
+
 
             // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
             checarNovaPagina(55); // Garante 55mm livres para o bloco completo
