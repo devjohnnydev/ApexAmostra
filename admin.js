@@ -6546,12 +6546,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (placeholder) placeholder.style.display = 'none';
-        fotos.forEach(foto => {
+
+        // Ordenação cronológica estrita (Ordem em que foram tiradas: Recebimento -> Desmonte -> Componentes)
+        const fotosOrdenadas = (fotos || []).slice().sort((a, b) => {
+            const timeA = new Date(a.criado_em || 0).getTime() || a.id;
+            const timeB = new Date(b.criado_em || 0).getTime() || b.id;
+            return timeA - timeB;
+        });
+
+        fotosOrdenadas.forEach((foto, index) => {
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'position:relative; width:125px; height:100px; border-radius:8px; overflow:hidden; border:2px solid #1e4e8c; flex-shrink:0; background:#0a141d;';
             const badge = document.createElement('span');
             const etapaTexto = foto.etapa || (foto.tipo === 'bruta' ? 'Recebimento' : 'Desmonte');
-            badge.textContent = etapaTexto;
+            badge.textContent = `${index + 1}º ${etapaTexto}`;
             
             let badgeBg = '#3e7cb1';
             if (etapaTexto === 'Recebimento') badgeBg = '#f0b800';
@@ -6564,8 +6572,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = document.createElement('img');
             img.src = `/api/amostras/${amostraId}/fotos/${foto.id}/img`;
             img.alt = foto.nome || 'Foto';
-            img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:pointer;';
+            img.onclick = () => { if (window._WCM && typeof window._WCM.ampliarSrc === 'function') window._WCM.ampliarSrc(img.src); };
             img.onerror = () => { img.src = 'assets/img/apexlogo.png'; };
+
             const delBtn = document.createElement('button');
             delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
             delBtn.title = 'Excluir foto';

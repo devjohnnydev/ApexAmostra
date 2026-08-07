@@ -1318,6 +1318,20 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
             return res.status(403).json({ error: 'Apenas o Administrador ou Diretoria pode tomar esta decisão.' });
         }
 
+        // Checkup de segurança: verifica se a amostra passou pela etapa de desmonte do laboratório
+        if (dbAvailable) {
+            const compCheck = await pool.query('SELECT COUNT(*) as total FROM componentes_amostra WHERE amostra_id=$1', [id]);
+            const totalComp = parseInt(compCheck.rows[0]?.total || 0);
+            if (totalComp === 0) {
+                return res.status(400).json({ error: 'Amostra sem desmonte concluído! Cadastre os componentes desmontados no laboratório antes da decisão de compra.' });
+            }
+        } else {
+            const totalComp = (memStore.componentes_amostra || []).filter(c => c.amostra_id === id).length;
+            if (totalComp === 0) {
+                return res.status(400).json({ error: 'Amostra sem desmonte concluído! Cadastre os componentes desmontados no laboratório antes da decisão de compra.' });
+            }
+        }
+
         const status = decisao_diretoria === 'Aprovado' ? 'Aprovado - Compra Autorizada' : 'Reprovado';
 
         if (dbAvailable) {
