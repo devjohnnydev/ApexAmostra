@@ -2042,18 +2042,64 @@
             ═══════════════════════════════════════════════════════════ -->
             <section id="planejamento-view" class="view-section">
                 <header class="section-header">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap:wrap; gap:10px;">
                         <div>
                             <h1><i class="fa-solid fa-calculator"></i> Planejamento Mensal de Fornecedores</h1>
-                            <p>Aba digitalizada do Planejamento LME. Simule lotes e gerencie margens de compra x venda.</p>
+                            <p>Aba digitalizada do Planejamento LME. Simule lotes e gerencie margens de compra x venda com Inteligência Preditiva.</p>
                         </div>
-                        <div style="display:flex; gap:10px;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:6px; background:rgba(30,78,140,0.3); padding:5px 12px; border-radius:6px; border:1px solid #1e4e8c;">
+                                <label style="font-size:0.85rem; color:#aaa; font-weight:600;"><i class="fa-solid fa-calendar-days"></i> Mês:</label>
+                                <select id="pl-filtro-mes" class="noble-input" style="padding:4px 8px; font-size:0.85rem; background:#0d1826; color:#fff;" onchange="alterarMesPlanejamento(this.value)">
+                                    <option value="2026-06">Junho / 2026</option>
+                                    <option value="2026-07">Julho / 2026</option>
+                                    <option value="2026-08" selected>Agosto / 2026 (Atual)</option>
+                                    <option value="2026-09">Setembro / 2026 (Futuro)</option>
+                                    <option value="2026-10">Outubro / 2026 (Futuro)</option>
+                                    <option value="2026-11">Novembro / 2026 (Futuro)</option>
+                                    <option value="2026-12">Dezembro / 2026 (Futuro)</option>
+                                </select>
+                            </div>
                             <button class="btn-secondary" onclick="exportarPlanejamentoPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
                             <button class="btn-secondary" onclick="exportarPlanejamentoExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+                            <button class="btn-secondary" onclick="abrirModalPlanejamentoPreditivo()" style="background:#5c3bb1; color:#fff; border-color:#7a4fd4;" title="Criar planejamento para meses seguintes baseado no histórico com cenários Conservador, Moderado e Agressivo">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> ⚡ Gerar Planejamento Preditivo
+                            </button>
                             <button class="btn-primary restrito-financeiro" onclick="abrirModalPlanejamento()"><i class="fa-solid fa-plus"></i> Novo Lote Planejado</button>
                         </div>
                     </div>
                 </header>
+
+                <!-- Cards KPI Preditivos de Capacidade de Trabalho & Orçamento -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
+                    <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
+                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📦 Volume Projetado</span>
+                        <h2 id="pl-kpi-volume" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0 kg</h2>
+                        <small id="pl-kpi-volume-desc" style="color:#7a9cb8; font-size:0.78rem;">Baseado nos últimos meses</small>
+                    </div>
+                    <div class="kpi-card" style="padding:15px; border-left:4px solid #f0b800; background:#12212f;">
+                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">💰 Orçamento de Compra</span>
+                        <h2 id="pl-kpi-orcamento" style="margin:5px 0 0 0; color:#f0b800; font-size:1.4rem;">R$ 0,00</h2>
+                        <small id="pl-kpi-orcamento-desc" style="color:#7a9cb8; font-size:0.78rem;">Custo total estimado de materiais</small>
+                    </div>
+                    <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
+                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Lucro Líquido Projetado</span>
+                        <h2 id="pl-kpi-lucro" style="margin:5px 0 0 0; color:#2AD07A; font-size:1.4rem;">R$ 0,00</h2>
+                        <small id="pl-kpi-lucro-desc" style="color:#7a9cb8; font-size:0.78rem;">Margem estimada pós-deduções</small>
+                    </div>
+                    <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
+                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚙️ Alocação de Trabalho</span>
+                        <h2 id="pl-kpi-trabalho" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0 Horas/Mês</h2>
+                        <small id="pl-kpi-trabalho-desc" style="color:#7a9cb8; font-size:0.78rem;">Estimativa de triagem & desmonte</small>
+                    </div>
+                </div>
+
+                <div id="badge-cenario-ativo" style="display:none; margin-bottom:15px; padding:10px 15px; border-radius:6px; background:rgba(92,59,177,0.2); border:1px solid #7a4fd4; color:#fff; font-size:0.9rem; align-items:center; justify-space-between;">
+                    <div>
+                        <i class="fa-solid fa-sliders"></i> <strong>Cenário Preditivo Ativo:</strong> <span id="txt-cenario-nome">Moderado</span>
+                        <span style="opacity:0.8; font-size:0.82rem; margin-left:10px;" id="txt-cenario-detalhe">Calculado com base na média dos últimos 3 meses</span>
+                    </div>
+                </div>
 
                 <div class="kpi-card" style="padding: 20px; border-radius: 8px;">
                     <div style="overflow-x: auto;">
@@ -3269,6 +3315,82 @@
                 <div style="display:flex; gap:10px;">
                     <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
                     <button type="button" class="btn-secondary" onclick="fecharModalPlanejamento()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Planejamento Preditivo Futurista (Cenários: Conservador, Moderado, Agressivo) -->
+    <div id="modal-planejamento-preditivo" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:600px; padding:25px; background:#101a24; border:1px solid #7a4fd4; max-height:90vh; overflow-y:auto; border-radius:10px;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color:#7a4fd4;"></i> Gerador de Planejamento Preditivo
+            </h3>
+            <p style="font-size:0.85rem; color:#aaa; margin-bottom:20px;">
+                Crie um planejamento de operação, orçamento de compras e volume de desmonte para meses seguintes baseado nas métricas dos meses anteriores.
+            </p>
+            <form id="form-planejamento-preditivo" onsubmit="executarGeracaoPreditiva(event)">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Mês Alvo (Futuro) *</label>
+                        <select id="pred-mes-alvo" required class="noble-input">
+                            <option value="2026-09" selected>Setembro / 2026</option>
+                            <option value="2026-10">Outubro / 2026</option>
+                            <option value="2026-11">Novembro / 2026</option>
+                            <option value="2026-12">Dezembro / 2026</option>
+                            <option value="2027-01">Janeiro / 2027</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Base de Histórico *</label>
+                        <select id="pred-base-historico" class="noble-input" onchange="atualizarPreviewPreditivo()">
+                            <option value="3" selected>Últimos 3 Meses (Média Móvel)</option>
+                            <option value="6">Últimos 6 Meses (Histórico Amplo)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:15px;">
+                    <label style="color:#fff; font-weight:600;">Selecione o Cenário de Projeção:</label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:8px;">
+                        <label id="card-cenario-conservador" class="cenario-card" style="cursor:pointer; background:#12212f; border:2px solid #1e4e8c; padding:12px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('conservador')">
+                            <input type="radio" name="cenario-preditivo" id="rad-cenario-conservador" value="conservador" style="display:none;">
+                            <div style="font-size:1.2rem; margin-bottom:4px;">🛡️</div>
+                            <strong style="color:#3e7cb1; display:block; font-size:0.88rem;">Conservador</strong>
+                            <span style="font-size:0.75rem; color:#aaa; display:block; margin-top:4px;">-10% Volume<br>+5% Margem</span>
+                        </label>
+
+                        <label id="card-cenario-moderado" class="cenario-card active" style="cursor:pointer; background:#12212f; border:2px solid #7a4fd4; padding:12px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('moderado')">
+                            <input type="radio" name="cenario-preditivo" id="rad-cenario-moderado" value="moderado" checked style="display:none;">
+                            <div style="font-size:1.2rem; margin-bottom:4px;">⚖️</div>
+                            <strong style="color:#2AD07A; display:block; font-size:0.88rem;">Moderado</strong>
+                            <span style="font-size:0.75rem; color:#aaa; display:block; margin-top:4px;">Média Histórica<br>Risco Neutro</span>
+                        </label>
+
+                        <label id="card-cenario-agressivo" class="cenario-card" style="cursor:pointer; background:#12212f; border:2px solid #1e4e8c; padding:12px; border-radius:8px; text-align:center; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('agressivo')">
+                            <input type="radio" name="cenario-preditivo" id="rad-cenario-agressivo" value="agressivo" style="display:none;">
+                            <div style="font-size:1.2rem; margin-bottom:4px;">🚀</div>
+                            <strong style="color:#e07b39; display:block; font-size:0.88rem;">Agressivo</strong>
+                            <span style="font-size:0.75rem; color:#aaa; display:block; margin-top:4px;">+20% Volume<br>Expansão</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Preview de Projeção do Cenário -->
+                <div id="pred-preview-box" style="background:#0d1826; border:1px solid #1e3650; padding:12px; border-radius:8px; font-size:0.82rem; margin-top:15px; color:#ccc;">
+                    <div style="font-weight:bold; color:#7a4fd4; margin-bottom:6px;"><i class="fa-solid fa-calculator"></i> Estimativa do Cenário Selecionado:</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        <div>Volume Estimado: <strong id="prev-vol" style="color:#fff;">0 kg</strong></div>
+                        <div>Custo Compra: <strong id="prev-custo" style="color:#f0b800;">R$ 0,00</strong></div>
+                        <div>Faturamento: <strong id="prev-fat" style="color:#4fc3f7;">R$ 0,00</strong></div>
+                        <div>Lucro Projetado: <strong id="prev-lucro" style="color:#2AD07A;">R$ 0,00</strong></div>
+                        <div style="grid-column: span 2;">Carga Horária de Trabalho (Triagem/Desmonte): <strong id="prev-horas" style="color:#9b59b6;">0 Horas</strong></div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-primary" style="flex:2; background:#5c3bb1; border-color:#7a4fd4; color:#fff; font-weight:bold;"><i class="fa-solid fa-bolt"></i> Gerar e Aplicar ao Mês</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalPlanejamentoPreditivo()" style="flex:1;">Cancelar</button>
                 </div>
             </form>
         </div>

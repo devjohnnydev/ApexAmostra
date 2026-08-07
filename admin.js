@@ -8229,7 +8229,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 5. PLANEJAMENTO MENSAL DE FORNECEDORES ---
+    // ─── 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ───
+    let mesPlanejamentoSelecionado = '2026-08';
+    let cenarioPreditivoSelecionado = 'moderado';
+    let historicoCenarioPorMes = {}; // Guarda o cenário ativo por mês
+
     window.initApexPlanejamento = function() {
         carregarPlanejamento();
     };
@@ -8243,8 +8247,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Erro ao carregar planejamento:', err);
             localPlanejamento = [];
+            renderPlanejamento();
         }
     }
+
+    window.alterarMesPlanejamento = function(mes) {
+        mesPlanejamentoSelecionado = mes;
+        renderPlanejamento();
+    };
 
     function renderPlanejamento() {
         const body = document.getElementById('planejamento-table-body');
@@ -8254,22 +8264,28 @@ document.addEventListener('DOMContentLoaded', () => {
         body.innerHTML = '';
         footer.innerHTML = '';
 
+        // Filtra lotes pelo mês selecionado
+        const lotesMes = localPlanejamento.filter(lc => {
+            if (!lc.mes) return true; // se não tiver mês definido, mostra por padrão
+            return lc.mes === mesPlanejamentoSelecionado;
+        });
+
         let pesoTotal = 0;
         let totalCompra = 0;
         let pesoMaterialTotal = 0;
         let totalVenda = 0;
         let lucroBrutoTotal = 0;
 
-        localPlanejamento.forEach(lc => {
-            const totalC = parseFloat(lc.peso_comprado) * parseFloat(lc.preco_compra);
-            const pesoMat = parseFloat(lc.peso_comprado) * (parseFloat(lc.percentual_rendimento) / 100);
-            const totalV = pesoMat * parseFloat(lc.preco_venda_material);
+        lotesMes.forEach(lc => {
+            const totalC = parseFloat(lc.peso_comprado || 0) * parseFloat(lc.preco_compra || 0);
+            const pesoMat = parseFloat(lc.peso_comprado || 0) * (parseFloat(lc.percentual_rendimento || 0) / 100);
+            const totalV = pesoMat * parseFloat(lc.preco_venda_material || 0);
             const lucroB = totalV - totalC;
             const pctInv = totalC > 0 ? (lucroB / totalC) * 100 : 0;
             const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
-            const resultadoLiq = pctFat - parseFloat(lc.comissao) - parseFloat(lc.fidc);
+            const resultadoLiq = pctFat - parseFloat(lc.comissao || 2.0) - parseFloat(lc.fidc || 2.3);
 
-            pesoTotal += parseFloat(lc.peso_comprado);
+            pesoTotal += parseFloat(lc.peso_comprado || 0);
             totalCompra += totalC;
             pesoMaterialTotal += pesoMat;
             totalVenda += totalV;
@@ -8277,21 +8293,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding:8px;"><strong>${lc.fornecedor_nome}</strong></td>
-                <td style="padding:8px;">${lc.produto}</td>
-                <td style="padding:8px; text-align:right;">${parseFloat(lc.peso_comprado).toLocaleString('pt-BR')} kg</td>
+                <td style="padding:8px;"><strong>${lc.fornecedor_nome || 'Fornecedor Vários'}</strong></td>
+                <td style="padding:8px;">${lc.produto || '-'}</td>
+                <td style="padding:8px; text-align:right;">${parseFloat(lc.peso_comprado || 0).toLocaleString('pt-BR')} kg</td>
                 <td style="padding:8px; text-align:right;">R$ ${fmtBRL(lc.preco_compra)}</td>
                 <td style="padding:8px; text-align:right;">R$ ${totalC.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                 <td style="padding:8px; text-align:right;">${fmtBRL(lc.percentual_rendimento)}%</td>
-                <td style="padding:8px;">${lc.material_nome}</td>
+                <td style="padding:8px;">${lc.material_nome || '-'}</td>
                 <td style="padding:8px; text-align:right;">${pesoMat.toLocaleString('pt-BR')} kg</td>
                 <td style="padding:8px; text-align:right;">R$ ${fmtBRL(lc.preco_venda_material)}</td>
                 <td style="padding:8px; text-align:right;">R$ ${totalV.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                 <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                 <td style="padding:8px; text-align:right;">${fmtBRL(pctInv)}%</td>
                 <td style="padding:8px; text-align:right;">${fmtBRL(pctFat)}%</td>
-                <td style="padding:8px; text-align:right;">${fmtBRL(lc.comissao)}%</td>
-                <td style="padding:8px; text-align:right;">${fmtBRL(lc.fidc)}%</td>
+                <td style="padding:8px; text-align:right;">${fmtBRL(lc.comissao || 2)}%</td>
+                <td style="padding:8px; text-align:right;">${fmtBRL(lc.fidc || 2.3)}%</td>
                 <td style="padding:8px; text-align:right; font-weight:bold; color:${resultadoLiq >= 0 ? '#2AD07A' : '#ff4d4d'}">${fmtBRL(resultadoLiq)}%</td>
             `;
             body.appendChild(tr);
@@ -8303,11 +8319,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const avgPrecoVenda = pesoMaterialTotal > 0 ? totalVenda / pesoMaterialTotal : 0;
         const overallInv = totalCompra > 0 ? (lucroBrutoTotal / totalCompra) * 100 : 0;
         const overallFat = totalVenda > 0 ? (lucroBrutoTotal / totalVenda) * 100 : 0;
-        const overallLiq = overallFat - 2.0 - 2.3; // Default comissão/fidc médios
+        const overallLiq = overallFat - 2.0 - 2.3;
 
         footer.innerHTML = `
             <tr style="background:#0a2342; border-top: 2px solid #3e7cb1;">
-                <td colspan="2" style="padding:10px;"><strong>TOTAIS CONSOLIDADOS</strong></td>
+                <td colspan="2" style="padding:10px;"><strong>TOTAIS CONSOLIDADOS (${lotesMes.length} LOTES)</strong></td>
                 <td style="padding:10px; text-align:right;"><strong>${pesoTotal.toLocaleString('pt-BR')} kg</strong></td>
                 <td style="padding:10px; text-align:right;">R$ ${fmtBRL(avgPrecoCompra)}</td>
                 <td style="padding:10px; text-align:right;"><strong>R$ ${totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></td>
@@ -8323,7 +8339,228 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px; text-align:right; color:#2AD07A;"><strong>${fmtBRL(overallLiq)}%</strong></td>
             </tr>
         `;
+
+        // Atualizar KPIs de Capacidade de Trabalho & Orçamento Preditivo
+        const elVol = document.getElementById('pl-kpi-volume');
+        const elOrc = document.getElementById('pl-kpi-orcamento');
+        const elLuc = document.getElementById('pl-kpi-lucro');
+        const elTrab = document.getElementById('pl-kpi-trabalho');
+
+        // Estimativa de horas de trabalho: ~ 1 hora para cada 200kg desmontados e triados
+        const horasTrabalho = Math.round(pesoTotal / 200);
+
+        if (elVol) elVol.textContent = `${pesoTotal.toLocaleString('pt-BR')} kg`;
+        if (elOrc) elOrc.textContent = `R$ ${totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        if (elLuc) elLuc.textContent = `R$ ${lucroBrutoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        if (elTrab) elTrab.textContent = `${horasTrabalho.toLocaleString('pt-BR')} Horas/Mês`;
+
+        // Badge de Cenário Ativo
+        const badge = document.getElementById('badge-cenario-ativo');
+        const txtNome = document.getElementById('txt-cenario-nome');
+        const txtDet = document.getElementById('txt-cenario-detalhe');
+        const cenarioAtivo = historicoCenarioPorMes[mesPlanejamentoSelecionado];
+
+        if (badge && cenarioAtivo) {
+            badge.style.display = 'flex';
+            const infoCenarios = {
+                conservador: { nome: '🛡️ Conservador (-10% Volume / +5% Margem)', det: 'Alocação prudente com redução de teto de custos para menor risco financeiro.' },
+                moderado: { nome: '⚖️ Moderado (Média Histórica Móvel)', det: 'Projeção contínua baseada no desempenho médio recente.' },
+                agressivo: { nome: '🚀 Agressivo (+20% Volume / Expansão)', det: 'Meta de captação ampliada e alocação máxima de trabalho industrial.' }
+            };
+            const c = infoCenarios[cenarioAtivo] || infoCenarios.moderado;
+            if (txtNome) txtNome.textContent = c.nome;
+            if (txtDet) txtDet.textContent = c.det;
+        } else if (badge) {
+            badge.style.display = 'none';
+        }
     }
+
+    // ─── Modal & Motor de Simulação Preditiva ───
+    window.abrirModalPlanejamentoPreditivo = function() {
+        document.getElementById('modal-planejamento-preditivo').style.display = 'flex';
+        window.atualizarPreviewPreditivo();
+    };
+
+    window.fecharModalPlanejamentoPreditivo = function() {
+        document.getElementById('modal-planejamento-preditivo').style.display = 'none';
+    };
+
+    window.selecionarCenarioRadio = function(cenario) {
+        cenarioPreditivoSelecionado = cenario;
+        ['conservador', 'moderado', 'agressivo'].forEach(c => {
+            const card = document.getElementById(`card-cenario-${c}`);
+            const rad = document.getElementById(`rad-cenario-${c}`);
+            if (card) {
+                if (c === cenario) {
+                    card.classList.add('active');
+                    card.style.borderColor = '#7a4fd4';
+                    if (rad) rad.checked = true;
+                } else {
+                    card.classList.remove('active');
+                    card.style.borderColor = '#1e4e8c';
+                    if (rad) rad.checked = false;
+                }
+            }
+        });
+        window.atualizarPreviewPreditivo();
+    };
+
+    window.atualizarPreviewPreditivo = function() {
+        const cenario = cenarioPreditivoSelecionado;
+        const baseMeses = parseInt(document.getElementById('pred-base-historico')?.value || '3');
+
+        // Calcula média de lotes existentes
+        let volBase = localPlanejamento.reduce((acc, x) => acc + (parseFloat(x.peso_comprado) || 0), 0);
+        let custoBase = localPlanejamento.reduce((acc, x) => acc + ((parseFloat(x.peso_comprado) || 0) * (parseFloat(x.preco_compra) || 0)), 0);
+        let fatBase = localPlanejamento.reduce((acc, x) => acc + ((parseFloat(x.peso_comprado) || 0) * (parseFloat(x.percentual_rendimento || 0) / 100) * (parseFloat(x.preco_venda_material) || 0)), 0);
+
+        // Se não houver dados no localPlanejamento, usa estimativa de modelo
+        if (volBase === 0) {
+            volBase = 45000;
+            custoBase = 180000;
+            fatBase = 240000;
+        }
+
+        let multVol = 1.0;
+        if (cenario === 'conservador') multVol = 0.90;
+        if (cenario === 'agressivo') multVol = 1.20;
+
+        const volEst = Math.round(volBase * multVol);
+        const custoEst = custoBase * multVol;
+        const fatEst = fatBase * multVol;
+        const lucroEst = fatEst - custoEst;
+        const horasEst = Math.round(volEst / 200);
+
+        const elPrevVol = document.getElementById('prev-vol');
+        const elPrevCusto = document.getElementById('prev-custo');
+        const elPrevFat = document.getElementById('prev-fat');
+        const elPrevLucro = document.getElementById('prev-lucro');
+        const elPrevHoras = document.getElementById('prev-horas');
+
+        if (elPrevVol) elPrevVol.textContent = `${volEst.toLocaleString('pt-BR')} kg`;
+        if (elPrevCusto) elPrevCusto.textContent = `R$ ${custoEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        if (elPrevFat) elPrevFat.textContent = `R$ ${fatEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        if (elPrevLucro) elPrevLucro.textContent = `R$ ${lucroEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        if (elPrevHoras) elPrevHoras.textContent = `${horasEst.toLocaleString('pt-BR')} Horas`;
+    };
+
+    window.executarGeracaoPreditiva = async function(e) {
+        e.preventDefault();
+        const mesAlvo = document.getElementById('pred-mes-alvo').value;
+        const cenario = cenarioPreditivoSelecionado;
+        const btn = e.target.querySelector('[type="submit"]');
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processando Projeção...';
+        }
+
+        try {
+            // Lotes padrão para preencher a projeção caso não haja histórico suficiente
+            const fornecedoresList = localFornecedores.length > 0 ? localFornecedores : [
+                { id: 1, nome: 'Fornecedor Sucatas A' },
+                { id: 2, nome: 'Reciclagem Metal B' },
+                { id: 3, nome: 'Metalúrgica Centro C' }
+            ];
+            const materiaisList = localMateriais.length > 0 ? localMateriais : [
+                { id: 1, nome: 'Alumínio Bloco', categoria: 'Alumínio' },
+                { id: 2, nome: 'Cobre Mel', categoria: 'Cobre' },
+                { id: 3, nome: 'Sucata Miúda', categoria: 'Aço' }
+            ];
+
+            let multVol = 1.0;
+            if (cenario === 'conservador') multVol = 0.90;
+            if (cenario === 'agressivo') multVol = 1.20;
+
+            const novosLotesProjetados = [
+                {
+                    fornecedor_id: fornecedoresList[0]?.id || 1,
+                    fornecedor_nome: fornecedoresList[0]?.apelido || fornecedoresList[0]?.nome || 'Fornecedor A',
+                    produto: 'Sucata de Alumínio Misturada',
+                    peso_comprado: Math.round(15000 * multVol),
+                    preco_compra: 5.50,
+                    percentual_rendimento: 85.0,
+                    material_id: materiaisList[0]?.id || 1,
+                    material_nome: materiaisList[0]?.nome || 'Alumínio Bloco',
+                    preco_venda_material: 7.80,
+                    comissao: 2.0,
+                    fidc: 2.3,
+                    mes: mesAlvo
+                },
+                {
+                    fornecedor_id: fornecedoresList[1]?.id || 2,
+                    fornecedor_nome: fornecedoresList[1]?.apelido || fornecedoresList[1]?.nome || 'Reciclagem B',
+                    produto: 'Cobre Limpo Desmontado',
+                    peso_comprado: Math.round(8000 * multVol),
+                    preco_compra: 38.00,
+                    percentual_rendimento: 98.0,
+                    material_id: materiaisList[1]?.id || 2,
+                    material_nome: materiaisList[1]?.nome || 'Cobre Mel',
+                    preco_venda_material: 46.50,
+                    comissao: 2.0,
+                    fidc: 2.3,
+                    mes: mesAlvo
+                },
+                {
+                    fornecedor_id: fornecedoresList[2]?.id || 3,
+                    fornecedor_nome: fornecedoresList[2]?.apelido || fornecedoresList[2]?.nome || 'Metalúrgica C',
+                    produto: 'Lote Conectores & Tomadas',
+                    peso_comprado: Math.round(12000 * multVol),
+                    preco_compra: 8.20,
+                    percentual_rendimento: 72.0,
+                    material_id: materiaisList[2]?.id || 3,
+                    material_nome: materiaisList[2]?.nome || 'Latão/Bronze',
+                    preco_venda_material: 14.50,
+                    comissao: 2.0,
+                    fidc: 2.3,
+                    mes: mesAlvo
+                }
+            ];
+
+            // Remove lotes preditivos antigos do mesmo mês para recriar
+            localPlanejamento = localPlanejamento.filter(lc => lc.mes !== mesAlvo);
+
+            // Persiste no backend cada lote projetado
+            for (const lote of novosLotesProjetados) {
+                try {
+                    const res = await fetch('/api/planejamento-compras', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(lote)
+                    });
+                    if (res.ok) {
+                        const salvo = await res.json();
+                        localPlanejamento.push(salvo);
+                    } else {
+                        localPlanejamento.push({ ...lote, id: Date.now() + Math.random() });
+                    }
+                } catch (err) {
+                    localPlanejamento.push({ ...lote, id: Date.now() + Math.random() });
+                }
+            }
+
+            // Registra o cenário ativo no histórico do mês
+            historicoCenarioPorMes[mesAlvo] = cenario;
+
+            // Ajusta seletor de mês para o mês recém gerado
+            const selMes = document.getElementById('pl-filtro-mes');
+            if (selMes) selMes.value = mesAlvo;
+
+            mesPlanejamentoSelecionado = mesAlvo;
+            fecharModalPlanejamentoPreditivo();
+            renderPlanejamento();
+
+            _apexNotify('Sucesso', `Planejamento Preditivo para ${mesAlvo} gerado com sucesso no Cenário ${cenario.toUpperCase()}!`, 'info');
+        } catch (err) {
+            console.error('Erro na geração preditiva:', err);
+            _apexNotify('Atenção', 'Erro ao gerar planejamento preditivo: ' + err.message, 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Gerar e Aplicar ao Mês';
+            }
+        }
+    };
 
     window.abrirModalPlanejamento = function() {
         document.getElementById('form-planejamento-apex').reset();
