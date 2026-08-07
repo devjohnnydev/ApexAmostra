@@ -5040,6 +5040,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color: #ffeb3b;">Venda Ref (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">PIS/COFINS (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">FIDC (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">ICMS (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">Frete Coleta (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda Líquida (R$/kg)</th>
                                 <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
                                 <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
                                 <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
@@ -5077,6 +5083,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_coletar)}</td>
                                         ${showCompleta ? `
                                         <td style="padding:10px; text-align:right; color: #ffeb3b; font-weight: bold;">R$ ${fmtBRL(p.venda_ref)}</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(comissao)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(pisCofins)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(fidc)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(icms)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">R$ ${fmtBRL(freteColeta)}</td>
+                                        <td style="padding:10px; text-align:right; color:#4fc3f7; font-weight:bold;">R$ ${fmtBRL(vendaLiquida)}</td>
                                         <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${fmtBRL(lucroEnt)}</td>
                                         <td style="padding:10px; text-align:right; color:#2AD07A; font-weight:bold;">${fmtBRL(margemEnt)}%</td>
                                         <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${fmtBRL(lucroCol)}</td>
@@ -5091,7 +5103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 10 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
                                     DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
@@ -5360,8 +5372,9 @@ document.addEventListener('DOMContentLoaded', () => {
         _apexNotify('Sistema', 'Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
     };
 
-    function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64) {
+    function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const activeSettings = settings || settingsPrecos || {};
+        const isCompleta = modo === 'completa';
         let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (activeSettings && activeSettings['categorias_materiais']) {
             try {
@@ -5377,7 +5390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Gera grid de logos para cobrir toda a página
         function gerarGridLogo(src) {
             if (!src) return '';
-            const cols = 4;
+            const cols = isCompleta ? 6 : 4;
             const rows = 16; // linhas suficientes para cobrir documentos longos
             let grid = '<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">';
             for (let r = 0; r < rows; r++) {
@@ -5391,8 +5404,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return grid;
         }
 
+        const tituloPdf = isCompleta ? 'Tabela Geral de Preços Vigente (Visão Completa)' : 'Tabela de Preços Vigente';
+        const maxWidthContainer = isCompleta ? '1350px' : '950px';
+
         let html = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; max-width: 950px; margin: 0 auto; box-sizing: border-box; position: relative;">
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; max-width: ${maxWidthContainer}; margin: 0 auto; box-sizing: border-box; position: relative;">
                 <!-- Marca d'água: logo repetido em toda a página -->
                 ${gerarGridLogo(logoBase64)}
 
@@ -5403,7 +5419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <img src="assets/img/apexlogo.png" alt="Apex Tech Metais" style="height: 60px;">
                         </div>
                         <div style="text-align: right;">
-                            <h1 style="margin: 0; color: #1e4e8c; font-size: 1.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Tabela de Preços Vigente</h1>
+                            <h1 style="margin: 0; color: #1e4e8c; font-size: ${isCompleta ? '1.6rem' : '1.8rem'}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${tituloPdf}</h1>
                             <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">Última Atualização: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
@@ -5434,33 +5450,75 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${cat}</span>
                         <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: ${isCompleta ? '0.75rem' : '0.8rem'}; text-align: left;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                <th style="padding: 10px; border: 1px solid #eee; font-weight: 600; color: #555;">Descrição</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Entregar (R$/kg)</th>
-                                <th style="padding: 10px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Coletar (R$/kg)</th>
-                                <th style="padding: 10px; border: 1px solid #eee; font-weight: 600; color: #555;">NCM</th>
+                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">Descrição</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Coletar (R$/kg)</th>
+                                ${isCompleta ? `
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #d97706;">Venda Ref (R$/kg)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Comissão (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">PIS/COFINS (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">FIDC (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">ICMS (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Frete Coleta</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #0284c7;">Venda Líq.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Lucro Líq. Ent.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Margem Ent (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Lucro Líq. Col.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Margem Col (%)</th>
+                                ` : ''}
+                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">NCM</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
             precosCat.forEach((p, idx) => {
+                const comissao = parseFloat(p.comissao || 0);
+                const pisCofins = parseFloat(p.pis_cofins || 0);
+                const fidc = parseFloat(p.fidc || 0);
+                const icms = parseFloat(p.icms || 0);
+                const freteColeta = parseFloat(p.frete_coleta || 0);
+
+                const totalDedPct = comissao + pisCofins + fidc + icms;
+                const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+
+                const lucroEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                const margemEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+
+                const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
+                const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+
                 const bgRow = idx % 2 === 0 ? '#ffffff' : '#e3ebf3';
                 html += `
                     <tr style="border-bottom: 1px solid #c8d3e0; background-color: ${bgRow};">
-                        <td style="padding: 10px; border: 1px solid #c8d3e0; color: #111;"><strong>${p.material_nome}</strong></td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_entregar)}</td>
-                        <td style="padding: 10px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_coletar)}</td>
-                        <td style="padding: 10px; border: 1px solid #c8d3e0; color: #111; font-weight: bold;">${p.material_ncm || '-'}</td>
+                        <td style="padding: 8px; border: 1px solid #c8d3e0; color: #111;"><strong>${p.material_nome}</strong></td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                        ${isCompleta ? `
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #d97706;">R$ ${fmtBRL(p.venda_ref)}</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; color: #444;">${fmtBRL(comissao)}%</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; color: #444;">${fmtBRL(pisCofins)}%</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; color: #444;">${fmtBRL(fidc)}%</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; color: #444;">${fmtBRL(icms)}%</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; color: #444;">R$ ${fmtBRL(freteColeta)}</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #0284c7;">R$ ${fmtBRL(vendaLiquida)}</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; color: #16a34a;">R$ ${fmtBRL(lucroEnt)}</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #16a34a;">${fmtBRL(margemEnt)}%</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; color: #2563eb;">R$ ${fmtBRL(lucroCol)}</td>
+                        <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #2563eb;">${fmtBRL(margemCol)}%</td>
+                        ` : ''}
+                        <td style="padding: 8px; border: 1px solid #c8d3e0; color: #111; font-weight: bold;">${p.material_ncm || '-'}</td>
                     </tr>
                 `;
             });
 
             html += `
                             <tr style="background: #fafafa;">
-                                <td colspan="4" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
                                     DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
@@ -5486,7 +5544,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-    window.gerarPdfTabelaPrecosBase64 = async function() {
+    window.gerarPdfTabelaPrecosBase64 = async function(modo) {
+        const modoPDF = modo || visualizacaoTabelaPrecos || 'fornecedor';
         let precos = localPrecos;
         if (!precos || precos.length === 0) {
             const res = await fetch('/api/tabela-precos');
@@ -5507,12 +5566,14 @@ document.addEventListener('DOMContentLoaded', () => {
             lastUpdate = today.toLocaleDateString('pt-BR');
         }
 
+        const isCompleta = modoPDF === 'completa';
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'absolute';
         tempDiv.style.left = '-9999px';
         tempDiv.style.top = '-9999px';
-        tempDiv.style.width = '1000px';
+        tempDiv.style.width = isCompleta ? '1400px' : '1000px';
         tempDiv.style.background = '#ffffff';
+
         // Carregar logo (2).png como base64 para a marca d'água
         let logoWatermarkBase64 = null;
         try {
@@ -5528,7 +5589,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {
             console.warn('Logo watermark não carregou, usando fallback:', e);
         }
-        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, logoWatermarkBase64);
+        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, logoWatermarkBase64, modoPDF);
         document.body.appendChild(tempDiv);
 
         try {
@@ -5547,11 +5608,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             const { jsPDF } = window.jspdf;
 
-            const pdfWidthMm = 210;
+            const pdfWidthMm = isCompleta ? 297 : 210;
+            const pdfOrientation = isCompleta ? 'landscape' : 'portrait';
             const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
 
             const pdf = new jsPDF({
-                orientation: 'portrait',
+                orientation: pdfOrientation,
                 unit: 'mm',
                 format: [pdfWidthMm, pdfHeightMm]
             });
@@ -5566,14 +5628,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.exportarTabelaPrecosPdf = async function() {
-        const btn = document.querySelector('.btn-secondary[onclick="exportarTabelaPrecosPdf()"]');
+    window.exportarTabelaPrecosPdf = async function(modo) {
+        const modoPDF = modo || visualizacaoTabelaPrecos || 'fornecedor';
+        const isCompleta = modoPDF === 'completa';
+        const btnSelector = isCompleta ? '.btn-secondary[onclick*="exportarTabelaPrecosPdf(\'completa\')"]' : '.btn-secondary[onclick*="exportarTabelaPrecosPdf(\'fornecedor\')"]';
+        const btn = document.querySelector(btnSelector) || document.querySelector('.btn-secondary[onclick*="exportarTabelaPrecosPdf"]');
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF...';
         }
         try {
-            const base64 = await window.gerarPdfTabelaPrecosBase64();
+            const base64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!base64) {
                 _apexNotify('Atenção', 'Erro ao gerar o PDF da tabela de preços.', 'error');
                 return;
@@ -5581,7 +5646,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const linkSource = `data:application/pdf;base64,${base64}`;
             const downloadLink = document.createElement("a");
             downloadLink.href = linkSource;
-            downloadLink.download = `Tabela_de_Precos_Vigente.pdf`;
+            const nomeArquivo = isCompleta ? 'Tabela_de_Precos_Geral_Completa.pdf' : 'Tabela_de_Precos_Fornecedor.pdf';
+            downloadLink.download = nomeArquivo;
             downloadLink.click();
         } catch (err) {
             console.error(err);
@@ -5589,7 +5655,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Exportar PDF';
+                btn.innerHTML = isCompleta 
+                    ? '<i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Tabela Geral' 
+                    : '<i class="fa-solid fa-file-pdf" style="color: #2AD07A;"></i> PDF Fornecedor';
             }
         }
     };

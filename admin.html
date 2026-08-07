@@ -1561,7 +1561,8 @@
                             <button id="btn-toggle-apresentacao" class="btn-secondary" onclick="alternarModoApresentacao()" style="background:#5c3bb1; color:#fff; border-color:#5c3bb1;"><i class="fa-solid fa-expand"></i> Apresentação</button>
                             <button id="btn-fechar-apresentacao" class="btn-danger" onclick="alternarModoApresentacao()" style="display:none;"><i class="fa-solid fa-compress"></i> Sair da Apresentação</button>
                             <button class="btn-secondary" onclick="exportarTabelaPrecosExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-                            <button class="btn-secondary" onclick="exportarTabelaPrecosPdf()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+                            <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Tabela Geral</button>
+                            <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente"><i class="fa-solid fa-file-pdf" style="color: #2AD07A;"></i> PDF Fornecedor</button>
                             <button class="btn-secondary" onclick="enviarTabelaPrecosEmail()"><i class="fa-solid fa-paper-plane"></i> Enviar E-mail</button>
                              <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralPrompt()" style="background:#1e4e8c; color:#fff; border-color:#1e4e8c;"><i class="fa-solid fa-calendar-days"></i> Alterar Vigência Geral</button>
                             <button class="btn-primary restrito-financeiro" onclick="abrirModalPreco()"><i class="fa-solid fa-plus"></i> Novo Item de Preço</button>
