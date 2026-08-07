@@ -5052,7 +5052,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:100px;">Ações</th>
+                                <th style="padding:10px; text-align:center; min-width:150px;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5095,9 +5095,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
                                         ` : ''}
                                         <td style="padding:10px; color:#fff; font-weight:bold;">${p.material_ncm || '-'}</td>
-                                        <td style="padding:10px; text-align:center;">
-                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#3e7cb1; margin-right:5px; cursor:pointer;" onclick="editarPreco(${p.id})"><i class="fa-solid fa-pen"></i></button>
-                                            <button class="btn-refresh restrito-financeiro" style="background:none; border:none; color:#ff4d4d; cursor:pointer;" onclick="deletarPreco(${p.id})"><i class="fa-solid fa-trash"></i></button>
+                                        <td style="padding:8px 10px; text-align:center; white-space:nowrap;">
+                                            <button class="btn-secondary restrito-financeiro" style="padding:4px 10px; font-size:0.8rem; background:#1e4e8c; color:#fff; border:1px solid #3e7cb1; border-radius:4px; margin-right:4px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="editarPreco(${p.id})" title="Editar valores deste material">
+                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                            </button>
+                                            <button class="btn-danger restrito-financeiro" style="padding:4px 10px; font-size:0.8rem; background:#c0392b; color:#fff; border:1px solid #e74c3c; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="deletarPreco(${p.id})" title="Excluir item da tabela">
+                                                <i class="fa-solid fa-trash"></i> Excluir
+                                            </button>
                                         </td>
                                     </tr>
                                 `;
