@@ -2578,6 +2578,195 @@
          MODAIS DE CADASTRO E EDICÃO
     ═══════════════════════════════════════════════════════════ -->
 
+    <!-- ═══ MODAL: PEDIDO DE VENDA ═══ -->
+    <div id="modal-pedido-venda" class="fullscreen-overlay" style="display:none; align-items:flex-start; justify-content:center; z-index:1050; padding-top:20px; overflow-y:auto;">
+        <div style="width:960px; max-width:98vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; margin-bottom:30px;">
+            <!-- Cabeçalho do Modal -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#101a24; border-radius:12px 12px 0 0; padding:16px 22px; border-bottom:1px solid #223547;">
+                <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-file-invoice-dollar" style="color:#2AD07A;"></i> <span id="modal-pedido-titulo">Novo Pedido de Venda</span></h3>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button type="button" onclick="exportarPedidoPdfDoForm()" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:6px 14px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600;">
+                        <i class="fa-solid fa-file-pdf"></i> PDF
+                    </button>
+                    <button type="button" onclick="fecharModalPedido()" style="background:none; border:none; color:#aaa; font-size:1.3rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <form id="form-pedido-venda" onsubmit="salvarPedido(event)" style="padding:22px;">
+                <input type="hidden" id="pedido-id" value="">
+
+                <!-- LINHA 1: Número, Data Emissão, Data Entrega -->
+                <div style="display:grid; grid-template-columns:160px 1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div class="form-group">
+                        <label>Número do Pedido</label>
+                        <input type="text" id="pedido-numero" class="noble-input" readonly style="background:#0a1520; color:#2AD07A; font-weight:bold;" placeholder="PV-0001">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-calendar"></i> Data de Emissão</label>
+                        <input type="date" id="pedido-data-emissao" class="noble-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-calendar-check"></i> Data Prevista de Entrega</label>
+                        <input type="date" id="pedido-data-entrega" class="noble-input">
+                    </div>
+                </div>
+
+                <!-- LINHA 2: Emissor e Perfil (auto-preenchido) -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user-tie" style="color:#3e7cb1;"></i> Vendedor / Emissor</label>
+                        <input type="text" id="pedido-vendedor" class="noble-input" readonly style="background:#0a1520; color:#7fa8c8;" placeholder="Usuário logado">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-id-badge" style="color:#3e7cb1;"></i> Perfil de Acesso</label>
+                        <input type="text" id="pedido-perfil" class="noble-input" readonly style="background:#0a1520; color:#7fa8c8;" placeholder="Perfil">
+                    </div>
+                </div>
+
+                <!-- BUSCA DE CLIENTE -->
+                <div class="form-group" style="margin-bottom:6px; position:relative;">
+                    <label><i class="fa-solid fa-building-user" style="color:#2AD07A;"></i> Cliente / Destinatário *</label>
+                    <input type="hidden" id="pedido-cliente-id" value="">
+                    <input type="text" id="pedido-cliente-busca" class="noble-input" placeholder="🔍 Buscar por Nome, CNPJ, E-mail..." autocomplete="off"
+                        oninput="buscarClientePedido(this.value)"
+                        onfocus="buscarClientePedido(this.value)"
+                        onblur="setTimeout(()=>{ const d=document.getElementById('pedido-cliente-dropdown'); if(d) d.style.display='none'; }, 200)">
+                    <div id="pedido-cliente-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#0d1a26; border:1px solid #1e4e8c; border-radius:0 0 8px 8px; max-height:260px; overflow-y:auto; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5);"></div>
+                </div>
+
+                <!-- Card info do cliente -->
+                <div id="pedido-cliente-card" style="display:none; background:#101f2e; border:1px solid #1e4e8c; border-radius:8px; padding:12px 16px; margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+                        <div>
+                            <div style="font-weight:bold; font-size:0.95rem; color:#fff;" id="cc-nome">-</div>
+                            <div style="color:#7fa8c8; font-size:0.82rem; margin-top:2px;">CNPJ/CPF: <span id="cc-cnpj">-</span> | <span id="cc-cidade">-</span>/<span id="cc-uf">-</span></div>
+                            <div style="color:#7fa8c8; font-size:0.82rem;">Tel: <span id="cc-tel">-</span> | Email: <span id="cc-email">-</span></div>
+                            <div style="color:#7fa8c8; font-size:0.82rem;" id="cc-endereco">-</div>
+                        </div>
+                        <span id="cc-status-badge" style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:4px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; white-space:nowrap;">
+                            <i class="fa-solid fa-user-check"></i> CLIENTE CADASTRADO
+                        </span>
+                    </div>
+                </div>
+
+                <!-- LOGÍSTICA E ENTREGA -->
+                <div style="background:#0a1520; border:1px solid #1a2e40; border-radius:8px; padding:14px 16px; margin-bottom:14px;">
+                    <div style="color:#4fc3f7; font-weight:700; font-size:0.88rem; margin-bottom:10px;"><i class="fa-solid fa-truck"></i> LOGÍSTICA & ENTREGA</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:0.8rem;">Endereço de Entrega / Destino</label>
+                            <input type="text" id="pedido-endereco-entrega" class="noble-input" placeholder="Rua, número, bairro - Cidade/UF">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:0.8rem;">Responsável / Recebedor no Destino</label>
+                            <input type="text" id="pedido-responsavel-recebimento" class="noble-input" placeholder="Ex: Sr. Carlos - Almoxarifado">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem;">Tipo de Frete / Logística</label>
+                        <select id="pedido-tipo-frete" class="noble-input">
+                            <option value="CIF - Entrega ApexTech">CIF – Entrega por conta da ApexTech</option>
+                            <option value="FOB - Retirada pelo Cliente">FOB – Retirada pelo Cliente</option>
+                            <option value="Transportadora Terceira">Transportadora Terceira / Redespacho</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- STATUS E CONDIÇÕES -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-circle-check" style="color:#2AD07A;"></i> Status / Aprovação</label>
+                        <select id="pedido-status" class="noble-input">
+                            <option value="Rascunho">📄 Rascunho</option>
+                            <option value="Aguardando Aprovação">⚠️ Aguardando Aprovação</option>
+                            <option value="Aprovado">✅ Aprovado</option>
+                            <option value="Confirmado">✅ Confirmado</option>
+                            <option value="Em Separação">📦 Em Separação</option>
+                            <option value="Faturado">💰 Faturado</option>
+                            <option value="Entregue">🚚 Entregue</option>
+                            <option value="Cancelado">❌ Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Condição de Pagamento</label>
+                        <select id="pedido-condicao" class="noble-input">
+                            <option value="À Vista">À Vista</option>
+                            <option value="7 dias">7 dias</option>
+                            <option value="14 dias">14 dias</option>
+                            <option value="21 dias">21 dias</option>
+                            <option value="28 dias">28 dias</option>
+                            <option value="30 dias">30 dias</option>
+                            <option value="30/60 dias">30/60 dias</option>
+                            <option value="30/60/90 dias">30/60/90 dias</option>
+                            <option value="FIDC">FIDC</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Observações</label>
+                        <input type="text" id="pedido-obs" class="noble-input" placeholder="Instruções especiais, referências...">
+                    </div>
+                </div>
+
+                <!-- ITENS DO PEDIDO -->
+                <div style="background:#0a1520; border:1px solid #1a2e40; border-radius:8px; padding:14px; margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="color:#ffeb3b; font-weight:700; font-size:0.9rem;"><i class="fa-solid fa-list"></i> ITENS DO PEDIDO</span>
+                        <button type="button" onclick="adicionarItemPedido()" style="background:#1e4e8c; border:1px solid #3e7cb1; color:#fff; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
+                            <i class="fa-solid fa-plus"></i> Adicionar Item
+                        </button>
+                    </div>
+                    <div id="itens-vazio" style="text-align:center; padding:20px; color:#5a738e; font-size:0.88rem;">
+                        <i class="fa-solid fa-box-open" style="font-size:1.5rem; margin-bottom:6px; display:block; opacity:0.4;"></i>
+                        Nenhum item adicionado. Clique em "+ Adicionar Item".
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                            <thead id="itens-thead" style="display:none;">
+                                <tr style="background:#172635; color:#7fa8c8; text-align:left;">
+                                    <th style="padding:8px 4px;">Descrição / Material</th>
+                                    <th style="padding:8px 4px; width:60px; text-align:center;">Und</th>
+                                    <th style="padding:8px 4px; width:95px; text-align:right;">Qtd</th>
+                                    <th style="padding:8px 4px; width:115px; text-align:right;">Preço Unit.</th>
+                                    <th style="padding:8px 4px; width:80px; text-align:right;">Desc%</th>
+                                    <th style="padding:8px 4px; width:110px; text-align:right;">Total</th>
+                                    <th style="padding:8px 4px; width:40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itens-pedido-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TOTAIS -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 240px; gap:12px; margin-bottom:20px; align-items:end;">
+                    <div class="form-group">
+                        <label>Desconto Geral do Pedido (%)</label>
+                        <input type="number" id="pedido-desconto" class="noble-input" min="0" max="100" step="0.01" value="0" oninput="recalcularPedido()">
+                    </div>
+                    <div class="form-group">
+                        <label>Frete (R$)</label>
+                        <input type="number" id="pedido-frete" class="noble-input" min="0" step="0.01" value="0" oninput="recalcularPedido()">
+                    </div>
+                    <div style="background:#101f2e; border:1px solid #1e4e8c; border-radius:8px; padding:12px 16px;">
+                        <div style="color:#aaa; font-size:0.8rem; margin-bottom:4px;">Subtotal Itens: <span id="pedido-total-itens" style="color:#fff; font-weight:600;">R$ 0,00</span></div>
+                        <div style="color:#2AD07A; font-size:1.05rem; font-weight:bold;">Total Geral: <span id="pedido-total-geral">R$ 0,00</span></div>
+                    </div>
+                </div>
+
+                <!-- BOTÕES -->
+                <div style="display:flex; justify-content:flex-end; gap:10px; padding-top:14px; border-top:1px solid #1a2e40;">
+                    <button type="button" onclick="fecharModalPedido()" style="background:#182232; border:1px solid #283e56; color:#aaa; padding:9px 20px; border-radius:6px; cursor:pointer; font-size:0.9rem;">
+                        <i class="fa-solid fa-xmark"></i> Cancelar
+                    </button>
+                    <button type="submit" style="background:#2AD07A; border:none; color:#000; padding:9px 24px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Salvar Pedido
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ═══ FIM MODAL PEDIDO DE VENDA ═══ -->
+
     <!-- Modal Fornecedor (COMPLETO) -->
     <div id="modal-fornecedor" class="fullscreen-overlay" style="display:none; align-items:flex-start; justify-content:center; z-index:1000; padding-top:20px; overflow-y:auto;">
         <div style="width:780px; max-width:98vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; margin-bottom:30px;">
@@ -3732,7 +3921,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=95"></script>
+    <script src="admin.js?v=96"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
