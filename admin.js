@@ -5092,7 +5092,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; min-width:160px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5135,13 +5135,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
                                         ` : ''}
                                         <td style="padding:10px; color:#fff; font-weight:bold;">${p.material_ncm || '-'}</td>
-                                        <td style="padding:8px 10px; text-align:center; white-space:nowrap; position:sticky; right:0; background:${idx % 2 === 0 ? '#0d1826' : '#16273b'}; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">
-                                            <button class="btn-secondary restrito-financeiro" style="padding:4px 10px; font-size:0.8rem; background:#1e4e8c; color:#fff; border:1px solid #3e7cb1; border-radius:4px; margin-right:4px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="editarPreco(${p.id})" title="Editar valores deste material">
-                                                <i class="fa-solid fa-pen-to-square"></i> Editar
-                                            </button>
-                                            <button class="btn-danger restrito-financeiro" style="padding:4px 10px; font-size:0.8rem; background:#c0392b; color:#fff; border:1px solid #e74c3c; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="deletarPreco(${p.id})" title="Excluir item da tabela">
-                                                <i class="fa-solid fa-trash"></i> Excluir
-                                            </button>
+                                        <td style="padding:6px 8px; text-align:center; position:sticky; right:0; background:${idx % 2 === 0 ? '#0d1826' : '#16273b'}; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">
+                                            <div style="display:flex; gap:6px; justify-content:center; align-items:center;">
+                                                <button class="btn-secondary restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#1e4e8c; color:#fff; border:1px solid #3e7cb1; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:600; white-space:nowrap;" onclick="editarPreco(${p.id})" title="Editar valores deste material">
+                                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                                </button>
+                                                <button class="btn-danger restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#c0392b; color:#fff; border:1px solid #e74c3c; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:600; white-space:nowrap;" onclick="deletarPreco(${p.id})" title="Excluir item da tabela">
+                                                    <i class="fa-solid fa-trash"></i> Excluir
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 `;
