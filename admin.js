@@ -9718,7 +9718,12 @@ window.carregarFinanceiroView = async function() {
 
     window.abrirNovoPedido = async function() {
         itensPedido = [];
-        document.getElementById('form-pedido-venda').reset();
+
+        // 1. Abrir o modal IMEDIATAMENTE ao clicar no botão
+        const modal = document.getElementById('modal-pedido-venda');
+        if (modal) modal.style.display = 'flex';
+
+        try { document.getElementById('form-pedido-venda')?.reset(); } catch(e){}
         document.getElementById('pedido-id').value = '';
         document.getElementById('modal-pedido-titulo').textContent = 'Novo Pedido de Venda';
         document.getElementById('pedido-data-emissao').value = new Date().toISOString().split('T')[0];
@@ -9733,18 +9738,22 @@ window.carregarFinanceiroView = async function() {
         renderItensPedido();
         recalcularPedido();
 
+        // Número provisório imediato
+        document.getElementById('pedido-numero').value = 'PV-' + String(Math.floor(Date.now()/1000)%10000).padStart(4,'0');
+
+        // 2. Buscar dados em segundo plano com validação de status HTTP
         try {
             const res = await fetch('/api/clientes');
-            window.localClientes = await res.json();
+            if (res.ok) window.localClientes = await res.json();
         } catch(e){}
+
         try {
             const r = await fetch('/api/pedidos-venda/proximo-numero');
-            const d = await r.json();
-            document.getElementById('pedido-numero').value = d.numero || 'PV-0001';
-        } catch(e) {
-            document.getElementById('pedido-numero').value = 'PV-' + String(Math.floor(Date.now()/1000)%10000).padStart(4,'0');
-        }
-        document.getElementById('modal-pedido-venda').style.display = 'flex';
+            if (r.ok) {
+                const d = await r.json();
+                if (d && d.numero) document.getElementById('pedido-numero').value = d.numero;
+            }
+        } catch(e){}
     };
 
     window.fecharModalPedido = function() {
