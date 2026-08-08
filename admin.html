@@ -221,6 +221,9 @@
                             </div>
 
                             <select id="mes-selector" class="mes-select"></select>
+                            <button id="btn-export-dashboard-pdf" class="btn-secondary" onclick="exportarDashboardPDF()" style="background:#1e4e8c; color:#fff; border-color:#3e7cb1;" title="Exportar Relatório PDF Completo do Dashboard">
+                                <i class="fa-solid fa-file-pdf" style="color:#ff4d4d;"></i> PDF Estratégia
+                            </button>
                             <button id="btn-refresh-lme" class="btn-refresh">
                                 <i class="fa-solid fa-rotate-right"></i> Atualizar
                             </button>
@@ -2051,6 +2054,7 @@
                             <div style="display:flex; align-items:center; gap:6px; background:rgba(30,78,140,0.3); padding:5px 12px; border-radius:6px; border:1px solid #1e4e8c;">
                                 <label style="font-size:0.85rem; color:#aaa; font-weight:600;"><i class="fa-solid fa-calendar-days"></i> Mês:</label>
                                 <select id="pl-filtro-mes" class="noble-input" style="padding:4px 8px; font-size:0.85rem; background:#0d1826; color:#fff;" onchange="alterarMesPlanejamento(this.value)">
+                                    <option value="todos">Todos os Meses (Visão Geral)</option>
                                     <option value="2026-06">Junho / 2026</option>
                                     <option value="2026-07">Julho / 2026</option>
                                     <option value="2026-08" selected>Agosto / 2026 (Atual)</option>

@@ -3258,14 +3258,27 @@ async function gerarPdfRelatorioViaHeadless(weekBlock) {
             const { jsPDF } = window.jspdf;
 
             const pdfWidthMm = 210;
-            const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+            const pdfPageHeightMm = 297;
+            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
 
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: [pdfWidthMm, pdfHeightMm]
+                format: 'a4'
             });
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+
+            let heightLeft = imgHeightMm;
+            let position = 0;
+
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+            heightLeft -= pdfPageHeightMm;
+
+            while (heightLeft > 5) {
+                position -= pdfPageHeightMm;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+                heightLeft -= pdfPageHeightMm;
+            }
 
             return pdf.output('datauristring').split(',')[1];
         });

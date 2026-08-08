@@ -5052,7 +5052,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; min-width:150px;">Ações</th>
+                                <th style="padding:10px; text-align:center; min-width:160px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5095,7 +5095,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
                                         ` : ''}
                                         <td style="padding:10px; color:#fff; font-weight:bold;">${p.material_ncm || '-'}</td>
-                                        <td style="padding:8px 10px; text-align:center; white-space:nowrap;">
+                                        <td style="padding:8px 10px; text-align:center; white-space:nowrap; position:sticky; right:0; background:${idx % 2 === 0 ? '#0d1826' : '#16273b'}; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">
                                             <button class="btn-secondary restrito-financeiro" style="padding:4px 10px; font-size:0.8rem; background:#1e4e8c; color:#fff; border:1px solid #3e7cb1; border-radius:4px; margin-right:4px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" onclick="editarPreco(${p.id})" title="Editar valores deste material">
                                                 <i class="fa-solid fa-pen-to-square"></i> Editar
                                             </button>
@@ -5409,10 +5409,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const tituloPdf = isCompleta ? 'Tabela Geral de Preços Vigente (Visão Completa)' : 'Tabela de Preços Vigente';
-        const maxWidthContainer = isCompleta ? '1350px' : '950px';
+        const maxWidthContainer = '100%';
 
         let html = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; max-width: ${maxWidthContainer}; margin: 0 auto; box-sizing: border-box; position: relative;">
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; width: ${maxWidthContainer}; margin: 0 auto; box-sizing: border-box; position: relative;">
                 <!-- Marca d'água: logo repetido em toda a página -->
                 ${gerarGridLogo(logoBase64)}
 
@@ -5576,6 +5576,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tempDiv.style.left = '-9999px';
         tempDiv.style.top = '-9999px';
         tempDiv.style.width = isCompleta ? '1400px' : '1000px';
+        tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.background = '#ffffff';
 
         // Carregar logo (2).png como base64 para a marca d'água
@@ -5613,15 +5614,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const { jsPDF } = window.jspdf;
 
             const pdfWidthMm = isCompleta ? 297 : 210;
+            const pdfPageHeightMm = isCompleta ? 210 : 297;
             const pdfOrientation = isCompleta ? 'landscape' : 'portrait';
-            const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
 
             const pdf = new jsPDF({
                 orientation: pdfOrientation,
                 unit: 'mm',
-                format: [pdfWidthMm, pdfHeightMm]
+                format: 'a4'
             });
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+
+            let heightLeft = imgHeightMm;
+            let position = 0;
+
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+            heightLeft -= pdfPageHeightMm;
+
+            while (heightLeft > 5) {
+                position -= pdfPageHeightMm;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+                heightLeft -= pdfPageHeightMm;
+            }
 
             return pdf.output('datauristring').split(',')[1];
         } catch (err) {
@@ -8276,6 +8291,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filtra lotes pelo mês selecionado
         const lotesMes = localPlanejamento.filter(lc => {
+            if (mesPlanejamentoSelecionado === 'todos') return true;
             if (!lc.mes) return true; // se não tiver mês definido, mostra por padrão
             return lc.mes === mesPlanejamentoSelecionado;
         });
@@ -8955,6 +8971,61 @@ document.addEventListener('DOMContentLoaded', () => {
         _apexNotify('Sistema', 'Planejamento Mensal exportado com sucesso (PLANEJAMENTO_DE_NVS_FORNECEDOR.xlsx)', 'info');
     };
 
+    window.exportarDashboardPDF = async function() {
+        if (!window.jspdf) {
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
+            return;
+        }
+        const section = document.getElementById('dashboard');
+        if (!section) return;
+
+        _apexNotify('Sistema', 'Gerando PDF da Central de Decisão LME...', 'info');
+
+        try {
+            const canvas = await html2canvas(section, {
+                scale: 2,
+                backgroundColor: '#0a192f',
+                useCORS: true,
+                allowTaint: false,
+                scrollY: 0,
+                windowHeight: section.scrollHeight,
+                height: section.scrollHeight,
+                width: section.scrollWidth
+            });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf;
+
+            const pdfWidthMm = 297;
+            const pdfPageHeightMm = 210;
+            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            let heightLeft = imgHeightMm;
+            let position = 0;
+
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+            heightLeft -= pdfPageHeightMm;
+
+            while (heightLeft > 5) {
+                position -= pdfPageHeightMm;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+                heightLeft -= pdfPageHeightMm;
+            }
+
+            pdf.save(`Relatorio_Estrategico_LME_${new Date().toISOString().split('T')[0]}.pdf`);
+            _apexNotify('Sistema', 'PDF da Central de Decisão LME baixado com sucesso!', 'info');
+        } catch (err) {
+            console.error('Erro ao gerar PDF do Dashboard:', err);
+            _apexNotify('Atenção', 'Erro ao exportar PDF do Dashboard.', 'error');
+        }
+    };
+
     window.exportarPlanejamentoPDF = async function() {
         if (!window.jspdf) {
             _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
@@ -8963,40 +9034,70 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('landscape');
 
+        const mesFiltro = typeof mesPlanejamentoSelecionado !== 'undefined' ? mesPlanejamentoSelecionado : 'todos';
+        let list = localPlanejamento || [];
+        if (mesFiltro !== 'todos') {
+            list = list.filter(lc => !lc.mes || lc.mes === mesFiltro);
+        }
+
         // Build Table Body
         const body = [];
-        if (typeof localPlanejamento !== 'undefined') {
-            localPlanejamento.forEach(pl => {
+        list.forEach(pl => {
+            let fornecedorStr = (pl.fornecedor_nome || '').trim();
+            if (!fornecedorStr && pl.fornecedor_id) {
                 const fornObj = (window.localFornecedores || []).find(f => f.id == pl.fornecedor_id);
-                const fornecedorStr = pl.fornecedor_nome || (fornObj ? (fornObj.nome || fornObj.nome_fantasia || fornObj.apelido) : '') || (pl.fornecedor_id ? `Fornecedor #${pl.fornecedor_id}` : '-');
-                const mes = pl.mes || pl.mes_ref || (pl.criado_em ? new Date(pl.criado_em).toLocaleDateString('pt-BR', {month:'2-digit', year:'numeric'}) : '-') || '-';
-                const reqData = pl.amostra_id ? `Amostra: ${pl.amostra_id}` : `[Avulso] ${pl.produto || 'Material'}`;
-                const cStr = 'R$ ' + fmtBRL(pl.preco_compra);
-                const vStr = 'R$ ' + fmtBRL(pl.preco_venda_material);
-                
-                const totalC = parseFloat(pl.peso_comprado || 0) * parseFloat(pl.preco_compra || 0);
-                const pesoMat = parseFloat(pl.peso_comprado || 0) * (parseFloat(pl.percentual_rendimento || 0) / 100);
-                const totalV = pesoMat * parseFloat(pl.preco_venda_material || 0);
-                const lucroB = totalV - totalC;
-                const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
-                const resultadoLiq = pctFat - parseFloat(pl.comissao || 0) - parseFloat(pl.fidc || 0);
-                
-                body.push([mes, fornecedorStr, reqData, cStr, vStr, fmtBRL(resultadoLiq) + '%']);
-            });
-        }
+                if (fornObj) fornecedorStr = fornObj.nome || fornObj.nome_fantasia || fornObj.apelido || '';
+            }
+            if (!fornecedorStr) fornecedorStr = 'Fornecedor Vários';
+            
+            // Remove duplicate token if repeated like "ACJG JG" -> "ACJG"
+            const tokens = fornecedorStr.split(/\s+/);
+            if (tokens.length >= 2 && tokens[0].includes(tokens[1])) {
+                fornecedorStr = tokens[0];
+            }
+
+            const mesLabel = pl.mes || pl.mes_ref || (pl.criado_em ? new Date(pl.criado_em).toLocaleDateString('pt-BR', {month:'2-digit', year:'numeric'}) : '-') || '-';
+            const reqData = pl.amostra_id ? `Amostra #${pl.amostra_id}` : `[Avulso] ${pl.produto || 'Material'}`;
+            
+            const totalC = parseFloat(pl.peso_comprado || 0) * parseFloat(pl.preco_compra || 0);
+            const pesoMat = parseFloat(pl.peso_comprado || 0) * (parseFloat(pl.percentual_rendimento || 0) / 100);
+            const totalV = pesoMat * parseFloat(pl.preco_venda_material || 0);
+            const lucroB = totalV - totalC;
+            const pctFat = totalV > 0 ? (lucroB / totalV) * 100 : 0;
+            const resultadoLiq = pctFat - parseFloat(pl.comissao || 2.0) - parseFloat(pl.fidc || 2.3);
+
+            body.push([
+                mesLabel,
+                fornecedorStr,
+                reqData,
+                parseFloat(pl.peso_comprado || 0).toLocaleString('pt-BR') + ' kg',
+                'R$ ' + fmtBRL(pl.preco_compra),
+                'R$ ' + totalC.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                fmtBRL(pl.percentual_rendimento) + '%',
+                pl.material_nome || '-',
+                pesoMat.toLocaleString('pt-BR') + ' kg',
+                'R$ ' + fmtBRL(pl.preco_venda_material),
+                'R$ ' + totalV.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                fmtBRL(resultadoLiq) + '%'
+            ]);
+        });
 
         doc.autoTable({
             startY: 45,
-            head: [['Mês', 'Fornecedor', 'Produto/Referência', 'Preço Compra', 'Preço Venda', 'Margem Líq. Estimada']],
+            head: [['Mês', 'Fornecedor', 'Produto/Ref', 'Peso Comp.','Preço Comp.', 'Total Compra', 'Rend. %', 'Material', 'Peso Mat.', 'Preço Venda', 'Total Venda', 'Lucro Bruto', 'Margem Liq.']],
             body: body,
             theme: 'grid',
-            headStyles: { fillColor: [27, 45, 61] }
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [27, 45, 61], fontSize: 8.5 }
         });
 
         // Cabeçalho
-        doc.setFontSize(18);
+        const selectElem = document.getElementById('pl-filtro-mes');
+        const mesTexto = selectElem ? selectElem.options[selectElem.selectedIndex]?.text : mesFiltro;
+        doc.setFontSize(16);
         doc.setTextColor(62, 124, 177); // #3e7cb1
-        doc.text('Relatório de Planejamento Mensal - Fornecedores', 15, 20);
+        doc.text(`Relatório de Planejamento Mensal (${mesTexto})`, 15, 20);
         
         doc.setFontSize(10);
         doc.setTextColor(100);
@@ -9005,7 +9106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await aplicarMarcaDaguaLogoJsPDF(doc);
 
-        doc.save(`Planejamento_Lote_${new Date().toISOString().split('T')[0]}.pdf`);
+        doc.save(`Planejamento_Lote_${mesFiltro}_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
     window.gerarPdfPlanejamentoModal = async function() {
