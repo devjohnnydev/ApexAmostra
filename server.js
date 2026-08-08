@@ -4083,11 +4083,16 @@ app.delete('/api/clientes/:id', async (req, res) => {
 // ══════════════════════════════════════════════════════════════
 // PEDIDOS DE VENDA
 // ══════════════════════════════════════════════════════════════
+// PEDIDOS DE VENDA
+// ══════════════════════════════════════════════════════════════
 
 // Buscar próximo número de pedido
 app.get('/api/pedidos-venda/proximo-numero', async (req, res) => {
     try {
-        if (!dbAvailable) return res.json({ numero: 'PV-0001' });
+        if (!dbAvailable) {
+            const count = (memStore.pedidos_venda || []).length;
+            return res.json({ numero: 'PV-' + String(count + 1).padStart(4, '0') });
+        }
         const r = await pool.query("SELECT numero FROM pedidos_venda ORDER BY id DESC LIMIT 1");
         if (r.rows.length === 0) return res.json({ numero: 'PV-0001' });
         const last = parseInt(r.rows[0].numero.replace('PV-', '')) || 0;
@@ -4101,7 +4106,19 @@ app.get('/api/pedidos-venda/proximo-numero', async (req, res) => {
 // Listar todos os pedidos
 app.get('/api/pedidos-venda', async (req, res) => {
     try {
-        if (!dbAvailable) return res.json([]);
+        if (!dbAvailable) {
+            const list = (memStore.pedidos_venda || []).map(p => {
+                const cli = (memStore.clientes || []).find(c => c.id == p.cliente_id);
+                return {
+                    ...p,
+                    cliente_nome: p.cliente_nome || (cli ? (cli.nome || cli.fantasia) : 'Cliente Avulso'),
+                    cliente_cnpj: cli ? cli.cnpj : '',
+                    cliente_cidade: cli ? cli.cidade : '',
+                    cliente_uf: cli ? cli.uf : ''
+                };
+            });
+            return res.json(list.sort((a, b) => b.id - a.id));
+        }
         const r = await pool.query(`
             SELECT pv.*, c.nome AS cliente_nome, c.cnpj AS cliente_cnpj, c.cidade AS cliente_cidade, c.uf AS cliente_uf
             FROM pedidos_venda pv
@@ -4117,8 +4134,22 @@ app.get('/api/pedidos-venda', async (req, res) => {
 // Buscar pedido por ID com itens
 app.get('/api/pedidos-venda/:id', async (req, res) => {
     try {
-        if (!dbAvailable) return res.status(404).json({ error: 'Banco indisponível' });
         const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            const p = (memStore.pedidos_venda || []).find(x => x.id === id);
+            if (!p) return res.status(404).json({ error: 'Pedido não encontrado' });
+            const cli = (memStore.clientes || []).find(c => c.id == p.cliente_id);
+            return res.json({
+                ...p,
+                cliente_nome: p.cliente_nome || (cli ? (cli.nome || cli.fantasia) : ''),
+                cliente_cnpj: cli ? cli.cnpj : '',
+                cliente_telefone: cli ? cli.telefone1 : '',
+                cliente_email: cli ? cli.email : '',
+                cliente_endereco: cli ? cli.endereco : '',
+                cliente_cidade: cli ? cli.cidade : '',
+                cliente_uf: cli ? cli.uf : ''
+            });
+        }
         const pedido = await pool.query(`
             SELECT pv.*, c.nome AS cliente_nome, c.cnpj AS cliente_cnpj, c.telefone1 AS cliente_telefone,
                    c.email AS cliente_email, c.endereco AS cliente_endereco, c.cidade AS cliente_cidade, c.uf AS cliente_uf
@@ -4136,83 +4167,154 @@ app.get('/api/pedidos-venda/:id', async (req, res) => {
 
 // Criar pedido
 app.post('/api/pedidos-venda', async (req, res) => {
-    const client = await pool.connect();
     try {
         const { numero, cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
-                observacoes, desconto_pct, frete, itens, criado_por } = req.body;
-        if (!cliente_id || !itens || itens.length === 0) {
-            return res.status(400).json({ error: 'Cliente e itens são obrigatórios.' });
+                observacoes, desconto_pct, frete, itens, criado_por, criado_por_perfil,
+                endereco_entrega, responsavel_recebimento, tipo_frete } = req.body;
+        if (!cliente_id && !req.body.cliente_nome) {
+            return res.status(400).json({ error: 'Cliente é obrigatório.' });
+        }
+        if (!itens || itens.length === 0) {
+            return res.status(400).json({ error: 'Ao menos um item é obrigatório.' });
         }
         const total_itens = itens.reduce((s, i) => s + parseFloat(i.total_item || 0), 0);
         const desc = parseFloat(desconto_pct || 0);
         const fr = parseFloat(frete || 0);
         const total_geral = total_itens * (1 - desc / 100) + fr;
 
-        await client.query('BEGIN');
-        const pedido = await client.query(`
-            INSERT INTO pedidos_venda (numero, cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
-                observacoes, desconto_pct, frete, total_itens, total_geral, criado_por)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *
-        `, [numero, cliente_id, data_emissao || new Date().toISOString().split('T')[0],
-             data_entrega, status || 'Rascunho', condicao_pagamento, observacoes,
-             desc, fr, total_itens, total_geral, criado_por]);
-
-        const pedidoId = pedido.rows[0].id;
-        for (const item of itens) {
-            await client.query(`
-                INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-            `, [pedidoId, item.material_id || null, item.descricao, item.unidade || 'kg',
-                 item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
+        if (!dbAvailable) {
+            if (!memStore.pedidos_venda) memStore.pedidos_venda = [];
+            const newId = nextId++;
+            const item = {
+                id: newId,
+                numero: numero || ('PV-' + String(newId).padStart(4, '0')),
+                cliente_id: cliente_id ? parseInt(cliente_id) : null,
+                cliente_nome: req.body.cliente_nome || '',
+                data_emissao: data_emissao || new Date().toISOString().split('T')[0],
+                data_entrega: data_entrega || null,
+                status: status || 'Rascunho',
+                condicao_pagamento: condicao_pagamento || '',
+                observacoes: observacoes || '',
+                desconto_pct: desc,
+                frete: fr,
+                total_itens,
+                total_geral,
+                criado_por: criado_por || 'Admin',
+                criado_por_perfil: criado_por_perfil || 'Administrador',
+                endereco_entrega: endereco_entrega || '',
+                responsavel_recebimento: responsavel_recebimento || '',
+                tipo_frete: tipo_frete || 'CIF - Entrega ApexTech',
+                itens: itens.map((it, idx) => ({ id: idx + 1, ...it })),
+                criado_em: new Date().toISOString()
+            };
+            memStore.pedidos_venda.push(item);
+            return res.json(item);
         }
 
-        await client.query('COMMIT');
-        res.json(pedido.rows[0]);
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const pedido = await client.query(`
+                INSERT INTO pedidos_venda (numero, cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
+                    observacoes, desconto_pct, frete, total_itens, total_geral, criado_por, criado_por_perfil,
+                    endereco_entrega, responsavel_recebimento, tipo_frete)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *
+            `, [numero, cliente_id, data_emissao || new Date().toISOString().split('T')[0],
+                 data_entrega, status || 'Rascunho', condicao_pagamento, observacoes,
+                 desc, fr, total_itens, total_geral, criado_por, criado_por_perfil,
+                 endereco_entrega, responsavel_recebimento, tipo_frete]);
+
+            const pedidoId = pedido.rows[0].id;
+            for (const item of itens) {
+                await client.query(`
+                    INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                `, [pedidoId, item.material_id || null, item.descricao, item.unidade || 'kg',
+                     item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
+            }
+
+            await client.query('COMMIT');
+            res.json(pedido.rows[0]);
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
     } catch (err) {
-        await client.query('ROLLBACK');
         console.error('Erro ao criar pedido:', err);
         res.status(500).json({ error: err.message });
-    } finally {
-        client.release();
     }
 });
 
 // Atualizar pedido
 app.put('/api/pedidos-venda/:id', async (req, res) => {
-    const client = await pool.connect();
     try {
         const id = parseInt(req.params.id);
         const { cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
-                observacoes, desconto_pct, frete, itens } = req.body;
-        const total_itens = itens.reduce((s, i) => s + parseFloat(i.total_item || 0), 0);
+                observacoes, desconto_pct, frete, itens, criado_por_perfil,
+                endereco_entrega, responsavel_recebimento, tipo_frete } = req.body;
+        const total_itens = (itens || []).reduce((s, i) => s + parseFloat(i.total_item || 0), 0);
         const desc = parseFloat(desconto_pct || 0);
         const fr = parseFloat(frete || 0);
         const total_geral = total_itens * (1 - desc / 100) + fr;
 
-        await client.query('BEGIN');
-        await client.query(`
-            UPDATE pedidos_venda SET cliente_id=$1, data_emissao=$2, data_entrega=$3, status=$4,
-                condicao_pagamento=$5, observacoes=$6, desconto_pct=$7, frete=$8,
-                total_itens=$9, total_geral=$10, atualizado_em=NOW()
-            WHERE id=$11
-        `, [cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
-             observacoes, desc, fr, total_itens, total_geral, id]);
-        await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = $1', [id]);
-        for (const item of itens) {
-            await client.query(`
-                INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-            `, [id, item.material_id || null, item.descricao, item.unidade || 'kg',
-                 item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
+        if (!dbAvailable) {
+            const idx = (memStore.pedidos_venda || []).findIndex(x => x.id === id);
+            if (idx === -1) return res.status(404).json({ error: 'Pedido não encontrado' });
+            memStore.pedidos_venda[idx] = {
+                ...memStore.pedidos_venda[idx],
+                cliente_id: cliente_id ? parseInt(cliente_id) : memStore.pedidos_venda[idx].cliente_id,
+                data_emissao,
+                data_entrega,
+                status,
+                condicao_pagamento,
+                observacoes,
+                desconto_pct: desc,
+                frete: fr,
+                total_itens,
+                total_geral,
+                criado_por_perfil,
+                endereco_entrega,
+                responsavel_recebimento,
+                tipo_frete,
+                itens: (itens || []).map((it, i) => ({ id: i + 1, ...it })),
+                atualizado_em: new Date().toISOString()
+            };
+            return res.json(memStore.pedidos_venda[idx]);
         }
-        await client.query('COMMIT');
-        const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=$1', [id]);
-        res.json(updated.rows[0]);
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query(`
+                UPDATE pedidos_venda SET cliente_id=$1, data_emissao=$2, data_entrega=$3, status=$4,
+                    condicao_pagamento=$5, observacoes=$6, desconto_pct=$7, frete=$8,
+                    total_itens=$9, total_geral=$10, criado_por_perfil=$11, endereco_entrega=$12,
+                    responsavel_recebimento=$13, tipo_frete=$14, atualizado_em=NOW()
+                WHERE id=$15
+            `, [cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
+                 observacoes, desc, fr, total_itens, total_geral, criado_por_perfil,
+                 endereco_entrega, responsavel_recebimento, tipo_frete, id]);
+            await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = $1', [id]);
+            for (const item of itens) {
+                await client.query(`
+                    INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                `, [id, item.material_id || null, item.descricao, item.unidade || 'kg',
+                     item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
+            }
+            await client.query('COMMIT');
+            const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=$1', [id]);
+            res.json(updated.rows[0]);
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
     } catch (err) {
-        await client.query('ROLLBACK');
         res.status(500).json({ error: err.message });
-    } finally {
-        client.release();
     }
 });
 
@@ -4220,7 +4322,10 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
 app.delete('/api/pedidos-venda/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        if (!dbAvailable) return res.status(503).json({ error: 'Banco indisponível' });
+        if (!dbAvailable) {
+            memStore.pedidos_venda = (memStore.pedidos_venda || []).filter(x => x.id !== id);
+            return res.json({ success: true });
+        }
         await pool.query('DELETE FROM pedidos_venda WHERE id = $1', [id]);
         res.json({ success: true });
     } catch (err) {

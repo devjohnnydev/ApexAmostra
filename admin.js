@@ -9621,7 +9621,16 @@ window.carregarFinanceiroView = async function() {
 
     const fmtR = (v) => 'R$ ' + (parseFloat(v)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
     const fmtD = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('pt-BR', {timeZone:'UTC'}); } catch(e){ return d; } };
-    const statusColor = { 'Rascunho':'#7fa8c8', 'Confirmado':'#2AD07A', 'Em Separação':'#ffeb3b', 'Faturado':'#4fc3f7', 'Entregue':'#2AD07A', 'Cancelado':'#ff6b6b' };
+    const statusColor = {
+        'Rascunho': '#7fa8c8',
+        'Aguardando Aprovação': '#ffeb3b',
+        'Aprovado': '#2AD07A',
+        'Confirmado': '#2AD07A',
+        'Em Separação': '#4fc3f7',
+        'Faturado': '#2AD07A',
+        'Entregue': '#2AD07A',
+        'Cancelado': '#ff6b6b'
+    };
 
     window.initApexPedidos = function() {
         carregarPedidos();
@@ -9630,8 +9639,14 @@ window.carregarFinanceiroView = async function() {
     async function carregarPedidos() {
         try {
             const res  = await fetch('/api/pedidos-venda');
-            localPedidos = Array.isArray(await res.clone().json()) ? await res.json() : [];
+            if (res.ok) {
+                const data = await res.json();
+                localPedidos = Array.isArray(data) ? data : [];
+            } else {
+                localPedidos = [];
+            }
         } catch(e) {
+            console.error('Erro ao carregar pedidos:', e);
             localPedidos = [];
         }
         renderPedidos(localPedidos);
@@ -9641,33 +9656,58 @@ window.carregarFinanceiroView = async function() {
         const tbody = document.getElementById('pedidos-tbody');
         if (!tbody) return;
         if (!lista || lista.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-file-invoice-dollar" style="font-size:2rem; margin-bottom:10px; display:block;"></i>Nenhum pedido cadastrado ainda.<br><small>Clique em <strong>+ Novo Pedido</strong> para começar.</small></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-file-invoice-dollar" style="font-size:2rem; margin-bottom:10px; display:block; color:#2AD07A;"></i>Nenhum pedido cadastrado ainda.<br><small>Clique em <strong>+ Novo Pedido</strong> para emitir um novo pedido de venda.</small></td></tr>';
             return;
         }
-        tbody.innerHTML = lista.map(p => `
+        tbody.innerHTML = lista.map(p => {
+            const stColor = statusColor[p.status] || '#7fa8c8';
+            const cliCadastrado = p.cliente_id ? true : false;
+            const badgeCliente = cliCadastrado
+                ? `<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:6px;"><i class="fa-solid fa-user-check"></i> CADASTRADO</span>`
+                : `<span style="background:#38321b; color:#ffeb3b; border:1px solid #ffeb3b; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-left:6px;"><i class="fa-solid fa-user-clock"></i> NOVO / PENDENTE</span>`;
+
+            return `
             <tr style="border-bottom:1px solid #1a2a3a; transition:background 0.15s;" onmouseover="this.style.background='#0f2030'" onmouseout="this.style.background=''">
-                <td style="padding:12px 10px; font-weight:bold; color:#2AD07A;">${p.numero || '-'}</td>
-                <td style="padding:12px 10px; color:#fff;">${p.cliente_nome || p.cliente_id || '-'}</td>
-                <td style="padding:12px 10px; color:#aaa;">${fmtD(p.data_emissao)}</td>
-                <td style="padding:12px 10px; color:#aaa;">${fmtD(p.data_entrega)}</td>
-                <td style="padding:12px 10px;">
-                    <span style="background:${statusColor[p.status]||'#666'}22; color:${statusColor[p.status]||'#aaa'}; border:1px solid ${statusColor[p.status]||'#666'}44; padding:3px 10px; border-radius:20px; font-size:0.8rem; font-weight:600;">${p.status||'Rascunho'}</span>
+                <td style="padding:12px 10px; font-weight:bold; color:#2AD07A;">
+                    ${p.numero || '-'}<br>
+                    <small style="color:#5a738e; font-weight:normal;">Emissão: ${fmtD(p.data_emissao)}</small>
                 </td>
-                <td style="padding:12px 10px; text-align:right; color:#fff; font-weight:600;">${fmtR(p.total_geral)}</td>
+                <td style="padding:12px 10px; color:#fff;">
+                    <div style="font-weight:bold; font-size:0.92rem;">${p.cliente_nome || p.cliente_nome_avulso || 'Cliente Avulso'} ${badgeCliente}</div>
+                    <div style="color:#7fa8c8; font-size:0.8rem; margin-top:2px;">
+                        ${p.cliente_cnpj ? 'CNPJ: ' + p.cliente_cnpj : 'Sem CNPJ'} ${p.cliente_cidade ? ' | ' + p.cliente_cidade + '-' + (p.cliente_uf||'') : ''}
+                    </div>
+                </td>
+                <td style="padding:12px 10px; color:#ccc;">
+                    <div style="font-weight:600; color:#fff;">${p.criado_por || 'Admin'}</div>
+                    <small style="color:#7fa8c8;">${p.criado_por_perfil || 'Administrador'}</small>
+                </td>
+                <td style="padding:12px 10px; color:#aaa;">
+                    <div><i class="fa-solid fa-calendar-day" style="color:#2AD07A;"></i> Delivery: <strong>${fmtD(p.data_entrega)}</strong></div>
+                    <small style="color:#7fa8c8;">${p.tipo_frete || 'CIF - Entrega ApexTech'}</small>
+                    ${p.responsavel_recebimento ? `<br><small style="color:#e07b39;">Rec: ${p.responsavel_recebimento}</small>` : ''}
+                </td>
+                <td style="padding:12px 10px;">
+                    <span style="background:${stColor}22; color:${stColor}; border:1px solid ${stColor}66; padding:4px 10px; border-radius:20px; font-size:0.8rem; font-weight:700; display:inline-block;">
+                        ${p.status || 'Rascunho'}
+                    </span>
+                </td>
+                <td style="padding:12px 10px; text-align:right; color:#2AD07A; font-weight:bold; font-size:0.98rem;">${fmtR(p.total_geral)}</td>
                 <td style="padding:12px 10px; text-align:center;">
-                    <button onclick="exportarPedidoPdfPorId(${p.id})" style="background:none; border:none; color:#2AD07A; cursor:pointer; margin-right:6px; font-size:1rem;" title="Baixar PDF com Marca d'Água"><i class="fa-solid fa-file-pdf"></i></button>
-                    <button onclick="editarPedido(${p.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; margin-right:6px; font-size:1rem;" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="excluirPedido(${p.id}, '${p.numero}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="exportarPedidoPdfPorId(${p.id})" style="background:none; border:none; color:#2AD07A; cursor:pointer; margin-right:6px; font-size:1.05rem;" title="Baixar PDF do Pedido"><i class="fa-solid fa-file-pdf"></i></button>
+                    <button onclick="editarPedido(${p.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; margin-right:6px; font-size:1.05rem;" title="Editar Pedido"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="excluirPedido(${p.id}, '${p.numero}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1.05rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
     }
 
     window.filtrarPedidos = function() {
         const txt    = (document.getElementById('pedidos-search')?.value || '').toLowerCase();
         const status = document.getElementById('pedidos-status-filter')?.value || '';
         const filtrado = localPedidos.filter(p => {
-            const matchTxt = !txt || (p.numero||'').toLowerCase().includes(txt) || (p.cliente_nome||'').toLowerCase().includes(txt);
+            const matchTxt = !txt || (p.numero||'').toLowerCase().includes(txt) || (p.cliente_nome||'').toLowerCase().includes(txt) || (p.criado_por||'').toLowerCase().includes(txt);
             const matchSt  = !status || p.status === status;
             return matchTxt && matchSt;
         });
@@ -9680,9 +9720,17 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('pedido-id').value = '';
         document.getElementById('modal-pedido-titulo').textContent = 'Novo Pedido de Venda';
         document.getElementById('pedido-data-emissao').value = new Date().toISOString().split('T')[0];
+        
+        // Auto-preencher usuário logado e perfil
+        const loggedUser = sessionStorage.getItem('apex_logged_user_name') || 'Administrador Apex';
+        const loggedRole = sessionStorage.getItem('apex_logged_user_role') || 'Administrador';
+        if (document.getElementById('pedido-vendedor')) document.getElementById('pedido-vendedor').value = loggedUser;
+        if (document.getElementById('pedido-perfil')) document.getElementById('pedido-perfil').value = loggedRole;
+
         limparClientePedido();
         renderItensPedido();
         recalcularPedido();
+
         try {
             const res = await fetch('/api/clientes');
             window.localClientes = await res.json();
@@ -9754,14 +9802,17 @@ window.carregarFinanceiroView = async function() {
         if (resultados.length > 0) {
             html += resultados.map(c => `
                 <div onclick="selecionarClientePedido(${c.id})" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid #1a2a3a; transition:background 0.15s;" onmouseover="this.style.background='#1a2a3a'" onmouseout="this.style.background=''">
-                    <strong style="color:#fff;">${c.nome||c.fantasia||''}</strong>
-                    <span style="color:#7fa8c8; font-size:0.8rem;"> — ${c.cnpj||c.cpf||'Sem CNPJ'} | ${c.cidade||''}${c.uf?'/'+c.uf:''}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="color:#fff;">${c.nome||c.fantasia||''}</strong>
+                        <span style="background:#1b382b; color:#2AD07A; font-size:0.7rem; padding:1px 6px; border-radius:3px; font-weight:bold;">CADASTRADO</span>
+                    </div>
+                    <div style="color:#7fa8c8; font-size:0.8rem; margin-top:2px;">${c.cnpj||c.cpf||'Sem CNPJ'} | ${c.cidade||''}${c.uf?'/'+c.uf:''} | ${c.telefone1||''}</div>
                 </div>
             `).join('');
         } else if (rawVal.length > 0) {
             html += `
                 <div style="padding:14px; text-align:center; color:#aaa; font-size:0.88rem;">
-                    Nenhum cliente cadastrado no banco com o nome "<strong>${rawVal}</strong>".
+                    Nenhum cliente encontrado com "<strong>${rawVal}</strong>".
                     <div style="margin-top:8px;">
                         <button type="button" onclick="abrirCadastroClienteExpress('${rawVal.replace(/'/g,"\\'")}')" class="btn-primary" style="font-size:0.82rem; background:#2AD07A; color:#000; border:none; padding:6px 14px; font-weight:bold; cursor:pointer;">
                             <i class="fa-solid fa-user-plus"></i> Cadastrar "${rawVal}" Agora
@@ -9820,12 +9871,28 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('pedido-cliente-id').value = c.id;
         document.getElementById('pedido-cliente-busca').value = c.nome || c.fantasia || '';
         document.getElementById('pedido-cliente-dropdown').style.display = 'none';
-        document.getElementById('cc-nome').textContent   = c.nome || c.fantasia || '';
-        document.getElementById('cc-cnpj').textContent   = c.cnpj || c.cpf || 'CNPJ Não informado';
-        document.getElementById('cc-cidade').textContent = c.cidade || '';
-        document.getElementById('cc-uf').textContent     = c.uf || '';
-        document.getElementById('cc-tel').textContent    = c.telefone1 || c.telefone2 || '';
-        document.getElementById('cc-email').textContent  = c.email || '';
+        document.getElementById('cc-nome').textContent     = c.nome || c.fantasia || '';
+        document.getElementById('cc-cnpj').textContent     = c.cnpj || c.cpf || 'CNPJ Não informado';
+        document.getElementById('cc-cidade').textContent   = c.cidade || '';
+        document.getElementById('cc-uf').textContent       = c.uf || '';
+        document.getElementById('cc-tel').textContent      = c.telefone1 || c.telefone2 || '-';
+        document.getElementById('cc-email').textContent    = c.email || '-';
+        if (document.getElementById('cc-endereco')) document.getElementById('cc-endereco').textContent = c.endereco || 'Endereço principal de cadastro';
+        
+        const badge = document.getElementById('cc-status-badge');
+        if (badge) {
+            badge.style.background = '#1b382b';
+            badge.style.color = '#2AD07A';
+            badge.style.borderColor = '#2AD07A';
+            badge.innerHTML = '<i class="fa-solid fa-user-check"></i> CLIENTE CADASTRADO NO SISTEMA';
+        }
+
+        // Se o endereço de entrega estiver vazio, preenche com o endereço do cliente
+        const elEndEntrega = document.getElementById('pedido-endereco-entrega');
+        if (elEndEntrega && !elEndEntrega.value) {
+            elEndEntrega.value = (c.endereco || '') + (c.cidade ? ' - ' + c.cidade + '/' + (c.uf||'') : '');
+        }
+
         document.getElementById('pedido-cliente-card').style.display = 'block';
         if (c.condicao_pagamento) {
             const sel = document.getElementById('pedido-condicao');
@@ -9910,21 +9977,34 @@ window.carregarFinanceiroView = async function() {
     window.salvarPedido = async function(e) {
         e.preventDefault();
         const clienteId = document.getElementById('pedido-cliente-id').value;
-        if (!clienteId) { _apexNotify('Sistema', 'Selecione um cliente.', 'info'); return; }
-        if (itensPedido.length === 0) { _apexNotify('Sistema', 'Adicione ao menos um item ao pedido.', 'info'); return; }
+        const clienteBusca = document.getElementById('pedido-cliente-busca').value;
+        
+        if (!clienteId && !clienteBusca) {
+            _apexNotify('Sistema', 'Selecione ou informe um cliente para o pedido.', 'info');
+            return;
+        }
+        if (itensPedido.length === 0) {
+            _apexNotify('Sistema', 'Adicione ao menos um item ao pedido.', 'info');
+            return;
+        }
 
         const payload = {
-            numero:             document.getElementById('pedido-numero').value,
-            cliente_id:         parseInt(clienteId),
-            data_emissao:       document.getElementById('pedido-data-emissao').value,
-            data_entrega:       document.getElementById('pedido-data-entrega').value || null,
-            status:             document.getElementById('pedido-status').value,
-            condicao_pagamento: document.getElementById('pedido-condicao').value,
-            observacoes:        document.getElementById('pedido-obs').value,
-            desconto_pct:       parseFloat(document.getElementById('pedido-desconto').value)||0,
-            frete:              parseFloat(document.getElementById('pedido-frete').value)||0,
-            criado_por:         sessionStorage.getItem('apex_logged_user_name')||'Admin',
-            itens:              itensPedido
+            numero:                  document.getElementById('pedido-numero').value,
+            cliente_id:              clienteId ? parseInt(clienteId) : null,
+            cliente_nome:            clienteBusca,
+            data_emissao:            document.getElementById('pedido-data-emissao').value,
+            data_entrega:            document.getElementById('pedido-data-entrega').value || null,
+            status:                  document.getElementById('pedido-status').value,
+            condicao_pagamento:      document.getElementById('pedido-condicao').value,
+            observacoes:             document.getElementById('pedido-obs').value,
+            desconto_pct:            parseFloat(document.getElementById('pedido-desconto').value)||0,
+            frete:                   parseFloat(document.getElementById('pedido-frete').value)||0,
+            criado_por:              document.getElementById('pedido-vendedor')?.value || sessionStorage.getItem('apex_logged_user_name') || 'Admin',
+            criado_por_perfil:       document.getElementById('pedido-perfil')?.value || sessionStorage.getItem('apex_logged_user_role') || 'Administrador',
+            endereco_entrega:        document.getElementById('pedido-endereco-entrega')?.value || '',
+            responsavel_recebimento: document.getElementById('pedido-responsavel-recebimento')?.value || '',
+            tipo_frete:              document.getElementById('pedido-tipo-frete')?.value || 'CIF - Entrega ApexTech',
+            itens:                   itensPedido
         };
 
         const id  = document.getElementById('pedido-id').value;
@@ -9934,6 +10014,7 @@ window.carregarFinanceiroView = async function() {
         try {
             const res = await fetch(url, { method:met, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
             if (!res.ok) { const err=await res.json(); _apexNotify('Atenção', 'Erro: '+(err.error||res.status), 'error'); return; }
+            _apexNotify('Sucesso', 'Pedido de Venda salvo com sucesso!', 'success');
             fecharModalPedido();
             await carregarPedidos();
         } catch(err) {
@@ -9953,12 +10034,28 @@ window.carregarFinanceiroView = async function() {
             document.getElementById('pedido-desconto').value        = data.desconto_pct||0;
             document.getElementById('pedido-frete').value           = data.frete||0;
             document.getElementById('pedido-obs').value             = data.observacoes||'';
+
+            if (document.getElementById('pedido-vendedor')) document.getElementById('pedido-vendedor').value = data.criado_por || 'Admin';
+            if (document.getElementById('pedido-perfil')) document.getElementById('pedido-perfil').value = data.criado_por_perfil || 'Administrador';
+            if (document.getElementById('pedido-endereco-entrega')) document.getElementById('pedido-endereco-entrega').value = data.endereco_entrega || '';
+            if (document.getElementById('pedido-responsavel-recebimento')) document.getElementById('pedido-responsavel-recebimento').value = data.responsavel_recebimento || '';
+            
+            if (document.getElementById('pedido-tipo-frete')) {
+                const selF = document.getElementById('pedido-tipo-frete');
+                for(let i=0;i<selF.options.length;i++) if(selF.options[i].value===data.tipo_frete){selF.selectedIndex=i;break;}
+            }
+
             const selSt = document.getElementById('pedido-status');
             for(let i=0;i<selSt.options.length;i++) if(selSt.options[i].value===data.status){selSt.selectedIndex=i;break;}
             const selCond = document.getElementById('pedido-condicao');
             for(let i=0;i<selCond.options.length;i++) if(selCond.options[i].value===data.condicao_pagamento){selCond.selectedIndex=i;break;}
-            window.selecionarClientePedido(data.cliente_id);
-            if (data.cliente_nome) document.getElementById('pedido-cliente-busca').value = data.cliente_nome;
+            
+            if (data.cliente_id) {
+                window.selecionarClientePedido(data.cliente_id);
+            } else if (data.cliente_nome) {
+                document.getElementById('pedido-cliente-busca').value = data.cliente_nome;
+            }
+
             itensPedido = (data.itens||[]).map(it => ({...it}));
             renderItensPedido();
             recalcularPedido();
@@ -10000,6 +10097,7 @@ window.carregarFinanceiroView = async function() {
         const c      = (window.localClientes||[]).find(x => x.id == cliId) || {};
         const p = {
             numero: num,
+            cliente_id: cliId ? parseInt(cliId) : null,
             cliente_nome: document.getElementById('cc-nome').textContent || document.getElementById('pedido-cliente-busca').value || '-',
             cliente_cnpj: document.getElementById('cc-cnpj').textContent || c.cnpj || c.cpf || '-',
             cliente_cidade: document.getElementById('cc-cidade').textContent || c.cidade || '-',
@@ -10014,6 +10112,11 @@ window.carregarFinanceiroView = async function() {
             observacoes: document.getElementById('pedido-obs').value,
             desconto_pct: parseFloat(document.getElementById('pedido-desconto').value)||0,
             frete: parseFloat(document.getElementById('pedido-frete').value)||0,
+            criado_por: document.getElementById('pedido-vendedor')?.value || sessionStorage.getItem('apex_logged_user_name') || 'Admin',
+            criado_por_perfil: document.getElementById('pedido-perfil')?.value || sessionStorage.getItem('apex_logged_user_role') || 'Administrador',
+            endereco_entrega: document.getElementById('pedido-endereco-entrega')?.value || '',
+            responsavel_recebimento: document.getElementById('pedido-responsavel-recebimento')?.value || '',
+            tipo_frete: document.getElementById('pedido-tipo-frete')?.value || 'CIF - Entrega ApexTech',
             itens: itensPedido
         };
         await gerarPdfPedidoVenda(p);
@@ -10024,7 +10127,7 @@ window.carregarFinanceiroView = async function() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        // Marca d'água do logo (2).png em toda a folha
+        // Marca d'água do logo em toda a folha
         await aplicarMarcaDaguaLogoJsPDF(doc);
 
         if (doc.GState && doc.setGState) {
@@ -10051,69 +10154,89 @@ window.carregarFinanceiroView = async function() {
         doc.setFont('helvetica', 'normal');
         doc.text(`Emissão: ${fmtD(p.data_emissao)}`, 196, 21, { align: 'right' });
 
-        // Box 1: Dados do Cliente
+        // Box 1: Dados do Cliente & Cadastro
         doc.setFillColor(240, 244, 248);
         doc.setDrawColor(200, 212, 224);
-        doc.roundedRect(14, 34, 182, 38, 2, 2, 'FD');
+        doc.roundedRect(14, 33, 182, 38, 2, 2, 'FD');
 
+        const cliStatusText = p.cliente_id ? 'CLIENTE CADASTRADO NO SISTEMA' : 'NOVO CLIENTE / PENDENTE';
         doc.setTextColor(30, 78, 140);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.text('DADOS DO CLIENTE', 18, 41);
+        doc.text('DADOS DO CLIENTE (DESTINATÁRIO)', 18, 40);
+        
+        doc.setFontSize(8);
+        doc.setTextColor(p.cliente_id ? 42 : 180, p.cliente_id ? 150 : 120, p.cliente_id ? 80 : 20);
+        doc.text(`[ ${cliStatusText} ]`, 192, 40, { align: 'right' });
 
         doc.setTextColor(40, 40, 40);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
-        doc.text('Razão Social / Nome: ', 18, 47);
+        doc.text('Razão Social / Nome: ', 18, 46);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(p.cliente_nome || p.cliente_id || 'Não informado'), 55, 47);
+        doc.text(String(p.cliente_nome || p.cliente_nome_avulso || p.cliente_id || 'Não informado'), 55, 46);
 
         doc.setFont('helvetica', 'bold');
-        doc.text('CNPJ/CPF: ', 18, 53);
+        doc.text('CNPJ/CPF: ', 18, 52);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(p.cliente_cnpj || '-'), 38, 53);
+        doc.text(String(p.cliente_cnpj || '-'), 38, 52);
 
         doc.setFont('helvetica', 'bold');
-        doc.text('Telefone: ', 115, 53);
+        doc.text('Telefone: ', 115, 52);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(p.cliente_telefone || '-'), 132, 53);
+        doc.text(String(p.cliente_telefone || '-'), 132, 52);
 
         doc.setFont('helvetica', 'bold');
-        doc.text('Endereço: ', 18, 59);
+        doc.text('Endereço Fiscal: ', 18, 58);
         doc.setFont('helvetica', 'normal');
         const endStr = `${p.cliente_endereco || ''} ${p.cliente_cidade ? '- ' + p.cliente_cidade : ''}${p.cliente_uf ? '/' + p.cliente_uf : ''}`;
-        doc.text(endStr.trim() ? endStr : '-', 37, 59);
+        doc.text(endStr.trim() ? endStr : '-', 45, 58);
 
         doc.setFont('helvetica', 'bold');
-        doc.text('E-mail: ', 18, 65);
+        doc.text('E-mail: ', 18, 64);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(p.cliente_email || '-'), 33, 65);
+        doc.text(String(p.cliente_email || '-'), 33, 64);
 
-        // Box 2: Condições do Pedido
+        // Box 2: Emissor, Logística e Aprovação
         doc.setFillColor(248, 249, 250);
-        doc.roundedRect(14, 76, 182, 18, 2, 2, 'FD');
+        doc.roundedRect(14, 74, 182, 24, 2, 2, 'FD');
 
         doc.setTextColor(30, 78, 140);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.text('Condição de Pagamento: ', 18, 83);
-        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(8.5);
+        
+        doc.text('Emitido por: ', 18, 80);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(p.condicao_pagamento || 'À Vista'), 58, 83);
+        doc.setTextColor(40, 40, 40);
+        doc.text(`${p.criado_por || 'Admin'} (${p.criado_por_perfil || 'Administrador'})`, 38, 80);
 
-        doc.setTextColor(30, 78, 140);
         doc.setFont('helvetica', 'bold');
-        doc.text('Previsão de Entrega: ', 105, 83);
-        doc.setTextColor(40, 40, 40);
-        doc.setFont('helvetica', 'normal');
-        doc.text(fmtD(p.data_entrega), 140, 83);
+        doc.setTextColor(30, 78, 140);
+        doc.text('Status / Aprovação: ', 115, 80);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(p.status === 'Aprovado' || p.status === 'Faturado' || p.status === 'Entregue' ? 42 : 200, p.status === 'Aprovado' ? 150 : 100, 40);
+        doc.text(String(p.status || 'Rascunho'), 147, 80);
 
-        doc.setTextColor(30, 78, 140);
         doc.setFont('helvetica', 'bold');
-        doc.text('Status: ', 18, 89);
-        doc.setTextColor(40, 40, 40);
+        doc.setTextColor(30, 78, 140);
+        doc.text('Endereço de Entrega: ', 18, 86);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(p.status || 'Rascunho'), 32, 89);
+        doc.setTextColor(40, 40, 40);
+        doc.text(String(p.endereco_entrega || endStr || 'Mesmo do cadastro'), 52, 86);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 78, 140);
+        doc.text('Recebedor Destino: ', 18, 92);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(40, 40, 40);
+        doc.text(String(p.responsavel_recebimento || 'Almoxarifado Cliente'), 48, 92);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 78, 140);
+        doc.text('Frete / Logística: ', 115, 92);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(40, 40, 40);
+        doc.text(String(p.tipo_frete || 'CIF - Entrega ApexTech'), 142, 92);
 
         // Tabela de Itens
         const tableItens = (p.itens || []).map((it, idx) => [
@@ -10127,7 +10250,7 @@ window.carregarFinanceiroView = async function() {
         ]);
 
         doc.autoTable({
-            startY: 98,
+            startY: 102,
             head: [['Item', 'Descrição do Produto/Material', 'Und', 'Qtd', 'Preço Unit.', 'Desc%', 'Total (R$)']],
             body: tableItens.length > 0 ? tableItens : [['1', 'Nenhum item adicionado', '-', '0', 'R$ 0,00', '0%', 'R$ 0,00']],
             theme: 'grid',
@@ -10198,7 +10321,7 @@ window.carregarFinanceiroView = async function() {
         doc.setFontSize(8);
         doc.setTextColor(80, 80, 80);
         doc.setFont('helvetica', 'normal');
-        doc.text('Apex Tech Metais (Vendedor)', 55, sigY + 5, { align: 'center' });
+        doc.text(`Apex Tech Metais — Emissor: ${p.criado_por || 'Admin'}`, 55, sigY + 5, { align: 'center' });
         doc.text('Aceito e De Acordo (Cliente)', 155, sigY + 5, { align: 'center' });
 
         // Rodapé
