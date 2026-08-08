@@ -86,100 +86,103 @@
         </button>
 
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="assets/img/logo-apextech.svg" alt="Apex Tech Metais" style="max-width:150px; margin-bottom:6px; filter: brightness(0) invert(1);">
-                <p>Painel Administrativo</p>
+        <aside class="sidebar" id="main-sidebar">
+            <div class="sidebar-header" style="position:relative;">
+                <button type="button" id="btn-toggle-desktop-sidebar" onclick="toggleDesktopSidebar()" title="Recolher/Expandir Menu" style="position:absolute; right:10px; top:12px; background:rgba(42,208,122,0.15); border:1px solid rgba(42,208,122,0.4); color:#2AD07A; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; z-index:10;">
+                    <i class="fa-solid fa-chevron-left" id="sidebar-toggle-icon"></i>
+                </button>
+                <img src="assets/img/logo-apextech.svg" alt="Apex Tech Metais" class="sidebar-logo" style="max-width:140px; margin-bottom:6px; filter: brightness(0) invert(1); transition: opacity 0.2s;">
+                <p class="sidebar-subtitle" style="color: #555; font-size: 0.78rem; margin-top: 4px;">Painel Administrativo</p>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-target="dashboard">
+                <a href="#" class="nav-item active" data-target="dashboard" data-tooltip="Análises LME">
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Análises LME</span>
                 </a>
-                <a href="#" class="nav-item" data-target="relatorio-diario">
+                <a href="#" class="nav-item" data-target="relatorio-diario" data-tooltip="Relatório Diário LME">
                     <i class="fa-brands fa-whatsapp"></i>
                     <span>Relatório Diário LME</span>
                 </a>
-                <a href="#" class="nav-item" data-target="home-config">
+                <a href="#" class="nav-item" data-target="home-config" data-tooltip="Configurar Home">
                     <i class="fa-solid fa-toggle-on"></i>
                     <span>Configurar Home</span>
                 </a>
-                <a href="#" class="nav-item" data-target="galeria-admin">
+                <a href="#" class="nav-item" data-target="galeria-admin" data-tooltip="Galeria de Fotos">
                     <i class="fa-solid fa-images"></i>
                     <span>Galeria de Fotos</span>
                 </a>
-                <a href="#" class="nav-item" data-target="materiais">
+                <a href="#" class="nav-item" data-target="materiais" data-tooltip="Meus Materiais">
                     <i class="fa-solid fa-box-open"></i>
                     <span>Meus Materiais</span>
                 </a>
-                <a href="#" class="nav-item" data-target="solucoes">
+                <a href="#" class="nav-item" data-target="solucoes" data-tooltip="Soluções">
                     <i class="fa-solid fa-industry"></i>
                     <span>Soluções</span>
                 </a>
-                <a href="#" class="nav-item" data-target="noticias">
+                <a href="#" class="nav-item" data-target="noticias" data-tooltip="Notícias">
                     <i class="fa-solid fa-newspaper"></i>
                     <span>Notícias</span>
                 </a>
-                <a href="#" class="nav-item" data-target="lme-email-config">
+                <a href="#" class="nav-item" data-target="lme-email-config" data-tooltip="Configurar E-mail LME">
                     <i class="fa-solid fa-envelope"></i>
                     <span>Configurar E-mail LME</span>
                 </a>
 
                 <!-- DIVISOR GESTÃO INTERNA APEX -->
-                <div style="padding: 12px 18px 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #5a738e; letter-spacing: 0.1em; border-top: 1px solid #223547; margin-top: 10px;">
+                <div class="sidebar-section-divider" style="padding: 12px 18px 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #5a738e; letter-spacing: 0.1em; border-top: 1px solid #223547; margin-top: 10px;">
                     Gestão ApexTech
                 </div>
-                <a href="#" class="nav-item" data-target="fornecedores-view" id="nav-fornecedores">
+                <a href="#" class="nav-item" data-target="fornecedores-view" id="nav-fornecedores" data-tooltip="Fornecedores">
                     <i class="fa-solid fa-handshake"></i>
                     <span>Fornecedores</span>
                 </a>
-                <a href="#" class="nav-item" data-target="clientes-view" id="nav-clientes">
+                <a href="#" class="nav-item" data-target="clientes-view" id="nav-clientes" data-tooltip="Clientes">
                     <i class="fa-solid fa-user-tie" style="color:#e07b39;"></i>
                     <span>Clientes</span>
                 </a>
-                <a href="#" class="nav-item" data-target="materiais-view" id="nav-materiais">
+                <a href="#" class="nav-item" data-target="materiais-view" id="nav-materiais" data-tooltip="Catálogo de Materiais">
                     <i class="fa-solid fa-tags"></i>
                     <span>Catálogo de Materiais</span>
                 </a>
-                <a href="#" class="nav-item" data-target="tabela-precos-view" id="nav-precos">
+                <a href="#" class="nav-item" data-target="tabela-precos-view" id="nav-precos" data-tooltip="Tabela de Preços">
                     <i class="fa-solid fa-dollar-sign"></i>
                     <span>Tabela de Preços</span>
                 </a>
-                <a href="#" class="nav-item" data-target="amostras-view" id="nav-amostras" style="position:relative;">
+                <a href="#" class="nav-item" data-target="amostras-view" id="nav-amostras" style="position:relative;" data-tooltip="Análise de Amostras">
                     <i class="fa-solid fa-flask"></i>
                     <span>Análise de Amostras</span>
                     <span id="badge-nav-aprovacoes" class="pulse-badge" style="display:none; background:#ff4d4d; color:#fff; font-weight:800; font-size:0.7rem; padding:2px 7px; border-radius:10px; margin-left:auto; box-shadow:0 0 8px rgba(255,77,77,0.8);">0</span>
                 </a>
-                <a href="#" class="nav-item" data-target="planejamento-view" id="nav-planejamento">
+                <a href="#" class="nav-item" data-target="planejamento-view" id="nav-planejamento" data-tooltip="Planejamento Mensal">
                     <i class="fa-solid fa-calculator"></i>
                     <span>Planejamento Mensal</span>
                 </a>
-                <a href="#" class="nav-item" data-target="estoque-view" id="nav-estoque">
+                <a href="#" class="nav-item" data-target="estoque-view" id="nav-estoque" data-tooltip="Estoque Inteligente">
                     <i class="fa-solid fa-warehouse"></i>
                     <span>Estoque Inteligente</span>
                 </a>
-                <a href="#" class="nav-item" data-target="bi-view" id="nav-bi">
+                <a href="#" class="nav-item" data-target="bi-view" id="nav-bi" data-tooltip="Central BI (Analytics)">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Central BI (Analytics)</span>
                 </a>
-                <a href="#" class="nav-item" data-target="usuarios-view" id="nav-usuarios">
+                <a href="#" class="nav-item" data-target="usuarios-view" id="nav-usuarios" data-tooltip="Usuários & PCP">
                     <i class="fa-solid fa-users-cog"></i>
                     <span>Usuários & PCP</span>
                 </a>
-                <a href="#" class="nav-item" data-target="permissoes-view" id="nav-permissoes">
+                <a href="#" class="nav-item" data-target="permissoes-view" id="nav-permissoes" data-tooltip="Permissões (RBAC)">
                     <i class="fa-solid fa-user-shield"></i>
                     <span>Permissões (RBAC)</span>
                 </a>
-                <a href="#" class="nav-item" data-target="pedidos-venda-view" id="nav-pedidos-venda">
+                <a href="#" class="nav-item" data-target="pedidos-venda-view" id="nav-pedidos-venda" data-tooltip="Pedidos de Venda">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
                     <span>Pedidos de Venda</span>
                 </a>
-                <a href="#" class="nav-item" data-target="financeiro-view" id="nav-financeiro">
+                <a href="#" class="nav-item" data-target="financeiro-view" id="nav-financeiro" data-tooltip="Módulo Financeiro">
                     <i class="fa-solid fa-coins"></i>
                     <span>Módulo Financeiro</span>
                 </a>
 
-                <a href="/" class="nav-item return-site" style="margin-top: 15px; border-top: 1px dashed #223547;">
+                <a href="/" class="nav-item return-site" style="margin-top: 15px; border-top: 1px dashed #223547;" data-tooltip="Voltar ao Site">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span>Voltar ao Site</span>
                 </a>

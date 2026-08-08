@@ -110,12 +110,16 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
     top: 0;
     height: 100vh;
     overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
 }
 
 .sidebar-header {
-    padding: 28px 20px 22px;
+    padding: 24px 16px 20px;
     border-bottom: 1px solid var(--borda);
     text-align: center;
+    transition: all 0.3s ease;
 }
 .sidebar-header h2 {
     color: var(--cor-verde);
@@ -143,8 +147,10 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
     transition: all 0.25s;
     border-left: 3px solid transparent;
     font-size: 0.9rem;
+    white-space: nowrap;
+    position: relative;
 }
-.nav-item i { width: 18px; text-align: center; font-size: 0.95rem; }
+.nav-item i { width: 18px; text-align: center; font-size: 0.95rem; flex-shrink: 0; }
 .nav-item:hover { background-color: rgba(42, 208, 122, 0.05); color: #ccc; border-left-color: rgba(42,208,122,0.3); }
 .nav-item.active { background-color: rgba(42, 208, 122, 0.08); color: var(--cor-verde); border-left-color: var(--cor-verde); font-weight: 700; }
 .nav-item.return-site {
@@ -156,12 +162,88 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
 }
 .nav-item.return-site:hover { color: #aaa; }
 
+/* ─── SIDEBAR COLLAPSED STATE ──────────────────────────────────────────────── */
+.admin-container.sidebar-collapsed .sidebar {
+    width: 68px;
+    min-width: 68px;
+}
+
+.admin-container.sidebar-collapsed .sidebar-logo,
+.admin-container.sidebar-collapsed .sidebar-subtitle,
+.admin-container.sidebar-collapsed .nav-item span,
+.admin-container.sidebar-collapsed .sidebar-section-divider {
+    display: none !important;
+}
+
+.admin-container.sidebar-collapsed .sidebar-header {
+    padding: 14px 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-container.sidebar-collapsed #btn-toggle-desktop-sidebar {
+    position: static !important;
+    margin: 0 auto;
+    background: rgba(42, 208, 122, 0.25) !important;
+}
+
+.admin-container.sidebar-collapsed .nav-item {
+    justify-content: center;
+    padding: 14px 0;
+    gap: 0;
+}
+
+.admin-container.sidebar-collapsed .nav-item i {
+    font-size: 1.15rem;
+}
+
+.admin-container.sidebar-collapsed #badge-nav-aprovacoes {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    margin-left: 0 !important;
+}
+
+/* Tooltip no Hover no modo recolhido */
+.admin-container.sidebar-collapsed .nav-item[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 72px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #0d1e2e;
+    color: #2AD07A;
+    border: 1px solid #2AD07A;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    z-index: 9999;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+    pointer-events: none;
+    animation: sidebarTooltipIn 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes sidebarTooltipIn {
+    from { opacity: 0; transform: translateY(-50%) translateX(-8px); }
+    to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
 /* ─── MAIN CONTENT ─────────────────────────────────────────────────────────── */
 .main-content {
     flex: 1;
     padding: 36px 40px;
     overflow-y: auto;
     min-width: 0;
+    transition: padding 0.3s ease;
+}
+
+.admin-container.sidebar-collapsed .main-content {
+    padding: 28px 32px;
 }
 
 .view-section { display: none; animation: fadeIn 0.4s ease; }

@@ -1,5 +1,45 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // ─── TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) ──────────────────────────────
+    window.toggleDesktopSidebar = function(forceState) {
+        const container = document.getElementById('admin-dashboard-container');
+        const icon = document.getElementById('sidebar-toggle-icon');
+        const btn = document.getElementById('btn-toggle-desktop-sidebar');
+        if (!container) return;
+
+        let isCollapsed;
+        if (typeof forceState === 'boolean') {
+            isCollapsed = !forceState;
+        } else {
+            isCollapsed = !container.classList.contains('sidebar-collapsed');
+        }
+
+        if (isCollapsed) {
+            container.classList.add('sidebar-collapsed');
+        } else {
+            container.classList.remove('sidebar-collapsed');
+        }
+
+        try {
+            localStorage.setItem('apex_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+        } catch(e) {}
+
+        if (icon) {
+            icon.className = isCollapsed ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
+        }
+        if (btn) {
+            btn.title = isCollapsed ? 'Expandir Menu Lateral' : 'Recolher Menu Lateral';
+        }
+    };
+
+    // Restaurar preferência do menu ao carregar
+    try {
+        const prefCollapsed = localStorage.getItem('apex_sidebar_collapsed') === 'true';
+        if (prefCollapsed) {
+            window.toggleDesktopSidebar(false);
+        }
+    } catch(e) {}
+
     // ─── Utilitário global: formata número no padrão brasileiro com 2 casas ───
     window.fmtBRL = function(val) {
         const n = parseFloat(val);
