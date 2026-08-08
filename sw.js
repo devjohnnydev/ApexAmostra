@@ -1,4 +1,4 @@
-const CACHE_NAME = 'apextech-v3-cache';
+const CACHE_NAME = 'apextech-v5-cache';
 const ASSETS_TO_CACHE = [
   '/',
   '/admin.html',

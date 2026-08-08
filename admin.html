@@ -2529,7 +2529,7 @@
                     <p>Emita e gerencie pedidos vinculados aos clientes cadastrados.</p>
                 </div>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-primary" onclick="abrirNovoPedido()">
+                    <button type="button" class="btn-primary" onclick="document.getElementById('modal-pedido-venda').style.display='flex'; if(window.abrirNovoPedido) window.abrirNovoPedido();">
                         <i class="fa-solid fa-plus"></i> Novo Pedido
                     </button>
                 </div>
@@ -3732,7 +3732,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=91"></script>
+    <script src="admin.js?v=95"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
