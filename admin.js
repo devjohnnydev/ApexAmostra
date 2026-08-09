@@ -10568,4 +10568,68 @@ window.carregarFinanceiroView = async function() {
         doc.save(`Pedido_Venda_${p.numero || 'PV'}.pdf`);
     }
 
+    // =========================================================================
+    // EXPORTAR CENTRAL DE INTELIGÊNCIA APEXTECH (BI) EM PDF
+    // =========================================================================
+    window.exportarBIPDF = async function() {
+        const biView = document.getElementById('bi-view');
+        if (!biView) {
+            _apexNotify('Atenção', 'Painel BI não encontrado.', 'error');
+            return;
+        }
+
+        _apexNotify('Gerando PDF', 'Capturando gráficos e métricas da Central BI... Aguarde!', 'info');
+
+        const btnPdf = biView.querySelector('button[onclick="exportarBIPDF()"]');
+        if (btnPdf) btnPdf.style.visibility = 'hidden';
+
+        try {
+            const canvas = await html2canvas(biView, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#0c1926'
+            });
+
+            if (btnPdf) btnPdf.style.visibility = 'visible';
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf || {};
+            if (!jsPDF) {
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
+                return;
+            }
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pdfWidth;
+            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pdfHeight;
+            }
+
+            const today = new Date();
+            const dateStr = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+            pdf.save(`Relatorio_BI_ApexTech_${dateStr}.pdf`);
+
+            _apexNotify('Sucesso', '✅ Relatório BI baixado em PDF com sucesso!', 'info');
+        } catch (err) {
+            console.error('Erro ao exportar PDF do BI:', err);
+            if (btnPdf) btnPdf.style.visibility = 'visible';
+            _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
+        }
+    };
+
 })();

@@ -2372,9 +2372,14 @@
                  6.5. CENTRAL BI (ANALYTICS)
             ═══════════════════════════════════════════════════════════ -->
             <section id="bi-view" class="view-section">
-                <header class="section-header">
-                    <h1><i class="fa-solid fa-chart-pie"></i> Central de Inteligência ApexTech (BI)</h1>
-                    <p>Mapeamento de desempenho industrial, financeiro, perdas e rentabilidade geral de compras.</p>
+                <header class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h1><i class="fa-solid fa-chart-pie"></i> Central de Inteligência ApexTech (BI)</h1>
+                        <p>Mapeamento de desempenho industrial, financeiro, perdas e rentabilidade geral de compras.</p>
+                    </div>
+                    <button type="button" class="btn-primary" onclick="exportarBIPDF()" style="background: linear-gradient(135deg, #ff4d4d, #c0392b); border: none; color: #fff; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; padding: 10px 18px; font-weight: bold; font-size: 0.92rem; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 12px rgba(255,77,77,0.3); transition: transform 0.2s;">
+                        <i class="fa-solid fa-file-pdf" style="font-size: 1.1rem;"></i> Baixar Relatório BI (PDF)
+                    </button>
                 </header>
 
                 <!-- KPI Cards BI -->
