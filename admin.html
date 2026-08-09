@@ -1613,46 +1613,44 @@
                             </p>
                         </div>
 
-                        <!-- BARRA DE BOTÕES PADRONIZADA E SIMÉTRICA -->
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
-                            <!-- Grupo 1: Exibição e Exportação -->
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button id="btn-toggle-apresentacao" class="btn-secondary" onclick="alternarModoApresentacao()" style="background:#5c3bb1; color:#fff; border-color:#5c3bb1; padding: 9px 15px; font-weight: 600;">
-                                    <i class="fa-solid fa-expand"></i> Apresentação
-                                </button>
-                                <button id="btn-fechar-apresentacao" class="btn-danger" onclick="alternarModoApresentacao()" style="display:none; padding: 9px 15px;">
-                                    <i class="fa-solid fa-compress"></i> Sair da Apresentação
-                                </button>
-                                <button class="btn-secondary" onclick="exportarTabelaPrecosExcel()" style="padding: 9px 15px; font-weight: 600;">
-                                    <i class="fa-solid fa-file-excel" style="color: #2AD07A;"></i> Exportar Excel
-                                </button>
-                            </div>
+                        <!-- BARRA DE BOTÕES PADRONIZADA E SIMÉTRICA (FLUID HORIZONTAL TOOLBAR) -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                            <!-- Visualização & Exportação Básica -->
+                            <button id="btn-toggle-apresentacao" class="btn-secondary" onclick="alternarModoApresentacao()" style="width: auto; background:#5c3bb1; color:#fff; border-color:#5c3bb1; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-expand"></i> Apresentação
+                            </button>
+                            <button id="btn-fechar-apresentacao" class="btn-danger" onclick="alternarModoApresentacao()" style="display:none; width: auto; padding: 8px 14px; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-compress"></i> Sair da Apresentação
+                            </button>
+                            <button class="btn-secondary" onclick="exportarTabelaPrecosExcel()" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-excel" style="color: #2AD07A;"></i> Exportar Excel
+                            </button>
 
-                            <!-- Grupo 2: PDF e E-mail -->
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais" style="padding: 9px 15px; font-weight: 600;">
-                                    <i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Geral
-                                </button>
-                                <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente" style="padding: 9px 15px; font-weight: 600;">
-                                    <i class="fa-solid fa-file-pdf" style="color: #2AD07A;"></i> PDF Fornecedor
-                                </button>
-                                <button class="btn-secondary" onclick="enviarTabelaPrecosEmail('completa')" title="Enviar Tabela Geral Completa por E-mail para destinatários cadastrados" style="padding: 9px 15px; font-weight: 600;">
-                                    <i class="fa-solid fa-paper-plane" style="color: #ff4d4d;"></i> E-mail Geral
-                                </button>
-                                <button class="btn-secondary" onclick="enviarTabelaPrecosEmail('fornecedor')" title="Enviar Tabela do Fornecedor por E-mail para destinatários cadastrados" style="padding: 9px 15px; font-weight: 600;">
-                                    <i class="fa-solid fa-paper-plane" style="color: #2AD07A;"></i> E-mail Fornecedor
-                                </button>
-                            </div>
+                            <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
 
-                            <!-- Grupo 3: Ações Financeiras -->
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralPrompt()" style="background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 9px 15px; font-weight: 600;">
-                                    <i class="fa-solid fa-calendar-days"></i> Alterar Vigência
-                                </button>
-                                <button class="btn-primary restrito-financeiro" onclick="abrirModalPreco()" style="padding: 9px 16px; font-weight: 700; background: linear-gradient(135deg, #2AD07A, #1aab5f);">
-                                    <i class="fa-solid fa-plus"></i> Novo Item de Preço
-                                </button>
-                            </div>
+                            <!-- PDF & E-mail -->
+                            <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Geral
+                            </button>
+                            <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #2AD07A;"></i> PDF Fornecedor
+                            </button>
+                            <button class="btn-secondary" onclick="enviarTabelaPrecosEmail('completa')" title="Enviar Tabela Geral Completa por E-mail para destinatários cadastrados" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-paper-plane" style="color: #ff4d4d;"></i> E-mail Geral
+                            </button>
+                            <button class="btn-secondary" onclick="enviarTabelaPrecosEmail('fornecedor')" title="Enviar Tabela do Fornecedor por E-mail para destinatários cadastrados" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-paper-plane" style="color: #2AD07A;"></i> E-mail Fornecedor
+                            </button>
+
+                            <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px; margin-left: auto;"></div>
+
+                            <!-- Ações Financeiras -->
+                            <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralPrompt()" style="width: auto; background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-calendar-days"></i> Alterar Vigência
+                            </button>
+                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPreco()" style="width: auto; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; background: linear-gradient(135deg, #2AD07A, #1aab5f); white-space: nowrap;">
+                                <i class="fa-solid fa-plus"></i> Novo Item de Preço
+                            </button>
                         </div>
                     </div>
                 </header>
