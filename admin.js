@@ -2216,13 +2216,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnEnviarTest = document.getElementById('btn-enviar-teste-lme');
         const testEmailMsg  = document.getElementById('test-email-msg');
  
-        const formDest      = document.getElementById('form-destinatario');
-        const destId        = document.getElementById('dest-id');
-        const destNome      = document.getElementById('dest-nome');
-        const destEmail     = document.getElementById('dest-email');
-        const destFormTitle = document.getElementById('destinatario-form-title');
-        const btnCancelDest = document.getElementById('btn-cancel-destinatario');
-        const listDest      = document.getElementById('lme-destinatarios-list');
+        const formDest                 = document.getElementById('form-destinatario');
+        const destId                   = document.getElementById('dest-id');
+        const destNome                 = document.getElementById('dest-nome');
+        const destEmail                = document.getElementById('dest-email');
+        const destRecebeLme            = document.getElementById('dest-recebe-lme');
+        const destRecebeTabelaGeral    = document.getElementById('dest-recebe-tabela-geral');
+        const destRecebeTabelaFornecedor = document.getElementById('dest-recebe-tabela-fornecedor');
+        const destFormTitle            = document.getElementById('destinatario-form-title');
+        const btnCancelDest            = document.getElementById('btn-cancel-destinatario');
+        const listDest                 = document.getElementById('lme-destinatarios-list');
  
         if (!schedAtivo) return;
  
@@ -2242,9 +2245,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 resendApiKey.value  = settings.lme_resend_api_key || '';
-                resendFrom.value    = settings.lme_resend_from || '';
+                resendFrom.value    = settings.lme_resend_from   || 'josetiago@lme.lat';
+
+                loadDestinatarios();
             } catch (err) {
-                console.error('Erro ao carregar configurações de e-mail:', err);
+                console.error('Erro ao carregar configurações LME:', err);
             }
         }
  
@@ -2345,10 +2350,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 items.forEach(d => {
                     const recLme = d.recebe_lme !== false;
-                    const recTab = d.recebe_tabela !== false;
+                    const recGeral = d.recebe_tabela_geral !== false;
+                    const recForn = d.recebe_tabela_fornecedor !== false;
                     const badges = [
-                        recLme ? '<span style="background:rgba(255,183,3,0.15); color:#ffb703; border:1px solid #ffb703; padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:4px;"><i class="fa-solid fa-chart-line"></i> LME</span>' : '',
-                        recTab ? '<span style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-dollar-sign"></i> Tabela</span>' : ''
+                        recLme ? '<span style="background:rgba(255,183,3,0.15); color:#ffb703; border:1px solid #ffb703; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:4px;"><i class="fa-solid fa-chart-line"></i> LME</span>' : '',
+                        recGeral ? '<span style="background:rgba(255,77,77,0.15); color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:4px;"><i class="fa-solid fa-file-pdf"></i> Tab. Geral</span>' : '',
+                        recForn ? '<span style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-file-pdf"></i> Tab. Fornecedor</span>' : ''
                     ].filter(Boolean).join('') || '<span style="color:#777; font-size:0.75rem;">Nenhuma</span>';
 
                     const tr = document.createElement('tr');
@@ -2358,7 +2365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="padding: 10px; color:#bbb;">${d.email}</td>
                         <td style="padding: 10px; text-align: center;">${badges}</td>
                         <td style="padding: 10px; text-align: center;">
-                            <button class="btn-edit-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" data-lme="${recLme}" data-tabela="${recTab}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 10px; font-size:1.1rem;" title="Editar"><i class="fa-solid fa-edit"></i></button>
+                            <button class="btn-edit-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" data-lme="${recLme}" data-geral="${recGeral}" data-forn="${recForn}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 10px; font-size:1.1rem;" title="Editar"><i class="fa-solid fa-edit"></i></button>
                             <button class="btn-delete-dest" data-id="${d.id}" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size:1.1rem;" title="Remover"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
@@ -2390,7 +2397,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         destNome.value = btn.dataset.nome;
                         destEmail.value = btn.dataset.email;
                         if (destRecebeLme) destRecebeLme.checked = btn.dataset.lme === 'true';
-                        if (destRecebeTabela) destRecebeTabela.checked = btn.dataset.tabela === 'true';
+                        if (destRecebeTabelaGeral) destRecebeTabelaGeral.checked = btn.dataset.geral === 'true';
+                        if (destRecebeTabelaFornecedor) destRecebeTabelaFornecedor.checked = btn.dataset.forn === 'true';
                         destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
                         btnCancelDest.style.display = 'inline-block';
                         destNome.focus();

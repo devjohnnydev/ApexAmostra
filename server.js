@@ -222,15 +222,17 @@ async function initDatabase() {
             );
 
             CREATE TABLE IF NOT EXISTS lme_destinatarios (
-                id            SERIAL PRIMARY KEY,
-                nome          TEXT NOT NULL,
-                email         TEXT NOT NULL UNIQUE,
-                recebe_lme    BOOLEAN DEFAULT TRUE,
-                recebe_tabela BOOLEAN DEFAULT TRUE,
-                criado_em     TIMESTAMP DEFAULT NOW()
+                id                       SERIAL PRIMARY KEY,
+                nome                     TEXT NOT NULL,
+                email                    TEXT NOT NULL UNIQUE,
+                recebe_lme               BOOLEAN DEFAULT TRUE,
+                recebe_tabela_geral      BOOLEAN DEFAULT TRUE,
+                recebe_tabela_fornecedor BOOLEAN DEFAULT TRUE,
+                criado_em                TIMESTAMP DEFAULT NOW()
             );
             ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS recebe_lme BOOLEAN DEFAULT TRUE;
-            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS recebe_tabela BOOLEAN DEFAULT TRUE;
+            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS recebe_tabela_geral BOOLEAN DEFAULT TRUE;
+            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS recebe_tabela_fornecedor BOOLEAN DEFAULT TRUE;
 
             -- NOVAS TABELAS APEX
             
@@ -2582,19 +2584,19 @@ app.get('/api/lme/destinatarios', async (req, res) => {
 
 app.post('/api/lme/destinatarios', async (req, res) => {
     try {
-        const { nome, email, recebe_lme = true, recebe_tabela = true } = req.body;
+        const { nome, email, recebe_lme = true, recebe_tabela_geral = true, recebe_tabela_fornecedor = true } = req.body;
         if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO lme_destinatarios (nome, email, recebe_lme, recebe_tabela) VALUES ($1, $2, $3, $4) RETURNING *',
-                [nome, email, recebe_lme, recebe_tabela]
+                'INSERT INTO lme_destinatarios (nome, email, recebe_lme, recebe_tabela_geral, recebe_tabela_fornecedor) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                [nome, email, recebe_lme, recebe_tabela_geral, recebe_tabela_fornecedor]
             );
             return res.status(201).json(result.rows[0]);
         }
         if (memStore.lme_destinatarios.some(d => d.email.toLowerCase() === email.toLowerCase())) {
             return res.status(400).json({ error: 'E-mail já cadastrado.' });
         }
-        const item = { id: nextId++, nome, email, recebe_lme: !!recebe_lme, recebe_tabela: !!recebe_tabela, criado_em: new Date().toISOString() };
+        const item = { id: nextId++, nome, email, recebe_lme: !!recebe_lme, recebe_tabela_geral: !!recebe_tabela_geral, recebe_tabela_fornecedor: !!recebe_tabela_fornecedor, criado_em: new Date().toISOString() };
         memStore.lme_destinatarios.push(item);
         res.status(201).json(item);
     } catch (err) {
@@ -2609,12 +2611,12 @@ app.post('/api/lme/destinatarios', async (req, res) => {
 app.put('/api/lme/destinatarios/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, email, recebe_lme = true, recebe_tabela = true } = req.body;
+        const { nome, email, recebe_lme = true, recebe_tabela_geral = true, recebe_tabela_fornecedor = true } = req.body;
         if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'UPDATE lme_destinatarios SET nome=$1, email=$2, recebe_lme=$3, recebe_tabela=$4 WHERE id=$5 RETURNING *',
-                [nome, email, recebe_lme, recebe_tabela, id]
+                'UPDATE lme_destinatarios SET nome=$1, email=$2, recebe_lme=$3, recebe_tabela_geral=$4, recebe_tabela_fornecedor=$5 WHERE id=$6 RETURNING *',
+                [nome, email, recebe_lme, recebe_tabela_geral, recebe_tabela_fornecedor, id]
             );
             if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
             return res.json(result.rows[0]);
@@ -2624,7 +2626,7 @@ app.put('/api/lme/destinatarios/:id', async (req, res) => {
         if (memStore.lme_destinatarios.some(d => d.id != id && d.email.toLowerCase() === email.toLowerCase())) {
             return res.status(400).json({ error: 'E-mail já cadastrado.' });
         }
-        Object.assign(memStore.lme_destinatarios[idx], { nome, email, recebe_lme: !!recebe_lme, recebe_tabela: !!recebe_tabela });
+        Object.assign(memStore.lme_destinatarios[idx], { nome, email, recebe_lme: !!recebe_lme, recebe_tabela_geral: !!recebe_tabela_geral, recebe_tabela_fornecedor: !!recebe_tabela_fornecedor });
         res.json(memStore.lme_destinatarios[idx]);
     } catch (err) {
         console.error('Erro PUT /api/lme/destinatarios:', err);
@@ -3490,11 +3492,13 @@ async function enviarTabelaPrecosEmail(pdfBase64, modo = 'fornecedor', emailDest
         emailsList = [emailDestino];
     } else {
         let recipients = [];
+        const isCompleta = modo === 'completa';
+        const targetCol = isCompleta ? 'recebe_tabela_geral' : 'recebe_tabela_fornecedor';
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM lme_destinatarios WHERE COALESCE(recebe_tabela, true) = true');
+            const result = await pool.query(`SELECT * FROM lme_destinatarios WHERE COALESCE(${targetCol}, true) = true`);
             recipients = result.rows;
         } else {
-            recipients = (memStore.lme_destinatarios || []).filter(r => r.recebe_tabela !== false);
+            recipients = (memStore.lme_destinatarios || []).filter(r => r[targetCol] !== false);
         }
 
         if (recipients.length === 0) {
