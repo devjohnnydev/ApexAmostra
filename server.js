@@ -222,17 +222,13 @@ async function initDatabase() {
             );
 
             CREATE TABLE IF NOT EXISTS lme_destinatarios (
-                id                       SERIAL PRIMARY KEY,
-                nome                     TEXT NOT NULL,
-                email                    TEXT NOT NULL UNIQUE,
-                recebe_lme               BOOLEAN DEFAULT TRUE,
-                recebe_tabela_geral      BOOLEAN DEFAULT TRUE,
-                recebe_tabela_fornecedor BOOLEAN DEFAULT TRUE,
-                criado_em                TIMESTAMP DEFAULT NOW()
+                id        SERIAL PRIMARY KEY,
+                nome      TEXT NOT NULL,
+                email     TEXT NOT NULL,
+                tipo      TEXT DEFAULT 'lme',
+                criado_em TIMESTAMP DEFAULT NOW()
             );
-            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS recebe_lme BOOLEAN DEFAULT TRUE;
-            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS recebe_tabela_geral BOOLEAN DEFAULT TRUE;
-            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS recebe_tabela_fornecedor BOOLEAN DEFAULT TRUE;
+            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS tipo TEXT DEFAULT 'lme';
 
             -- NOVAS TABELAS APEX
             
@@ -2571,11 +2567,13 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
 // ─── API: LME Destinatários (CRUD) ─────────────────────────────────────────────
 app.get('/api/lme/destinatarios', async (req, res) => {
     try {
+        const tipo = req.query.tipo || 'lme';
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM lme_destinatarios ORDER BY nome ASC');
+            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = $1 ORDER BY nome ASC", [tipo]);
             return res.json(result.rows);
         }
-        res.json([...memStore.lme_destinatarios].sort((a, b) => a.nome.localeCompare(b.nome)));
+        const filtered = (memStore.lme_destinatarios || []).filter(d => (d.tipo || 'lme') === tipo);
+        res.json(filtered.sort((a, b) => a.nome.localeCompare(b.nome)));
     } catch (err) {
         console.error('Erro GET /api/lme/destinatarios:', err);
         res.status(500).json({ error: 'Erro ao buscar destinatários.' });
@@ -2584,26 +2582,23 @@ app.get('/api/lme/destinatarios', async (req, res) => {
 
 app.post('/api/lme/destinatarios', async (req, res) => {
     try {
-        const { nome, email, recebe_lme = true, recebe_tabela_geral = true, recebe_tabela_fornecedor = true } = req.body;
+        const { nome, email, tipo = 'lme' } = req.body;
         if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO lme_destinatarios (nome, email, recebe_lme, recebe_tabela_geral, recebe_tabela_fornecedor) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [nome, email, recebe_lme, recebe_tabela_geral, recebe_tabela_fornecedor]
+                'INSERT INTO lme_destinatarios (nome, email, tipo) VALUES ($1, $2, $3) RETURNING *',
+                [nome, email, tipo]
             );
             return res.status(201).json(result.rows[0]);
         }
-        if (memStore.lme_destinatarios.some(d => d.email.toLowerCase() === email.toLowerCase())) {
-            return res.status(400).json({ error: 'E-mail já cadastrado.' });
+        if ((memStore.lme_destinatarios || []).some(d => d.email.toLowerCase() === email.toLowerCase() && (d.tipo || 'lme') === tipo)) {
+            return res.status(400).json({ error: 'E-mail já cadastrado nesta lista.' });
         }
-        const item = { id: nextId++, nome, email, recebe_lme: !!recebe_lme, recebe_tabela_geral: !!recebe_tabela_geral, recebe_tabela_fornecedor: !!recebe_tabela_fornecedor, criado_em: new Date().toISOString() };
+        const item = { id: nextId++, nome, email, tipo, criado_em: new Date().toISOString() };
         memStore.lme_destinatarios.push(item);
         res.status(201).json(item);
     } catch (err) {
         console.error('Erro POST /api/lme/destinatarios:', err);
-        if (err.code === '23505') {
-            return res.status(400).json({ error: 'E-mail já cadastrado.' });
-        }
         res.status(500).json({ error: 'Erro ao criar destinatário.' });
     }
 });
@@ -2611,28 +2606,22 @@ app.post('/api/lme/destinatarios', async (req, res) => {
 app.put('/api/lme/destinatarios/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { nome, email, recebe_lme = true, recebe_tabela_geral = true, recebe_tabela_fornecedor = true } = req.body;
+        const { nome, email, tipo = 'lme' } = req.body;
         if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'UPDATE lme_destinatarios SET nome=$1, email=$2, recebe_lme=$3, recebe_tabela_geral=$4, recebe_tabela_fornecedor=$5 WHERE id=$6 RETURNING *',
-                [nome, email, recebe_lme, recebe_tabela_geral, recebe_tabela_fornecedor, id]
+                'UPDATE lme_destinatarios SET nome=$1, email=$2, tipo=$3 WHERE id=$4 RETURNING *',
+                [nome, email, tipo, id]
             );
             if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
             return res.json(result.rows[0]);
         }
         const idx = memStore.lme_destinatarios.findIndex(d => d.id == id);
         if (idx === -1) return res.status(404).json({ error: 'Destinatário não encontrado.' });
-        if (memStore.lme_destinatarios.some(d => d.id != id && d.email.toLowerCase() === email.toLowerCase())) {
-            return res.status(400).json({ error: 'E-mail já cadastrado.' });
-        }
-        Object.assign(memStore.lme_destinatarios[idx], { nome, email, recebe_lme: !!recebe_lme, recebe_tabela_geral: !!recebe_tabela_geral, recebe_tabela_fornecedor: !!recebe_tabela_fornecedor });
+        Object.assign(memStore.lme_destinatarios[idx], { nome, email, tipo });
         res.json(memStore.lme_destinatarios[idx]);
     } catch (err) {
         console.error('Erro PUT /api/lme/destinatarios:', err);
-        if (err.code === '23505') {
-            return res.status(400).json({ error: 'E-mail já cadastrado.' });
-        }
         res.status(500).json({ error: 'Erro ao atualizar destinatário.' });
     }
 });
@@ -3365,10 +3354,10 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
 
     let recipients = [];
     if (dbAvailable) {
-        const result = await pool.query('SELECT * FROM lme_destinatarios WHERE COALESCE(recebe_lme, true) = true');
+        const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = 'lme'");
         recipients = result.rows;
     } else {
-        recipients = (memStore.lme_destinatarios || []).filter(r => r.recebe_lme !== false);
+        recipients = (memStore.lme_destinatarios || []).filter(r => (r.tipo || 'lme') === 'lme');
     }
 
     if (recipients.length === 0) {
@@ -3493,12 +3482,12 @@ async function enviarTabelaPrecosEmail(pdfBase64, modo = 'fornecedor', emailDest
     } else {
         let recipients = [];
         const isCompleta = modo === 'completa';
-        const targetCol = isCompleta ? 'recebe_tabela_geral' : 'recebe_tabela_fornecedor';
+        const targetTipo = isCompleta ? 'tabela_geral' : 'tabela_fornecedor';
         if (dbAvailable) {
-            const result = await pool.query(`SELECT * FROM lme_destinatarios WHERE COALESCE(${targetCol}, true) = true`);
+            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = $1", [targetTipo]);
             recipients = result.rows;
         } else {
-            recipients = (memStore.lme_destinatarios || []).filter(r => r[targetCol] !== false);
+            recipients = (memStore.lme_destinatarios || []).filter(r => (r.tipo || 'lme') === targetTipo);
         }
 
         if (recipients.length === 0) {
@@ -3566,10 +3555,12 @@ async function enviarTabelaPrecosEmail(pdfBase64, modo = 'fornecedor', emailDest
 }
 
 // ─── Agendador Automático de E-mails ──────────────────────────────────────────
-let lastSentDateStr = '';
+let lastSentLmeDate = '';
+let lastSentGeralDate = '';
+let lastSentFornDate = '';
 
 function startEmailScheduler() {
-    console.log('⏰ Inicializando o agendador de e-mails da LME...');
+    console.log('⏰ Inicializando o agendador de e-mails da ApexTech...');
     setInterval(async () => {
         try {
             const settings = {};
@@ -3580,28 +3571,14 @@ function startEmailScheduler() {
                 Object.assign(settings, memStore.settings);
             }
 
-            const active = settings.lme_envio_ativo === 'true';
-            const scheduledTime = settings.lme_envio_horario || '14:00';
-            const scheduledDaysStr = settings.lme_envio_dias !== undefined ? settings.lme_envio_dias : '1,2,3,4,5';
-
-            if (!active) return;
-
-            // Check if current day of week is scheduled
             const spWeekday = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo", weekday: "short" });
             const dayMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
             const currentDayOfWeek = dayMap[spWeekday];
-            const scheduledDays = scheduledDaysStr.split(',').map(Number);
-            if (!scheduledDays.includes(currentDayOfWeek)) return;
 
-            // Hora atual e componentes de data em São Paulo
             const formatter = new Intl.DateTimeFormat('pt-BR', {
                 timeZone: 'America/Sao_Paulo',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
             });
             const partsList = formatter.formatToParts(new Date());
             const spParts = {};
@@ -3612,36 +3589,51 @@ function startEmailScheduler() {
             const day = spParts.day;
             const hour = parseInt(spParts.hour, 10);
             const minute = parseInt(spParts.minute, 10);
-
-            const scheduledParts = scheduledTime.split(':');
-            const schedHour = parseInt(scheduledParts[0], 10);
-            const schedMinute = parseInt(scheduledParts[1], 10);
-
             const currentTimeMins = (hour * 60) + minute;
-            const schedTimeMins = (schedHour * 60) + schedMinute;
-
             const todayDateStr = `${year}-${month}-${day}`;
-            const currentTimeStr = `${spParts.hour}:${spParts.minute}`;
 
-            const windowMins = 2; // Janela de 2 minutos para disparar
-            const withinWindow = currentTimeMins >= schedTimeMins && currentTimeMins < schedTimeMins + windowMins;
+            const isDue = (activeKey, timeKey, daysKey) => {
+                if (settings[activeKey] !== 'true') return false;
+                const daysStr = settings[daysKey] !== undefined ? settings[daysKey] : '1,2,3,4,5';
+                const days = daysStr.split(',').map(Number);
+                if (!days.includes(currentDayOfWeek)) return false;
+                const [sHour, sMin] = (settings[timeKey] || '14:00').split(':').map(Number);
+                const sMins = (sHour * 60) + sMin;
+                return currentTimeMins >= sMins && currentTimeMins < sMins + 2;
+            };
 
-            if (withinWindow && lastSentDateStr !== todayDateStr) {
-                console.log(`⏰ Horário de envio atingido (${currentTimeStr}). Enviando relatório LME por e-mail...`);
-                
+            // 1. Disparo Relatório LME
+            if (isDue('lme_envio_ativo', 'lme_envio_horario', 'lme_envio_dias') && lastSentLmeDate !== todayDateStr) {
+                console.log(`⏰ [Agendador] Enviando relatório LME por e-mail...`);
                 const mes = `${parseInt(month, 10)}-${year}`;
                 const data = await generateRelatorioSemanas(mes);
                 if (data && data.semanas && data.semanas.length > 0) {
                     const latestWeek = data.semanas[0];
-                    console.log('Gerando PDF via Headless para o envio automático...');
                     const pdfBase64 = await gerarPdfRelatorioViaHeadless();
                     await enviarRelatorioEmail(latestWeek, pdfBase64);
-                    lastSentDateStr = todayDateStr;
-                    console.log(`✅ Relatório enviado automaticamente para a data ${todayDateStr}.`);
-                } else {
-                    console.warn(`⚠️ Nenhuma semana LME encontrada para a data ${todayDateStr}. Envio abortado.`);
+                    lastSentLmeDate = todayDateStr;
+                    console.log(`✅ [Agendador] Relatório LME enviado para ${todayDateStr}.`);
                 }
             }
+
+            // 2. Disparo Tabela Geral Completa
+            if (isDue('tabela_geral_envio_ativo', 'tabela_geral_envio_horario', 'tabela_geral_envio_dias') && lastSentGeralDate !== todayDateStr) {
+                console.log(`⏰ [Agendador] Enviando Tabela Geral Completa por e-mail...`);
+                const pdfBase64 = await gerarPdfTabelaPrecosViaHeadless('completa');
+                await enviarTabelaPrecosEmail(pdfBase64, 'completa');
+                lastSentGeralDate = todayDateStr;
+                console.log(`✅ [Agendador] Tabela Geral Completa enviada para ${todayDateStr}.`);
+            }
+
+            // 3. Disparo Tabela do Fornecedor
+            if (isDue('tabela_fornecedor_envio_ativo', 'tabela_fornecedor_envio_horario', 'tabela_fornecedor_envio_dias') && lastSentFornDate !== todayDateStr) {
+                console.log(`⏰ [Agendador] Enviando Tabela do Fornecedor por e-mail...`);
+                const pdfBase64 = await gerarPdfTabelaPrecosViaHeadless('fornecedor');
+                await enviarTabelaPrecosEmail(pdfBase64, 'fornecedor');
+                lastSentFornDate = todayDateStr;
+                console.log(`✅ [Agendador] Tabela do Fornecedor enviada para ${todayDateStr}.`);
+            }
+
         } catch (err) {
             console.error('❌ Erro no agendador automático de e-mails:', err.message);
         }

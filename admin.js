@@ -2178,7 +2178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dEl = document.getElementById('not-data');
                     if (dEl) dEl.value = new Date().toISOString().split('T')[0];
                     renderNoticiasAdmin();
-                    _apexNotify('Sistema', '✅ Notícia publicada! Atualize a página inicial para ver.', 'info');
+                    _apexNotify('Sistema', '✅ Notícia publicada!', 'info');
                 } else {
                     _apexNotify('Atenção', '❌ Erro ao publicar notícia.', 'error');
                 }
@@ -2189,7 +2189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // CONFIGURAÇÃO DE E-MAIL LME
+    // CONFIGURAÇÃO DE E-MAIL LME E TABELAS DE PREÇOS
     // =========================================================================
     async function initLMEEmailConfig() {
         const schedAtivo    = document.getElementById('sched-ativo');
@@ -2212,48 +2212,89 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
- 
+
         const btnEnviarTest = document.getElementById('btn-enviar-teste-lme');
         const testEmailMsg  = document.getElementById('test-email-msg');
- 
-        const formDest                 = document.getElementById('form-destinatario');
-        const destId                   = document.getElementById('dest-id');
-        const destNome                 = document.getElementById('dest-nome');
-        const destEmail                = document.getElementById('dest-email');
-        const destRecebeLme            = document.getElementById('dest-recebe-lme');
-        const destRecebeTabelaGeral    = document.getElementById('dest-recebe-tabela-geral');
-        const destRecebeTabelaFornecedor = document.getElementById('dest-recebe-tabela-fornecedor');
-        const destFormTitle            = document.getElementById('destinatario-form-title');
-        const btnCancelDest            = document.getElementById('btn-cancel-destinatario');
-        const listDest                 = document.getElementById('lme-destinatarios-list');
- 
-        if (!schedAtivo) return;
- 
-        // 1. Carrega configurações do servidor
-        async function loadConfig() {
+
+        const formDest      = document.getElementById('form-destinatario');
+        const destId        = document.getElementById('dest-id');
+        const destNome      = document.getElementById('dest-nome');
+        const destEmail     = document.getElementById('dest-email');
+        const destFormTitle = document.getElementById('destinatario-form-title');
+        const btnCancelDest = document.getElementById('btn-cancel-destinatario');
+        const listDest      = document.getElementById('lme-destinatarios-list');
+
+        // ─── 1. MÓDULO LME ──────────────────────────────────────────────────
+        async function loadConfigLME() {
             try {
                 const res = await fetch('/api/settings');
                 const settings = await res.json();
- 
-                schedAtivo.checked  = settings.lme_envio_ativo === 'true';
-                schedHorario.value  = settings.lme_envio_horario || '14:00';
- 
+
+                if (schedAtivo) schedAtivo.checked = settings.lme_envio_ativo === 'true';
+                if (schedHorario) schedHorario.value = settings.lme_envio_horario || '14:00';
+
                 const diasStr = settings.lme_envio_dias !== undefined ? settings.lme_envio_dias : '1,2,3,4,5';
                 const diasArr = diasStr.split(',');
-                document.querySelectorAll('.sched-dia').forEach(chk => {
-                    chk.checked = diasArr.includes(chk.value);
-                });
+                document.querySelectorAll('.sched-dia').forEach(chk => { chk.checked = diasArr.includes(chk.value); });
 
-                resendApiKey.value  = settings.lme_resend_api_key || '';
-                resendFrom.value    = settings.lme_resend_from   || 'josetiago@lme.lat';
+                if (resendApiKey) resendApiKey.value = settings.lme_resend_api_key || '';
+                if (resendFrom) resendFrom.value = settings.lme_resend_from || 'josetiago@lme.lat';
 
-                loadDestinatarios();
+                loadDestinatariosLME();
             } catch (err) {
                 console.error('Erro ao carregar configurações LME:', err);
             }
         }
- 
-        // 2. Salva agendamento
+
+        async function loadDestinatariosLME() {
+            if (!listDest) return;
+            try {
+                const res = await fetch('/api/lme/destinatarios?tipo=lme');
+                const items = await res.json();
+                listDest.innerHTML = '';
+
+                if (!items.length) {
+                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário LME cadastrado.</td></tr>';
+                    return;
+                }
+
+                items.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #444';
+                    tr.innerHTML = `
+                        <td style="padding: 10px;">${d.nome}</td>
+                        <td style="padding: 10px; color:#bbb;">${d.email}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <button class="btn-edit-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 10px; font-size:1.1rem;" title="Editar"><i class="fa-solid fa-edit"></i></button>
+                            <button class="btn-delete-dest" data-id="${d.id}" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size:1.1rem;" title="Remover"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    listDest.appendChild(tr);
+                });
+
+                listDest.querySelectorAll('.btn-delete-dest').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Remover este destinatário LME?')) return;
+                        await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
+                        loadDestinatariosLME();
+                    });
+                });
+
+                listDest.querySelectorAll('.btn-edit-dest').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        destId.value = btn.dataset.id;
+                        destNome.value = btn.dataset.nome;
+                        destEmail.value = btn.dataset.email;
+                        if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário LME';
+                        if (btnCancelDest) btnCancelDest.style.display = 'inline-block';
+                        destNome.focus();
+                    });
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
         if (formScheduler) {
             formScheduler.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -2263,26 +2304,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     lme_envio_horario: schedHorario.value,
                     lme_envio_dias: selectedDias
                 };
- 
-                try {
-                    const res = await fetch('/api/settings', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    if (res.ok) {
-                        _apexNotify('Sistema', '✅ Configuração de agendamento salva com sucesso!', 'info');
-                    } else {
-                        _apexNotify('Atenção', '❌ Erro ao salvar agendamento.', 'error');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    _apexNotify('Atenção', '❌ Erro de rede ao salvar agendamento.', 'error');
-                }
+                const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento LME salvo com sucesso!', 'info');
             });
         }
 
-        // 3. Salva Resend
         if (formResend) {
             formResend.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -2290,26 +2316,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     lme_resend_api_key: resendApiKey.value.trim(),
                     lme_resend_from:    resendFrom.value.trim()
                 };
-
-                try {
-                    const res = await fetch('/api/settings', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    if (res.ok) {
-                        _apexNotify('Sistema', '✅ Configurações do Resend salvas com sucesso!', 'info');
-                    } else {
-                        _apexNotify('Atenção', '❌ Erro ao salvar configurações do Resend.', 'error');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    _apexNotify('Atenção', '❌ Erro de rede ao salvar configurações do Resend.', 'error');
-                }
+                const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                if (res.ok) _apexNotify('Sistema', '✅ Resend API salvo com sucesso!', 'info');
             });
         }
 
-        // 4. Envio de Teste Manual
         if (btnEnviarTest) {
             btnEnviarTest.addEventListener('click', async () => {
                 testEmailMsg.style.display = 'block';
@@ -2322,141 +2333,195 @@ document.addEventListener('DOMContentLoaded', () => {
                     const result = await res.json();
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório enviado com sucesso!');
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório enviado!');
                     } else {
                         testEmailMsg.style.color = '#ff4d4d';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro desconhecido.');
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro.');
                     }
                 } catch (err) {
                     testEmailMsg.style.color = '#ff4d4d';
-                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro ao conectar ao servidor.';
+                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro de rede.';
                 } finally {
                     btnEnviarTest.disabled = false;
                 }
             });
         }
 
-        // 5. Carrega lista de destinatários
-        async function loadDestinatarios() {
-            try {
-                const res = await fetch('/api/lme/destinatarios');
-                const items = await res.json();
-                listDest.innerHTML = '';
-
-                if (!items.length) {
-                    listDest.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
-                    return;
-                }
-
-                items.forEach(d => {
-                    const recLme = d.recebe_lme !== false;
-                    const recGeral = d.recebe_tabela_geral !== false;
-                    const recForn = d.recebe_tabela_fornecedor !== false;
-                    const badges = [
-                        recLme ? '<span style="background:rgba(255,183,3,0.15); color:#ffb703; border:1px solid #ffb703; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:4px;"><i class="fa-solid fa-chart-line"></i> LME</span>' : '',
-                        recGeral ? '<span style="background:rgba(255,77,77,0.15); color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:4px;"><i class="fa-solid fa-file-pdf"></i> Tab. Geral</span>' : '',
-                        recForn ? '<span style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-file-pdf"></i> Tab. Fornecedor</span>' : ''
-                    ].filter(Boolean).join('') || '<span style="color:#777; font-size:0.75rem;">Nenhuma</span>';
-
-                    const tr = document.createElement('tr');
-                    tr.style.borderBottom = '1px solid #444';
-                    tr.innerHTML = `
-                        <td style="padding: 10px;">${d.nome}</td>
-                        <td style="padding: 10px; color:#bbb;">${d.email}</td>
-                        <td style="padding: 10px; text-align: center;">${badges}</td>
-                        <td style="padding: 10px; text-align: center;">
-                            <button class="btn-edit-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" data-lme="${recLme}" data-geral="${recGeral}" data-forn="${recForn}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 10px; font-size:1.1rem;" title="Editar"><i class="fa-solid fa-edit"></i></button>
-                            <button class="btn-delete-dest" data-id="${d.id}" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size:1.1rem;" title="Remover"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    `;
-                    listDest.appendChild(tr);
-                });
-
-                // Eventos de deletar
-                listDest.querySelectorAll('.btn-delete-dest').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const id = btn.dataset.id;
-                        if (!confirm('Deseja realmente remover este destinatário?')) return;
-                        try {
-                            const res = await fetch(`/api/lme/destinatarios/${id}`, { method: 'DELETE' });
-                            if (res.ok) {
-                                loadDestinatarios();
-                            } else {
-                                _apexNotify('Atenção', 'Erro ao deletar destinatário.', 'error');
-                            }
-                        } catch (err) {
-                            console.error(err);
-                        }
-                    });
-                });
-
-                // Eventos de editar
-                listDest.querySelectorAll('.btn-edit-dest').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        destId.value = btn.dataset.id;
-                        destNome.value = btn.dataset.nome;
-                        destEmail.value = btn.dataset.email;
-                        if (destRecebeLme) destRecebeLme.checked = btn.dataset.lme === 'true';
-                        if (destRecebeTabelaGeral) destRecebeTabelaGeral.checked = btn.dataset.geral === 'true';
-                        if (destRecebeTabelaFornecedor) destRecebeTabelaFornecedor.checked = btn.dataset.forn === 'true';
-                        destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
-                        btnCancelDest.style.display = 'inline-block';
-                        destNome.focus();
-                    });
-                });
-
-            } catch (err) {
-                listDest.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#ff4d4d;">Erro ao carregar lista.</td></tr>';
-            }
-        }
-
-        // Submit destinatário
         if (formDest) {
             formDest.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = destId.value;
                 const nome = destNome.value.trim();
                 const email = destEmail.value.trim();
-                const recebe_lme = destRecebeLme ? destRecebeLme.checked : true;
-                const recebe_tabela = destRecebeTabela ? destRecebeTabela.checked : true;
-
                 const url = id ? `/api/lme/destinatarios/${id}` : '/api/lme/destinatarios';
                 const method = id ? 'PUT' : 'POST';
-
-                try {
-                    const res = await fetch(url, {
-                        method,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nome, email, recebe_lme, recebe_tabela })
-                    });
-                    const result = await res.json();
-                    if (res.ok) {
-                        resetDestForm();
-                        loadDestinatarios();
-                    } else {
-                        _apexNotify('Atenção', result.error || 'Erro ao salvar destinatário.', 'error');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    _apexNotify('Atenção', 'Erro de rede ao salvar destinatário.', 'error');
+                const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome, email, tipo: 'lme' }) });
+                if (res.ok) {
+                    destId.value = ''; destNome.value = ''; destEmail.value = '';
+                    if (btnCancelDest) btnCancelDest.style.display = 'none';
+                    if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
+                    loadDestinatariosLME();
                 }
             });
         }
 
         if (btnCancelDest) {
-            btnCancelDest.addEventListener('click', resetDestForm);
+            btnCancelDest.addEventListener('click', () => {
+                destId.value = ''; destNome.value = ''; destEmail.value = '';
+                btnCancelDest.style.display = 'none';
+                if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
+            });
         }
 
-        function resetDestForm() {
-            formDest.reset();
-            destId.value = '';
-            destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
-            btnCancelDest.style.display = 'none';
+        // ─── 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ──────────
+        async function loadConfigTabelas() {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+
+                // Geral
+                const geralAtivo = document.getElementById('sched-geral-ativo');
+                const geralHorario = document.getElementById('sched-geral-horario');
+                if (geralAtivo) geralAtivo.checked = settings.tabela_geral_envio_ativo === 'true';
+                if (geralHorario) geralHorario.value = settings.tabela_geral_envio_horario || '08:00';
+                const geralDiasStr = settings.tabela_geral_envio_dias !== undefined ? settings.tabela_geral_envio_dias : '1,2,3,4,5';
+                const geralDiasArr = geralDiasStr.split(',');
+                document.querySelectorAll('.sched-geral-dia').forEach(chk => { chk.checked = geralDiasArr.includes(chk.value); });
+
+                // Fornecedor
+                const fornAtivo = document.getElementById('sched-forn-ativo');
+                const fornHorario = document.getElementById('sched-forn-horario');
+                if (fornAtivo) fornAtivo.checked = settings.tabela_fornecedor_envio_ativo === 'true';
+                if (fornHorario) fornHorario.value = settings.tabela_fornecedor_envio_horario || '09:00';
+                const fornDiasStr = settings.tabela_fornecedor_envio_dias !== undefined ? settings.tabela_fornecedor_envio_dias : '1,2,3,4,5';
+                const fornDiasArr = fornDiasStr.split(',');
+                document.querySelectorAll('.sched-forn-dia').forEach(chk => { chk.checked = fornDiasArr.includes(chk.value); });
+
+                loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
+                loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
+            } catch (err) {
+                console.error('Erro ao carregar configurações de tabelas:', err);
+            }
         }
 
-        // Executa inicialização da aba
-        await loadConfig();
-        await loadDestinatarios();
+        async function loadDestinatariosTabela(tipo, listId, inputId, inputNome, inputEmail, titleId) {
+            const listEl = document.getElementById(listId);
+            if (!listEl) return;
+            try {
+                const res = await fetch(`/api/lme/destinatarios?tipo=${tipo}`);
+                const items = await res.json();
+                listEl.innerHTML = '';
+
+                if (!items.length) {
+                    listEl.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:12px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
+                    return;
+                }
+
+                items.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+                    tr.innerHTML = `
+                        <td style="padding: 8px 10px;">${d.nome}</td>
+                        <td style="padding: 8px 10px; color:#bbb;">${d.email}</td>
+                        <td style="padding: 8px 10px; text-align: center;">
+                            <button class="btn-edit-tb-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 8px;"><i class="fa-solid fa-edit"></i></button>
+                            <button class="btn-del-tb-dest" data-id="${d.id}" style="background: none; border: none; color: #e74c3c; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    listEl.appendChild(tr);
+                });
+
+                listEl.querySelectorAll('.btn-del-tb-dest').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Remover destinatário?')) return;
+                        await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
+                        loadDestinatariosTabela(tipo, listId, inputId, inputNome, inputEmail, titleId);
+                    });
+                });
+
+                listEl.querySelectorAll('.btn-edit-tb-dest').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.getElementById(inputId).value = btn.dataset.id;
+                        document.getElementById(inputNome).value = btn.dataset.nome;
+                        document.getElementById(inputEmail).value = btn.dataset.email;
+                        document.getElementById(titleId).innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
+                        document.getElementById(inputNome).focus();
+                    });
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Submits Tabela Geral
+        const formSchedGeral = document.getElementById('form-sched-tabela-geral');
+        if (formSchedGeral) {
+            formSchedGeral.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const ativo = document.getElementById('sched-geral-ativo').checked ? 'true' : 'false';
+                const horario = document.getElementById('sched-geral-horario').value;
+                const dias = Array.from(document.querySelectorAll('.sched-geral-dia:checked')).map(c => c.value).join(',');
+                const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_geral_envio_ativo: ativo, tabela_geral_envio_horario: horario, tabela_geral_envio_dias: dias }) });
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Geral salvo com sucesso!', 'info');
+            });
+        }
+
+        const formDestGeral = document.getElementById('form-destinatario-geral');
+        if (formDestGeral) {
+            formDestGeral.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('dest-geral-id').value;
+                const nome = document.getElementById('dest-geral-nome').value.trim();
+                const email = document.getElementById('dest-geral-email').value.trim();
+                const url = id ? `/api/lme/destinatarios/${id}` : '/api/lme/destinatarios';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome, email, tipo: 'tabela_geral' }) });
+                if (res.ok) {
+                    document.getElementById('dest-geral-id').value = '';
+                    document.getElementById('dest-geral-nome').value = '';
+                    document.getElementById('dest-geral-email').value = '';
+                    document.getElementById('dest-geral-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
+                    loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
+                }
+            });
+        }
+
+        // Submits Tabela Fornecedor
+        const formSchedForn = document.getElementById('form-sched-tabela-forn');
+        if (formSchedForn) {
+            formSchedForn.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const ativo = document.getElementById('sched-forn-ativo').checked ? 'true' : 'false';
+                const horario = document.getElementById('sched-forn-horario').value;
+                const dias = Array.from(document.querySelectorAll('.sched-forn-dia:checked')).map(c => c.value).join(',');
+                const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_fornecedor_envio_ativo: ativo, tabela_fornecedor_envio_horario: horario, tabela_fornecedor_envio_dias: dias }) });
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
+            });
+        }
+
+        const formDestForn = document.getElementById('form-destinatario-forn');
+        if (formDestForn) {
+            formDestForn.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('dest-forn-id').value;
+                const nome = document.getElementById('dest-forn-nome').value.trim();
+                const email = document.getElementById('dest-forn-email').value.trim();
+                const url = id ? `/api/lme/destinatarios/${id}` : '/api/lme/destinatarios';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome, email, tipo: 'tabela_fornecedor' }) });
+                if (res.ok) {
+                    document.getElementById('dest-forn-id').value = '';
+                    document.getElementById('dest-forn-nome').value = '';
+                    document.getElementById('dest-forn-email').value = '';
+                    document.getElementById('dest-forn-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
+                    loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
+                }
+            });
+        }
+
+        // Carrega as configurações dos 3 módulos
+        await loadConfigLME();
+        await loadConfigTabelas();
     }
 
     // =========================================================================
