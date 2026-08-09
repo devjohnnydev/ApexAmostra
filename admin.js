@@ -2279,16 +2279,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Salva Resend
         if (formResend) {
-                resendApiKey.value = settings.lme_resend_api_key || '';
-                resendFrom.value   = settings.lme_resend_from   || 'josetiago@lme.lat';
+            formResend.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = {
+                    lme_resend_api_key: resendApiKey.value.trim(),
+                    lme_resend_from:    resendFrom.value.trim()
+                };
 
-                loadDestinatarios();
-            } catch (err) {
-                console.error('Erro ao carregar configurações LME:', err);
-            }
+                try {
+                    const res = await fetch('/api/settings', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        _apexNotify('Sistema', '✅ Configurações do Resend salvas com sucesso!', 'info');
+                    } else {
+                        _apexNotify('Atenção', '❌ Erro ao salvar configurações do Resend.', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    _apexNotify('Atenção', '❌ Erro de rede ao salvar configurações do Resend.', 'error');
+                }
+            });
         }
 
-        // 2. Carrega lista de destinatários
+        // 4. Envio de Teste Manual
+        if (btnEnviarTest) {
+            btnEnviarTest.addEventListener('click', async () => {
+                testEmailMsg.style.display = 'block';
+                testEmailMsg.style.color = '#fff';
+                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando e-mail...';
+                btnEnviarTest.disabled = true;
+
+                try {
+                    const res = await fetch('/api/lme/enviar-email-manual', { method: 'POST' });
+                    const result = await res.json();
+                    if (res.ok) {
+                        testEmailMsg.style.color = '#2AD07A';
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório enviado com sucesso!');
+                    } else {
+                        testEmailMsg.style.color = '#ff4d4d';
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro desconhecido.');
+                    }
+                } catch (err) {
+                    testEmailMsg.style.color = '#ff4d4d';
+                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro ao conectar ao servidor.';
+                } finally {
+                    btnEnviarTest.disabled = false;
+                }
+            });
+        }
+
+        // 5. Carrega lista de destinatários
         async function loadDestinatarios() {
             try {
                 const res = await fetch('/api/lme/destinatarios');
@@ -2355,7 +2398,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
             } catch (err) {
-                listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#ff4d4d;">Erro ao carregar lista.</td></tr>';
+                listDest.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#ff4d4d;">Erro ao carregar lista.</td></tr>';
             }
         }
 
@@ -2366,6 +2409,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const id = destId.value;
                 const nome = destNome.value.trim();
                 const email = destEmail.value.trim();
+                const recebe_lme = destRecebeLme ? destRecebeLme.checked : true;
+                const recebe_tabela = destRecebeTabela ? destRecebeTabela.checked : true;
 
                 const url = id ? `/api/lme/destinatarios/${id}` : '/api/lme/destinatarios';
                 const method = id ? 'PUT' : 'POST';
@@ -2374,7 +2419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const res = await fetch(url, {
                         method,
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nome, email })
+                        body: JSON.stringify({ nome, email, recebe_lme, recebe_tabela })
                     });
                     const result = await res.json();
                     if (res.ok) {
