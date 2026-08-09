@@ -127,6 +127,10 @@
                     <i class="fa-solid fa-envelope"></i>
                     <span>Configurar E-mail LME</span>
                 </a>
+                <a href="#" class="nav-item" onclick="abrirModalAuditLogs(); return false;" data-tooltip="Trilha de Auditoria">
+                    <i class="fa-solid fa-shield-halved" style="color:#2AD07A;"></i>
+                    <span>Trilha de Auditoria</span>
+                </a>
 
                 <!-- DIVISOR GESTÃO INTERNA APEX -->
                 <div class="sidebar-section-divider" style="padding: 12px 18px 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #5a738e; letter-spacing: 0.1em; border-top: 1px solid #223547; margin-top: 10px;">
@@ -1379,7 +1383,10 @@
                             <h4 style="margin-top: 0; color: #fff;"><i class="fa-solid fa-paper-plane"></i> Ação Rápida</h4>
                             <p style="font-size: 0.85rem; color: #bbb; margin-bottom: 15px;">Envie os relatórios ou tabelas imediatamente para os destinatários cadastrados.</p>
                             <button id="btn-enviar-teste-lme" class="btn-secondary" style="width: 100%; margin-bottom: 10px;"><i class="fa-solid fa-paper-plane"></i> Enviar Relatório Diário Agora</button>
-                            <button id="btn-enviar-tabela-preco" class="btn-secondary" style="width: 100%;" onclick="enviarTabelaPrecosEmail()"><i class="fa-solid fa-envelope"></i> Enviar Tabela de Preços Agora</button>
+                            <div style="display:flex; gap:8px;">
+                                <button id="btn-enviar-tabela-completa" class="btn-secondary" style="flex: 1; justify-content: center;" onclick="enviarTabelaPrecosEmail('completa')"><i class="fa-solid fa-paper-plane" style="color: #ff4d4d;"></i> Tabela Completa</button>
+                                <button id="btn-enviar-tabela-fornecedor" class="btn-secondary" style="flex: 1; justify-content: center;" onclick="enviarTabelaPrecosEmail('fornecedor')"><i class="fa-solid fa-paper-plane" style="color: #2AD07A;"></i> Tabela Fornecedor</button>
+                            </div>
                             <div id="test-email-msg" style="margin-top: 10px; font-size: 0.85rem; display: none;"></div>
                         </div>
                     </div>
@@ -1480,6 +1487,13 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="fornecedores-pagination" style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding:10px 15px; background:rgba(30,53,71,0.4); border-radius:6px; color:#aaa; font-size:0.88rem;">
+                        <div>Exibindo página <span id="forn-pag-atual" style="color:#fff; font-weight:bold;">1</span> de <span id="forn-pag-total" style="color:#fff; font-weight:bold;">1</span> (<span id="forn-total-reg">0</span> registros)</div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button id="btn-forn-prev" class="btn-secondary" onclick="mudarPaginaFornecedores(-1)" disabled><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+                            <button id="btn-forn-next" class="btn-secondary" onclick="mudarPaginaFornecedores(1)" disabled>Próximo <i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -1518,6 +1532,13 @@
                                 <tr><td colspan="8" style="text-align:center;padding:30px;color:#5a738e;"><i class="fa-solid fa-circle-notch fa-spin"></i> Carregando...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div id="clientes-pagination" style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; padding:10px 15px; background:rgba(30,53,71,0.4); border-radius:6px; color:#aaa; font-size:0.88rem;">
+                        <div>Exibindo página <span id="cli-pag-atual" style="color:#fff; font-weight:bold;">1</span> de <span id="cli-pag-total" style="color:#fff; font-weight:bold;">1</span> (<span id="cli-total-reg">0</span> registros)</div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button id="btn-cli-prev" class="btn-secondary" onclick="mudarPaginaClientes(-1)" disabled><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+                            <button id="btn-cli-next" class="btn-secondary" onclick="mudarPaginaClientes(1)" disabled>Próximo <i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1575,12 +1596,21 @@
                             <button class="btn-secondary" onclick="exportarTabelaPrecosExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
                             <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais"><i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Tabela Geral</button>
                             <button class="btn-secondary" onclick="exportarTabelaPrecosPdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente"><i class="fa-solid fa-file-pdf" style="color: #2AD07A;"></i> PDF Fornecedor</button>
-                            <button class="btn-secondary" onclick="enviarTabelaPrecosEmail()"><i class="fa-solid fa-paper-plane"></i> Enviar E-mail</button>
+                            <button class="btn-secondary" onclick="enviarTabelaPrecosEmail('completa')" title="Enviar Tabela Geral Completa por E-mail para destinatários cadastrados"><i class="fa-solid fa-paper-plane" style="color: #ff4d4d;"></i> E-mail Tabela Geral</button>
+                            <button class="btn-secondary" onclick="enviarTabelaPrecosEmail('fornecedor')" title="Enviar Tabela do Fornecedor por E-mail para destinatários cadastrados"><i class="fa-solid fa-paper-plane" style="color: #2AD07A;"></i> E-mail Tabela Fornecedor</button>
                              <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralPrompt()" style="background:#1e4e8c; color:#fff; border-color:#1e4e8c;"><i class="fa-solid fa-calendar-days"></i> Alterar Vigência Geral</button>
                             <button class="btn-primary restrito-financeiro" onclick="abrirModalPreco()"><i class="fa-solid fa-plus"></i> Novo Item de Preço</button>
                         </div>
                     </div>
-                </header>
+                <div id="alerta-cotacao-mercado" style="display:none; margin-bottom:15px; background:rgba(255,183,3,0.15); border:1px solid #ffb703; padding:12px 18px; border-radius:8px; color:#fff; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#ffb703; font-size:1.4rem;"></i>
+                        <div>
+                            <strong>Alerta de Mercado (LME / Dólar):</strong> <span id="alerta-cotacao-texto">Variação expressiva nas cotações de hoje. Avalie atualizar os preços da tabela.</span>
+                        </div>
+                    </div>
+                    <button class="btn-secondary" onclick="carregarCotacoesDolarLME()" style="border-color:#ffb703; color:#ffb703;"><i class="fa-solid fa-sync"></i> Atualizar Cotações</button>
+                </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:rgba(30,78,140,0.15); padding:15px 20px; border-radius:8px; border:1px solid rgba(30,78,140,0.3);">
                     <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
@@ -3981,6 +4011,35 @@
         @keyframes _apex_slideup { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
         #_apex_notify_box { animation: _apex_slideup 0.28s cubic-bezier(.4,2,.6,1) both; }
     </style>
+    <!-- MODAL TRILHA DE AUDITORIA -->
+    <div id="modal-audit-logs" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1200;">
+        <div style="background:#132230; border:1px solid #1e4e8c; border-radius:12px; max-width:900px; width:95%; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 12px 40px rgba(0,0,0,0.7);">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 24px; background:#1e3547; border-bottom:1px solid #1e4e8c;">
+                <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-shield-halved" style="color:#3e7cb1;"></i> Trilha de Auditoria do Sistema</h3>
+                <button class="btn-secondary" onclick="fecharModalAuditLogs()" style="border:none; background:none; color:#aaa; font-size:1.4rem; cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:20px; overflow-y:auto; flex:1;">
+                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                    <thead>
+                        <tr style="background:#1e3547; text-align:left; color:#3e7cb1;">
+                            <th style="padding:10px;">Data / Hora</th>
+                            <th style="padding:10px;">Usuário</th>
+                            <th style="padding:10px;">Ação</th>
+                            <th style="padding:10px;">Detalhes</th>
+                            <th style="padding:10px;">IP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-logs-tbody">
+                        <tr><td colspan="5" style="text-align:center; padding:20px; color:#777;">Carregando logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="padding:12px 24px; background:#132230; border-top:1px solid #1e4e8c; text-align:right;">
+                <button class="btn-secondary" onclick="fecharModalAuditLogs()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>

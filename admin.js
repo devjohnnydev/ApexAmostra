@@ -4055,23 +4055,61 @@ document.addEventListener('DOMContentLoaded', () => {
         carregarFornecedores();
     };
 
-    async function carregarFornecedores() {
+    let fornPaginaAtual = 1;
+    let fornTotalPaginas = 1;
+    let fornTotalReg = 0;
+
+    window.carregarFornecedores = async function(pagina = 1, termoBusca = '') {
+        fornPaginaAtual = pagina;
         try {
+            const query = `page=${pagina}&limit=50` + (termoBusca ? `&search=${encodeURIComponent(termoBusca)}` : '');
             const [resForn, resAmo] = await Promise.allSettled([
-                fetch('/api/fornecedores'),
+                fetch(`/api/fornecedores?${query}`),
                 fetch('/api/amostras')
             ]);
             if (resForn.status === 'fulfilled' && resForn.value.ok) {
-                localFornecedores = await resForn.value.json();
+                const data = await resForn.value.json();
+                if (data && data.data && Array.isArray(data.data)) {
+                    localFornecedores = data.data;
+                    fornTotalReg = data.total;
+                    fornTotalPaginas = data.totalPages || 1;
+                } else if (Array.isArray(data)) {
+                    localFornecedores = data;
+                    fornTotalReg = data.length;
+                    fornTotalPaginas = 1;
+                }
             }
             if (resAmo.status === 'fulfilled' && resAmo.value.ok) {
                 localAmostras = await resAmo.value.json();
             }
             renderFornecedores();
             popularSeletoresFornecedores();
+            atualizarControlesPaginacaoFornecedores();
         } catch (err) {
             console.error('Erro ao buscar fornecedores:', err);
         }
+    };
+
+    window.mudarPaginaFornecedores = function(delta) {
+        const novaPagina = fornPaginaAtual + delta;
+        if (novaPagina >= 1 && novaPagina <= fornTotalPaginas) {
+            const searchEl = document.getElementById('fornecedores-search');
+            window.carregarFornecedores(novaPagina, searchEl ? searchEl.value : '');
+        }
+    };
+
+    function atualizarControlesPaginacaoFornecedores() {
+        const elAtual = document.getElementById('forn-pag-atual');
+        const elTotal = document.getElementById('forn-pag-total');
+        const elReg = document.getElementById('forn-total-reg');
+        const btnPrev = document.getElementById('btn-forn-prev');
+        const btnNext = document.getElementById('btn-forn-next');
+
+        if (elAtual) elAtual.textContent = fornPaginaAtual;
+        if (elTotal) elTotal.textContent = fornTotalPaginas;
+        if (elReg) elReg.textContent = fornTotalReg;
+        if (btnPrev) btnPrev.disabled = fornPaginaAtual <= 1;
+        if (btnNext) btnNext.disabled = fornPaginaAtual >= fornTotalPaginas;
     }
 
     function renderFornecedores() {
@@ -4097,6 +4135,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </select>`;
             }
 
+            const emailForn = (f.email || '').trim();
+            const btnEmailHtml = emailForn 
+                ? `<button style="background:#1b4332;border:none;color:#2AD07A;padding:6px 10px;border-radius:6px;cursor:pointer;margin-right:4px;" onclick="enviarTabelaPrecosEmail('fornecedor', '${emailForn}')" title="Enviar Tabela (Fornecedor) para ${emailForn}"><i class="fa-solid fa-paper-plane"></i> Tabela</button>`
+                : `<button style="background:#1c252e;border:1px solid #334155;color:#64748b;padding:6px 10px;border-radius:6px;cursor:not-allowed;margin-right:4px;" disabled title="Sem e-mail cadastrado"><i class="fa-solid fa-paper-plane"></i> Tabela</button>`;
+
             const tr = document.createElement('tr');
             tr.title = 'Clique na linha para editar este fornecedor (exceto botões e selects)';
             tr.style.cursor = 'pointer';
@@ -4113,6 +4156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;" title="${f.email || '-'}">${f.email || '-'}</td>
                 <td style="padding:10px 12px; white-space:nowrap; text-align:center;">${amostrasHtml}</td>
                 <td style="padding:10px 12px; text-align:center; white-space:nowrap;">
+                    ${btnEmailHtml}
                     <button style="background:#1e3a5f;border:none;color:#4fc3f7;padding:6px 10px;border-radius:6px;cursor:pointer;margin-right:4px;" onclick="editarFornecedor(${f.id})" title="Editar"><i class="fa-solid fa-pen"></i> Editar</button>
                     <button style="background:#3a1515;border:none;color:#ff6b6b;padding:6px 10px;border-radius:6px;cursor:pointer;" onclick="deletarFornecedor(${f.id})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -4228,14 +4272,54 @@ document.addEventListener('DOMContentLoaded', () => {
         await carregarClientes();
     };
 
-    async function carregarClientes() {
+    let cliPaginaAtual = 1;
+    let cliTotalPaginas = 1;
+    let cliTotalReg = 0;
+
+    window.carregarClientes = async function(pagina = 1, termoBusca = '') {
+        cliPaginaAtual = pagina;
         try {
-            const res = await fetch('/api/clientes');
-            localClientes = await res.json();
+            const query = `page=${pagina}&limit=50` + (termoBusca ? `&search=${encodeURIComponent(termoBusca)}` : '');
+            const res = await fetch(`/api/clientes?${query}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.data && Array.isArray(data.data)) {
+                    localClientes = data.data;
+                    cliTotalReg = data.total;
+                    cliTotalPaginas = data.totalPages || 1;
+                } else if (Array.isArray(data)) {
+                    localClientes = data;
+                    cliTotalReg = data.length;
+                    cliTotalPaginas = 1;
+                }
+            }
             renderClientes();
+            atualizarControlesPaginacaoClientes();
         } catch (err) {
             console.error('Erro ao buscar clientes:', err);
         }
+    };
+
+    window.mudarPaginaClientes = function(delta) {
+        const novaPagina = cliPaginaAtual + delta;
+        if (novaPagina >= 1 && novaPagina <= cliTotalPaginas) {
+            const searchEl = document.getElementById('clientes-search');
+            window.carregarClientes(novaPagina, searchEl ? searchEl.value : '');
+        }
+    };
+
+    function atualizarControlesPaginacaoClientes() {
+        const elAtual = document.getElementById('cli-pag-atual');
+        const elTotal = document.getElementById('cli-pag-total');
+        const elReg = document.getElementById('cli-total-reg');
+        const btnPrev = document.getElementById('btn-cli-prev');
+        const btnNext = document.getElementById('btn-cli-next');
+
+        if (elAtual) elAtual.textContent = cliPaginaAtual;
+        if (elTotal) elTotal.textContent = cliTotalPaginas;
+        if (elReg) elReg.textContent = cliTotalReg;
+        if (btnPrev) btnPrev.disabled = cliPaginaAtual <= 1;
+        if (btnNext) btnNext.disabled = cliPaginaAtual >= cliTotalPaginas;
     }
 
     function renderClientes() {
@@ -5723,10 +5807,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.enviarTabelaPrecosEmail = async function() {
+    window.enviarTabelaPrecosEmail = async function(modo, emailDestino) {
         const testEmailMsg = document.getElementById('test-email-msg');
-        const btnPreco = document.querySelector('.btn-secondary[onclick="enviarTabelaPrecosEmail()"]');
-        const btnConfig = document.getElementById('btn-enviar-tabela-preco');
+        const modoPDF = modo || visualizacaoTabelaPrecos || 'fornecedor';
+        const isCompleta = modoPDF === 'completa';
+        const nomeModo = isCompleta ? 'Geral Completa' : 'Fornecedor';
+
+        const btnPreco = document.querySelector(`.btn-secondary[onclick="enviarTabelaPrecosEmail('${modoPDF}')"]`) || document.querySelector('.btn-secondary[onclick*="enviarTabelaPrecosEmail"]');
+        const btnConfig = document.getElementById('btn-enviar-tabela-preco') || document.getElementById('btn-enviar-tabela-completa') || document.getElementById('btn-enviar-tabela-fornecedor');
         
         const setUIState = (loading, msg = '', color = '#fff') => {
             if (testEmailMsg) {
@@ -5738,10 +5826,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnConfig) btnConfig.disabled = loading;
         };
 
-        setUIState(true, '<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF e enviando e-mail...');
+        const destText = emailDestino ? `para ${emailDestino}` : 'para os destinatários cadastrados';
+        setUIState(true, `<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF (${nomeModo}) e enviando ${destText}...`);
 
         try {
-            const pdfBase64 = await window.gerarPdfTabelaPrecosBase64();
+            const pdfBase64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!pdfBase64) {
                 throw new Error('Falha ao gerar o PDF da tabela de preços.');
             }
@@ -5749,13 +5838,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/tabela-precos/enviar-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pdfBase64 })
+                body: JSON.stringify({ pdfBase64, modo: modoPDF, email: emailDestino })
             });
 
             const result = await res.json();
             if (res.ok) {
-                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Tabela de preços enviada com sucesso!'), '#2AD07A');
-                _apexNotify('Sistema', '✅ Tabela de preços enviada por e-mail com sucesso!', 'info');
+                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de preços (${nomeModo}) enviada com sucesso!`), '#2AD07A');
+                _apexNotify('Sistema', `✅ Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
             } else {
                 throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
             }
@@ -5780,6 +5869,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data && data.dolar) {
                 window.currentDolarRate = data.dolar;
                 console.log(`💵 Cotação Dólar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
+
+                const alertaEl = document.getElementById('alerta-cotacao-mercado');
+                const alertaTexto = document.getElementById('alerta-cotacao-texto');
+                if (alertaEl && data.variacao_alta) {
+                    alertaEl.style.display = 'flex';
+                    if (alertaTexto) {
+                        const pctStr = (data.dolar_pct_change >= 0 ? '+' : '') + (data.dolar_pct_change || 0).toFixed(2) + '%';
+                        alertaTexto.textContent = `Alta volatilidade detectada no Dólar (${pctStr} hoje). Avalie revisar a Tabela de Preços.`;
+                    }
+                } else if (alertaEl) {
+                    alertaEl.style.display = 'none';
+                }
             }
         } catch(e) {
             console.warn('Erro ao buscar cotação ao vivo:', e);
@@ -6716,7 +6817,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setFidcTotals(valorBruto, margemTot) {
         const precoSugEntregar = valorBruto / (1 + margemTot);
-        const precoSugColetar  = precoSugEntregar * 0.96; // 4% desconto coletar vs entregar
+        const descLogistica = parseFloat(document.getElementById('fidc-logistica')?.value || 4) / 100;
+        const precoSugColetar  = precoSugEntregar * (1 - descLogistica);
         const margemPct        = Math.round(margemTot * 100);
 
         const fmt = (v) => 'R$ ' + fmtBRL(v);
@@ -6727,6 +6829,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el('fidc-preco-sugerido-entregar'))   el('fidc-preco-sugerido-entregar').innerHTML  = fmt(precoSugEntregar) + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
         if (el('fidc-preco-sugerido-coletar'))    el('fidc-preco-sugerido-coletar').innerHTML   = fmt(precoSugColetar)  + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
     }
+
+    // ─── TRILHA DE AUDITORIA ─────────────────────────────────────────────────────
+    window.abrirModalAuditLogs = function() {
+        const modal = document.getElementById('modal-audit-logs');
+        if (modal) modal.style.display = 'flex';
+        carregarAuditLogs();
+    };
+
+    window.fecharModalAuditLogs = function() {
+        const modal = document.getElementById('modal-audit-logs');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.carregarAuditLogs = async function() {
+        const tbody = document.getElementById('audit-logs-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#777;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando logs...</td></tr>';
+        try {
+            const res = await fetch('/api/audit-logs');
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#aaa;">Nenhum registro de auditoria encontrado.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(log => `
+                <tr style="border-bottom:1px solid #2a3b4c;">
+                    <td style="padding:8px 10px; color:#aaa; font-size:0.8rem;">${new Date(log.criado_em).toLocaleString('pt-BR')}</td>
+                    <td style="padding:8px 10px; font-weight:bold; color:#3e7cb1;">${log.usuario || 'Sistema'}</td>
+                    <td style="padding:8px 10px;"><span style="background:#1e3a5f; color:#2AD07A; padding:3px 8px; border-radius:4px; font-size:0.78rem;">${log.acao}</span></td>
+                    <td style="padding:8px 10px; color:#ddd; font-size:0.85rem;">${log.detalhe || '-'}</td>
+                    <td style="padding:8px 10px; color:#888; font-size:0.78rem;">${log.ip || '-'}</td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ff4d4d;">Erro ao carregar logs de auditoria.</td></tr>';
+        }
+    };
 
     // ══════════════════════════════════════════════════════════════════════════════
     // MÓDULO WEBCAM — completamente autocontido, modal criado via JS

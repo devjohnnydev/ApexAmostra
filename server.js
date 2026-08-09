@@ -687,11 +687,25 @@ app.delete('/api/usuarios/:id', async (req, res) => {
     }
 });
 
-// ─── API: Fornecedores (CRUD) ─────────────────────────────────────────────────
+// ─── API: Fornecedores (CRUD com Paginação Server-side) ────────────────────────
 app.get('/api/fornecedores', async (req, res) => {
     try {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit) || 50;
+        const search = (req.query.search || '').trim().toLowerCase();
+
         if (dbAvailable) {
-            const result = await pool.query(`
+            let whereClause = '';
+            let params = [];
+            if (search) {
+                whereClause = `WHERE LOWER(nome) LIKE $1 OR LOWER(COALESCE(apelido,'')) LIKE $1 OR LOWER(COALESCE(cnpj,'')) LIKE $1 OR LOWER(COALESCE(email,'')) LIKE $1`;
+                params.push(`%${search}%`);
+            }
+
+            const countResult = await pool.query(`SELECT COUNT(*) FROM fornecedores ${whereClause}`, params);
+            const total = parseInt(countResult.rows[0].count);
+
+            let dataQuery = `
                 SELECT id, codfor, nome, apelido, fone1, fone2, whatsapp, celular,
                        tabela, concorrente, status_ok, dias, ultima_entrega,
                        tipo_pessoa, data_cadastro, endereco, numero, complemento,
@@ -699,11 +713,47 @@ app.get('/api/fornecedores', async (req, res) => {
                        comprador, email, condicao_pagamento, usuario_cadastro,
                        ultimo_alterou, dias_atraso, dias_previsao, filial,
                        criado_em, atualizado_em
-                FROM fornecedores ORDER BY nome ASC
-            `);
+                FROM fornecedores ${whereClause} ORDER BY nome ASC
+            `;
+
+            if (page) {
+                const offset = (page - 1) * limit;
+                dataQuery += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+                params.push(limit, offset);
+            }
+
+            const result = await pool.query(dataQuery, params);
+            if (page) {
+                return res.json({
+                    data: result.rows,
+                    total,
+                    page,
+                    totalPages: Math.ceil(total / limit)
+                });
+            }
             return res.json(result.rows);
+        } else {
+            let list = memStore.fornecedores || [];
+            if (search) {
+                list = list.filter(f => 
+                    (f.nome || '').toLowerCase().includes(search) ||
+                    (f.apelido || '').toLowerCase().includes(search) ||
+                    (f.cnpj || '').toLowerCase().includes(search) ||
+                    (f.email || '').toLowerCase().includes(search)
+                );
+            }
+            const total = list.length;
+            if (page) {
+                const start = (page - 1) * limit;
+                return res.json({
+                    data: list.slice(start, start + limit),
+                    total,
+                    page,
+                    totalPages: Math.ceil(total / limit)
+                });
+            }
+            res.json(list);
         }
-        res.json(memStore.fornecedores);
     } catch (err) {
         console.error('Erro ao buscar fornecedores:', err);
         res.status(500).json({ error: 'Erro ao buscar fornecedores.' });
@@ -1611,10 +1661,12 @@ async function registrarAuditLog(usuario, acao, detalhe, amostraId = null, req =
 app.get('/api/cotacoes/dolar-lme', async (req, res) => {
     try {
         let dolarVal = 5.60;
+        let dolarPctChange = 0;
         try {
             const apiRes = await axios.get('https://economia.awesomeapi.com.br/last/USD-BRL', { timeout: 3000 });
             if (apiRes.data && apiRes.data.USDBRL) {
                 dolarVal = parseFloat(apiRes.data.USDBRL.bid) || 5.60;
+                dolarPctChange = parseFloat(apiRes.data.USDBRL.pctChange) || 0;
             }
         } catch (e) {
             console.warn('Usando fallback para cotação do dólar (5.60 BRL):', e.message);
@@ -1636,8 +1688,12 @@ app.get('/api/cotacoes/dolar-lme', async (req, res) => {
             lmePrecosBrlKg[k] = parseFloat(((v / 1000) * dolarVal).toFixed(2));
         }
 
+        const variacaoAlta = Math.abs(dolarPctChange) >= 1.5;
+
         res.json({
             dolar: dolarVal,
+            dolar_pct_change: dolarPctChange,
+            variacao_alta: variacaoAlta,
             data: new Date().toISOString(),
             lme_usd_ton: lmePrecosUsd,
             lme_brl_kg: lmePrecosBrlKg
@@ -2622,15 +2678,18 @@ app.post('/api/lme/enviar-email-manual', async (req, res) => {
 app.post('/api/tabela-precos/enviar-email', async (req, res) => {
     try {
         let pdfBase64 = req.body && req.body.pdfBase64 ? req.body.pdfBase64 : null;
+        const modo = (req.body && req.body.modo) || 'fornecedor';
+        const emailDestino = (req.body && req.body.email) || null;
         if (!pdfBase64) {
-            console.log('📄 Gerando PDF da Tabela de Preços via Puppeteer no backend...');
-            pdfBase64 = await gerarPdfTabelaPrecosViaHeadless();
+            console.log(`📄 Gerando PDF da Tabela de Preços (${modo}) via Puppeteer no backend...`);
+            pdfBase64 = await gerarPdfTabelaPrecosViaHeadless(modo);
         }
         if (!pdfBase64) {
             return res.status(500).json({ error: 'Não foi possível obter ou gerar o PDF da tabela de preços.' });
         }
-        await enviarTabelaPrecosEmail(pdfBase64);
-        res.json({ success: true, message: 'Tabela de preços enviada com sucesso!' });
+        await enviarTabelaPrecosEmail(pdfBase64, modo, emailDestino);
+        const nomeModo = modo === 'completa' ? 'Geral Completa' : 'Fornecedor';
+        res.json({ success: true, message: `Tabela de preços (${nomeModo}) enviada por e-mail com sucesso!` });
     } catch (err) {
         console.error('Erro no envio da tabela de preços por e-mail:', err);
         res.status(500).json({ error: 'Erro ao enviar e-mail: ' + err.message });
@@ -3373,7 +3432,7 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     return response.data;
 }
 
-async function gerarPdfTabelaPrecosViaHeadless() {
+async function gerarPdfTabelaPrecosViaHeadless(modo = 'fornecedor') {
     const browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: true
@@ -3400,12 +3459,12 @@ async function gerarPdfTabelaPrecosViaHeadless() {
         });
 
         // Execute frontend helper that returns base64 PDF
-        const base64Pdf = await page.evaluate(async () => {
+        const base64Pdf = await page.evaluate(async (m) => {
             if (window.gerarPdfTabelaPrecosBase64) {
-                return await window.gerarPdfTabelaPrecosBase64();
+                return await window.gerarPdfTabelaPrecosBase64(m);
             }
             return null;
-        });
+        }, modo);
         
         return base64Pdf;
     } catch (e) {
@@ -3416,25 +3475,30 @@ async function gerarPdfTabelaPrecosViaHeadless() {
     }
 }
 
-async function enviarTabelaPrecosEmail(pdfBase64) {
+async function enviarTabelaPrecosEmail(pdfBase64, modo = 'fornecedor', emailDestino = null) {
     const config = await getResendConfig();
     if (!config.apiKey) {
         throw new Error('API Key do Resend não configurada. Preencha a chave no painel.');
     }
 
-    let recipients = [];
-    if (dbAvailable) {
-        const result = await pool.query('SELECT * FROM lme_destinatarios');
-        recipients = result.rows;
+    let emailsList = [];
+    if (emailDestino) {
+        emailsList = [emailDestino];
     } else {
-        recipients = memStore.lme_destinatarios;
-    }
+        let recipients = [];
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM lme_destinatarios');
+            recipients = result.rows;
+        } else {
+            recipients = memStore.lme_destinatarios;
+        }
 
-    if (recipients.length === 0) {
-        throw new Error('Nenhum destinatário cadastrado.');
-    }
+        if (recipients.length === 0) {
+            throw new Error('Nenhum destinatário cadastrado.');
+        }
 
-    const emailsList = recipients.map(r => r.email);
+        emailsList = recipients.map(r => r.email);
+    }
 
     // Format today's date for subject and body
     const spTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
@@ -3444,6 +3508,10 @@ async function enviarTabelaPrecosEmail(pdfBase64) {
     const year = localDate.getFullYear();
     const formattedDate = `${day}/${month}/${year}`;
 
+    const isCompleta = modo === 'completa';
+    const tituloTabela = isCompleta ? 'Tabela de Preços Geral Completa' : 'Tabela de Preços (Fornecedor)';
+    const nomeArquivo = isCompleta ? 'Tabela_de_Precos_Geral_Completa.pdf' : 'Tabela_de_Precos_Fornecedor.pdf';
+
     const html = `
     <!DOCTYPE html>
     <html>
@@ -3452,7 +3520,7 @@ async function enviarTabelaPrecosEmail(pdfBase64) {
     </head>
     <body style="background-color: #ffffff; padding: 20px; margin: 0; font-family: Arial, sans-serif; color: #333333;">
         <p>Olá,</p>
-        <p>Segue em anexo a <strong>Tabela de Preços Vigente</strong> da Apextech Metais.</p>
+        <p>Segue em anexo a <strong>${tituloTabela}</strong> vigente da Apextech Metais.</p>
         <p>Este documento foi aprovado pelo CEO Jose Tiago.</p>
         <br>
         <p>Atenciosamente,<br>Apextech Metais</p>
@@ -3463,17 +3531,17 @@ async function enviarTabelaPrecosEmail(pdfBase64) {
     const emailPayload = {
         from: config.from,
         to: emailsList,
-        subject: `📋 Tabela de Preços Vigente - Apextech Metais - ${formattedDate}`,
+        subject: `📋 ${tituloTabela} - Apextech Metais - ${formattedDate}`,
         html: html,
         attachments: []
     };
 
     if (pdfBase64) {
         emailPayload.attachments.push({
-            filename: `Tabela_de_Precos_Vigente.pdf`,
+            filename: nomeArquivo,
             content: pdfBase64
         });
-        console.log('📎 PDF da Tabela de Preços anexado com sucesso ao e-mail.');
+        console.log(`📎 PDF (${nomeArquivo}) anexado com sucesso ao e-mail.`);
     } else {
         console.warn('⚠️ Não foi possível anexar o PDF da Tabela de Preços.');
     }
@@ -3485,7 +3553,7 @@ async function enviarTabelaPrecosEmail(pdfBase64) {
         }
     });
 
-    console.log(`✅ Tabela de Preços enviada por e-mail via Resend para [${emailsList.join(', ')}]:`, response.data.id);
+    console.log(`✅ ${tituloTabela} enviada por e-mail via Resend para [${emailsList.join(', ')}]:`, response.data.id);
     return response.data;
 }
 
@@ -3965,14 +4033,64 @@ app.post('/api/lme/varialme', async (req, res) => {
 });
 
 
-// ─── CRUD Clientes ────────────────────────────────────────────────────────────
+// ─── CRUD Clientes (com Paginação Server-side) ─────────────────────────────────
 app.get('/api/clientes', async (req, res) => {
     try {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit) || 50;
+        const search = (req.query.search || '').trim().toLowerCase();
+
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM clientes ORDER BY nome ASC');
+            let whereClause = '';
+            let params = [];
+            if (search) {
+                whereClause = `WHERE LOWER(nome) LIKE $1 OR LOWER(COALESCE(fantasia,'')) LIKE $1 OR LOWER(COALESCE(cnpj,'')) LIKE $1 OR LOWER(COALESCE(cpf,'')) LIKE $1 OR LOWER(COALESCE(email,'')) LIKE $1`;
+                params.push(`%${search}%`);
+            }
+
+            const countResult = await pool.query(`SELECT COUNT(*) FROM clientes ${whereClause}`, params);
+            const total = parseInt(countResult.rows[0].count);
+
+            let dataQuery = `SELECT * FROM clientes ${whereClause} ORDER BY nome ASC`;
+            if (page) {
+                const offset = (page - 1) * limit;
+                dataQuery += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+                params.push(limit, offset);
+            }
+
+            const result = await pool.query(dataQuery, params);
+            if (page) {
+                return res.json({
+                    data: result.rows,
+                    total,
+                    page,
+                    totalPages: Math.ceil(total / limit)
+                });
+            }
             return res.json(result.rows);
+        } else {
+            let list = memStore.clientes || [];
+            if (search) {
+                list = list.filter(c => 
+                    (c.nome || '').toLowerCase().includes(search) ||
+                    (c.fantasia || '').toLowerCase().includes(search) ||
+                    (c.cnpj || '').toLowerCase().includes(search) ||
+                    (c.cpf || '').toLowerCase().includes(search) ||
+                    (c.email || '').toLowerCase().includes(search)
+                );
+            }
+            const total = list.length;
+            if (page) {
+                const start = (page - 1) * limit;
+                return res.json({
+                    data: list.slice(start, start + limit),
+                    total,
+                    page,
+                    totalPages: Math.ceil(total / limit)
+                });
+            }
+            res.json(list);
         }
-        res.json([]);
     } catch (err) {
         console.error('Erro ao buscar clientes:', err);
         res.status(500).json({ error: 'Erro ao buscar clientes.' });
