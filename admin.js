@@ -2279,81 +2279,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Salva Resend
         if (formResend) {
-            formResend.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const data = {
-                    lme_resend_api_key: resendApiKey.value.trim(),
-                    lme_resend_from:    resendFrom.value.trim()
-                };
+                resendApiKey.value = settings.lme_resend_api_key || '';
+                resendFrom.value   = settings.lme_resend_from   || 'josetiago@lme.lat';
 
-                try {
-                    const res = await fetch('/api/settings', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    if (res.ok) {
-                        _apexNotify('Sistema', '✅ Configurações do Resend salvas com sucesso!', 'info');
-                    } else {
-                        _apexNotify('Atenção', '❌ Erro ao salvar configurações do Resend.', 'error');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    _apexNotify('Atenção', '❌ Erro de rede ao salvar configurações do Resend.', 'error');
-                }
-            });
+                loadDestinatarios();
+            } catch (err) {
+                console.error('Erro ao carregar configurações LME:', err);
+            }
         }
 
-        // 4. Envio de Teste Manual
-        if (btnEnviarTest) {
-            btnEnviarTest.addEventListener('click', async () => {
-                testEmailMsg.style.display = 'block';
-                testEmailMsg.style.color = '#fff';
-                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando e-mail...';
-                btnEnviarTest.disabled = true;
-
-                try {
-                    const res = await fetch('/api/lme/enviar-email-manual', { method: 'POST' });
-                    const result = await res.json();
-                    if (res.ok) {
-                        testEmailMsg.style.color = '#2AD07A';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório enviado com sucesso!');
-                    } else {
-                        testEmailMsg.style.color = '#ff4d4d';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro desconhecido.');
-                    }
-                } catch (err) {
-                    testEmailMsg.style.color = '#ff4d4d';
-                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro ao conectar ao servidor.';
-                } finally {
-                    btnEnviarTest.disabled = false;
-                }
-            });
-        }
-
-        // 5. CRUD Destinatários
+        // 2. Carrega lista de destinatários
         async function loadDestinatarios() {
-            if (!listDest) return;
-            listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#888;">Carregando destinatários...</td></tr>';
-
             try {
                 const res = await fetch('/api/lme/destinatarios');
                 const items = await res.json();
                 listDest.innerHTML = '';
 
                 if (!items.length) {
-                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
+                    listDest.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
                     return;
                 }
 
                 items.forEach(d => {
+                    const recLme = d.recebe_lme !== false;
+                    const recTab = d.recebe_tabela !== false;
+                    const badges = [
+                        recLme ? '<span style="background:rgba(255,183,3,0.15); color:#ffb703; border:1px solid #ffb703; padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:600; margin-right:4px;"><i class="fa-solid fa-chart-line"></i> LME</span>' : '',
+                        recTab ? '<span style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:2px 7px; border-radius:4px; font-size:0.75rem; font-weight:600;"><i class="fa-solid fa-dollar-sign"></i> Tabela</span>' : ''
+                    ].filter(Boolean).join('') || '<span style="color:#777; font-size:0.75rem;">Nenhuma</span>';
+
                     const tr = document.createElement('tr');
                     tr.style.borderBottom = '1px solid #444';
                     tr.innerHTML = `
                         <td style="padding: 10px;">${d.nome}</td>
                         <td style="padding: 10px; color:#bbb;">${d.email}</td>
+                        <td style="padding: 10px; text-align: center;">${badges}</td>
                         <td style="padding: 10px; text-align: center;">
-                            <button class="btn-edit-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 10px; font-size:1.1rem;" title="Editar"><i class="fa-solid fa-edit"></i></button>
+                            <button class="btn-edit-dest" data-id="${d.id}" data-nome="${d.nome}" data-email="${d.email}" data-lme="${recLme}" data-tabela="${recTab}" style="background: none; border: none; color: #3498db; cursor: pointer; margin-right: 10px; font-size:1.1rem;" title="Editar"><i class="fa-solid fa-edit"></i></button>
                             <button class="btn-delete-dest" data-id="${d.id}" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size:1.1rem;" title="Remover"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
@@ -2384,6 +2346,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         destId.value = btn.dataset.id;
                         destNome.value = btn.dataset.nome;
                         destEmail.value = btn.dataset.email;
+                        if (destRecebeLme) destRecebeLme.checked = btn.dataset.lme === 'true';
+                        if (destRecebeTabela) destRecebeTabela.checked = btn.dataset.tabela === 'true';
                         destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
                         btnCancelDest.style.display = 'inline-block';
                         destNome.focus();
