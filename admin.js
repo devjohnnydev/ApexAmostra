@@ -10649,56 +10649,137 @@ window.carregarFinanceiroView = async function() {
             return;
         }
 
-        _apexNotify('Gerando PDF', 'Capturando gráficos e métricas da Central BI... Aguarde!', 'info');
+        _apexNotify('Gerando PDF', 'Formatando relatório BI com fundo claro institucional... Aguarde!', 'info');
 
         const btnPdf = biView.querySelector('button[onclick="exportarBIPDF()"]');
         if (btnPdf) btnPdf.style.visibility = 'hidden';
 
+        // Salvar estilo original para restaurar depois
+        const originalStyle = biView.getAttribute('style') || '';
+        
+        // Elementos internos para estilização temporária de alta clareza para o PDF
+        const cards = biView.querySelectorAll('.kpi-card, .dashboard-card, #pred-preview-box, [style*="background"]');
+        const originalCardStyles = [];
+        cards.forEach(el => {
+            originalCardStyles.push({ el, style: el.getAttribute('style') || '' });
+        });
+
+        const textEls = biView.querySelectorAll('h1, h2, h3, h4, p, span, div, strong, label, th, td');
+        const originalTextColors = [];
+        textEls.forEach(el => {
+            originalTextColors.push({ el, color: el.style.color });
+        });
+
         try {
+            // 1. Aplicar Tema Claro de Impressão Profissional (Fundo branco/off-white)
+            biView.style.background = '#ffffff';
+            biView.style.color = '#111827';
+            biView.style.padding = '20px';
+            biView.style.borderRadius = '0px';
+
+            cards.forEach(el => {
+                el.style.backgroundColor = '#f8fafc';
+                el.style.borderColor = '#cbd5e1';
+                el.style.boxShadow = 'none';
+            });
+
+            textEls.forEach(el => {
+                const computed = window.getComputedStyle(el).color;
+                // Se a cor do texto for muito clara ou branca, forçar escuro para legibilidade no PDF
+                if (computed.includes('255, 255, 255') || computed.includes('204, 204, 204') || computed.includes('170, 170, 170') || computed.includes('127, 168, 200')) {
+                    el.style.color = '#1e293b';
+                }
+            });
+
+            // Capturar o HTML renderizado em alta definição (Scale: 2)
             const canvas = await html2canvas(biView, {
                 scale: 2,
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#0c1926'
+                backgroundColor: '#ffffff'
             });
 
+            // 2. Restaurar estilos visuais da tela escura imediatamente
             if (btnPdf) btnPdf.style.visibility = 'visible';
+            biView.setAttribute('style', originalStyle);
+            originalCardStyles.forEach(item => item.el.setAttribute('style', item.style));
+            originalTextColors.forEach(item => item.el.style.color = item.color);
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            // 3. Montar PDF Multi-páginas com jsPDF
             const { jsPDF } = window.jspdf || {};
             if (!jsPDF) {
                 _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
                 return;
             }
 
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            const imgWidth = pdfWidth;
-            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+            // Configurar Margens Institucionais
+            const marginTop = 20;
+            const marginBottom = 15;
+            const contentWidth = pdfWidth - 20; // 10mm margem cada lado
+            const contentHeight = (canvas.height * contentWidth) / canvas.width;
 
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pdfHeight;
+            const pageCanvasHeight = ((pdfHeight - marginTop - marginBottom) * canvas.width) / contentWidth;
+            let heightLeft = canvas.height;
+            let sY = 0;
+            let pageNum = 1;
 
             while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pdfHeight;
+                if (pageNum > 1) pdf.addPage();
+
+                // Cabeçalho Institucional de topo em cada página
+                pdf.setFillColor(30, 78, 140);
+                pdf.rect(0, 0, pdfWidth, 14, 'F');
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(11);
+                pdf.text('APEX TECH METAIS — RELATÓRIO BI & DESEMPEHO OPERACIONAL', 10, 9);
+                pdf.setFontSize(8);
+                pdf.setFont('helvetica', 'normal');
+                const today = new Date();
+                const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+                pdf.text(`Emissão: ${dateStr}`, pdfWidth - 10, 9, { align: 'right' });
+
+                // Recorte exato da página sem esticar ou cortar
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = canvas.width;
+                pageCanvas.height = Math.min(pageCanvasHeight, heightLeft);
+                const ctx = pageCanvas.getContext('2d');
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                ctx.drawImage(canvas, 0, sY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+
+                const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.98);
+                const printHeight = (pageCanvas.height * contentWidth) / canvas.width;
+
+                pdf.addImage(pageImgData, 'JPEG', 10, marginTop, contentWidth, printHeight);
+
+                // Rodapé com numeração de página
+                pdf.setFontSize(8);
+                pdf.setTextColor(100, 116, 139);
+                pdf.text(`Página ${pageNum} | Central de Inteligência ApexTech`, pdfWidth / 2, pdfHeight - 6, { align: 'center' });
+
+                sY += pageCanvasHeight;
+                heightLeft -= pageCanvasHeight;
+                pageNum++;
             }
 
-            const today = new Date();
-            const dateStr = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
-            pdf.save(`Relatorio_BI_ApexTech_${dateStr}.pdf`);
+            const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+            pdf.save(`Relatorio_BI_ApexTech_${formattedDate}.pdf`);
 
-            _apexNotify('Sucesso', '✅ Relatório BI baixado em PDF com sucesso!', 'info');
+            _apexNotify('Sucesso', '✅ Relatório BI exportado em PDF nítido e limpo!', 'info');
+
         } catch (err) {
             console.error('Erro ao exportar PDF do BI:', err);
             if (btnPdf) btnPdf.style.visibility = 'visible';
+            biView.setAttribute('style', originalStyle);
+            originalCardStyles.forEach(item => item.el.setAttribute('style', item.style));
+            originalTextColors.forEach(item => item.el.style.color = item.color);
             _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
         }
     };
