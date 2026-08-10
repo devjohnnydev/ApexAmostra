@@ -10657,41 +10657,67 @@ window.carregarFinanceiroView = async function() {
         // Salvar estilo original para restaurar depois
         const originalStyle = biView.getAttribute('style') || '';
         
-        // Elementos internos para estilização temporária de alta clareza para o PDF
-        const cards = biView.querySelectorAll('.kpi-card, .dashboard-card, #pred-preview-box, [style*="background"]');
-        const originalCardStyles = [];
-        cards.forEach(el => {
-            originalCardStyles.push({ el, style: el.getAttribute('style') || '' });
+        // Guardar estilos originais para restauração pós-impressão
+        const allDynamicEls = biView.querySelectorAll('*');
+        const originalInlineStyles = new Map();
+        allDynamicEls.forEach(el => {
+            originalInlineStyles.set(el, el.getAttribute('style'));
         });
-
-        const textEls = biView.querySelectorAll('h1, h2, h3, h4, p, span, div, strong, label, th, td');
-        const originalTextColors = [];
-        textEls.forEach(el => {
-            originalTextColors.push({ el, color: el.style.color });
-        });
+        const originalBiViewStyle = biView.getAttribute('style');
 
         try {
-            // 1. Aplicar Tema Claro de Impressão Profissional (Fundo branco/off-white)
+            // 1. Aplicar Tema de Impressão de Altíssima Nitidez (Fundo 100% Branco Puro e sem Backgrounds em Cards)
             biView.style.background = '#ffffff';
-            biView.style.color = '#111827';
-            biView.style.padding = '20px';
+            biView.style.color = '#000000';
+            biView.style.padding = '15px';
             biView.style.borderRadius = '0px';
 
-            cards.forEach(el => {
-                el.style.backgroundColor = '#f8fafc';
-                el.style.borderColor = '#cbd5e1';
+            // Remover backgrounds de TODOS os cards, tabelas e contêineres internos
+            const elementsToClearBg = biView.querySelectorAll('.estoque-card, .kpi-card, .dashboard-card, table, thead, tr, th, td, div, section, header, .chart-container');
+            elementsToClearBg.forEach(el => {
+                el.style.backgroundColor = 'transparent';
+                el.style.background = 'none';
+            });
+
+            // Dar bordas limpas e elegantes aos cards KPI e de gráficos para estruturação sem poluição visual
+            const cardsBorder = biView.querySelectorAll('.estoque-card, .kpi-card');
+            cardsBorder.forEach(el => {
+                el.style.border = '1px solid #cbd5e1';
+                el.style.borderRadius = '6px';
                 el.style.boxShadow = 'none';
             });
 
-            textEls.forEach(el => {
-                const computed = window.getComputedStyle(el).color;
-                // Se a cor do texto for muito clara ou branca, forçar escuro para legibilidade no PDF
-                if (computed.includes('255, 255, 255') || computed.includes('204, 204, 204') || computed.includes('170, 170, 170') || computed.includes('127, 168, 200')) {
-                    el.style.color = '#1e293b';
+            // Ajustar o cabeçalho da tabela TOP 10 Produtos (removendo fundo escuro e aplicando fundo cinza institucional bem suave)
+            const tableHeaders = biView.querySelectorAll('thead tr, th');
+            tableHeaders.forEach(el => {
+                el.style.backgroundColor = '#f1f5f9';
+                el.style.color = '#0f172a';
+                el.style.fontWeight = '700';
+                el.style.borderBottom = '2px solid #94a3b8';
+            });
+
+            const tableRows = biView.querySelectorAll('tbody tr, td');
+            tableRows.forEach(el => {
+                el.style.borderBottom = '1px solid #e2e8f0';
+            });
+
+            // Ajustar cores de textos para ficarem 100% nítidos e legíveis
+            const allTextNodes = biView.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, strong, label, th, td');
+            allTextNodes.forEach(el => {
+                const comp = window.getComputedStyle(el).color;
+                // Se o texto for branco, cinza claro ou amarelado fraco, transformar em tom escuro de alta legibilidade
+                if (comp.includes('255, 255, 255') || comp.includes('170, 170, 170') || comp.includes('127, 168, 200') || comp.includes('240, 184, 0') || comp.includes('204, 204, 204')) {
+                    el.style.color = '#0f172a';
+                }
+                // Títulos e subtítulos principais em tom azul marinho escuro nítido
+                if (['H1','H2','H3','H4','STRONG'].includes(el.tagName)) {
+                    if (comp.includes('255, 255, 255') || comp.includes('15, 23, 42') || comp.includes('17, 24, 39')) {
+                        el.style.color = '#0f172a';
+                    }
                 }
             });
 
-            // Capturar o HTML renderizado em alta definição (Scale: 2)
+            // Capturar com html2canvas em altíssima definição (scale: 2)
             const canvas = await html2canvas(biView, {
                 scale: 2,
                 useCORS: true,
@@ -10701,9 +10727,14 @@ window.carregarFinanceiroView = async function() {
 
             // 2. Restaurar estilos visuais da tela escura imediatamente
             if (btnPdf) btnPdf.style.visibility = 'visible';
-            biView.setAttribute('style', originalStyle);
-            originalCardStyles.forEach(item => item.el.setAttribute('style', item.style));
-            originalTextColors.forEach(item => item.el.style.color = item.color);
+            if (originalBiViewStyle !== null) biView.setAttribute('style', originalBiViewStyle);
+            else biView.removeAttribute('style');
+
+            allDynamicEls.forEach(el => {
+                const orig = originalInlineStyles.get(el);
+                if (orig !== null && orig !== undefined) el.setAttribute('style', orig);
+                else el.removeAttribute('style');
+            });
 
             // 3. Montar PDF Multi-páginas com jsPDF
             const { jsPDF } = window.jspdf || {};
@@ -10777,9 +10808,14 @@ window.carregarFinanceiroView = async function() {
         } catch (err) {
             console.error('Erro ao exportar PDF do BI:', err);
             if (btnPdf) btnPdf.style.visibility = 'visible';
-            biView.setAttribute('style', originalStyle);
-            originalCardStyles.forEach(item => item.el.setAttribute('style', item.style));
-            originalTextColors.forEach(item => item.el.style.color = item.color);
+            if (originalBiViewStyle !== null) biView.setAttribute('style', originalBiViewStyle);
+            else biView.removeAttribute('style');
+
+            allDynamicEls.forEach(el => {
+                const orig = originalInlineStyles.get(el);
+                if (orig !== null && orig !== undefined) el.setAttribute('style', orig);
+                else el.removeAttribute('style');
+            });
             _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
         }
     };
