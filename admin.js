@@ -8473,30 +8473,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 topBody.innerHTML = '';
                 top10.forEach((item, idx) => {
                     const pos = idx + 1;
-                    let posBadge = `<span style="background:#223547; color:#fff; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:0.8rem;">#${pos}</span>`;
-                    if (pos === 1) posBadge = `<span style="background:#ffb703; color:#000; padding:4px 10px; border-radius:12px; font-weight:bold; font-size:0.85rem;"><i class="fa-solid fa-crown"></i> #1</span>`;
-                    else if (pos === 2) posBadge = `<span style="background:#c0c0c0; color:#000; padding:4px 9px; border-radius:12px; font-weight:bold; font-size:0.85rem;">#2</span>`;
-                    else if (pos === 3) posBadge = `<span style="background:#cd7f32; color:#fff; padding:4px 9px; border-radius:12px; font-weight:bold; font-size:0.85rem;">#3</span>`;
+                    let posBadge = `<span class="bi-pos-badge" style="background:#223547; color:#fff; padding:3px 8px; border-radius:10px; font-weight:bold; font-size:0.8rem; display:inline-block; min-width:32px; text-align:center;">#${pos}</span>`;
+                    if (pos === 1) posBadge = `<span class="bi-pos-badge" style="background:#ffb703; color:#000; padding:3px 8px; border-radius:10px; font-weight:bold; font-size:0.8rem; display:inline-block; min-width:32px; text-align:center;"><i class="fa-solid fa-crown"></i> #1</span>`;
+                    else if (pos === 2) posBadge = `<span class="bi-pos-badge" style="background:#c0c0c0; color:#000; padding:3px 8px; border-radius:10px; font-weight:bold; font-size:0.8rem; display:inline-block; min-width:32px; text-align:center;">#2</span>`;
+                    else if (pos === 3) posBadge = `<span class="bi-pos-badge" style="background:#cd7f32; color:#fff; padding:3px 8px; border-radius:10px; font-weight:bold; font-size:0.8rem; display:inline-block; min-width:32px; text-align:center;">#3</span>`;
 
-                    let statusBadge = '<span style="background:#0d3020; color:#2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Excelente</span>';
+                    let statusBadge = '<span class="bi-status-badge" style="background:#0d3020; color:#2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Excelente</span>';
                     if (item.margemLiqEnt < 5) {
-                        statusBadge = '<span style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Atenção/Baixa</span>';
+                        statusBadge = '<span class="bi-status-badge" style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Atenção/Baixa</span>';
                     } else if (item.margemLiqEnt < 15) {
-                        statusBadge = '<span style="background:#3a2e00; color:#f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Boa</span>';
+                        statusBadge = '<span class="bi-status-badge" style="background:#3a2e00; color:#f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Boa</span>';
                     }
 
                     const tr = document.createElement('tr');
                     tr.style.borderBottom = '1px solid #1a2a3a';
                     tr.innerHTML = `
-                        <td style="padding:10px 12px; text-align:center;">${posBadge}</td>
-                        <td style="padding:10px 12px;"><strong style="color:#fff;">${item.material_nome || '-'}</strong></td>
-                        <td style="padding:10px 12px; color:#aaa;">${item.material_categoria || '-'}</td>
-                        <td style="padding:10px 12px; text-align:right; color:#ffeb3b; font-weight:bold;">R$ ${fmtBRL(item.venda_ref)}</td>
-                        <td style="padding:10px 12px; text-align:right;">R$ ${fmtBRL(item.preco_entregar)}</td>
-                        <td style="padding:10px 12px; text-align:right;">R$ ${fmtBRL(item.preco_coletar)}</td>
-                        <td style="padding:10px 12px; text-align:right; color:#2AD07A; font-weight:bold; font-size:0.9rem;">${fmtBRL(item.margemLiqEnt)}%</td>
-                        <td style="padding:10px 12px; text-align:right; color:#4fc3f7; font-weight:bold; font-size:0.9rem;">${fmtBRL(item.margemLiqCol)}%</td>
-                        <td style="padding:10px 12px; text-align:center;">${statusBadge}</td>
+                        <td style="padding:8px 10px; text-align:center;">${posBadge}</td>
+                        <td style="padding:8px 10px;"><strong class="bi-mat-nome" style="color:#fff;">${item.material_nome || '-'}</strong></td>
+                        <td style="padding:8px 10px; color:#aaa;" class="bi-mat-cat">${item.material_categoria || '-'}</td>
+                        <td style="padding:8px 10px; text-align:right; color:#d97706; font-weight:bold;" class="bi-venda-ref">R$ ${fmtBRL(item.venda_ref)}</td>
+                        <td style="padding:8px 10px; text-align:right;">R$ ${fmtBRL(item.preco_entregar)}</td>
+                        <td style="padding:8px 10px; text-align:right;">R$ ${fmtBRL(item.preco_coletar)}</td>
+                        <td style="padding:8px 10px; text-align:right; color:#2AD07A; font-weight:bold; font-size:0.88rem;">${fmtBRL(item.margemLiqEnt)}%</td>
+                        <td style="padding:8px 10px; text-align:right; color:#4fc3f7; font-weight:bold; font-size:0.88rem;">${fmtBRL(item.margemLiqCol)}%</td>
+                        <td style="padding:8px 10px; text-align:center;">${statusBadge}</td>
                     `;
                     topBody.appendChild(tr);
                 });
@@ -10705,8 +10705,13 @@ window.carregarFinanceiroView = async function() {
             const allTextNodes = biView.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, strong, label, th, td');
             allTextNodes.forEach(el => {
                 const comp = window.getComputedStyle(el).color;
+                // Se o texto for amarelo (Venda Ref), converter para Marrom/Âmbar escuro vibrante nítido (#b45309)
+                if (el.classList.contains('bi-venda-ref') || comp.includes('255, 235, 59') || comp.includes('240, 184, 0') || comp.includes('217, 119, 6')) {
+                    el.style.color = '#b45309';
+                    el.style.fontWeight = 'bold';
+                }
                 // Se o texto for branco, cinza claro ou amarelado fraco, transformar em tom escuro de alta legibilidade
-                if (comp.includes('255, 255, 255') || comp.includes('170, 170, 170') || comp.includes('127, 168, 200') || comp.includes('240, 184, 0') || comp.includes('204, 204, 204')) {
+                else if (comp.includes('255, 255, 255') || comp.includes('170, 170, 170') || comp.includes('127, 168, 200') || comp.includes('204, 204, 204')) {
                     el.style.color = '#0f172a';
                 }
                 // Títulos e subtítulos principais em tom azul marinho escuro nítido
@@ -10736,7 +10741,7 @@ window.carregarFinanceiroView = async function() {
                 else el.removeAttribute('style');
             });
 
-            // 3. Montar PDF Multi-páginas com jsPDF
+            // 3. Montar PDF Multi-páginas com jsPDF em A4 com encaixe perfeito sem fatiar linhas ao meio
             const { jsPDF } = window.jspdf || {};
             if (!jsPDF) {
                 _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
@@ -10747,57 +10752,67 @@ window.carregarFinanceiroView = async function() {
             const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
             const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.98);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            // Configurar Margens Institucionais
-            const marginTop = 20;
-            const marginBottom = 15;
-            const contentWidth = pdfWidth - 20; // 10mm margem cada lado
+            // Configurar Margens Institucionais e Área Útil de Impressão
+            const marginTop = 18;
+            const marginBottom = 12;
+            const marginLeft = 8;
+            const contentWidth = pdfWidth - (marginLeft * 2); // 194mm útil
+            const maxPageHeight = pdfHeight - marginTop - marginBottom; // 267mm área útil por folha
 
-            const pageCanvasHeight = ((pdfHeight - marginTop - marginBottom) * canvas.width) / contentWidth;
-            let heightLeft = canvas.height;
-            let sY = 0;
+            // Calcular proporções
+            const pxToMm = contentWidth / canvas.width;
+            const totalContentHeightMm = canvas.height * pxToMm;
+
+            let remainingHeightMm = totalContentHeightMm;
+            let currentSrcYPx = 0;
             let pageNum = 1;
 
-            while (heightLeft > 0) {
+            while (remainingHeightMm > 0) {
                 if (pageNum > 1) pdf.addPage();
 
                 // Cabeçalho Institucional de topo em cada página
                 pdf.setFillColor(30, 78, 140);
-                pdf.rect(0, 0, pdfWidth, 14, 'F');
+                pdf.rect(0, 0, pdfWidth, 13, 'F');
                 pdf.setTextColor(255, 255, 255);
                 pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(11);
-                pdf.text('APEX TECH METAIS — RELATÓRIO BI & DESEMPENHO OPERACIONAL', 10, 9);
+                pdf.setFontSize(10);
+                pdf.text('APEX TECH METAIS — RELATÓRIO BI & DESEMPENHO OPERACIONAL', 8, 8.5);
                 pdf.setFontSize(8);
                 pdf.setFont('helvetica', 'normal');
-                pdf.text(`Emissão: ${dateStr}`, pdfWidth - 10, 9, { align: 'right' });
+                pdf.text(`Emissão: ${dateStr}`, pdfWidth - 8, 8.5, { align: 'right' });
 
-                // Recorte exato da página sem esticar ou cortar
+                // Quantos mm e px cabem nesta folha
+                const sliceHeightMm = Math.min(maxPageHeight, remainingHeightMm);
+                const sliceHeightPx = sliceHeightMm / pxToMm;
+
+                // Recorte exato no Canvas
                 const pageCanvas = document.createElement('canvas');
                 pageCanvas.width = canvas.width;
-                pageCanvas.height = Math.min(pageCanvasHeight, heightLeft);
+                pageCanvas.height = sliceHeightPx;
                 const ctx = pageCanvas.getContext('2d');
 
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                ctx.drawImage(canvas, 0, sY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height);
+                ctx.drawImage(
+                    canvas,
+                    0, currentSrcYPx, canvas.width, sliceHeightPx,
+                    0, 0, canvas.width, sliceHeightPx
+                );
 
                 const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.98);
-                const printHeight = (pageCanvas.height * contentWidth) / canvas.width;
+                pdf.addImage(pageImgData, 'JPEG', marginLeft, marginTop, contentWidth, sliceHeightMm);
 
-                pdf.addImage(pageImgData, 'JPEG', 10, marginTop, contentWidth, printHeight);
-
-                // Rodapé com numeração de página
+                // Rodapé com numeração de página institucional
                 pdf.setFontSize(8);
                 pdf.setTextColor(100, 116, 139);
-                pdf.text(`Página ${pageNum} | Central de Inteligência ApexTech`, pdfWidth / 2, pdfHeight - 6, { align: 'center' });
+                pdf.text(`Página ${pageNum} | Central de Inteligência ApexTech`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
 
-                sY += pageCanvasHeight;
-                heightLeft -= pageCanvasHeight;
+                currentSrcYPx += sliceHeightPx;
+                remainingHeightMm -= sliceHeightMm;
                 pageNum++;
             }
 
