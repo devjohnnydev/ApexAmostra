@@ -10712,6 +10712,10 @@ window.carregarFinanceiroView = async function() {
                 return;
             }
 
+            const today = new Date();
+            const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+            const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+
             const imgData = canvas.toDataURL('image/jpeg', 0.98);
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -10721,7 +10725,6 @@ window.carregarFinanceiroView = async function() {
             const marginTop = 20;
             const marginBottom = 15;
             const contentWidth = pdfWidth - 20; // 10mm margem cada lado
-            const contentHeight = (canvas.height * contentWidth) / canvas.width;
 
             const pageCanvasHeight = ((pdfHeight - marginTop - marginBottom) * canvas.width) / contentWidth;
             let heightLeft = canvas.height;
@@ -10737,11 +10740,9 @@ window.carregarFinanceiroView = async function() {
                 pdf.setTextColor(255, 255, 255);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(11);
-                pdf.text('APEX TECH METAIS — RELATÓRIO BI & DESEMPEHO OPERACIONAL', 10, 9);
+                pdf.text('APEX TECH METAIS — RELATÓRIO BI & DESEMPENHO OPERACIONAL', 10, 9);
                 pdf.setFontSize(8);
                 pdf.setFont('helvetica', 'normal');
-                const today = new Date();
-                const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
                 pdf.text(`Emissão: ${dateStr}`, pdfWidth - 10, 9, { align: 'right' });
 
                 // Recorte exato da página sem esticar ou cortar
@@ -10769,7 +10770,6 @@ window.carregarFinanceiroView = async function() {
                 pageNum++;
             }
 
-            const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
             pdf.save(`Relatorio_BI_ApexTech_${formattedDate}.pdf`);
 
             _apexNotify('Sucesso', '✅ Relatório BI exportado em PDF nítido e limpo!', 'info');
