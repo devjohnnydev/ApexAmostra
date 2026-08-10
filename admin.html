@@ -2870,7 +2870,7 @@
                     </div>
                     <div class="form-group">
                         <label>Condição de Pagamento</label>
-                        <select id="pedido-condicao" class="noble-input">
+                        <select id="pedido-condicao" class="noble-input" onchange="verificarCondicaoPersonalizada(this.value)">
                             <option value="À Vista">À Vista</option>
                             <option value="7 dias">7 dias</option>
                             <option value="14 dias">14 dias</option>
@@ -2880,7 +2880,9 @@
                             <option value="30/60 dias">30/60 dias</option>
                             <option value="30/60/90 dias">30/60/90 dias</option>
                             <option value="FIDC">FIDC</option>
+                            <option value="CUSTOM">Outro (Digitar Dias...)</option>
                         </select>
+                        <input type="text" id="pedido-condicao-custom" class="noble-input" style="display:none; margin-top:6px;" placeholder="Ex: 45 dias, 15/30/45 dias, 10 dias..." />
                     </div>
                     <div class="form-group">
                         <label>Observações</label>
@@ -2902,15 +2904,15 @@
                     </div>
                     <div style="overflow-x:auto;">
                         <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                            <thead id="itens-thead" style="display:none;">
+                            <thead id="itens-thead" style="display:table-header-group;">
                                 <tr style="background:#172635; color:#7fa8c8; text-align:left;">
-                                    <th style="padding:8px 4px;">Descrição / Material</th>
-                                    <th style="padding:8px 4px; width:60px; text-align:center;">Und</th>
-                                    <th style="padding:8px 4px; width:95px; text-align:right;">Qtd</th>
-                                    <th style="padding:8px 4px; width:115px; text-align:right;">Preço Unit.</th>
-                                    <th style="padding:8px 4px; width:80px; text-align:right;">Desc%</th>
-                                    <th style="padding:8px 4px; width:110px; text-align:right;">Total</th>
-                                    <th style="padding:8px 4px; width:40px;"></th>
+                                    <th style="padding:10px 8px;">Descrição / Material</th>
+                                    <th style="padding:10px 4px; width:70px; text-align:center;">Unidade (kg/un)</th>
+                                    <th style="padding:10px 4px; width:110px; text-align:right; color:#2AD07A;">Qtd / Peso (Kg)</th>
+                                    <th style="padding:10px 4px; width:120px; text-align:right;">Preço Unit. (R$)</th>
+                                    <th style="padding:10px 4px; width:85px; text-align:right;">Desc %</th>
+                                    <th style="padding:10px 4px; width:120px; text-align:right;">Total (R$)</th>
+                                    <th style="padding:10px 4px; width:40px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="itens-pedido-tbody"></tbody>

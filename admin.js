@@ -9945,6 +9945,10 @@ window.carregarFinanceiroView = async function() {
         if (modal) modal.style.display = 'flex';
 
         try { document.getElementById('form-pedido-venda')?.reset(); } catch(e){}
+        if (document.getElementById('pedido-condicao-custom')) {
+            document.getElementById('pedido-condicao-custom').style.display = 'none';
+            document.getElementById('pedido-condicao-custom').value = '';
+        }
         document.getElementById('pedido-id').value = '';
         document.getElementById('modal-pedido-titulo').textContent = 'Novo Pedido de Venda';
         document.getElementById('pedido-data-emissao').value = new Date().toISOString().split('T')[0];
@@ -10127,12 +10131,59 @@ window.carregarFinanceiroView = async function() {
 
         document.getElementById('pedido-cliente-card').style.display = 'block';
         if (c.condicao_pagamento) {
-            const sel = document.getElementById('pedido-condicao');
-            for (let i=0; i<sel.options.length; i++) {
-                if (sel.options[i].value === c.condicao_pagamento) { sel.selectedIndex=i; break; }
-            }
+            definirCondicaoPagamento(c.condicao_pagamento);
         }
     };
+
+    window.verificarCondicaoPersonalizada = function(val) {
+        const inputCustom = document.getElementById('pedido-condicao-custom');
+        if (!inputCustom) return;
+        if (val === 'CUSTOM') {
+            inputCustom.style.display = 'block';
+            inputCustom.focus();
+        } else {
+            inputCustom.style.display = 'none';
+        }
+    };
+
+    function obterCondicaoPagamento() {
+        const sel = document.getElementById('pedido-condicao');
+        if (!sel) return '';
+        if (sel.value === 'CUSTOM') {
+            const customVal = (document.getElementById('pedido-condicao-custom')?.value || '').trim();
+            if (!customVal) return 'A Combinar';
+            return customVal.toLowerCase().includes('dia') ? customVal : customVal + ' dias';
+        }
+        return sel.value;
+    }
+
+    function definirCondicaoPagamento(val) {
+        const sel = document.getElementById('pedido-condicao');
+        const inputCustom = document.getElementById('pedido-condicao-custom');
+        if (!sel) return;
+        if (!val) {
+            sel.selectedIndex = 0;
+            if (inputCustom) inputCustom.style.display = 'none';
+            return;
+        }
+        let achou = false;
+        for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === val) {
+                sel.selectedIndex = i;
+                achou = true;
+                break;
+            }
+        }
+        if (!achou) {
+            sel.value = 'CUSTOM';
+            if (inputCustom) {
+                inputCustom.style.display = 'block';
+                inputCustom.value = val;
+            }
+        } else {
+            if (inputCustom) inputCustom.style.display = 'none';
+        }
+    }
 
     window.limparClientePedido = function() {
         document.getElementById('pedido-cliente-id').value = '';
@@ -10162,7 +10213,9 @@ window.carregarFinanceiroView = async function() {
 
     function renderItensPedido() {
         const tbody = document.getElementById('itens-pedido-tbody');
+        const meud = document.getElementById('itens-thead');
         const vazio  = document.getElementById('itens-vazio');
+        if (meud) meud.style.display = 'table-header-group';
         if (!tbody) return;
         if (itensPedido.length === 0) {
             tbody.innerHTML = '';
@@ -10173,25 +10226,25 @@ window.carregarFinanceiroView = async function() {
         tbody.innerHTML = itensPedido.map((it,i) => `
             <tr style="border-bottom:1px solid #1a2a3a;">
                 <td style="padding:6px 4px;">
-                    <input value="${it.descricao||''}" onchange="atualizarItemPedido(${i},'descricao',this.value)" class="noble-input" style="width:100%; padding:5px 8px; font-size:0.82rem;" placeholder="Ex: Fio de cobre 4mm" />
+                    <input value="${it.descricao||''}" onchange="atualizarItemPedido(${i},'descricao',this.value)" class="noble-input" style="width:100%; padding:5px 8px; font-size:0.82rem;" placeholder="Ex: Sucata de Cobre / Alumínio" />
                 </td>
                 <td style="padding:6px 4px; text-align:center;">
-                    <select onchange="atualizarItemPedido(${i},'unidade',this.value)" class="noble-input" style="padding:5px 4px; font-size:0.82rem; width:56px;">
+                    <select onchange="atualizarItemPedido(${i},'unidade',this.value)" class="noble-input" style="padding:5px 4px; font-size:0.82rem; width:65px;">
                         ${['kg','t','un','m','m²','L'].map(u=>`<option value="${u}" ${it.unidade===u?'selected':''}>${u}</option>`).join('')}
                     </select>
                 </td>
                 <td style="padding:6px 4px;">
-                    <input type="number" min="0" step="0.001" value="${it.quantidade||0}" onchange="atualizarItemPedido(${i},'quantidade',this.value)" class="noble-input" style="width:85px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
+                    <input type="number" min="0" step="0.001" value="${it.quantidade||''}" placeholder="Ex: 50.5" onchange="atualizarItemPedido(${i},'quantidade',this.value)" class="noble-input" style="width:100px; text-align:right; padding:5px 8px; font-size:0.82rem; font-weight:600; border-color:#1e4e8c;" />
                 </td>
                 <td style="padding:6px 4px;">
-                    <input type="number" min="0" step="0.0001" value="${it.preco_unitario||0}" onchange="atualizarItemPedido(${i},'preco_unitario',this.value)" class="noble-input" style="width:105px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
+                    <input type="number" min="0" step="0.0001" value="${it.preco_unitario||''}" placeholder="R$ 0,00" onchange="atualizarItemPedido(${i},'preco_unitario',this.value)" class="noble-input" style="width:110px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
                 </td>
                 <td style="padding:6px 4px;">
                     <input type="number" min="0" max="100" step="0.01" value="${it.desconto_item||0}" onchange="atualizarItemPedido(${i},'desconto_item',this.value)" class="noble-input" style="width:75px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
                 </td>
                 <td style="padding:6px 4px; text-align:right; color:#2AD07A; font-weight:600;">${fmtR(it.total_item)}</td>
                 <td style="padding:6px 4px; text-align:center;">
-                    <button type="button" onclick="removerItemPedido(${i})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="removerItemPedido(${i})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1rem;" title="Remover Item"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -10227,7 +10280,7 @@ window.carregarFinanceiroView = async function() {
             data_emissao:            document.getElementById('pedido-data-emissao').value,
             data_entrega:            document.getElementById('pedido-data-entrega').value || null,
             status:                  document.getElementById('pedido-status').value,
-            condicao_pagamento:      document.getElementById('pedido-condicao').value,
+            condicao_pagamento:      obterCondicaoPagamento(),
             observacoes:             document.getElementById('pedido-obs').value,
             desconto_pct:            parseFloat(document.getElementById('pedido-desconto').value)||0,
             frete:                   parseFloat(document.getElementById('pedido-frete').value)||0,
@@ -10241,16 +10294,20 @@ window.carregarFinanceiroView = async function() {
 
         const id  = document.getElementById('pedido-id').value;
         const url = id ? `/api/pedidos-venda/${id}` : '/api/pedidos-venda';
-        const met = id ? 'PUT' : 'POST';
+        const method = id ? 'PUT' : 'POST';
 
         try {
-            const res = await fetch(url, { method:met, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-            if (!res.ok) { const err=await res.json(); _apexNotify('Atenção', 'Erro: '+(err.error||res.status), 'error'); return; }
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar pedido');
             _apexNotify('Sucesso', 'Pedido de Venda salvo com sucesso!', 'success');
             fecharModalPedido();
             await carregarPedidos();
         } catch(err) {
-            _apexNotify('Atenção', 'Erro ao salvar pedido: '+err.message, 'error');
+            _apexNotify('Atenção', 'Não foi possível salvar o pedido: '+err.message, 'error');
         }
     };
 
