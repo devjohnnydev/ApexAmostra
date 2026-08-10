@@ -8676,13 +8676,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.selecionarCenarioRadio = function(cenario) {
         cenarioPreditivoSelecionado = cenario;
-        ['conservador', 'moderado', 'agressivo'].forEach(c => {
+        ['conservador', 'moderado', 'agressivo', 'custom'].forEach(c => {
             const card = document.getElementById(`card-cenario-${c}`);
             const rad = document.getElementById(`rad-cenario-${c}`);
             if (card) {
                 if (c === cenario) {
                     card.classList.add('active');
-                    card.style.borderColor = '#7a4fd4';
+                    card.style.borderColor = c === 'custom' ? '#e91e63' : '#7a4fd4';
                     if (rad) rad.checked = true;
                 } else {
                     card.classList.remove('active');
@@ -8691,6 +8691,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        const boxCustom = document.getElementById('box-expansao-custom');
+        if (boxCustom) {
+            boxCustom.style.display = cenario === 'custom' ? 'block' : 'none';
+        }
+
         window.atualizarPreviewPreditivo();
     };
 
@@ -8713,6 +8719,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let multVol = 1.0;
         if (cenario === 'conservador') multVol = 0.90;
         if (cenario === 'agressivo') multVol = 1.20;
+        if (cenario === 'custom') {
+            const expPct = parseFloat(document.getElementById('pred-expansao-pct')?.value || 0);
+            multVol = 1 + (expPct / 100);
+        }
 
         const volEst = Math.round(volBase * multVol);
         const custoEst = custoBase * multVol;
@@ -8760,6 +8770,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let multVol = 1.0;
             if (cenario === 'conservador') multVol = 0.90;
             if (cenario === 'agressivo') multVol = 1.20;
+            if (cenario === 'custom') {
+                const expPct = parseFloat(document.getElementById('pred-expansao-pct')?.value || 0);
+                multVol = 1 + (expPct / 100);
+            }
 
             const novosLotesProjetados = [
                 {

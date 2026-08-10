@@ -3731,27 +3731,45 @@
 
                 <div class="form-group" style="margin-top:15px;">
                     <label style="color:#fff; font-weight:600;">Selecione o Cenário de Projeção:</label>
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:8px;">
-                        <label id="card-cenario-conservador" class="cenario-card" style="cursor:pointer; background:#12212f; border:2px solid #1e4e8c; padding:12px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('conservador')">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-top:8px;">
+                        <label id="card-cenario-conservador" class="cenario-card" style="cursor:pointer; background:#12212f; border:2px solid #1e4e8c; padding:10px 6px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('conservador')">
                             <input type="radio" name="cenario-preditivo" id="rad-cenario-conservador" value="conservador" style="display:none;">
-                            <div style="font-size:1.2rem; margin-bottom:4px;">🛡️</div>
-                            <strong style="color:#3e7cb1; display:block; font-size:0.88rem;">Conservador</strong>
-                            <span style="font-size:0.75rem; color:#aaa; display:block; margin-top:4px;">-10% Volume<br>+5% Margem</span>
+                            <div style="font-size:1.1rem; margin-bottom:2px;">🛡️</div>
+                            <strong style="color:#3e7cb1; display:block; font-size:0.82rem;">Conservador</strong>
+                            <span style="font-size:0.72rem; color:#aaa; display:block; margin-top:2px;">-10% Vol.<br>+5% Margem</span>
                         </label>
 
-                        <label id="card-cenario-moderado" class="cenario-card active" style="cursor:pointer; background:#12212f; border:2px solid #7a4fd4; padding:12px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('moderado')">
+                        <label id="card-cenario-moderado" class="cenario-card active" style="cursor:pointer; background:#12212f; border:2px solid #7a4fd4; padding:10px 6px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('moderado')">
                             <input type="radio" name="cenario-preditivo" id="rad-cenario-moderado" value="moderado" checked style="display:none;">
-                            <div style="font-size:1.2rem; margin-bottom:4px;">⚖️</div>
-                            <strong style="color:#2AD07A; display:block; font-size:0.88rem;">Moderado</strong>
-                            <span style="font-size:0.75rem; color:#aaa; display:block; margin-top:4px;">Média Histórica<br>Risco Neutro</span>
+                            <div style="font-size:1.1rem; margin-bottom:2px;">⚖️</div>
+                            <strong style="color:#2AD07A; display:block; font-size:0.82rem;">Moderado</strong>
+                            <span style="font-size:0.72rem; color:#aaa; display:block; margin-top:2px;">Média Hist.<br>Neutro</span>
                         </label>
 
-                        <label id="card-cenario-agressivo" class="cenario-card" style="cursor:pointer; background:#12212f; border:2px solid #1e4e8c; padding:12px; border-radius:8px; text-align:center; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('agressivo')">
+                        <label id="card-cenario-agressivo" class="cenario-card" style="cursor:pointer; background:#12212f; border:2px solid #1e4e8c; padding:10px 6px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('agressivo')">
                             <input type="radio" name="cenario-preditivo" id="rad-cenario-agressivo" value="agressivo" style="display:none;">
-                            <div style="font-size:1.2rem; margin-bottom:4px;">🚀</div>
-                            <strong style="color:#e07b39; display:block; font-size:0.88rem;">Agressivo</strong>
-                            <span style="font-size:0.75rem; color:#aaa; display:block; margin-top:4px;">+20% Volume<br>Expansão</span>
+                            <div style="font-size:1.1rem; margin-bottom:2px;">🚀</div>
+                            <strong style="color:#e07b39; display:block; font-size:0.82rem;">Agressivo</strong>
+                            <span style="font-size:0.72rem; color:#aaa; display:block; margin-top:2px;">+20% Vol.<br>Expansão</span>
                         </label>
+
+                        <label id="card-cenario-custom" class="cenario-card" style="cursor:pointer; background:#12212f; border:2px solid #1e4e8c; padding:10px 6px; border-radius:8px; text-align:center; transition:all 0.2s;" onclick="selecionarCenarioRadio('custom')">
+                            <input type="radio" name="cenario-preditivo" id="rad-cenario-custom" value="custom" style="display:none;">
+                            <div style="font-size:1.1rem; margin-bottom:2px;">🎯</div>
+                            <strong style="color:#e91e63; display:block; font-size:0.82rem;">Personalizado</strong>
+                            <span style="font-size:0.72rem; color:#aaa; display:block; margin-top:2px;">Defina % de<br>Expansão</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Campo de porcentagem personalizada caso selecione 'Personalizado' -->
+                <div id="box-expansao-custom" style="display:none; background:#162434; border:1px dashed #e91e63; border-radius:8px; padding:12px; margin-top:12px;">
+                    <label style="color:#fff; font-size:0.85rem; font-weight:600; display:block; margin-bottom:6px;">
+                        <i class="fa-solid fa-chart-line" style="color:#e91e63;"></i> Quanto você quer expandir/variar a operação? (%)
+                    </label>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <input type="number" id="pred-expansao-pct" class="noble-input" value="30" step="1" placeholder="Ex: 30" style="width:120px; font-weight:bold; font-size:1.1rem; color:#e91e63; text-align:center;" oninput="atualizarPreviewPreditivo()" />
+                        <span style="color:#aaa; font-size:0.82rem;">% (Use positivo para expanção, ex: <strong>+30%</strong> ou negativo para redução, ex: <strong>-15%</strong>)</span>
                     </div>
                 </div>
 
