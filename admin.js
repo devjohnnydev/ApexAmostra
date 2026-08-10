@@ -9209,6 +9209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch(e) {}
         }
     }
+    window.aplicarMarcaDaguaLogoJsPDF = aplicarMarcaDaguaLogoJsPDF;
 
     window.salvarPlanejamento = async function(e) {
         e.preventDefault();
@@ -10840,7 +10841,9 @@ window.carregarFinanceiroView = async function() {
             }
 
             // Aplicar marca d'água oficial com logo em todas as páginas do PDF
-            await aplicarMarcaDaguaLogoJsPDF(pdf);
+            if (typeof window.aplicarMarcaDaguaLogoJsPDF === 'function') {
+                await window.aplicarMarcaDaguaLogoJsPDF(pdf);
+            }
 
             pdf.save(`Relatorio_BI_ApexTech_${formattedDate}.pdf`);
 
