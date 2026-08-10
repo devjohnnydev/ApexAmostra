@@ -10701,6 +10701,29 @@ window.carregarFinanceiroView = async function() {
                 el.style.borderBottom = '1px solid #e2e8f0';
             });
 
+            // Ajustar especificamente as badges de Posição (#4 em diante) e Status no PDF
+            const posBadges = biView.querySelectorAll('.bi-pos-badge');
+            posBadges.forEach(el => {
+                const txt = el.textContent || '';
+                // Manter cores especiais só do pódio (#1 ouro, #2 prata, #3 bronze)
+                if (!txt.includes('#1') && !txt.includes('#2') && !txt.includes('#3')) {
+                    el.style.backgroundColor = 'transparent';
+                    el.style.background = 'none';
+                    el.style.color = '#0f172a';
+                    el.style.border = '1px solid #cbd5e1';
+                }
+            });
+
+            const statusBadges = biView.querySelectorAll('.bi-status-badge');
+            statusBadges.forEach(el => {
+                el.style.backgroundColor = 'transparent';
+                el.style.background = 'none';
+                el.style.border = '1px solid #cbd5e1';
+                if (el.textContent.includes('Excelente')) el.style.color = '#15803d';
+                else if (el.textContent.includes('Boa')) el.style.color = '#b45309';
+                else el.style.color = '#b91c1c';
+            });
+
             // Ajustar cores de textos para ficarem 100% nítidos e legíveis
             const allTextNodes = biView.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, strong, label, th, td');
             allTextNodes.forEach(el => {
@@ -10710,8 +10733,8 @@ window.carregarFinanceiroView = async function() {
                     el.style.color = '#b45309';
                     el.style.fontWeight = 'bold';
                 }
-                // Se o texto for branco, cinza claro ou amarelado fraco, transformar em tom escuro de alta legibilidade
-                else if (comp.includes('255, 255, 255') || comp.includes('170, 170, 170') || comp.includes('127, 168, 200') || comp.includes('204, 204, 204')) {
+                // Se o texto for branco, cinza claro ou amarelado fraco, transformar em tom escuro de alta legibilidade (respeitando se for badge)
+                else if (!el.classList.contains('bi-pos-badge') && (comp.includes('255, 255, 255') || comp.includes('170, 170, 170') || comp.includes('127, 168, 200') || comp.includes('204, 204, 204'))) {
                     el.style.color = '#0f172a';
                 }
                 // Títulos e subtítulos principais em tom azul marinho escuro nítido
