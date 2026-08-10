@@ -9178,35 +9178,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const logo = await getLogoWatermarkBase64JsPDF();
         if (!logo) return;
         
-        if (doc.GState && doc.setGState) {
-            try {
-                doc.setGState(new doc.GState({ opacity: 0.08 }));
-            } catch(e) {}
-        }
-        
         const pageCount = doc.internal.getNumberOfPages();
         for (let p = 1; p <= pageCount; p++) {
             doc.setPage(p);
+            
+            if (doc.GState && doc.setGState) {
+                try {
+                    doc.setGState(new doc.GState({ opacity: 0.04 }));
+                } catch(e) {}
+            }
+            
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
-            const imgW = 45;
-            const imgH = 35;
-            const stepX = 65;
-            const stepY = 55;
+            const imgW = 100;
+            const imgH = 75;
+            const x = (pw - imgW) / 2;
+            const y = (ph - imgH) / 2;
             
-            for (let y = 10; y < ph; y += stepY) {
-                for (let x = 10; x < pw; x += stepX) {
-                    try {
-                        doc.addImage(logo, 'PNG', x, y, imgW, imgH);
-                    } catch(err) {}
-                }
-            }
-        }
-        
-        if (doc.GState && doc.setGState) {
             try {
-                doc.setGState(new doc.GState({ opacity: 1.0 }));
-            } catch(e) {}
+                doc.addImage(logo, 'PNG', x, y, imgW, imgH);
+            } catch(err) {}
+
+            if (doc.GState && doc.setGState) {
+                try {
+                    doc.setGState(new doc.GState({ opacity: 1.0 }));
+                } catch(e) {}
+            }
         }
     }
     window.aplicarMarcaDaguaLogoJsPDF = aplicarMarcaDaguaLogoJsPDF;
