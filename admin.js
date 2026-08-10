@@ -10839,6 +10839,9 @@ window.carregarFinanceiroView = async function() {
                 pageNum++;
             }
 
+            // Aplicar marca d'água oficial com logo em todas as páginas do PDF
+            await aplicarMarcaDaguaLogoJsPDF(pdf);
+
             pdf.save(`Relatorio_BI_ApexTech_${formattedDate}.pdf`);
 
             _apexNotify('Sucesso', '✅ Relatório BI exportado em PDF nítido e limpo!', 'info');
