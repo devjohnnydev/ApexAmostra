@@ -2279,10 +2279,7 @@
                         <i class="fa-solid fa-clock" style="color:#ffb74d;"></i> 5. Prazos & Estoque Mínimo
                     </button>
                     <button type="button" class="btn-subtab" id="tab-btn-pl-cenarios" onclick="alternarSubAbaPlanejamento('cenarios')" style="background:#101a24; color:#aaa; border:1px solid #2AD07A; border-bottom:none; padding:9px 15px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:700; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-bullseye" style="color:#2AD07A;"></i> 7. Cenários & Simulação (16-22)
-                    </button>
-                    <button type="button" class="btn-subtab" id="tab-btn-pl-pcp-futuro" onclick="alternarSubAbaPlanejamento('pcp-futuro')" style="background:#101a24; color:#666; border:1px solid #334455; border-bottom:none; padding:9px 15px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:600; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;" title="Roadmap para Fase 2">
-                        <i class="fa-solid fa-gear" style="color:#888;"></i> 6. Fase Futura (PCP Industrial)
+                        <i class="fa-solid fa-bullseye" style="color:#2AD07A;"></i> 6. Cenários & Simulação
                     </button>
                 </div>
 
@@ -2457,6 +2454,40 @@
                             <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-sack-dollar" style="color:#9b59b6;"></i> Planejamento Financeiro & Projeção de Caixa</h3>
                             <span style="font-size:0.8rem; color:#aaa;">Demonstrativo dos recursos financeiros necessários para realizar as próximas compras no período subsequente.</span>
                         </div>
+                    </div>
+
+                    <!-- FORMULÁRIO DE ENTRADA MANUAL DE PROJEÇÃO DE CAIXA -->
+                    <div class="kpi-card" style="padding:18px; background:#12212f; border:1px solid #9b59b6; border-radius:8px; margin-bottom:18px;">
+                        <h4 style="margin:0 0 12px 0; color:#9b59b6;"><i class="fa-solid fa-plus-circle"></i> Registrar Projeção de Caixa para o Próximo Período</h4>
+                        <form id="form-projecao-caixa" onsubmit="salvarProjecaoCaixaForm(event)">
+                            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap:12px; align-items:end;">
+                                <div>
+                                    <label style="font-size:0.78rem; color:#aaa; margin-bottom:3px; display:block;">Mês Referência *</label>
+                                    <input type="month" id="cx-mes" class="noble-input" required>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.78rem; color:#aaa; margin-bottom:3px; display:block;">Produto / Material *</label>
+                                    <select id="cx-produto-id" class="noble-input" required>
+                                        <option value="">Selecione o Material...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.78rem; color:#aaa; margin-bottom:3px; display:block;">Qtd Prevista (kg) *</label>
+                                    <input type="number" step="0.001" id="cx-qtd-kg" class="noble-input" required placeholder="Ex: 50000" oninput="calcularProjecaoCaixaTotal()">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.78rem; color:#aaa; margin-bottom:3px; display:block;">Preço Unit. (R$/kg) *</label>
+                                    <input type="number" step="0.01" id="cx-preco-unit" class="noble-input" required placeholder="Ex: 28.50" oninput="calcularProjecaoCaixaTotal()">
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn-primary" style="height:38px; white-space:nowrap; padding:0 18px;"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                                </div>
+                            </div>
+                            <div style="margin-top:10px; display:flex; align-items:center; gap:20px;">
+                                <span style="font-size:0.82rem; color:#aaa;">Desembolso calculado:</span>
+                                <strong id="cx-total-preview" style="color:#9b59b6; font-size:1.1rem;">R$ 0,00</strong>
+                            </div>
+                        </form>
                     </div>
 
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
@@ -5108,7 +5139,7 @@
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px;">
                     <div class="form-group">
                         <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Estoque Mínimo (kg)</label>
                         <input type="number" step="0.001" id="prazos-est-min" class="noble-input" placeholder="Ex: 5000">
@@ -5116,6 +5147,10 @@
                     <div class="form-group">
                         <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Estoque Segurança (kg)</label>
                         <input type="number" step="0.001" id="prazos-est-seg" class="noble-input" placeholder="Ex: 10000">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Prazo Permanência (Dias)</label>
+                        <input type="number" id="prazos-permanencia" class="noble-input" value="30">
                     </div>
                 </div>
 

@@ -4153,10 +4153,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await resForn.value.json();
                 if (data && data.data && Array.isArray(data.data)) {
                     localFornecedores = data.data;
+                    window.localFornecedores = localFornecedores;
                     fornTotalReg = data.total;
                     fornTotalPaginas = data.totalPages || 1;
                 } else if (Array.isArray(data)) {
                     localFornecedores = data;
+                    window.localFornecedores = localFornecedores;
                     fornTotalReg = data.length;
                     fornTotalPaginas = 1;
                 }
@@ -4605,6 +4607,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch('/api/materiais-catalogo');
             localMateriais = await res.json();
+            window.localMateriais = localMateriais;
             renderMateriais();
             popularSeletoresCategorias();
             popularSeletoresMateriais();
@@ -8756,12 +8759,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Lotes padrão para preencher a projeção caso não haja histórico suficiente
-            const fornecedoresList = localFornecedores.length > 0 ? localFornecedores : [
+            const fornecedoresList = (window.localFornecedores || []).length > 0 ? window.localFornecedores : [
                 { id: 1, nome: 'Fornecedor Sucatas A' },
                 { id: 2, nome: 'Reciclagem Metal B' },
                 { id: 3, nome: 'Metalúrgica Centro C' }
             ];
-            const materiaisList = localMateriais.length > 0 ? localMateriais : [
+            const materiaisList = (window.localMateriais || []).length > 0 ? window.localMateriais : [
                 { id: 1, nome: 'Alumínio Bloco', categoria: 'Alumínio' },
                 { id: 2, nome: 'Cobre Mel', categoria: 'Cobre' },
                 { id: 3, nome: 'Sucata Miúda', categoria: 'Aço' }
@@ -9261,7 +9264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.alternarSubAbaPlanejamento = function(aba) {
         subAbaPlanejamentoAtual = aba;
 
-        const subtabs = ['producao-insumos', 'compras', 'realizado', 'caixa', 'prazos', 'cenarios', 'pcp-futuro'];
+        const subtabs = ['producao-insumos', 'compras', 'realizado', 'caixa', 'prazos', 'cenarios'];
         subtabs.forEach(t => {
             const btn = document.getElementById(`tab-btn-pl-${t}`);
             const view = document.getElementById(`pl-subview-${t}`);
@@ -9456,32 +9459,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.abrirModalPlanejamentoCompra = async function(tipoFix) {
-        if (!localFornecedores || localFornecedores.length === 0) {
+        let _forns = window.localFornecedores || [];
+        if (_forns.length === 0) {
             try {
                 const res = await fetch('/api/fornecedores?limit=200');
                 if (res.ok) {
                     const data = await res.json();
-                    localFornecedores = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
-                    window.localFornecedores = localFornecedores;
+                    _forns = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+                    window.localFornecedores = _forns;
                 }
             } catch(e){}
         }
 
-        if (!localMateriais || localMateriais.length === 0) {
+        let _mats = window.localMateriais || [];
+        if (_mats.length === 0) {
             try {
                 const res = await fetch('/api/materiais-catalogo');
                 if (res.ok) {
                     const data = await res.json();
-                    localMateriais = Array.isArray(data) ? data : [];
-                    window.localMateriais = localMateriais;
+                    _mats = Array.isArray(data) ? data : [];
+                    window.localMateriais = _mats;
                 }
             } catch(e){}
         }
 
         const selMat = document.getElementById('mrp-material-id');
         const selForn = document.getElementById('mrp-fornecedor-id');
-        const listMat = (localMateriais && localMateriais.length > 0) ? localMateriais : (window.localMateriais || []);
-        const listForn = (localFornecedores && localFornecedores.length > 0) ? localFornecedores : (window.localFornecedores || []);
+        const listMat = _mats;
+        const listForn = _forns;
 
         if (selMat) {
             selMat.innerHTML = '<option value="">Selecione o Material...</option>' +
@@ -9677,23 +9682,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.abrirModalPlanejamentoProducao = async function() {
-        if (!localMateriais || localMateriais.length === 0) {
+        // Garante acesso cross-IIFE a localMateriais
+        let _mats = window.localMateriais || [];
+        if (_mats.length === 0) {
             try {
                 const res = await fetch('/api/materiais-catalogo');
-                if (res.ok) localMateriais = await res.json();
+                if (res.ok) {
+                    _mats = await res.json();
+                    window.localMateriais = _mats;
+                }
             } catch(e){}
         }
+        const _forns = window.localFornecedores || [];
 
         const selProd = document.getElementById('plprod-produto-id');
         const selIns = document.getElementById('plprod-insumo-id');
         const selForn = document.getElementById('plprod-fornecedor-id');
 
-        const listMat = (localMateriais || []);
-        const listForn = (localFornecedores || []);
-
-        if (selProd) selProd.innerHTML = '<option value="">Selecione o Produto Acabado...</option>' + listMat.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
-        if (selIns) selIns.innerHTML = '<option value="">Selecione o Insumo Necessário...</option>' + listMat.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
-        if (selForn) selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' + listForn.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
+        if (selProd) selProd.innerHTML = '<option value="">Selecione o Produto Acabado...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        if (selIns) selIns.innerHTML = '<option value="">Selecione o Insumo Necessário...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        if (selForn) selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' + _forns.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
 
         document.getElementById('form-planejamento-producao').reset();
         document.getElementById('plprod-periodo').value = new Date().toISOString().slice(0, 7);
@@ -9730,8 +9738,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const prodId = document.getElementById('plprod-produto-id').value;
         const insId = document.getElementById('plprod-insumo-id').value;
-        const prodObj = (localMateriais || []).find(m => m.id == prodId);
-        const insObj = (localMateriais || []).find(m => m.id == insId);
+        const prodObj = (window.localMateriais || []).find(m => m.id == prodId);
+        const insObj = (window.localMateriais || []).find(m => m.id == insId);
 
         const qProd = parseFloat(document.getElementById('plprod-qtd-prod').value) || 0;
         const qIns = parseFloat(document.getElementById('plprod-qtd-insumo').value) || 0;
@@ -9843,17 +9851,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.abrirModalPlanejamentoComercial = async function() {
-        if (!localMateriais || localMateriais.length === 0) {
+        // Garante acesso cross-IIFE a localMateriais
+        let _mats = window.localMateriais || [];
+        if (_mats.length === 0) {
             try {
                 const res = await fetch('/api/materiais-catalogo');
-                if (res.ok) localMateriais = await res.json();
+                if (res.ok) {
+                    _mats = await res.json();
+                    window.localMateriais = _mats;
+                }
             } catch(e){}
         }
 
         const selProd = document.getElementById('plcom-produto-id');
         if (selProd) {
             selProd.innerHTML = '<option value="">Selecione o Produto Comercial...</option>' +
-                (localMateriais || []).map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+                _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
         }
 
         document.getElementById('form-planejamento-comercial').reset();
@@ -9868,7 +9881,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.salvarPlanejamentoComercialForm = async function(e) {
         e.preventDefault();
         const prodId = document.getElementById('plcom-produto-id').value;
-        const prodObj = (localMateriais || []).find(m => m.id == prodId);
+        const prodObj = (window.localMateriais || []).find(m => m.id == prodId);
 
         const payload = {
             mes_referencia: document.getElementById('plcom-mes').value,
@@ -10036,9 +10049,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── 4. Projeção Financeira de Caixa ──────────────────────────────────────────
     window.carregarProjecaoCaixa = async function() {
+        // Popula o select de produto no formulário de entrada
+        let _mats = window.localMateriais || [];
+        if (_mats.length === 0) {
+            try {
+                const res = await fetch('/api/materiais-catalogo');
+                if (res.ok) { _mats = await res.json(); window.localMateriais = _mats; }
+            } catch(e){}
+        }
+        const selProd = document.getElementById('cx-produto-id');
+        if (selProd) {
+            selProd.innerHTML = '<option value="">Selecione o Material...</option>' +
+                _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        }
+
+        // Define o mês padrão
+        const cxMes = document.getElementById('cx-mes');
+        if (cxMes && !cxMes.value) {
+            // Próximo mês
+            const d = new Date(); d.setMonth(d.getMonth() + 1);
+            cxMes.value = d.toISOString().slice(0, 7);
+        }
+
         let totPlan = 0, totReal = 0;
         const desinstalos = [];
 
+        // Soma os dados de planejamento comercial e insumos
         (localComercialRevenda || []).forEach(c => {
             const inv = parseFloat(c.investimento_planejado_rs || 0);
             totPlan += inv;
@@ -10092,6 +10128,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 tbody.appendChild(tr);
             });
+
+            if (desinstalos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#aaa;">Nenhuma projeção registrada. Use o formulário acima para adicionar entradas manuais ou cadastre dados nas abas de Produção e Compra e Venda.</td></tr>';
+            }
+        }
+    };
+
+    window.calcularProjecaoCaixaTotal = function() {
+        const qtd = parseFloat(document.getElementById('cx-qtd-kg').value || 0);
+        const preco = parseFloat(document.getElementById('cx-preco-unit').value || 0);
+        const total = qtd * preco;
+        const preview = document.getElementById('cx-total-preview');
+        if (preview) preview.textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    };
+
+    window.salvarProjecaoCaixaForm = async function(e) {
+        e.preventDefault();
+        const mesVal = document.getElementById('cx-mes').value;
+        const prodId = document.getElementById('cx-produto-id').value;
+        const qtdKg = parseFloat(document.getElementById('cx-qtd-kg').value || 0);
+        const precoUnit = parseFloat(document.getElementById('cx-preco-unit').value || 0);
+
+        if (!mesVal || !prodId || qtdKg <= 0 || precoUnit <= 0) {
+            _apexNotify('Atenção', 'Preencha todos os campos obrigatórios com valores válidos.', 'warning');
+            return;
+        }
+
+        const desembolso = qtdKg * precoUnit;
+        // Salva como um planejamento de compra manual com o tipo PROJECAO_CAIXA
+        try {
+            const payload = {
+                tipo_planejamento: 'COMPRA_VENDA',
+                material_id: prodId,
+                fornecedor_id: null,
+                quantidade_necessaria: qtdKg,
+                quantidade_realizada_kg: 0,
+                lead_time_dias: 7,
+                preco_estimado: precoUnit,
+                mes_referencia: mesVal,
+                status: 'Projeção Caixa',
+                observacoes: `Projeção de caixa manual. Desembolso: R$ ${desembolso.toLocaleString('pt-BR', {minimumFractionDigits:2})}`
+            };
+            const res = await fetch('/api/planejamento/compras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao registrar projeção');
+            _apexNotify('Sucesso', `Projeção de R$ ${desembolso.toLocaleString('pt-BR', {minimumFractionDigits:2})} adicionada ao caixa!`, 'success');
+            document.getElementById('form-projecao-caixa').reset();
+            document.getElementById('cx-total-preview').textContent = 'R$ 0,00';
+            // Recarrega os dados
+            localMRP = [];
+            await carregarPlanejamentoCompras();
+            await carregarProjecaoCaixa();
+        } catch (err) {
+            _apexNotify('Erro', err.message, 'error');
         }
     };
 
@@ -10133,17 +10226,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.abrirModalParametrosPrazos = async function() {
-        if (!localMateriais || localMateriais.length === 0) {
+        // Garante acesso cross-IIFE a localMateriais
+        let _mats = window.localMateriais || [];
+        if (_mats.length === 0) {
             try {
                 const res = await fetch('/api/materiais-catalogo');
-                if (res.ok) localMateriais = await res.json();
+                if (res.ok) {
+                    _mats = await res.json();
+                    window.localMateriais = _mats;
+                }
             } catch(e){}
         }
 
         const selMat = document.getElementById('prazos-mat-id');
         if (selMat) {
             selMat.innerHTML = '<option value="">Selecione o Material...</option>' +
-                (localMateriais || []).map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+                _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
         }
 
         document.getElementById('form-parametros-prazos').reset();
@@ -10155,7 +10253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.editarParametrosPrazos = function(matId) {
-        const p = localParametrosPrazos.find(x => x.material_id == matId);
+        const p = (localParametrosPrazos || []).find(x => x.material_id == matId);
         if (!p) return;
         abrirModalParametrosPrazos().then(() => {
             document.getElementById('prazos-mat-id').value = p.material_id;
@@ -10164,18 +10262,26 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('prazos-pr-producao').value = p.prazo_producao_dias || 5;
             document.getElementById('prazos-est-min').value = p.estoque_minimo_kg || 0;
             document.getElementById('prazos-est-seg').value = p.estoque_seguranca_kg || 0;
+            const perm = document.getElementById('prazos-permanencia');
+            if (perm) perm.value = p.prazo_permanencia_dias || 30;
         });
     };
 
     window.salvarParametrosPrazosForm = async function(e) {
         e.preventDefault();
+        const matId = document.getElementById('prazos-mat-id').value;
+        if (!matId) {
+            _apexNotify('Atenção', 'Selecione o material antes de salvar.', 'warning');
+            return;
+        }
         const payload = {
-            material_id: document.getElementById('prazos-mat-id').value,
-            lead_time_compra_dias: document.getElementById('prazos-lt-compra').value || 7,
-            prazo_entrega_dias: document.getElementById('prazos-pr-entrega').value || 15,
-            prazo_producao_dias: document.getElementById('prazos-pr-producao').value || 5,
-            estoque_minimo_kg: document.getElementById('prazos-est-min').value || 0,
-            estoque_seguranca_kg: document.getElementById('prazos-est-seg').value || 0
+            material_id: matId,
+            lead_time_compra_dias: parseInt(document.getElementById('prazos-lt-compra').value) || 7,
+            prazo_entrega_dias: parseInt(document.getElementById('prazos-pr-entrega').value) || 15,
+            prazo_producao_dias: parseInt(document.getElementById('prazos-pr-producao').value) || 5,
+            estoque_minimo_kg: parseFloat(document.getElementById('prazos-est-min').value) || 0,
+            estoque_seguranca_kg: parseFloat(document.getElementById('prazos-est-seg').value) || 0,
+            prazo_permanencia_dias: parseInt(document.getElementById('prazos-permanencia')?.value) || 30
         };
 
         try {
@@ -10298,17 +10404,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
 
         // Popular Select de Produtos para Requisito 22
-        if (!localMateriais || localMateriais.length === 0) {
+        let _mats = window.localMateriais || [];
+        if (_mats.length === 0) {
             try {
                 const resM = await fetch('/api/materiais-catalogo');
-                if (resM.ok) localMateriais = await resM.json();
+                if (resM.ok) {
+                    _mats = await resM.json();
+                    window.localMateriais = _mats;
+                }
             } catch(e){}
         }
 
         const selProd = document.getElementById('cenarios-select-produto');
         if (selProd) {
             selProd.innerHTML = '<option value="">Selecione o Produto para Análise...</option>' +
-                (localMateriais || []).map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+                _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
         }
 
         const metaInput = document.getElementById('sim-meta-base-input');
@@ -10482,7 +10592,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const prod = (localMateriais || []).find(m => m.id == prodId);
+        const prod = (window.localMateriais || []).find(m => m.id == prodId);
         const prodNome = prod ? prod.nome : 'Produto #' + prodId;
         const metaBaseVal = parseFloat(document.getElementById('sim-meta-base-input').value || 1000000);
 
@@ -11035,24 +11145,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const opId = Date.now().toString().slice(-4);
         document.getElementById('op-numero').value = `OP-2026-${opId}`;
 
-        if (!localMateriais || localMateriais.length === 0) {
+        let _mats = window.localMateriais || [];
+        if (_mats.length === 0) {
             try {
                 const res = await fetch('/api/materiais-catalogo');
                 if (res.ok) {
                     const data = await res.json();
-                    localMateriais = Array.isArray(data) ? data : [];
-                    window.localMateriais = localMateriais;
+                    _mats = Array.isArray(data) ? data : [];
+                    window.localMateriais = _mats;
                 }
             } catch(e){}
-        } else {
-            window.localMateriais = localMateriais;
         }
 
         const selMat = document.getElementById('op-material-saida-id');
-        const listMat = (localMateriais && localMateriais.length > 0) ? localMateriais : (window.localMateriais || []);
         if (selMat) {
             selMat.innerHTML = '<option value="">Selecione o Material de Saída...</option>' +
-                listMat.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Geral'})</option>`).join('');
+                _mats.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Geral'})</option>`).join('');
         }
 
         const hoje = new Date().toISOString().slice(0, 10);
