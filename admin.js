@@ -9946,6 +9946,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.abrirModalPlanejamentoComercial = async function() {
+        const modalEl = document.getElementById('modal-planejamento-comercial-meta');
+        if (!modalEl) return;
+
+        // Mover para document.body e aplicar estilos (igual ao padrão do modal de produção)
+        if (modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+        modalEl.style.display = 'flex';
+        modalEl.style.position = 'fixed';
+        modalEl.style.top = '0';
+        modalEl.style.left = '0';
+        modalEl.style.width = '100vw';
+        modalEl.style.height = '100vh';
+        modalEl.style.zIndex = '9999999';
+        modalEl.style.background = 'rgba(0,0,0,0.92)';
+        modalEl.style.alignItems = 'center';
+        modalEl.style.justifyContent = 'center';
+        modalEl.style.overflowY = 'auto';
+        modalEl.style.padding = '20px';
+        modalEl.style.boxSizing = 'border-box';
+
         // Garante acesso cross-IIFE a localMateriais
         let _mats = window.localMateriais || [];
         if (_mats.length === 0) {
@@ -9964,14 +9985,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
         }
 
-        document.getElementById('form-planejamento-comercial').reset();
-        document.getElementById('plcom-mes').value = new Date().toISOString().slice(0, 7);
-        document.getElementById('modal-planejamento-comercial-meta').style.display = 'flex';
+        const form = document.getElementById('form-planejamento-comercial');
+        if (form) form.reset();
+        const mesEl = document.getElementById('plcom-mes');
+        if (mesEl) mesEl.value = new Date().toISOString().slice(0, 7);
+
+        // Garantir visível após fetches
+        modalEl.style.display = 'flex';
     };
 
     window.fecharModalPlanejamentoComercial = function() {
-        document.getElementById('modal-planejamento-comercial-meta').style.display = 'none';
+        const modalEl = document.getElementById('modal-planejamento-comercial-meta');
+        if (modalEl) modalEl.style.display = 'none';
     };
+
 
     window.salvarPlanejamentoComercialForm = async function(e) {
         e.preventDefault();
