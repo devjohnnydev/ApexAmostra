@@ -588,6 +588,18 @@ async function initDatabase() {
                 criado_em                  TIMESTAMP DEFAULT NOW()
             );
 
+            CREATE TABLE IF NOT EXISTS planejamento_comercial_transacoes (
+                id                SERIAL PRIMARY KEY,
+                planejamento_id   INTEGER NOT NULL,
+                tipo              VARCHAR(10) NOT NULL,
+                quantidade_kg     NUMERIC(12,3) NOT NULL,
+                preco_unitario    NUMERIC(14,2) NOT NULL,
+                valor_total       NUMERIC(14,2) NOT NULL,
+                data_transacao    DATE NOT NULL,
+                observacoes       TEXT,
+                criado_em         TIMESTAMP DEFAULT NOW()
+            );
+
             CREATE TABLE IF NOT EXISTS parametros_estoque_prazos (
                 id                         SERIAL PRIMARY KEY,
                 material_id                INTEGER UNIQUE NOT NULL,
@@ -2258,10 +2270,90 @@ app.delete('/api/planejamento/producao-insumos/:id', async (req, res) => {
 app.get('/api/planejamento/comercial-revenda', async (req, res) => {
     try {
         if (!dbAvailable) {
-            return res.json(memStore.planejamento_comercial_revenda || []);
+            const metas = memStore.planejamento_comercial_revenda || [];
+            const trans = memStore.planejamento_comercial_transacoes || [];
+            return res.json(metas.map(m => {
+                const mt = trans.filter(t => t.planejamento_id === m.id);
+                const compras = mt.filter(t => t.tipo === 'COMPRA');
+                const vendas  = mt.filter(t => t.tipo === 'VENDA');
+                const totalCompraKg = compras.reduce((s, t) => s + parseFloat(t.quantidade_kg), 0);
+                const totalVendaKg  = vendas.reduce((s, t) => s + parseFloat(t.quantidade_kg), 0);
+                const totalCompraRs = compras.reduce((s, t) => s + parseFloat(t.valor_total), 0);
+                const totalVendaRs  = vendas.reduce((s, t) => s + parseFloat(t.valor_total), 0);
+                return { ...m, totalCompraKg, totalVendaKg, totalCompraRs, totalVendaRs,
+                    mediaPrecoCompra: totalCompraKg > 0 ? totalCompraRs / totalCompraKg : 0,
+                    mediaPrecoVenda:  totalVendaKg  > 0 ? totalVendaRs  / totalVendaKg  : 0 };
+            }));
         }
-        const r = await pool.query('SELECT * FROM planejamento_comercial_revenda ORDER BY id DESC');
+        const r = await pool.query(`
+            SELECT p.*,
+                COALESCE(c.total_kg, 0) AS totalCompraKg,
+                COALESCE(c.total_rs, 0) AS totalCompraRs,
+                COALESCE(v.total_kg, 0) AS totalVendaKg,
+                COALESCE(v.total_rs, 0) AS totalVendaRs,
+                CASE WHEN COALESCE(c.total_kg,0) > 0 THEN COALESCE(c.total_rs,0)/COALESCE(c.total_kg,1) ELSE 0 END AS "mediaPrecoCompra",
+                CASE WHEN COALESCE(v.total_kg,0) > 0 THEN COALESCE(v.total_rs,0)/COALESCE(v.total_kg,1) ELSE 0 END AS "mediaPrecoVenda"
+            FROM planejamento_comercial_revenda p
+            LEFT JOIN (SELECT planejamento_id, SUM(quantidade_kg) AS total_kg, SUM(valor_total) AS total_rs FROM planejamento_comercial_transacoes WHERE tipo='COMPRA' GROUP BY planejamento_id) c ON c.planejamento_id = p.id
+            LEFT JOIN (SELECT planejamento_id, SUM(quantidade_kg) AS total_kg, SUM(valor_total) AS total_rs FROM planejamento_comercial_transacoes WHERE tipo='VENDA'  GROUP BY planejamento_id) v ON v.planejamento_id = p.id
+            ORDER BY p.id DESC
+        `);
         res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET extrato de transações de uma meta
+app.get('/api/planejamento/comercial-revenda/:id/transacoes', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            const trans = (memStore.planejamento_comercial_transacoes || []).filter(t => t.planejamento_id === id);
+            return res.json(trans);
+        }
+        const r = await pool.query('SELECT * FROM planejamento_comercial_transacoes WHERE planejamento_id=$1 ORDER BY data_transacao ASC, id ASC', [id]);
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST nova transação (compra ou venda fracionada)
+app.post('/api/planejamento/comercial-transacao', async (req, res) => {
+    try {
+        const { planejamento_id, tipo, quantidade_kg, preco_unitario, data_transacao, observacoes } = req.body;
+        const pid = parseInt(planejamento_id);
+        const qtd = parseFloat(quantidade_kg || 0);
+        const preco = parseFloat(preco_unitario || 0);
+        const total = qtd * preco;
+        const dataStr = data_transacao || new Date().toISOString().slice(0,10);
+        if (!dbAvailable) {
+            if (!memStore.planejamento_comercial_transacoes) memStore.planejamento_comercial_transacoes = [];
+            const item = { id: nextId++, planejamento_id: pid, tipo: tipo.toUpperCase(), quantidade_kg: qtd, preco_unitario: preco, valor_total: total, data_transacao: dataStr, observacoes: observacoes||'', criado_em: new Date().toISOString() };
+            memStore.planejamento_comercial_transacoes.push(item);
+            return res.json(item);
+        }
+        const r = await pool.query(
+            `INSERT INTO planejamento_comercial_transacoes (planejamento_id,tipo,quantidade_kg,preco_unitario,valor_total,data_transacao,observacoes) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+            [pid, tipo.toUpperCase(), qtd, preco, total, dataStr, observacoes||'']
+        );
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE transação
+app.delete('/api/planejamento/comercial-transacao/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            memStore.planejamento_comercial_transacoes = (memStore.planejamento_comercial_transacoes||[]).filter(t => t.id !== id);
+            return res.json({ success: true });
+        }
+        await pool.query('DELETE FROM planejamento_comercial_transacoes WHERE id=$1', [id]);
+        res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

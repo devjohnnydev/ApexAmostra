@@ -5265,7 +5265,120 @@
         </div>
     </div>
 
+
+    <!-- Modal: Lançar Movimentação Comercial (Compra ou Venda Fracionada) -->
+    <div id="modal-lancar-transacao-comercial" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:9999999; overflow-y:auto; padding:20px; box-sizing:border-box;">
+        <div style="width:580px; max-width:95vw; background:#101a24; border:1px solid #2AD07A; border-radius:14px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+            <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:18px 60px 16px; border-bottom:1px solid #1a2e3f;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-plus-minus" style="color:#2AD07A; font-size:1.2rem;"></i>
+                    <h3 id="modal-transacao-titulo" style="margin:0; color:#fff; font-size:1.05rem; font-weight:700;">Lançar Movimentação Comercial</h3>
+                </div>
+                <button type="button" onclick="fecharModalTransacaoComercial()" title="Fechar"
+                    style="position:absolute; right:14px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; padding:0;"
+                    onmouseover="this.style.background='#1a2e3f';this.style.color='#2AD07A';"
+                    onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="form-transacao-comercial" onsubmit="salvarTransacaoComercialForm(event)" style="padding:22px 26px;">
+                <input type="hidden" id="transcom-planejamento-id">
+
+                <!-- Tipo -->
+                <div style="display:flex; gap:10px; margin-bottom:18px;">
+                    <label style="flex:1; cursor:pointer;">
+                        <input type="radio" name="transcom-tipo" value="COMPRA" id="transcom-tipo-compra" checked onchange="atualizarTipoTransacao()">
+                        <span id="badge-tipo-compra" style="display:block; text-align:center; padding:10px; border-radius:8px; border:2px solid #3e7cb1; color:#3e7cb1; font-weight:700; font-size:0.95rem; transition:all 0.2s;">🛒 COMPRA</span>
+                    </label>
+                    <label style="flex:1; cursor:pointer;">
+                        <input type="radio" name="transcom-tipo" value="VENDA" id="transcom-tipo-venda" onchange="atualizarTipoTransacao()">
+                        <span id="badge-tipo-venda" style="display:block; text-align:center; padding:10px; border-radius:8px; border:2px solid #444; color:#aaa; font-weight:700; font-size:0.95rem; transition:all 0.2s;">💰 VENDA</span>
+                    </label>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Quantidade (kg) *</label>
+                        <input type="number" step="0.001" min="0.001" id="transcom-qtd-kg" class="noble-input" required placeholder="Ex: 5000" oninput="calcularTotalTransacao()">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Preço Unitário (R$/kg) *</label>
+                        <input type="number" step="0.01" min="0.01" id="transcom-preco-unit" class="noble-input" required placeholder="Ex: 5.80" oninput="calcularTotalTransacao()">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Data *</label>
+                        <input type="date" id="transcom-data" class="noble-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Valor Total (R$)</label>
+                        <input type="text" id="transcom-valor-total" class="noble-input" readonly style="background:#0d1826; color:#2AD07A; font-weight:bold;" placeholder="R$ 0,00">
+                    </div>
+                </div>
+
+                <!-- Comparativo vs Tabela -->
+                <div id="transcom-comparativo-box" style="background:#0d1826; border:1px solid #1a2e3f; border-radius:8px; padding:12px; margin-bottom:15px; display:none;">
+                    <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Comparativo vs. Tabela de Referência</div>
+                    <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                        <div><span style="color:#aaa; font-size:0.8rem;">Tabela: </span><span id="transcom-preco-tabela" style="color:#fff; font-weight:bold;"></span></div>
+                        <div><span style="color:#aaa; font-size:0.8rem;">Desvio: </span><span id="transcom-desvio-tabela" style="font-weight:bold;"></span></div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Observações</label>
+                    <input type="text" id="transcom-obs" class="noble-input" placeholder="Ex: Compra lote 3, fornecedor Davi...">
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" id="btn-salvar-transacao" class="btn-primary" style="flex:1; background:#2AD07A; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-save"></i> Salvar Movimentação</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalTransacaoComercial()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Extrato & Análise Comercial -->
+    <div id="modal-extrato-comercial" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:9999999; overflow-y:auto; padding:20px; box-sizing:border-box;">
+        <div style="width:960px; max-width:97vw; background:#101a24; border:1px solid #3e7cb1; border-radius:14px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+            <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:18px 60px 16px; border-bottom:1px solid #1a2e3f;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-chart-mixed" style="color:#3e7cb1; font-size:1.2rem;"></i>
+                    <h3 id="extrato-titulo" style="margin:0; color:#fff; font-size:1.05rem; font-weight:700;">Extrato & Análise — Meta Comercial</h3>
+                </div>
+                <button type="button" onclick="fecharModalExtratoComercial()" title="Fechar"
+                    style="position:absolute; right:14px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; padding:0;"
+                    onmouseover="this.style.background='#1a2e3f';this.style.color='#3e7cb1';"
+                    onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div style="padding:22px 26px;">
+
+                <!-- Painel de Análise -->
+                <div id="extrato-painel-analise" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; margin-bottom:22px;"></div>
+
+                <!-- Divisor -->
+                <div style="border-top:1px solid #1a2e3f; margin-bottom:18px; padding-top:16px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                        <span style="font-weight:700; color:#fff; font-size:0.92rem;">📋 Histórico de Movimentações</span>
+                        <button onclick="abrirModalTransacaoComercialFromExtrato()" class="btn-primary" style="font-size:0.8rem; padding:6px 14px; border-radius:6px;">
+                            <i class="fa-solid fa-plus"></i> Nova Movimentação
+                        </button>
+                    </div>
+                    <div id="extrato-tabela-container" style="overflow-x:auto;"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- ── FIM DOS MODAIS ── -->
+
 </body>
 
 </html>

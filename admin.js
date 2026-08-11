@@ -9921,6 +9921,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const markup = pCompra > 0 ? ((pVenda - pCompra) / pCompra) * 100 : 0;
             const partPct = (fat / metaGlobal) * 100;
 
+            // Dados reais das transações
+            const totalCompraKgReal = parseFloat(item.totalCompraKg || 0);
+            const totalVendaKgReal  = parseFloat(item.totalVendaKg  || 0);
+            const totalCompraRsReal = parseFloat(item.totalCompraRs || 0);
+            const totalVendaRsReal  = parseFloat(item.totalVendaRs  || 0);
+            const mediaCompra = parseFloat(item.mediaPrecoCompra || 0);
+            const mediaVenda  = parseFloat(item.mediaPrecoVenda  || 0);
+            const metaCompPct = cPlan > 0 ? Math.min((totalCompraKgReal / cPlan) * 100, 100) : 0;
+            const metaVendPct = vPlan > 0 ? Math.min((totalVendaKgReal  / vPlan) * 100, 100) : 0;
+
             totFatPrev += fat;
             totInvest += inv;
 
@@ -9931,19 +9941,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const markupColor = markup >= 0 ? '#2AD07A' : '#ff4d4d';
 
+            const progressBar = (pct, cor) => `<div style="background:#1a2e3f; border-radius:4px; height:6px; margin-top:4px;"><div style="width:${pct.toFixed(0)}%; background:${cor}; height:6px; border-radius:4px; transition:width 0.4s;"></div></div><small style="color:${cor};">${pct.toFixed(0)}%</small>`;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding:10px 8px;"><strong>${item.produto_nome || 'Produto'}</strong></td>
-                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${cPlan.toLocaleString('pt-BR')} kg</td>
-                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${vPlan.toLocaleString('pt-BR')} kg</td>
-                <td style="padding:10px 8px; text-align:right; color:#ccc;">R$ ${pCompra.toFixed(2)} / R$ ${pVenda.toFixed(2)}</td>
+                <td style="padding:10px 8px;"><strong>${item.produto_nome || 'Produto'}</strong><div style="font-size:0.72rem; color:#aaa;">${item.mes_referencia || ''}</div></td>
+                <td style="padding:10px 8px; text-align:right;">
+                    <div style="font-weight:bold; color:#fff;">${cPlan.toLocaleString('pt-BR')} kg</div>
+                    <div style="font-size:0.75rem; color:#8eaabf;">Comprado: ${totalCompraKgReal.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</div>
+                    ${progressBar(metaCompPct,'#3e7cb1')}
+                </td>
+                <td style="padding:10px 8px; text-align:right;">
+                    <div style="font-weight:bold; color:#2AD07A;">${vPlan.toLocaleString('pt-BR')} kg</div>
+                    <div style="font-size:0.75rem; color:#8eaabf;">Vendido: ${totalVendaKgReal.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</div>
+                    ${progressBar(metaVendPct,'#2AD07A')}
+                </td>
+                <td style="padding:10px 8px; text-align:right; color:#ccc;">
+                    <div>Tab: R$ ${pCompra.toFixed(2)} / R$ ${pVenda.toFixed(2)}</div>
+                    ${mediaCompra > 0 ? `<div style="font-size:0.75rem; color:#f0b800;">Méd: R$ ${mediaCompra.toFixed(2)} / R$ ${mediaVenda.toFixed(2)}</div>` : ''}
+                </td>
                 <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${inv.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${fat.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">
+                    <div>R$ ${fat.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+                    ${totalVendaRsReal > 0 ? `<div style="font-size:0.75rem; color:#2AD07A;">Real: R$ ${totalVendaRsReal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>` : ''}
+                </td>
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${markupColor};">${markup.toFixed(1)}%</td>
                 <td style="padding:10px 8px; text-align:center;">${giroBadge} <small style="color:#aaa;">(${partPct.toFixed(1)}% Meta)</small></td>
                 <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">🔵 ${item.status || 'Meta Definida'}</span></td>
                 <td style="padding:10px 8px; text-align:center;">
-                    <button type="button" onclick="abrirModalAtualizarRealizadoComercial(${item.id})" style="background:#3b2d18; border:1px solid #f0b800; color:#f0b800; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Atualizar Realizado Efetuado"><i class="fa-solid fa-pen-to-square"></i> Realizado</button>
+                    <button type="button" onclick="abrirModalTransacaoComercial(${item.id})" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Lançar Movimentação"><i class="fa-solid fa-plus-minus"></i> Movimentar</button>
+                    <button type="button" onclick="abrirModalExtratoComercial(${item.id})" style="background:#122a3f; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Extrato & Análise"><i class="fa-solid fa-chart-mixed"></i> Extrato</button>
                     <button type="button" onclick="excluirPlanejamentoComercial(${item.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
@@ -10222,6 +10249,281 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch(`/api/planejamento/comercial-revenda/${id}`, { method: 'DELETE' });
             await carregarPlanejamentoComercialRevenda();
         } catch(e){}
+    };
+
+    // ── Transações Comerciais Fracionadas ──────────────────────────────────────
+
+    // Contexto do modal de transação
+    let _transacaoCtx = { planejamento_id: null, item: null };
+
+    window.abrirModalTransacaoComercial = function(planejamentoId) {
+        const item = (window.localComercialRevenda || []).find(x => x.id === planejamentoId);
+        if (!item) return;
+        _transacaoCtx = { planejamento_id: planejamentoId, item, fromExtrato: false };
+        _abrirModalTransacaoInterno();
+    };
+
+    window.abrirModalTransacaoComercialFromExtrato = function() {
+        _transacaoCtx.fromExtrato = true;
+        _abrirModalTransacaoInterno();
+    };
+
+    function _abrirModalTransacaoInterno() {
+        const modalEl = document.getElementById('modal-lancar-transacao-comercial');
+        if (!modalEl) return;
+        document.body.appendChild(modalEl);
+        modalEl.style.display = 'flex';
+        document.getElementById('transcom-planejamento-id').value = _transacaoCtx.planejamento_id;
+        document.getElementById('form-transacao-comercial').reset();
+        document.getElementById('transcom-data').value = new Date().toISOString().slice(0,10);
+        document.getElementById('transcom-tipo-compra').checked = true;
+        atualizarTipoTransacao();
+        calcularTotalTransacao();
+    }
+
+    window.fecharModalTransacaoComercial = function() {
+        const modalEl = document.getElementById('modal-lancar-transacao-comercial');
+        if (modalEl) modalEl.style.display = 'none';
+    };
+
+    window.atualizarTipoTransacao = function() {
+        const tipo = document.querySelector('input[name="transcom-tipo"]:checked')?.value || 'COMPRA';
+        const item = _transacaoCtx.item;
+
+        const badgeCompra = document.getElementById('badge-tipo-compra');
+        const badgeVenda  = document.getElementById('badge-tipo-venda');
+        if (tipo === 'COMPRA') {
+            badgeCompra.style.borderColor = '#3e7cb1'; badgeCompra.style.color = '#fff'; badgeCompra.style.background = '#1e354d';
+            badgeVenda.style.borderColor  = '#444';    badgeVenda.style.color  = '#aaa'; badgeVenda.style.background  = 'transparent';
+        } else {
+            badgeVenda.style.borderColor  = '#2AD07A'; badgeVenda.style.color  = '#fff'; badgeVenda.style.background  = '#1b382b';
+            badgeCompra.style.borderColor = '#444';    badgeCompra.style.color = '#aaa'; badgeCompra.style.background = 'transparent';
+        }
+
+        // Mostrar comparativo vs tabela
+        const precoTabela = item ? (tipo === 'COMPRA' ? parseFloat(item.preco_compra_estimado||0) : parseFloat(item.preco_venda_estimado||0)) : 0;
+        const cmpBox = document.getElementById('transcom-comparativo-box');
+        if (precoTabela > 0) {
+            document.getElementById('transcom-preco-tabela').textContent = 'R$ ' + precoTabela.toFixed(2) + '/kg';
+            cmpBox.style.display = 'block';
+        } else {
+            cmpBox.style.display = 'none';
+        }
+        calcularTotalTransacao();
+    };
+
+    window.calcularTotalTransacao = function() {
+        const qtd   = parseFloat(document.getElementById('transcom-qtd-kg').value)  || 0;
+        const preco = parseFloat(document.getElementById('transcom-preco-unit').value) || 0;
+        const total = qtd * preco;
+        document.getElementById('transcom-valor-total').value = total > 0 ? 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'R$ 0,00';
+
+        // Desvio vs tabela
+        const tipo = document.querySelector('input[name="transcom-tipo"]:checked')?.value || 'COMPRA';
+        const item = _transacaoCtx.item;
+        const precoTabela = item ? (tipo === 'COMPRA' ? parseFloat(item.preco_compra_estimado||0) : parseFloat(item.preco_venda_estimado||0)) : 0;
+        if (precoTabela > 0 && preco > 0) {
+            const desvioPct = ((preco - precoTabela) / precoTabela) * 100;
+            const desEl = document.getElementById('transcom-desvio-tabela');
+            desEl.textContent = (desvioPct >= 0 ? '+' : '') + desvioPct.toFixed(1) + '% (R$ ' + (preco - precoTabela).toFixed(2) + ')';
+            desEl.style.color = tipo === 'COMPRA'
+                ? (desvioPct > 0 ? '#ff4d4d' : '#2AD07A')   // COMPRA: mais caro é ruim
+                : (desvioPct > 0 ? '#2AD07A' : '#ff4d4d');  // VENDA: mais caro é bom
+        }
+    };
+
+    window.salvarTransacaoComercialForm = async function(e) {
+        e.preventDefault();
+        const pid      = document.getElementById('transcom-planejamento-id').value;
+        const tipo     = document.querySelector('input[name="transcom-tipo"]:checked')?.value || 'COMPRA';
+        const qtdKg    = document.getElementById('transcom-qtd-kg').value;
+        const precoU   = document.getElementById('transcom-preco-unit').value;
+        const data     = document.getElementById('transcom-data').value;
+        const obs      = document.getElementById('transcom-obs').value;
+
+        try {
+            const res = await fetch('/api/planejamento/comercial-transacao', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planejamento_id: pid, tipo, quantidade_kg: qtdKg, preco_unitario: precoU, data_transacao: data, observacoes: obs })
+            });
+            if (!res.ok) throw new Error('Erro ao salvar movimentação');
+            _apexNotify('Sucesso', tipo === 'COMPRA' ? 'Compra registrada!' : 'Venda registrada!', 'success');
+            fecharModalTransacaoComercial();
+            await carregarPlanejamentoComercialRevenda();
+            // Se veio do extrato, reabrir extrato atualizado
+            if (_transacaoCtx.fromExtrato) {
+                _transacaoCtx.fromExtrato = false;
+                await abrirModalExtratoComercial(_transacaoCtx.planejamento_id);
+            }
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    // ── Extrato & Análise ──────────────────────────────────────────────────────
+
+    let _extratoCtx = { planejamento_id: null, item: null };
+
+    window.abrirModalExtratoComercial = async function(planejamentoId) {
+        const item = (window.localComercialRevenda || []).find(x => x.id === planejamentoId);
+        if (!item) return;
+        _extratoCtx = { planejamento_id: planejamentoId, item };
+        _transacaoCtx.planejamento_id = planejamentoId;
+        _transacaoCtx.item = item;
+
+        const modalEl = document.getElementById('modal-extrato-comercial');
+        if (!modalEl) return;
+        document.body.appendChild(modalEl);
+        modalEl.style.display = 'flex';
+
+        document.getElementById('extrato-titulo').textContent = `Extrato & Análise — ${item.produto_nome} (${item.mes_referencia})`;
+
+        // Buscar transações
+        let transacoes = [];
+        try {
+            const r = await fetch(`/api/planejamento/comercial-revenda/${planejamentoId}/transacoes`);
+            transacoes = await r.json();
+        } catch(e){}
+
+        _renderExtratoAnalise(item, transacoes);
+        _renderExtratoTabela(transacoes);
+    };
+
+    window.fecharModalExtratoComercial = function() {
+        const modalEl = document.getElementById('modal-extrato-comercial');
+        if (modalEl) modalEl.style.display = 'none';
+    };
+
+    function _renderExtratoAnalise(item, transacoes) {
+        const compras = transacoes.filter(t => t.tipo === 'COMPRA');
+        const vendas  = transacoes.filter(t => t.tipo === 'VENDA');
+
+        const cPlan = parseFloat(item.compra_planejada_kg || 0);
+        const vPlan = parseFloat(item.venda_planejada_kg  || 0);
+        const pCompraTab = parseFloat(item.preco_compra_estimado || 0);
+        const pVendaTab  = parseFloat(item.preco_venda_estimado  || 0);
+
+        const totalCompraKg = compras.reduce((s,t) => s + parseFloat(t.quantidade_kg), 0);
+        const totalVendaKg  = vendas.reduce( (s,t) => s + parseFloat(t.quantidade_kg), 0);
+        const totalCompraRs = compras.reduce((s,t) => s + parseFloat(t.valor_total),   0);
+        const totalVendaRs  = vendas.reduce( (s,t) => s + parseFloat(t.valor_total),   0);
+
+        const mediaCompra = totalCompraKg > 0 ? totalCompraRs / totalCompraKg : 0;
+        const mediaVenda  = totalVendaKg  > 0 ? totalVendaRs  / totalVendaKg  : 0;
+        const markupReal  = mediaCompra   > 0 ? ((mediaVenda - mediaCompra) / mediaCompra) * 100 : 0;
+        const markupPlan  = pCompraTab    > 0 ? ((pVendaTab  - pCompraTab)  / pCompraTab)  * 100 : 0;
+
+        // Faturamento projetado = realizado + restante a vender a preço tabela
+        const kgRestVenda = Math.max(vPlan - totalVendaKg, 0);
+        const fatProjetado = totalVendaRs + (kgRestVenda * pVendaTab);
+
+        // Meta compra atingida
+        const metaCompPct = cPlan > 0 ? (totalCompraKg / cPlan) * 100 : 0;
+        const metaVendPct = vPlan > 0 ? (totalVendaKg  / vPlan) * 100 : 0;
+        const faltaComprar = Math.max(cPlan - totalCompraKg, 0);
+        const faltaVender  = Math.max(vPlan - totalVendaKg, 0);
+
+        // Desvio preço médio vs tabela
+        const desvioPCompra = pCompraTab > 0 && mediaCompra > 0 ? ((mediaCompra - pCompraTab) / pCompraTab) * 100 : null;
+        const desvioPVenda  = pVendaTab  > 0 && mediaVenda  > 0 ? ((mediaVenda  - pVendaTab)  / pVendaTab)  * 100 : null;
+
+        const card = (icon, label, value, sub, cor) => `
+            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; border-left:3px solid ${cor};">
+                <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:4px;">${icon} ${label}</div>
+                <div style="font-size:1.05rem; font-weight:bold; color:${cor};">${value}</div>
+                ${sub ? `<div style="font-size:0.72rem; color:#888; margin-top:3px;">${sub}</div>` : ''}
+            </div>`;
+
+        const fmtKg = v => v.toLocaleString('pt-BR', {minimumFractionDigits:1}) + ' kg';
+        const fmtRs = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        const fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+
+        let html = '';
+        // Compra
+        html += card('🛒', 'Meta de Compra', fmtKg(cPlan), '', '#3e7cb1');
+        html += card('✅', 'Comprado Real', fmtKg(totalCompraKg),
+            `${metaCompPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaComprar)}`,
+            metaCompPct >= 100 ? '#2AD07A' : metaCompPct >= 50 ? '#f0b800' : '#ff4d4d');
+        html += card('📊', 'Preço Médio Compra', mediaCompra > 0 ? fmtRs(mediaCompra) + '/kg' : 'Sem dados',
+            desvioPCompra !== null ? `Tabela: R$ ${pCompraTab.toFixed(2)} | Desvio: ${fmtPct(desvioPCompra)}` : `Ref. Tabela: R$ ${pCompraTab.toFixed(2)}/kg`,
+            desvioPCompra !== null ? (desvioPCompra > 5 ? '#ff4d4d' : desvioPCompra < -5 ? '#2AD07A' : '#f0b800') : '#aaa');
+        // Venda
+        html += card('💰', 'Meta de Venda', fmtKg(vPlan), '', '#3e7cb1');
+        html += card('✅', 'Vendido Real', fmtKg(totalVendaKg),
+            `${metaVendPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaVender)}`,
+            metaVendPct >= 100 ? '#2AD07A' : metaVendPct >= 50 ? '#f0b800' : '#ff4d4d');
+        html += card('📊', 'Preço Médio Venda', mediaVenda > 0 ? fmtRs(mediaVenda) + '/kg' : 'Sem dados',
+            desvioPVenda !== null ? `Tabela: R$ ${pVendaTab.toFixed(2)} | Desvio: ${fmtPct(desvioPVenda)}` : `Ref. Tabela: R$ ${pVendaTab.toFixed(2)}/kg`,
+            desvioPVenda !== null ? (desvioPVenda > 0 ? '#2AD07A' : '#ff4d4d') : '#aaa');
+        // Financeiro
+        html += card('💵', 'Faturamento Realizado', fmtRs(totalVendaRs),
+            `Investido: ${fmtRs(totalCompraRs)}`,
+            '#2AD07A');
+        html += card('🔮', 'Faturamento Projetado', fmtRs(fatProjetado),
+            `Restante ${fmtKg(kgRestVenda)} × R$ ${pVendaTab.toFixed(2)}/kg (tab)`,
+            '#9b59b6');
+        // Markup
+        html += card('📈', 'Markup Planejado', fmtPct(markupPlan), `R$ ${pCompraTab.toFixed(2)} → R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
+        html += card('📈', 'Markup Médio Real', markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
+            mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} → R$ ${mediaVenda.toFixed(2)}` : '',
+            markupReal >= markupPlan ? '#2AD07A' : '#ff4d4d');
+
+        document.getElementById('extrato-painel-analise').innerHTML = html;
+    }
+
+    function _renderExtratoTabela(transacoes) {
+        const container = document.getElementById('extrato-tabela-container');
+        if (!container) return;
+
+        if (transacoes.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#8eaabf; padding:24px;">Nenhuma movimentação lançada ainda.</div>';
+            return;
+        }
+
+        let rows = transacoes.map(t => {
+            const isCompra = t.tipo === 'COMPRA';
+            const cor = isCompra ? '#3e7cb1' : '#2AD07A';
+            return `<tr style="border-bottom:1px solid #1a2e3f;">
+                <td style="padding:8px;">${new Date(t.data_transacao).toLocaleDateString('pt-BR')}</td>
+                <td style="padding:8px;"><span style="background:${isCompra?'#1e354d':'#1b382b'}; color:${cor}; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">${t.tipo}</span></td>
+                <td style="padding:8px; text-align:right; color:#fff; font-weight:bold;">${parseFloat(t.quantidade_kg).toLocaleString('pt-BR',{minimumFractionDigits:3})} kg</td>
+                <td style="padding:8px; text-align:right; color:${cor};">R$ ${parseFloat(t.preco_unitario).toFixed(2)}/kg</td>
+                <td style="padding:8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${parseFloat(t.valor_total).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                <td style="padding:8px; color:#888; font-size:0.8rem;">${t.observacoes||''}</td>
+                <td style="padding:8px; text-align:center;">
+                    <button onclick="excluirTransacaoComercial(${t.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.85rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`;
+        }).join('');
+
+        container.innerHTML = `
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                <thead>
+                    <tr style="background:#0d1826; color:#8eaabf; font-size:0.75rem; text-transform:uppercase;">
+                        <th style="padding:8px; text-align:left;">Data</th>
+                        <th style="padding:8px;">Tipo</th>
+                        <th style="padding:8px; text-align:right;">Qtd (kg)</th>
+                        <th style="padding:8px; text-align:right;">Preço Unit.</th>
+                        <th style="padding:8px; text-align:right;">Total</th>
+                        <th style="padding:8px;">Obs</th>
+                        <th style="padding:8px;"></th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+
+    window.excluirTransacaoComercial = async function(transId) {
+        if (!confirm('Excluir esta movimentação?')) return;
+        try {
+            await fetch(`/api/planejamento/comercial-transacao/${transId}`, { method: 'DELETE' });
+            await carregarPlanejamentoComercialRevenda();
+            // Recarregar extrato
+            if (_extratoCtx.planejamento_id) {
+                await abrirModalExtratoComercial(_extratoCtx.planejamento_id);
+            }
+        } catch(e) { console.error(e); }
     };
 
     // ── 3. Planejado vs. Realizado Geral & Chart.js ──────────────────────────────
