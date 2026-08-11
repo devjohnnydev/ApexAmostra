@@ -124,8 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.fecharModalUsuario) window.fecharModalUsuario();
             if (window.fecharModalReprovacao) window.fecharModalReprovacao();
 
+            // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produção
             document.querySelectorAll('.fullscreen-overlay').forEach(modal => {
-                modal.style.display = 'none';
+                if (modal.id !== 'modal-planejamento-producao') {
+                    modal.style.display = 'none';
+                }
             });
         }
     });
@@ -9734,6 +9737,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.abrirModalPlanejamentoProducao = async function() {
         try {
+            // Garantir que o modal está visível imediatamente (sem aguardar fetches)
+            const modalEl = document.getElementById('modal-planejamento-producao');
+            if (modalEl) {
+                modalEl.style.display = 'flex';
+                modalEl.style.position = 'fixed';
+                modalEl.style.top = '0';
+                modalEl.style.left = '0';
+                modalEl.style.width = '100vw';
+                modalEl.style.height = '100vh';
+                modalEl.style.zIndex = '999999';
+                modalEl.style.background = 'rgba(0,0,0,0.88)';
+                modalEl.style.alignItems = 'center';
+                modalEl.style.justifyContent = 'center';
+                modalEl.style.overflowY = 'auto';
+            }
+
             let _mats = window.localMateriais || [];
             if (!Array.isArray(_mats) || _mats.length === 0) {
                 try {
@@ -9774,10 +9793,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const perEl = document.getElementById('plprod-periodo');
             if (perEl) perEl.value = new Date().toISOString().slice(0, 7);
 
-            const modal = document.getElementById('modal-planejamento-producao');
-            if (modal) {
-                modal.style.display = 'flex';
-                modal.style.zIndex = '99999';
+            // Garantir modal visível também após os fetches (podem demorar)
+            if (modalEl) {
+                modalEl.style.display = 'flex';
+                modalEl.style.zIndex = '999999';
             }
         } catch(err) {
             console.error("Erro ao abrir modal de Planejamento de Produção:", err);

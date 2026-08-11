@@ -28,21 +28,37 @@
 
         // Funções globais imediatas de abertura de modais
         window._forcarAbrirModalPlanejamentoProducao = function() {
-            console.log('[APEX SYSTEM] Executando _forcarAbrirModalPlanejamentoProducao...');
+            console.log('[APEX] Abrindo modal-planejamento-producao...');
             var modal = document.getElementById('modal-planejamento-producao');
-            if (modal) {
-                modal.style.cssText = 'display: flex !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: rgba(0,0,0,0.85) !important; align-items: center !important; justify-content: center !important;';
-            } else {
-                console.error('[APEX SYSTEM] Elemento #modal-planejamento-producao não encontrado!');
+            if (!modal) {
+                console.error('[APEX] #modal-planejamento-producao não encontrado!');
+                return;
             }
+            // Mostrar modal com estilo direto (sem usar cssText para não perder o overflow-y)
+            modal.style.display = 'flex';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.zIndex = '999999';
+            modal.style.background = 'rgba(0,0,0,0.88)';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.overflowY = 'auto';
+            // Marcar como aberto para evitar fechamento pelo ESC global
+            modal.dataset.modalOpen = 'true';
             if (typeof window.abrirModalPlanejamentoProducao === 'function') {
-                try { window.abrirModalPlanejamentoProducao(); } catch(e) { console.error(e); }
+                try { window.abrirModalPlanejamentoProducao(); } catch(e) { console.error('[APEX] Erro em abrirModalPlanejamentoProducao:', e); }
             }
         };
 
         window.fecharModalPlanejamentoProducao = function() {
             var modal = document.getElementById('modal-planejamento-producao');
-            if (modal) modal.style.display = 'none';
+            if (modal) {
+                modal.style.display = 'none';
+                modal.dataset.modalOpen = 'false';
+            }
         };
     </script>
     <link rel="manifest" href="manifest.json">
@@ -4684,7 +4700,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=300"></script>
+    <script src="admin.js?v=400"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
@@ -4908,7 +4924,7 @@
     </div>
 
     <!-- Modal: Novo Planejamento de Produção (Explosão de Insumos) -->
-    <div id="modal-planejamento-producao" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index:99999;">
+    <div id="modal-planejamento-producao" class="modal-producao-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.88); align-items:center; justify-content:center; z-index:999999; overflow-y:auto;">
         <div style="width:840px; max-width:95vw; background:#101a24; border:1px solid #2AD07A; border-radius:12px; padding:25px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #223547; padding-bottom:12px; margin-bottom:20px;">
                 <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-industry" style="color:#2AD07A;"></i> Novo Planejamento de Produção & Explosão de Insumos</h3>
@@ -5097,42 +5113,7 @@
         </div>
     </div>
 
-    <!-- ── SCRIPT DE INTERCEPTAÇÃO E GARANTIA GLOBAL DE ABERTURA DE MODAIS ── -->
-    <script>
-        function _forcarAbrirModalPlanejamentoProducao() {
-            console.log('[APEX SYSTEM] Executando _forcarAbrirModalPlanejamentoProducao...');
-            var modal = document.getElementById('modal-planejamento-producao');
-            if (modal) {
-                modal.style.setProperty('display', 'flex', 'important');
-                modal.style.setProperty('z-index', '999999', 'important');
-                modal.style.setProperty('opacity', '1', 'important');
-                modal.style.setProperty('visibility', 'visible', 'important');
-            } else {
-                console.error('[APEX SYSTEM] Elemento #modal-planejamento-producao não encontrado no DOM!');
-            }
-            if (typeof window.abrirModalPlanejamentoProducao === 'function') {
-                try {
-                    window.abrirModalPlanejamentoProducao();
-                } catch(e) {
-                    console.error('[APEX SYSTEM] Erro ao executar abrirModalPlanejamentoProducao:', e);
-                }
-            }
-        }
-
-        // Listener global na fase de captura (Use Capture)
-        document.addEventListener('click', function(e) {
-            var el = e.target;
-            while (el && el !== document.body) {
-                if (el.id === 'btn-novo-planejamento-producao' || 
-                    (el.innerText && el.innerText.toLowerCase().includes('novo planejamento de produ'))) {
-                    console.log('[APEX CAPTURE] Clique capturado no botão Novo Planejamento de Produção');
-                    _forcarAbrirModalPlanejamentoProducao();
-                    break;
-                }
-                el = el.parentElement;
-            }
-        }, true);
-    </script>
+    <!-- ── FIM DOS MODAIS ── -->
 </body>
 
 </html>
