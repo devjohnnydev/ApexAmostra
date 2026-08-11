@@ -2226,8 +2226,8 @@
                 <header class="section-header">
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap:wrap; gap:10px;">
                         <div>
-                            <h1><i class="fa-solid fa-calculator"></i> Planejamento Mensal de Fornecedores</h1>
-                            <p>Aba digitalizada do Planejamento LME. Simule lotes e gerencie margens de compra x venda com Inteligência Preditiva.</p>
+                            <h1><i class="fa-solid fa-industry"></i> Centro Integrado de Planejamento ApexTech</h1>
+                            <p>Gestão unificada de Simulação LME, Compras (MRP), Capacidade Industrial e Produção (PCP com Tempos Operacionais).</p>
                         </div>
                         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                             <div style="display:flex; align-items:center; gap:6px; background:rgba(30,78,140,0.3); padding:5px 12px; border-radius:6px; border:1px solid #1e4e8c;">
@@ -2245,75 +2245,258 @@
                             </div>
                             <button class="btn-secondary" onclick="exportarPlanejamentoPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
                             <button class="btn-secondary" onclick="exportarPlanejamentoExcel()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-                            <button class="btn-secondary" onclick="abrirModalPlanejamentoPreditivo()" style="background:#5c3bb1; color:#fff; border-color:#7a4fd4;" title="Criar planejamento para meses seguintes baseado no histórico com cenários Conservador, Moderado e Agressivo">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> ⚡ Gerar Planejamento Preditivo
-                            </button>
-                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPlanejamento()"><i class="fa-solid fa-plus"></i> Novo Lote Planejado</button>
                         </div>
                     </div>
                 </header>
 
-                <!-- Cards KPI Preditivos de Capacidade de Trabalho & Orçamento -->
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
-                    <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
-                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📦 Volume Projetado</span>
-                        <h2 id="pl-kpi-volume" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0 kg</h2>
-                        <small id="pl-kpi-volume-desc" style="color:#7a9cb8; font-size:0.78rem;">Baseado nos últimos meses</small>
+                <!-- SUB-NAVEGAÇÃO DE GUIAS DE PLANEJAMENTO -->
+                <div class="planning-subtabs" style="display:flex; gap:8px; margin-bottom:20px; border-bottom:2px solid #1e4e8c; padding-bottom:8px; flex-wrap:wrap;">
+                    <button type="button" class="btn-subtab active" id="tab-btn-pl-simulacao" onclick="alternarSubAbaPlanejamento('simulacao')" style="background:#1e4e8c; color:#fff; border:none; padding:9px 18px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:700; font-size:0.88rem; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-calculator"></i> Simulação LME & Lotes
+                    </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-pl-compras" onclick="alternarSubAbaPlanejamento('compras')" style="background:#101a24; color:#aaa; border:1px solid #1e4e8c; border-bottom:none; padding:9px 18px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:600; font-size:0.88rem; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-cart-shopping" style="color:#2AD07A;"></i> 1. Planejamento de Compra (MRP)
+                    </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-pl-industrial" onclick="alternarSubAbaPlanejamento('industrial')" style="background:#101a24; color:#aaa; border:1px solid #1e4e8c; border-bottom:none; padding:9px 18px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:600; font-size:0.88rem; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-industry" style="color:#3e7cb1;"></i> 2. Planejamento Industrial (Capacidade)
+                    </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-pl-producao" onclick="alternarSubAbaPlanejamento('producao')" style="background:#101a24; color:#aaa; border:1px solid #1e4e8c; border-bottom:none; padding:9px 18px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:600; font-size:0.88rem; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-stopwatch" style="color:#ffb74d;"></i> 3. Produção & PCP (Tempos Operacionais)
+                    </button>
+                </div>
+
+                <!-- ════ GUI 1: SIMULAÇÃO LME ════ -->
+                <div id="pl-subview-simulacao" class="pl-subview" style="display:block;">
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:15px;">
+                        <button class="btn-secondary" onclick="abrirModalPlanejamentoPreditivo()" style="background:#5c3bb1; color:#fff; border-color:#7a4fd4;" title="Criar planejamento preditivo">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> ⚡ Gerar Planejamento Preditivo
+                        </button>
+                        <button class="btn-primary restrito-financeiro" onclick="abrirModalPlanejamento()"><i class="fa-solid fa-plus"></i> Novo Lote Planejado</button>
                     </div>
-                    <div class="kpi-card" style="padding:15px; border-left:4px solid #f0b800; background:#12212f;">
-                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">💰 Orçamento de Compra</span>
-                        <h2 id="pl-kpi-orcamento" style="margin:5px 0 0 0; color:#f0b800; font-size:1.4rem;">R$ 0,00</h2>
-                        <small id="pl-kpi-orcamento-desc" style="color:#7a9cb8; font-size:0.78rem;">Custo total estimado de materiais</small>
+
+                    <!-- Cards KPI Preditivos de Capacidade de Trabalho & Orçamento -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📦 Volume Projetado</span>
+                            <h2 id="pl-kpi-volume" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0 kg</h2>
+                            <small id="pl-kpi-volume-desc" style="color:#7a9cb8; font-size:0.78rem;">Baseado nos últimos meses</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #f0b800; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">💰 Orçamento de Compra</span>
+                            <h2 id="pl-kpi-orcamento" style="margin:5px 0 0 0; color:#f0b800; font-size:1.4rem;">R$ 0,00</h2>
+                            <small id="pl-kpi-orcamento-desc" style="color:#7a9cb8; font-size:0.78rem;">Custo total estimado de materiais</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Lucro Líquido Projetado</span>
+                            <h2 id="pl-kpi-lucro" style="margin:5px 0 0 0; color:#2AD07A; font-size:1.4rem;">R$ 0,00</h2>
+                            <small id="pl-kpi-lucro-desc" style="color:#7a9cb8; font-size:0.78rem;">Margem estimada pós-deduções</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚙️ Alocação de Trabalho</span>
+                            <h2 id="pl-kpi-trabalho" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0 Horas/Mês</h2>
+                            <small id="pl-kpi-trabalho-desc" style="color:#7a9cb8; font-size:0.78rem;">Estimativa de triagem & desmonte</small>
+                        </div>
                     </div>
-                    <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
-                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Lucro Líquido Projetado</span>
-                        <h2 id="pl-kpi-lucro" style="margin:5px 0 0 0; color:#2AD07A; font-size:1.4rem;">R$ 0,00</h2>
-                        <small id="pl-kpi-lucro-desc" style="color:#7a9cb8; font-size:0.78rem;">Margem estimada pós-deduções</small>
+
+                    <div id="badge-cenario-ativo" style="display:none; margin-bottom:15px; padding:10px 15px; border-radius:6px; background:rgba(92,59,177,0.2); border:1px solid #7a4fd4; color:#fff; font-size:0.9rem; align-items:center; justify-content:space-between;">
+                        <div>
+                            <i class="fa-solid fa-sliders"></i> <strong>Cenário Preditivo Ativo:</strong> <span id="txt-cenario-nome">Moderado</span>
+                            <span style="opacity:0.8; font-size:0.82rem; margin-left:10px;" id="txt-cenario-detalhe">Calculado com base na média dos últimos 3 meses</span>
+                        </div>
                     </div>
-                    <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
-                        <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚙️ Alocação de Trabalho</span>
-                        <h2 id="pl-kpi-trabalho" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0 Horas/Mês</h2>
-                        <small id="pl-kpi-trabalho-desc" style="color:#7a9cb8; font-size:0.78rem;">Estimativa de triagem & desmonte</small>
+
+                    <div class="kpi-card" style="padding: 20px; border-radius: 8px;">
+                        <div style="overflow-x: auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="background:#223547; text-align:left;">
+                                        <th style="padding:8px;">Fornecedor</th>
+                                        <th style="padding:8px;">Produto</th>
+                                        <th style="padding:8px; text-align:right;">Peso (kg)</th>
+                                        <th style="padding:8px; text-align:right;">Preço Compra</th>
+                                        <th style="padding:8px; text-align:right;">Total Compra</th>
+                                        <th style="padding:8px; text-align:right;">Rend. (%)</th>
+                                        <th style="padding:8px;">Mat. Resultante</th>
+                                        <th style="padding:8px; text-align:right;">Peso Material</th>
+                                        <th style="padding:8px; text-align:right;">Preço Venda</th>
+                                        <th style="padding:8px; text-align:right;">Total Venda</th>
+                                        <th style="padding:8px; text-align:right;">Lucro Bruto</th>
+                                        <th style="padding:8px; text-align:right;">% Invest.</th>
+                                        <th style="padding:8px; text-align:right;">% Fatur.</th>
+                                        <th style="padding:8px; text-align:right;">Comissão</th>
+                                        <th style="padding:8px; text-align:right;">FIDC</th>
+                                        <th style="padding:8px; text-align:right;">Resultado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="planejamento-table-body"></tbody>
+                                <tfoot id="planejamento-table-footer" style="background:#12212f; font-weight:bold;"></tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <div id="badge-cenario-ativo" style="display:none; margin-bottom:15px; padding:10px 15px; border-radius:6px; background:rgba(92,59,177,0.2); border:1px solid #7a4fd4; color:#fff; font-size:0.9rem; align-items:center; justify-space-between;">
-                    <div>
-                        <i class="fa-solid fa-sliders"></i> <strong>Cenário Preditivo Ativo:</strong> <span id="txt-cenario-nome">Moderado</span>
-                        <span style="opacity:0.8; font-size:0.82rem; margin-left:10px;" id="txt-cenario-detalhe">Calculado com base na média dos últimos 3 meses</span>
+                <!-- ════ GUI 2: PLANEJAMENTO DE COMPRA (MRP) ════ -->
+                <div id="pl-subview-compras" class="pl-subview" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div>
+                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-cart-shopping" style="color:#2AD07A;"></i> Planejamento de Necessidade de Matéria-Prima (MRP)</h3>
+                            <span style="font-size:0.8rem; color:#aaa;">Dimensionamento de estoque de segurança, reposição e lead time por fornecedor.</span>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalPlanejamentoCompra()"><i class="fa-solid fa-plus"></i> Nova Demanda de Compra</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛒 Demandas Mês</span>
+                            <h2 id="mrp-kpi-demandas" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Itens em planejamento</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #e74c3c; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚠️ Ponto de Pedido Crítico</span>
+                            <h2 id="mrp-kpi-critico" style="margin:5px 0 0 0; color:#e74c3c; font-size:1.4rem;">0 Mat.</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Abaixo do estoque mínimo</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏳ Lead Time Médio</span>
+                            <h2 id="mrp-kpi-leadtime" style="margin:5px 0 0 0; color:#3e7cb1; font-size:1.4rem;">0 dias</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Tempo médio de entrega</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #f0b800; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">💵 Custo Estimado Reposição</span>
+                            <h2 id="mrp-kpi-custototal" style="margin:5px 0 0 0; color:#f0b800; font-size:1.4rem;">R$ 0,00</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Orçamento total previsto</small>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="background:#223547; text-align:left;">
+                                        <th style="padding:10px 8px;">Material</th>
+                                        <th style="padding:10px 8px;">Fornecedor</th>
+                                        <th style="padding:10px 8px; text-align:right;">Qtd Necessária</th>
+                                        <th style="padding:10px 8px; text-align:right;">Est. Mínimo (Ponto Pedido)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Lead Time</th>
+                                        <th style="padding:10px 8px; text-align:right;">Preço Est. (R$)</th>
+                                        <th style="padding:10px 8px; text-align:right;">Custo Total (R$)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Mês Ref.</th>
+                                        <th style="padding:10px 8px; text-align:center;">Status</th>
+                                        <th style="padding:10px 8px; text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mrp-table-body"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <div class="kpi-card" style="padding: 20px; border-radius: 8px;">
-                    <div style="overflow-x: auto;">
-                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                            <thead>
-                                <tr style="background:#223547; text-align:left;">
-                                    <th style="padding:8px;">Fornecedor</th>
-                                    <th style="padding:8px;">Produto</th>
-                                    <th style="padding:8px; text-align:right;">Peso (kg)</th>
-                                    <th style="padding:8px; text-align:right;">Preço Compra</th>
-                                    <th style="padding:8px; text-align:right;">Total Compra</th>
-                                    <th style="padding:8px; text-align:right;">Rend. (%)</th>
-                                    <th style="padding:8px;">Mat. Resultante</th>
-                                    <th style="padding:8px; text-align:right;">Peso Material</th>
-                                    <th style="padding:8px; text-align:right;">Preço Venda</th>
-                                    <th style="padding:8px; text-align:right;">Total Venda</th>
-                                    <th style="padding:8px; text-align:right;">Lucro Bruto</th>
-                                    <th style="padding:8px; text-align:right;">% Invest.</th>
-                                    <th style="padding:8px; text-align:right;">% Fatur.</th>
-                                    <th style="padding:8px; text-align:right;">Comissão</th>
-                                    <th style="padding:8px; text-align:right;">FIDC</th>
-                                    <th style="padding:8px; text-align:right;">Resultado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="planejamento-table-body">
-                                <!-- Dynamically populated rows from lots -->
-                            </tbody>
-                            <tfoot id="planejamento-table-footer" style="background:#12212f; font-weight:bold;">
-                                <!-- aggregated values -->
-                            </tfoot>
-                        </table>
+                <!-- ════ GUI 3: PLANEJAMENTO INDUSTRIAL ════ -->
+                <div id="pl-subview-industrial" class="pl-subview" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div>
+                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-industry" style="color:#3e7cb1;"></i> Mapeamento de Capacidade & Linhas Industriais</h3>
+                            <span style="font-size:0.8rem; color:#aaa;">Capacidade nominal (kg/h), tempo de setup de equipamentos, OEE e gargalos da fábrica.</span>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalEquipamentoIndustrial()"><i class="fa-solid fa-plus"></i> Novo Equipamento / Máquina</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚙️ Linhas / Equipamentos</span>
+                            <h2 id="ind-kpi-total" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Ativos industriais</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚡ Cap. Total Instalada</span>
+                            <h2 id="ind-kpi-capacidade" style="margin:5px 0 0 0; color:#2AD07A; font-size:1.4rem;">0 kg/h</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Processamento nominal</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #ffb74d; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏱️ Tempo Médio de Setup</span>
+                            <h2 id="ind-kpi-setup" style="margin:5px 0 0 0; color:#ffb74d; font-size:1.4rem;">0.0 h</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Preparação por troca</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📊 OEE Médio da Fábrica</span>
+                            <h2 id="ind-kpi-oee" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0 %</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Eficiência operacional</small>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="background:#223547; text-align:left;">
+                                        <th style="padding:10px 8px;">TAG</th>
+                                        <th style="padding:10px 8px;">Equipamento / Máquina</th>
+                                        <th style="padding:10px 8px;">Setor</th>
+                                        <th style="padding:10px 8px; text-align:right;">Capacidade Nominal</th>
+                                        <th style="padding:10px 8px; text-align:center;">Disponibilidade (h/dia)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Tempo Setup</th>
+                                        <th style="padding:10px 8px; text-align:center;">OEE %</th>
+                                        <th style="padding:10px 8px; text-align:center;">Status</th>
+                                        <th style="padding:10px 8px; text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ind-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ════ GUI 4: PRODUÇÃO & PCP (TEMPOS OPERACIONAIS) ════ -->
+                <div id="pl-subview-producao" class="pl-subview" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div>
+                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-stopwatch" style="color:#ffb74d;"></i> Ordens de Produção & PCP (Com Tempos Operacionais)</h3>
+                            <span style="font-size:0.8rem; color:#aaa;">Roteiro de etapas da fábrica, apontamento de tempo real vs. estimado e lead time por lote.</span>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalOrdemProducao()"><i class="fa-solid fa-plus"></i> Nova Ordem de Produção (OP)</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #ffb74d; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📋 OPs em Execução</span>
+                            <h2 id="pcp-kpi-ops" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Ordens ativas na fábrica</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚖️ Volume em Processamento</span>
+                            <h2 id="pcp-kpi-volume" style="margin:5px 0 0 0; color:#3e7cb1; font-size:1.4rem;">0 kg</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Matéria-prima em linha</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏱️ Horas Estimadas Totais</span>
+                            <h2 id="pcp-kpi-tempo-est" style="margin:5px 0 0 0; color:#2AD07A; font-size:1.4rem;">0.0 h</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Tempo previsto roteiro</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏱️ Horas Reais Apontadas</span>
+                            <h2 id="pcp-kpi-tempo-real" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0.0 h</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Acumulado real fábrica</small>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="background:#223547; text-align:left;">
+                                        <th style="padding:10px 8px;">Nº OP</th>
+                                        <th style="padding:10px 8px;">Material Entrada</th>
+                                        <th style="padding:10px 8px; text-align:right;">Peso Entrada</th>
+                                        <th style="padding:10px 8px;">Saída Prevista</th>
+                                        <th style="padding:10px 8px; text-align:center;">Cronograma</th>
+                                        <th style="padding:10px 8px; text-align:center;">Etapas & Tempos (Est vs Real)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Status OP</th>
+                                        <th style="padding:10px 8px; text-align:center;">Ações PCP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pcp-table-body"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -2759,196 +2942,7 @@
          MODAIS DE CADASTRO E EDICÃO
     ═══════════════════════════════════════════════════════════ -->
 
-    <!-- ═══ MODAL: PEDIDO DE VENDA ═══ -->
-    <div id="modal-pedido-venda" class="fullscreen-overlay" style="display:none; align-items:flex-start; justify-content:center; z-index:1050; padding-top:20px; overflow-y:auto;">
-        <div style="width:960px; max-width:98vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; margin-bottom:30px;">
-            <!-- Cabeçalho do Modal -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#101a24; border-radius:12px 12px 0 0; padding:16px 22px; border-bottom:1px solid #223547;">
-                <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-file-invoice-dollar" style="color:#2AD07A;"></i> <span id="modal-pedido-titulo">Novo Pedido de Venda</span></h3>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <button type="button" onclick="exportarPedidoPdfDoForm()" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:6px 14px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600;">
-                        <i class="fa-solid fa-file-pdf"></i> PDF
-                    </button>
-                    <button type="button" onclick="fecharModalPedido()" style="background:none; border:none; color:#aaa; font-size:1.3rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-            </div>
 
-            <form id="form-pedido-venda" onsubmit="salvarPedido(event)" style="padding:22px;">
-                <input type="hidden" id="pedido-id" value="">
-
-                <!-- LINHA 1: Número, Data Emissão, Data Entrega -->
-                <div style="display:grid; grid-template-columns:160px 1fr 1fr; gap:12px; margin-bottom:14px;">
-                    <div class="form-group">
-                        <label>Número do Pedido</label>
-                        <input type="text" id="pedido-numero" class="noble-input" readonly style="background:#0a1520; color:#2AD07A; font-weight:bold;" placeholder="PV-0001">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fa-solid fa-calendar"></i> Data de Emissão</label>
-                        <input type="date" id="pedido-data-emissao" class="noble-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fa-solid fa-calendar-check"></i> Data Prevista de Entrega</label>
-                        <input type="date" id="pedido-data-entrega" class="noble-input">
-                    </div>
-                </div>
-
-                <!-- LINHA 2: Emissor e Perfil (auto-preenchido) -->
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
-                    <div class="form-group">
-                        <label><i class="fa-solid fa-user-tie" style="color:#3e7cb1;"></i> Vendedor / Emissor</label>
-                        <input type="text" id="pedido-vendedor" class="noble-input" readonly style="background:#0a1520; color:#7fa8c8;" placeholder="Usuário logado">
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fa-solid fa-id-badge" style="color:#3e7cb1;"></i> Perfil de Acesso</label>
-                        <input type="text" id="pedido-perfil" class="noble-input" readonly style="background:#0a1520; color:#7fa8c8;" placeholder="Perfil">
-                    </div>
-                </div>
-
-                <!-- BUSCA DE CLIENTE -->
-                <div class="form-group" style="margin-bottom:6px; position:relative;">
-                    <label><i class="fa-solid fa-building-user" style="color:#2AD07A;"></i> Cliente / Destinatário *</label>
-                    <input type="hidden" id="pedido-cliente-id" value="">
-                    <input type="text" id="pedido-cliente-busca" class="noble-input" placeholder="🔍 Buscar por Nome, CNPJ, E-mail..." autocomplete="off"
-                        oninput="buscarClientePedido(this.value)"
-                        onfocus="buscarClientePedido(this.value)"
-                        onblur="setTimeout(()=>{ const d=document.getElementById('pedido-cliente-dropdown'); if(d) d.style.display='none'; }, 200)">
-                    <div id="pedido-cliente-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:#0d1a26; border:1px solid #1e4e8c; border-radius:0 0 8px 8px; max-height:260px; overflow-y:auto; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5);"></div>
-                </div>
-
-                <!-- Card info do cliente -->
-                <div id="pedido-cliente-card" style="display:none; background:#101f2e; border:1px solid #1e4e8c; border-radius:8px; padding:12px 16px; margin-bottom:14px;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
-                        <div>
-                            <div style="font-weight:bold; font-size:0.95rem; color:#fff;" id="cc-nome">-</div>
-                            <div style="color:#7fa8c8; font-size:0.82rem; margin-top:2px;">CNPJ/CPF: <span id="cc-cnpj">-</span> | <span id="cc-cidade">-</span>/<span id="cc-uf">-</span></div>
-                            <div style="color:#7fa8c8; font-size:0.82rem;">Tel: <span id="cc-tel">-</span> | Email: <span id="cc-email">-</span></div>
-                            <div style="color:#7fa8c8; font-size:0.82rem;" id="cc-endereco">-</div>
-                        </div>
-                        <span id="cc-status-badge" style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:4px 10px; border-radius:20px; font-size:0.78rem; font-weight:700; white-space:nowrap;">
-                            <i class="fa-solid fa-user-check"></i> CLIENTE CADASTRADO
-                        </span>
-                    </div>
-                </div>
-
-                <!-- LOGÍSTICA E ENTREGA -->
-                <div style="background:#0a1520; border:1px solid #1a2e40; border-radius:8px; padding:14px 16px; margin-bottom:14px;">
-                    <div style="color:#4fc3f7; font-weight:700; font-size:0.88rem; margin-bottom:10px;"><i class="fa-solid fa-truck"></i> LOGÍSTICA & ENTREGA</div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
-                        <div class="form-group" style="margin:0;">
-                            <label style="font-size:0.8rem;">Endereço de Entrega / Destino</label>
-                            <input type="text" id="pedido-endereco-entrega" class="noble-input" placeholder="Rua, número, bairro - Cidade/UF">
-                        </div>
-                        <div class="form-group" style="margin:0;">
-                            <label style="font-size:0.8rem;">Responsável / Recebedor no Destino</label>
-                            <input type="text" id="pedido-responsavel-recebimento" class="noble-input" placeholder="Ex: Sr. Carlos - Almoxarifado">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin:0;">
-                        <label style="font-size:0.8rem;">Tipo de Frete / Logística</label>
-                        <select id="pedido-tipo-frete" class="noble-input">
-                            <option value="CIF - Entrega ApexTech">CIF – Entrega por conta da ApexTech</option>
-                            <option value="FOB - Retirada pelo Cliente">FOB – Retirada pelo Cliente</option>
-                            <option value="Transportadora Terceira">Transportadora Terceira / Redespacho</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- STATUS E CONDIÇÕES -->
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px;">
-                    <div class="form-group">
-                        <label><i class="fa-solid fa-circle-check" style="color:#2AD07A;"></i> Status / Aprovação</label>
-                        <select id="pedido-status" class="noble-input">
-                            <option value="Rascunho">📄 Rascunho</option>
-                            <option value="Aguardando Aprovação">⚠️ Aguardando Aprovação</option>
-                            <option value="Aprovado">✅ Aprovado</option>
-                            <option value="Confirmado">✅ Confirmado</option>
-                            <option value="Em Separação">📦 Em Separação</option>
-                            <option value="Faturado">💰 Faturado</option>
-                            <option value="Entregue">🚚 Entregue</option>
-                            <option value="Cancelado">❌ Cancelado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Condição de Pagamento</label>
-                        <select id="pedido-condicao" class="noble-input" onchange="verificarCondicaoPersonalizada(this.value)">
-                            <option value="À Vista">À Vista</option>
-                            <option value="7 dias">7 dias</option>
-                            <option value="14 dias">14 dias</option>
-                            <option value="21 dias">21 dias</option>
-                            <option value="28 dias">28 dias</option>
-                            <option value="30 dias">30 dias</option>
-                            <option value="30/60 dias">30/60 dias</option>
-                            <option value="30/60/90 dias">30/60/90 dias</option>
-                            <option value="FIDC">FIDC</option>
-                            <option value="CUSTOM">Outro (Digitar Dias...)</option>
-                        </select>
-                        <input type="text" id="pedido-condicao-custom" class="noble-input" style="display:none; margin-top:6px;" placeholder="Ex: 45 dias, 15/30/45 dias, 10 dias..." />
-                    </div>
-                    <div class="form-group">
-                        <label>Observações</label>
-                        <input type="text" id="pedido-obs" class="noble-input" placeholder="Instruções especiais, referências...">
-                    </div>
-                </div>
-
-                <!-- ITENS DO PEDIDO -->
-                <div style="background:#0a1520; border:1px solid #1a2e40; border-radius:8px; padding:14px; margin-bottom:14px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="color:#ffeb3b; font-weight:700; font-size:0.9rem;"><i class="fa-solid fa-list"></i> ITENS DO PEDIDO</span>
-                        <button type="button" onclick="adicionarItemPedido()" style="background:#1e4e8c; border:1px solid #3e7cb1; color:#fff; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:0.82rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
-                            <i class="fa-solid fa-plus"></i> Adicionar Item
-                        </button>
-                    </div>
-                    <div id="itens-vazio" style="text-align:center; padding:20px; color:#5a738e; font-size:0.88rem;">
-                        <i class="fa-solid fa-box-open" style="font-size:1.5rem; margin-bottom:6px; display:block; opacity:0.4;"></i>
-                        Nenhum item adicionado. Clique em "+ Adicionar Item".
-                    </div>
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                            <thead id="itens-thead" style="display:table-header-group;">
-                                <tr style="background:#172635; color:#7fa8c8; text-align:left;">
-                                    <th style="padding:10px 8px;">Descrição / Material</th>
-                                    <th style="padding:10px 4px; width:70px; text-align:center;">Unidade (kg/un)</th>
-                                    <th style="padding:10px 4px; width:110px; text-align:right; color:#2AD07A;">Qtd / Peso (Kg)</th>
-                                    <th style="padding:10px 4px; width:120px; text-align:right;">Preço Unit. (R$)</th>
-                                    <th style="padding:10px 4px; width:85px; text-align:right;">Desc %</th>
-                                    <th style="padding:10px 4px; width:120px; text-align:right;">Total (R$)</th>
-                                    <th style="padding:10px 4px; width:40px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="itens-pedido-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TOTAIS -->
-                <div style="display:grid; grid-template-columns:1fr 1fr 240px; gap:12px; margin-bottom:20px; align-items:end;">
-                    <div class="form-group">
-                        <label>Desconto Geral do Pedido (%)</label>
-                        <input type="number" id="pedido-desconto" class="noble-input" min="0" max="100" step="0.01" value="0" oninput="recalcularPedido()">
-                    </div>
-                    <div class="form-group">
-                        <label>Frete (R$)</label>
-                        <input type="number" id="pedido-frete" class="noble-input" min="0" step="0.01" value="0" oninput="recalcularPedido()">
-                    </div>
-                    <div style="background:#101f2e; border:1px solid #1e4e8c; border-radius:8px; padding:12px 16px;">
-                        <div style="color:#aaa; font-size:0.8rem; margin-bottom:4px;">Subtotal Itens: <span id="pedido-total-itens" style="color:#fff; font-weight:600;">R$ 0,00</span></div>
-                        <div style="color:#2AD07A; font-size:1.05rem; font-weight:bold;">Total Geral: <span id="pedido-total-geral">R$ 0,00</span></div>
-                    </div>
-                </div>
-
-                <!-- BOTÕES -->
-                <div style="display:flex; justify-content:flex-end; gap:10px; padding-top:14px; border-top:1px solid #1a2e40;">
-                    <button type="button" onclick="fecharModalPedido()" style="background:#182232; border:1px solid #283e56; color:#aaa; padding:9px 20px; border-radius:6px; cursor:pointer; font-size:0.9rem;">
-                        <i class="fa-solid fa-xmark"></i> Cancelar
-                    </button>
-                    <button type="submit" style="background:#2AD07A; border:none; color:#000; padding:9px 24px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-floppy-disk"></i> Salvar Pedido
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <!-- ═══ FIM MODAL PEDIDO DE VENDA ═══ -->
 
     <!-- Modal Fornecedor (COMPLETO) -->
     <div id="modal-fornecedor" class="fullscreen-overlay" style="display:none; align-items:flex-start; justify-content:center; z-index:1000; padding-top:20px; overflow-y:auto;">
@@ -3788,6 +3782,273 @@
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button type="submit" class="btn-primary" style="flex:2; background:#5c3bb1; border-color:#7a4fd4; color:#fff; font-weight:bold;"><i class="fa-solid fa-bolt"></i> Gerar e Aplicar ao Mês</button>
                     <button type="button" class="btn-secondary" onclick="fecharModalPlanejamentoPreditivo()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: NOVA DEMANDA DE COMPRA (MRP) ═══ -->
+    <div id="modal-planejamento-compra" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1050;">
+        <div class="login-box" style="width:580px; padding:25px; background:#101a24; border:1px solid #2AD07A; max-height:90vh; overflow-y:auto; border-radius:10px;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-cart-shopping" style="color:#2AD07A;"></i> Nova Demanda de Compra (MRP)
+            </h3>
+            <form id="form-planejamento-compra" onsubmit="salvarPlanejamentoCompraForm(event)">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="color:#fff;">Material Requerido *</label>
+                    <select id="mrp-material-id" class="noble-input" required onchange="atualizarPrecoEstCompra()">
+                        <option value="">Selecione o Material...</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="color:#fff;">Fornecedor Homologado *</label>
+                    <select id="mrp-fornecedor-id" class="noble-input" required>
+                        <option value="">Selecione o Fornecedor...</option>
+                    </select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Qtd Necessária (kg) *</label>
+                        <input type="number" step="0.01" id="mrp-qtd-necessaria" class="noble-input" required placeholder="Ex: 5000" oninput="calcularTotalMRPForm()">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Ponto de Pedido / Est. Mínimo (kg)</label>
+                        <input type="number" step="0.01" id="mrp-ponto-pedido" class="noble-input" placeholder="Ex: 2000">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Lead Time Entrega (Dias) *</label>
+                        <input type="number" id="mrp-lead-time" class="noble-input" value="7" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Preço Estimado (R$/kg) *</label>
+                        <input type="number" step="0.01" id="mrp-preco-estimado" class="noble-input" required placeholder="0.00" oninput="calcularTotalMRPForm()">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Mês Referência *</label>
+                        <input type="month" id="mrp-mes-referencia" class="noble-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Status do Pedido</label>
+                        <select id="mrp-status" class="noble-input">
+                            <option value="Sugerido">📄 Sugerido</option>
+                            <option value="Em Cotação">🔍 Em Cotação</option>
+                            <option value="Aprovado">✅ Aprovado</option>
+                            <option value="Em Trânsito">🚚 Em Trânsito</option>
+                            <option value="Recebido">📦 Recebido</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="color:#fff;">Observações / Especificações</label>
+                    <input type="text" id="mrp-obs" class="noble-input" placeholder="Detalhes do lote...">
+                </div>
+                <div style="background:#0d1826; padding:10px 14px; border-radius:6px; margin-bottom:15px; border-left:3px solid #f0b800; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:#aaa; font-size:0.85rem;">Custo Total Previsto:</span>
+                    <strong style="color:#f0b800; font-size:1.1rem;" id="mrp-txt-custo-total">R$ 0,00</strong>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Salvar Necessidade de Compra</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalPlanejamentoCompra()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: EQUIPAMENTO INDUSTRIAL ═══ -->
+    <div id="modal-equipamento-industrial" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1050;">
+        <div class="login-box" style="width:580px; padding:25px; background:#101a24; border:1px solid #3e7cb1; max-height:90vh; overflow-y:auto; border-radius:10px;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-industry" style="color:#3e7cb1;"></i> <span id="modal-eq-titulo">Cadastrar Equipamento Industrial</span>
+            </h3>
+            <form id="form-equipamento-industrial" onsubmit="salvarEquipamentoIndustrialForm(event)">
+                <input type="hidden" id="eq-id">
+                <div style="display:grid; grid-template-columns:140px 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Código / TAG *</label>
+                        <input type="text" id="eq-codigo-tag" class="noble-input" required placeholder="Ex: TRIT-02">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Nome do Equipamento / Máquina *</label>
+                        <input type="text" id="eq-nome" class="noble-input" required placeholder="Ex: Triturador Secundário">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Setor Operacional *</label>
+                        <select id="eq-setor" class="noble-input" required>
+                            <option value="Triagem">Triagem</option>
+                            <option value="Trituração">Trituração</option>
+                            <option value="Separação">Separação Magnética</option>
+                            <option value="Prensagem">Prensagem</option>
+                            <option value="Fundição">Fundição / Refino</option>
+                            <option value="Embalagem">Embalagem</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Capacidade Nominal (kg/h) *</label>
+                        <input type="number" step="0.1" id="eq-capacidade" class="noble-input" required placeholder="Ex: 1500">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Disp. (h/dia) *</label>
+                        <input type="number" step="0.5" id="eq-disponibilidade" class="noble-input" value="16" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Tempo Setup (h) *</label>
+                        <input type="number" step="0.1" id="eq-tempo-setup" class="noble-input" value="1.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Eficiência OEE (%) *</label>
+                        <input type="number" step="0.1" id="eq-oee" class="noble-input" value="85" required>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="color:#fff;">Status Operacional</label>
+                    <select id="eq-status" class="noble-input">
+                        <option value="Operacional">✅ Operacional</option>
+                        <option value="Manutenção">⚠️ Em Manutenção</option>
+                        <option value="Parado">❌ Parado / Inativo</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="color:#fff;">Observações Técnicas</label>
+                    <input type="text" id="eq-obs" class="noble-input" placeholder="Inspeção, capacidade real...">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Salvar Equipamento</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalEquipamentoIndustrial()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: ORDEM DE PRODUÇÃO (PCP COM TEMPOS OPERACIONAIS) ═══ -->
+    <div id="modal-ordem-producao" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1050;">
+        <div class="login-box" style="width:720px; padding:25px; background:#101a24; border:1px solid #ffb74d; max-height:92vh; overflow-y:auto; border-radius:10px;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-stopwatch" style="color:#ffb74d;"></i> Nova Ordem de Produção & Roteiro PCP
+            </h3>
+            <form id="form-ordem-producao" onsubmit="salvarOrdemProducaoForm(event)">
+                <div style="display:grid; grid-template-columns:160px 1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Número OP *</label>
+                        <input type="text" id="op-numero" class="noble-input" readonly style="background:#0a1622; color:#2AD07A; font-weight:bold;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Material Entrada *</label>
+                        <input type="text" id="op-material-entrada" class="noble-input" required placeholder="Ex: Fio de Instalação Misto">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Peso Entrada (kg) *</label>
+                        <input type="number" step="0.01" id="op-peso-entrada" class="noble-input" required placeholder="Ex: 5000">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Material Resultante Esperado *</label>
+                        <select id="op-material-saida-id" class="noble-input" required>
+                            <option value="">Selecione o Material de Saída...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Peso Saída Estimado (kg)</label>
+                        <input type="number" step="0.01" id="op-peso-saida-est" class="noble-input" placeholder="Ex: 3100">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label style="color:#fff;">Início Previsto *</label>
+                        <input type="date" id="op-data-inicio" class="noble-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Fim Previsto *</label>
+                        <input type="date" id="op-data-fim" class="noble-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#fff;">Responsável PCP *</label>
+                        <input type="text" id="op-responsavel" class="noble-input" required value="Eng. Roberto">
+                    </div>
+                </div>
+
+                <!-- Roteiro de Etapas Operacionais e Tempos -->
+                <div style="background:#0a1520; border:1px solid #1a2e40; border-radius:8px; padding:14px; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="color:#ffb74d; font-weight:700; font-size:0.9rem;">
+                            <i class="fa-solid fa-list-check"></i> Roteiro de Etapas Operacionais & Tempos (Horas)
+                        </span>
+                        <button type="button" onclick="adicionarEtapaOpForm()" style="background:#1e4e8c; border:1px solid #3e7cb1; color:#fff; padding:4px 10px; border-radius:4px; font-size:0.8rem; cursor:pointer;">
+                            <i class="fa-solid fa-plus"></i> Add Etapa
+                        </button>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                        <thead>
+                            <tr style="background:#172635; color:#7fa8c8;">
+                                <th style="padding:6px;">#</th>
+                                <th style="padding:6px; text-align:left;">Etapa Operacional</th>
+                                <th style="padding:6px; text-align:left;">Equipamento</th>
+                                <th style="padding:6px; text-align:right;">Tempo Est. (Horas)</th>
+                                <th style="padding:6px; text-align:left;">Operador</th>
+                                <th style="padding:6px; text-align:center;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="op-etapas-tbody"></tbody>
+                    </table>
+                    <div style="text-align:right; margin-top:8px; font-size:0.85rem; color:#aaa;">
+                        Tempo Total Estimado da OP: <strong id="op-tempo-total-est" style="color:#2AD07A;">0.0 Horas</strong>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="color:#fff;">Observações / Instruções de Fábrica</label>
+                    <input type="text" id="op-obs" class="noble-input" placeholder="Prioridade, clientes FIDC...">
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Criar Ordem de Produção</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalOrdemProducao()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ MODAL: APONTAMENTO DE TEMPO REAL NA ETAPA ═══ -->
+    <div id="modal-apontamento-tempo" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1100;">
+        <div class="login-box" style="width:480px; padding:22px; background:#101a24; border:1px solid #9b59b6; border-radius:10px;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-clock" style="color:#9b59b6;"></i> Apontamento de Tempo Real - Etapa
+            </h3>
+            <form id="form-apontamento-tempo" onsubmit="salvarApontamentoTempoForm(event)">
+                <input type="hidden" id="ap-op-id">
+                <input type="hidden" id="ap-etapa-id">
+                <div style="background:#0a1520; padding:10px; border-radius:6px; margin-bottom:12px; border-left:3px solid #9b59b6;">
+                    <div style="color:#aaa; font-size:0.8rem;">Ordem de Produção: <strong id="ap-txt-op" style="color:#fff;">-</strong></div>
+                    <div style="color:#9b59b6; font-weight:bold; font-size:0.95rem; margin-top:2px;" id="ap-txt-etapa">-</div>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="color:#fff;">Tempo Real Apontado (Horas) *</label>
+                    <input type="number" step="0.1" id="ap-tempo-real" class="noble-input" required placeholder="Ex: 4.5">
+                    <small style="color:#7a9cb8; font-size:0.75rem;">Tempo estimado configurado: <span id="ap-txt-tempo-est">0.0h</span></small>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="color:#fff;">Status da Etapa *</label>
+                    <select id="ap-status-etapa" class="noble-input" required>
+                        <option value="Em Andamento">⏳ Em Andamento</option>
+                        <option value="Concluída">✅ Concluída</option>
+                        <option value="Pendente">📄 Pendente</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="color:#fff;">Operador Responsável</label>
+                    <input type="text" id="ap-operador" class="noble-input" placeholder="Nome do operador">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:2; background:#9b59b6; border-color:#b06ab3;"><i class="fa-solid fa-check"></i> Confirmar Apontamento</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalApontamentoTempo()" style="flex:1;">Cancelar</button>
                 </div>
             </form>
         </div>

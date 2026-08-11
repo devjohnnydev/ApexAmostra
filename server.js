@@ -159,6 +159,40 @@ const memStore = {
         { id: 3, material_id: 6, tipo: "ENTRADA", quantidade: 8200, motivo: "Processamento da amostra AM-002", data: "2026-07-16" },
         { id: 4, material_id: 15, tipo: "ENTRADA", quantidade: 11800, motivo: "Processamento da amostra AM-002", data: "2026-07-16" }
     ],
+    planejamento_compras: [
+        { id: 1, material_id: 5, fornecedor_id: 1, quantidade_necessaria: 10000, ponto_pedido_kg: 5000, lead_time_dias: 7, preco_estimado: 68.00, custo_total_estimado: 680000.00, mes_referencia: "2026-08", status: "Em Cotação", observacoes: "Reposição para alta demanda Cobre 1", criado_em: new Date().toISOString() },
+        { id: 2, material_id: 1, fornecedor_id: 1, quantidade_necessaria: 15000, ponto_pedido_kg: 8000, lead_time_dias: 5, preco_estimado: 11.30, custo_total_estimado: 169500.00, mes_referencia: "2026-08", status: "Sugerido", observacoes: "Lote mínimo fornecedor davi", criado_em: new Date().toISOString() }
+    ],
+    equipamentos_industriais: [
+        { id: 1, nome_equipamento: "Triturador Industrial Primário Apex-T1", codigo_tag: "TRIT-01", setor: "Trituração", capacidade_nominal_kgh: 1500, disponibilidade_horas_dia: 16, tempo_setup_horas: 1.5, eficiencia_oee_pct: 88, status: "Operacional", observacoes: "Manutenção preventiva em dia" },
+        { id: 2, nome_equipamento: "Esteira de Triagem & Separação Manual", codigo_tag: "EST-01", setor: "Triagem", capacidade_nominal_kgh: 2500, disponibilidade_horas_dia: 16, tempo_setup_horas: 0.5, eficiencia_oee_pct: 92, status: "Operacional", observacoes: "4 operadores por turno" },
+        { id: 3, nome_equipamento: "Separador Magnético Overband 500", codigo_tag: "SEP-01", setor: "Separação", capacidade_nominal_kgh: 2000, disponibilidade_horas_dia: 16, tempo_setup_horas: 0.5, eficiencia_oee_pct: 90, status: "Operacional", observacoes: "Alta eficiência remoção ferro" },
+        { id: 4, nome_equipamento: "Prensa Hidráulica 100T Metais", codigo_tag: "PRE-01", setor: "Prensagem", capacidade_nominal_kgh: 1200, disponibilidade_horas_dia: 14, tempo_setup_horas: 1.0, eficiencia_oee_pct: 85, status: "Operacional", observacoes: "Fardos padrão exportação" }
+    ],
+    ordens_producao: [
+        {
+            id: 1,
+            numero_op: "OP-2026-001",
+            amostra_id: 1,
+            lote_id: 1,
+            material_entrada: "Fio de Instalação 1.5mm",
+            peso_entrada_kg: 5000,
+            material_saida_id: 5,
+            peso_saida_estimado_kg: 3100,
+            data_inicio_prevista: "2026-08-12",
+            data_fim_prevista: "2026-08-14",
+            responsavel_pcp: "Eng. Roberto",
+            status: "Em Execução",
+            observacoes: "Prioridade para entrega ao cliente FIDC",
+            criado_em: new Date().toISOString(),
+            etapas: [
+                { id: 1, op_id: 1, nome_etapa: "Recepção & Pesagem", ordem: 1, equipamento_id: 2, tempo_estimado_horas: 2.0, tempo_real_horas: 1.8, status_etapa: "Concluída", operador_responsavel: "Carlos", observacoes: "Sem anomalias" },
+                { id: 2, op_id: 1, nome_etapa: "Trituração & Separação Plástico", ordem: 2, equipamento_id: 1, tempo_estimado_horas: 4.5, tempo_real_horas: 5.0, status_etapa: "Em Andamento", operador_responsavel: "João", observacoes: "Ajuste na lâmina do triturador" },
+                { id: 3, op_id: 1, nome_etapa: "Separação Magnética & Prensagem", ordem: 3, equipamento_id: 4, tempo_estimado_horas: 3.0, tempo_real_horas: 0.0, status_etapa: "Pendente", operador_responsavel: "Marcos", observacoes: "" },
+                { id: 4, op_id: 1, nome_etapa: "Inspeção de Qualidade & Embalagem", ordem: 4, equipamento_id: null, tempo_estimado_horas: 1.5, tempo_real_horas: 0.0, status_etapa: "Pendente", operador_responsavel: "Eng. Roberto", observacoes: "" }
+            ]
+        }
+    ],
     fotos_amostra: [],   // { id, amostra_id, tipo: 'bruta'|'separada'|'componente', data_b64, mimetype, nome, criado_em }
     usuarios: [
         { id: 1, user: "admin", pass: "apex2026", perfil: "Administrador", nome: "Admin Apex" },
@@ -235,7 +269,8 @@ async function initDatabase() {
             CREATE TABLE IF NOT EXISTS pedidos_venda (
                 id              SERIAL PRIMARY KEY,
                 numero          TEXT NOT NULL UNIQUE,
-                cliente_id      INTEGER NOT NULL,
+                cliente_id      INTEGER,
+                cliente_nome    TEXT,
                 data_emissao    DATE NOT NULL DEFAULT CURRENT_DATE,
                 data_entrega    DATE,
                 status          TEXT NOT NULL DEFAULT 'Rascunho',
@@ -246,9 +281,20 @@ async function initDatabase() {
                 total_itens     NUMERIC(14,2) DEFAULT 0.00,
                 total_geral     NUMERIC(14,2) DEFAULT 0.00,
                 criado_por      TEXT,
+                criado_por_perfil TEXT,
+                endereco_entrega TEXT,
+                responsavel_recebimento TEXT,
+                tipo_frete      TEXT,
                 criado_em       TIMESTAMP DEFAULT NOW(),
                 atualizado_em   TIMESTAMP DEFAULT NOW()
             );
+
+            ALTER TABLE pedidos_venda ALTER COLUMN cliente_id DROP NOT NULL;
+            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS cliente_nome TEXT;
+            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS criado_por_perfil TEXT;
+            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS endereco_entrega TEXT;
+            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS responsavel_recebimento TEXT;
+            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS tipo_frete TEXT;
 
             CREATE TABLE IF NOT EXISTS pedidos_venda_itens (
                 id              SERIAL PRIMARY KEY,
@@ -416,6 +462,66 @@ async function initDatabase() {
                 amostra_id INTEGER,
                 ip         TEXT,
                 criado_em  TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS planejamento_compras (
+                id                     SERIAL PRIMARY KEY,
+                material_id            INTEGER,
+                fornecedor_id          INTEGER,
+                quantidade_necessaria  NUMERIC(12,3) NOT NULL,
+                ponto_pedido_kg        NUMERIC(12,3) DEFAULT 0.00,
+                lead_time_dias         INTEGER DEFAULT 7,
+                preco_estimado         NUMERIC(10,4) DEFAULT 0.00,
+                custo_total_estimado   NUMERIC(14,2) DEFAULT 0.00,
+                mes_referencia         TEXT,
+                status                 TEXT DEFAULT 'Sugerido',
+                observacoes            TEXT,
+                criado_em              TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS equipamentos_industriais (
+                id                         SERIAL PRIMARY KEY,
+                nome_equipamento           TEXT NOT NULL,
+                codigo_tag                 TEXT UNIQUE NOT NULL,
+                setor                      TEXT DEFAULT 'Processamento',
+                capacidade_nominal_kgh     NUMERIC(10,2) DEFAULT 1000.00,
+                disponibilidade_horas_dia  NUMERIC(5,2) DEFAULT 16.00,
+                tempo_setup_horas          NUMERIC(5,2) DEFAULT 1.00,
+                eficiencia_oee_pct         NUMERIC(5,2) DEFAULT 85.00,
+                status                     TEXT DEFAULT 'Operacional',
+                observacoes                TEXT,
+                criado_em                  TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS ordens_producao (
+                id                      SERIAL PRIMARY KEY,
+                numero_op               TEXT UNIQUE NOT NULL,
+                amostra_id              INTEGER,
+                lote_id                 INTEGER,
+                material_entrada        TEXT,
+                peso_entrada_kg         NUMERIC(12,3) NOT NULL,
+                material_saida_id       INTEGER,
+                peso_saida_estimado_kg  NUMERIC(12,3) DEFAULT 0.00,
+                data_inicio_prevista    DATE,
+                data_fim_prevista       DATE,
+                responsavel_pcp         TEXT,
+                status                  TEXT DEFAULT 'Planejada',
+                observacoes             TEXT,
+                criado_em               TIMESTAMP DEFAULT NOW(),
+                atualizado_em           TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS ordens_producao_etapas (
+                id                   SERIAL PRIMARY KEY,
+                op_id                INTEGER NOT NULL REFERENCES ordens_producao(id) ON DELETE CASCADE,
+                nome_etapa           TEXT NOT NULL,
+                ordem                INTEGER DEFAULT 1,
+                equipamento_id       INTEGER,
+                tempo_estimado_horas NUMERIC(8,2) DEFAULT 0.00,
+                tempo_real_horas     NUMERIC(8,2) DEFAULT 0.00,
+                status_etapa         TEXT DEFAULT 'Pendente',
+                operador_responsavel TEXT,
+                observacoes          TEXT
             );
         `);
 
@@ -1798,6 +1904,348 @@ app.post('/api/planejamento-compras', async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ error: 'Erro ao salvar planejamento.' });
+    }
+});
+
+// ─── API: Planejamento de Compras (MRP) ──────────────────────────────────────
+app.get('/api/planejamento/compras', async (req, res) => {
+    try {
+        if (!dbAvailable) {
+            const list = (memStore.planejamento_compras || []).map(p => {
+                const mc = (memStore.materiais_catalogo || []).find(m => m.id == p.material_id);
+                const f = (memStore.fornecedores || []).find(x => x.id == p.fornecedor_id);
+                return {
+                    ...p,
+                    material_nome: mc ? mc.nome : 'Material',
+                    fornecedor_nome: f ? (f.apelido || f.nome) : 'Fornecedor'
+                };
+            });
+            return res.json(list.sort((a, b) => b.id - a.id));
+        }
+        const r = await pool.query(`
+            SELECT pc.*, mc.nome as material_nome, COALESCE(f.apelido, f.nome) as fornecedor_nome
+            FROM planejamento_compras pc
+            LEFT JOIN materiais_catalogo mc ON pc.material_id = mc.id
+            LEFT JOIN fornecedores f ON pc.fornecedor_id = f.id
+            ORDER BY pc.id DESC
+        `);
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/compras', async (req, res) => {
+    try {
+        const { material_id, fornecedor_id, quantidade_necessaria, ponto_pedido_kg, lead_time_dias, preco_estimado, mes_referencia, status, observacoes } = req.body;
+        const qty = parseFloat(quantidade_necessaria || 0);
+        const prc = parseFloat(preco_estimado || 0);
+        const custoTotal = qty * prc;
+
+        if (!dbAvailable) {
+            if (!memStore.planejamento_compras) memStore.planejamento_compras = [];
+            const item = {
+                id: nextId++,
+                material_id: parseInt(material_id),
+                fornecedor_id: parseInt(fornecedor_id),
+                quantidade_necessaria: qty,
+                ponto_pedido_kg: parseFloat(ponto_pedido_kg || 0),
+                lead_time_dias: parseInt(lead_time_dias || 7),
+                preco_estimado: prc,
+                custo_total_estimado: custoTotal,
+                mes_referencia: mes_referencia || new Date().toISOString().slice(0, 7),
+                status: status || 'Sugerido',
+                observacoes: observacoes || '',
+                criado_em: new Date().toISOString()
+            };
+            memStore.planejamento_compras.push(item);
+            return res.json(item);
+        }
+
+        const r = await pool.query(`
+            INSERT INTO planejamento_compras (material_id, fornecedor_id, quantidade_necessaria, ponto_pedido_kg, lead_time_dias, preco_estimado, custo_total_estimado, mes_referencia, status, observacoes)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
+        `, [material_id, fornecedor_id, qty, ponto_pedido_kg || 0, lead_time_dias || 7, prc, custoTotal, mes_referencia || new Date().toISOString().slice(0, 7), status || 'Sugerido', observacoes]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/planejamento/compras/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            memStore.planejamento_compras = (memStore.planejamento_compras || []).filter(x => x.id !== id);
+            return res.json({ success: true });
+        }
+        await pool.query('DELETE FROM planejamento_compras WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── API: Planejamento Industrial / Equipamentos ────────────────────────────
+app.get('/api/planejamento/industrial/equipamentos', async (req, res) => {
+    try {
+        if (!dbAvailable) {
+            return res.json((memStore.equipamentos_industriais || []).sort((a, b) => a.id - b.id));
+        }
+        const r = await pool.query('SELECT * FROM equipamentos_industriais ORDER BY id ASC');
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/industrial/equipamentos', async (req, res) => {
+    try {
+        const { nome_equipamento, codigo_tag, setor, capacidade_nominal_kgh, disponibilidade_horas_dia, tempo_setup_horas, eficiencia_oee_pct, status, observacoes } = req.body;
+
+        if (!dbAvailable) {
+            if (!memStore.equipamentos_industriais) memStore.equipamentos_industriais = [];
+            const eq = {
+                id: nextId++,
+                nome_equipamento,
+                codigo_tag,
+                setor: setor || 'Processamento',
+                capacidade_nominal_kgh: parseFloat(capacidade_nominal_kgh || 1000),
+                disponibilidade_horas_dia: parseFloat(disponibilidade_horas_dia || 16),
+                tempo_setup_horas: parseFloat(tempo_setup_horas || 1.0),
+                eficiencia_oee_pct: parseFloat(eficiencia_oee_pct || 85),
+                status: status || 'Operacional',
+                observacoes: observacoes || ''
+            };
+            memStore.equipamentos_industriais.push(eq);
+            return res.json(eq);
+        }
+
+        const r = await pool.query(`
+            INSERT INTO equipamentos_industriais (nome_equipamento, codigo_tag, setor, capacidade_nominal_kgh, disponibilidade_horas_dia, tempo_setup_horas, eficiencia_oee_pct, status, observacoes)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
+        `, [nome_equipamento, codigo_tag, setor || 'Processamento', capacidade_nominal_kgh || 1000, disponibilidade_horas_dia || 16, tempo_setup_horas || 1.0, eficiencia_oee_pct || 85, status || 'Operacional', observacoes]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/planejamento/industrial/equipamentos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { nome_equipamento, codigo_tag, setor, capacidade_nominal_kgh, disponibilidade_horas_dia, tempo_setup_horas, eficiencia_oee_pct, status, observacoes } = req.body;
+
+        if (!dbAvailable) {
+            const idx = (memStore.equipamentos_industriais || []).findIndex(x => x.id === id);
+            if (idx === -1) return res.status(404).json({ error: 'Equipamento não encontrado' });
+            memStore.equipamentos_industriais[idx] = {
+                ...memStore.equipamentos_industriais[idx],
+                nome_equipamento: nome_equipamento || memStore.equipamentos_industriais[idx].nome_equipamento,
+                codigo_tag: codigo_tag || memStore.equipamentos_industriais[idx].codigo_tag,
+                setor: setor || memStore.equipamentos_industriais[idx].setor,
+                capacidade_nominal_kgh: parseFloat(capacidade_nominal_kgh || memStore.equipamentos_industriais[idx].capacidade_nominal_kgh),
+                disponibilidade_horas_dia: parseFloat(disponibilidade_horas_dia || memStore.equipamentos_industriais[idx].disponibilidade_horas_dia),
+                tempo_setup_horas: parseFloat(tempo_setup_horas || memStore.equipamentos_industriais[idx].tempo_setup_horas),
+                eficiencia_oee_pct: parseFloat(eficiencia_oee_pct || memStore.equipamentos_industriais[idx].eficiencia_oee_pct),
+                status: status || memStore.equipamentos_industriais[idx].status,
+                observacoes: observacoes !== undefined ? observacoes : memStore.equipamentos_industriais[idx].observacoes
+            };
+            return res.json(memStore.equipamentos_industriais[idx]);
+        }
+
+        const r = await pool.query(`
+            UPDATE equipamentos_industriais SET
+                nome_equipamento = $1, codigo_tag = $2, setor = $3, capacidade_nominal_kgh = $4,
+                disponibilidade_horas_dia = $5, tempo_setup_horas = $6, eficiencia_oee_pct = $7, status = $8, observacoes = $9
+            WHERE id = $10 RETURNING *
+        `, [nome_equipamento, codigo_tag, setor, capacidade_nominal_kgh, disponibilidade_horas_dia, tempo_setup_horas, eficiencia_oee_pct, status, observacoes, id]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/planejamento/industrial/equipamentos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            memStore.equipamentos_industriais = (memStore.equipamentos_industriais || []).filter(x => x.id !== id);
+            return res.json({ success: true });
+        }
+        await pool.query('DELETE FROM equipamentos_industriais WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── API: Planejamento de Produção & PCP (Com Tempos Operacionais) ─────────
+app.get('/api/planejamento/producao/ops', async (req, res) => {
+    try {
+        if (!dbAvailable) {
+            const list = (memStore.ordens_producao || []).map(op => {
+                const mc = (memStore.materiais_catalogo || []).find(m => m.id == op.material_saida_id);
+                return {
+                    ...op,
+                    material_saida_nome: mc ? mc.nome : ''
+                };
+            });
+            return res.json(list.sort((a, b) => b.id - a.id));
+        }
+
+        const ops = await pool.query(`
+            SELECT op.*, mc.nome as material_saida_nome, a.numero_amostra
+            FROM ordens_producao op
+            LEFT JOIN materiais_catalogo mc ON op.material_saida_id = mc.id
+            LEFT JOIN amostras a ON op.amostra_id = a.id
+            ORDER BY op.id DESC
+        `);
+
+        for (const op of ops.rows) {
+            const etapas = await pool.query(`
+                SELECT e.*, eq.nome_equipamento
+                FROM ordens_producao_etapas e
+                LEFT JOIN equipamentos_industriais eq ON e.equipamento_id = eq.id
+                WHERE e.op_id = $1
+                ORDER BY e.ordem ASC
+            `, [op.id]);
+            op.etapas = etapas.rows;
+        }
+
+        res.json(ops.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/producao/ops', async (req, res) => {
+    try {
+        const { numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes, etapas } = req.body;
+
+        if (!dbAvailable) {
+            if (!memStore.ordens_producao) memStore.ordens_producao = [];
+            const opId = nextId++;
+            const newOp = {
+                id: opId,
+                numero_op: numero_op || ('OP-' + String(opId).padStart(4, '0')),
+                amostra_id: amostra_id ? parseInt(amostra_id) : null,
+                lote_id: lote_id ? parseInt(lote_id) : null,
+                material_entrada,
+                peso_entrada_kg: parseFloat(peso_entrada_kg || 0),
+                material_saida_id: material_saida_id ? parseInt(material_saida_id) : null,
+                peso_saida_estimado_kg: parseFloat(peso_saida_estimado_kg || 0),
+                data_inicio_prevista,
+                data_fim_prevista,
+                responsavel_pcp: responsavel_pcp || 'Admin PCP',
+                status: status || 'Planejada',
+                observacoes: observacoes || '',
+                criado_em: new Date().toISOString(),
+                etapas: (etapas || []).map((et, idx) => ({
+                    id: idx + 1,
+                    op_id: opId,
+                    nome_etapa: et.nome_etapa,
+                    ordem: idx + 1,
+                    equipamento_id: et.equipamento_id ? parseInt(et.equipamento_id) : null,
+                    tempo_estimado_horas: parseFloat(et.tempo_estimado_horas || 0),
+                    tempo_real_horas: parseFloat(et.tempo_real_horas || 0),
+                    status_etapa: et.status_etapa || 'Pendente',
+                    operador_responsavel: et.operador_responsavel || '',
+                    observacoes: et.observacoes || ''
+                }))
+            };
+            memStore.ordens_producao.push(newOp);
+            return res.json(newOp);
+        }
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const opRes = await client.query(`
+                INSERT INTO ordens_producao (numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
+            `, [numero_op || ('OP-' + Date.now().toString().slice(-5)), amostra_id || null, lote_id || null, material_entrada, peso_entrada_kg, material_saida_id || null, peso_saida_estimado_kg || 0, data_inicio_prevista || null, data_fim_prevista || null, responsavel_pcp || 'PCP Admin', status || 'Planejada', observacoes || '']);
+
+            const createdOp = opRes.rows[0];
+            const createdEtapas = [];
+            if (etapas && Array.isArray(etapas)) {
+                for (let i = 0; i < etapas.length; i++) {
+                    const et = etapas[i];
+                    const etRes = await client.query(`
+                        INSERT INTO ordens_producao_etapas (op_id, nome_etapa, ordem, equipamento_id, tempo_estimado_horas, tempo_real_horas, status_etapa, operador_responsavel, observacoes)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
+                    `, [createdOp.id, et.nome_etapa, i + 1, et.equipamento_id || null, et.tempo_estimado_horas || 0, et.tempo_real_horas || 0, et.status_etapa || 'Pendente', et.operador_responsavel || '', et.observacoes || '']);
+                    createdEtapas.push(etRes.rows[0]);
+                }
+            }
+            await client.query('COMMIT');
+            res.json({ ...createdOp, etapas: createdEtapas });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/planejamento/producao/ops/:id/etapas', async (req, res) => {
+    try {
+        const opId = parseInt(req.params.id);
+        const { etapa_id, tempo_real_horas, status_etapa, operador_responsavel, status_op } = req.body;
+
+        if (!dbAvailable) {
+            const op = (memStore.ordens_producao || []).find(x => x.id === opId);
+            if (!op) return res.status(404).json({ error: 'Ordem de Produção não encontrada' });
+            if (status_op) op.status = status_op;
+            if (etapa_id && op.etapas) {
+                const et = op.etapas.find(e => e.id == etapa_id);
+                if (et) {
+                    if (tempo_real_horas !== undefined) et.tempo_real_horas = parseFloat(tempo_real_horas);
+                    if (status_etapa) et.status_etapa = status_etapa;
+                    if (operador_responsavel) et.operador_responsavel = operador_responsavel;
+                }
+            }
+            return res.json(op);
+        }
+
+        if (status_op) {
+            await pool.query('UPDATE ordens_producao SET status = $1, atualizado_em = NOW() WHERE id = $2', [status_op, opId]);
+        }
+        if (etapa_id) {
+            await pool.query(`
+                UPDATE ordens_producao_etapas SET
+                    tempo_real_horas = COALESCE($1, tempo_real_horas),
+                    status_etapa = COALESCE($2, status_etapa),
+                    operador_responsavel = COALESCE($3, operador_responsavel)
+                WHERE id = $4 AND op_id = $5
+            `, [tempo_real_horas !== undefined ? parseFloat(tempo_real_horas) : null, status_etapa || null, operador_responsavel || null, etapa_id, opId]);
+        }
+
+        const opRes = await pool.query('SELECT * FROM ordens_producao WHERE id = $1', [opId]);
+        const etapasRes = await pool.query('SELECT * FROM ordens_producao_etapas WHERE op_id = $1 ORDER BY ordem ASC', [opId]);
+        res.json({ ...opRes.rows[0], etapas: etapasRes.rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/planejamento/producao/ops/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            memStore.ordens_producao = (memStore.ordens_producao || []).filter(x => x.id !== id);
+            return res.json({ success: true });
+        }
+        await pool.query('DELETE FROM ordens_producao WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -4238,7 +4686,7 @@ app.get('/api/pedidos-venda', async (req, res) => {
             return res.json(list.sort((a, b) => b.id - a.id));
         }
         const r = await pool.query(`
-            SELECT pv.*, c.nome AS cliente_nome, c.cnpj AS cliente_cnpj, c.cidade AS cliente_cidade, c.uf AS cliente_uf
+            SELECT pv.*, COALESCE(c.nome, pv.cliente_nome, 'Cliente') AS cliente_nome, c.cnpj AS cliente_cnpj, c.cidade AS cliente_cidade, c.uf AS cliente_uf
             FROM pedidos_venda pv
             LEFT JOIN clientes c ON c.id = pv.cliente_id
             ORDER BY pv.id DESC
@@ -4269,7 +4717,7 @@ app.get('/api/pedidos-venda/:id', async (req, res) => {
             });
         }
         const pedido = await pool.query(`
-            SELECT pv.*, c.nome AS cliente_nome, c.cnpj AS cliente_cnpj, c.telefone1 AS cliente_telefone,
+            SELECT pv.*, COALESCE(c.nome, pv.cliente_nome, '') AS cliente_nome, c.cnpj AS cliente_cnpj, c.telefone1 AS cliente_telefone,
                    c.email AS cliente_email, c.endereco AS cliente_endereco, c.cidade AS cliente_cidade, c.uf AS cliente_uf
             FROM pedidos_venda pv
             LEFT JOIN clientes c ON c.id = pv.cliente_id
@@ -4286,10 +4734,10 @@ app.get('/api/pedidos-venda/:id', async (req, res) => {
 // Criar pedido
 app.post('/api/pedidos-venda', async (req, res) => {
     try {
-        const { numero, cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
+        const { numero, cliente_id, cliente_nome, data_emissao, data_entrega, status, condicao_pagamento,
                 observacoes, desconto_pct, frete, itens, criado_por, criado_por_perfil,
                 endereco_entrega, responsavel_recebimento, tipo_frete } = req.body;
-        if (!cliente_id && !req.body.cliente_nome) {
+        if (!cliente_id && !cliente_nome) {
             return res.status(400).json({ error: 'Cliente é obrigatório.' });
         }
         if (!itens || itens.length === 0) {
@@ -4299,6 +4747,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
         const desc = parseFloat(desconto_pct || 0);
         const fr = parseFloat(frete || 0);
         const total_geral = total_itens * (1 - desc / 100) + fr;
+        const cid = (cliente_id && !isNaN(parseInt(cliente_id))) ? parseInt(cliente_id) : null;
 
         if (!dbAvailable) {
             if (!memStore.pedidos_venda) memStore.pedidos_venda = [];
@@ -4306,8 +4755,8 @@ app.post('/api/pedidos-venda', async (req, res) => {
             const item = {
                 id: newId,
                 numero: numero || ('PV-' + String(newId).padStart(4, '0')),
-                cliente_id: cliente_id ? parseInt(cliente_id) : null,
-                cliente_nome: req.body.cliente_nome || '',
+                cliente_id: cid,
+                cliente_nome: cliente_nome || '',
                 data_emissao: data_emissao || new Date().toISOString().split('T')[0],
                 data_entrega: data_entrega || null,
                 status: status || 'Rascunho',
@@ -4333,12 +4782,12 @@ app.post('/api/pedidos-venda', async (req, res) => {
         try {
             await client.query('BEGIN');
             const pedido = await client.query(`
-                INSERT INTO pedidos_venda (numero, cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
+                INSERT INTO pedidos_venda (numero, cliente_id, cliente_nome, data_emissao, data_entrega, status, condicao_pagamento,
                     observacoes, desconto_pct, frete, total_itens, total_geral, criado_por, criado_por_perfil,
                     endereco_entrega, responsavel_recebimento, tipo_frete)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *
-            `, [numero, cliente_id, data_emissao || new Date().toISOString().split('T')[0],
-                 data_entrega, status || 'Rascunho', condicao_pagamento, observacoes,
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *
+            `, [numero, cid, cliente_nome || '', data_emissao || new Date().toISOString().split('T')[0],
+                 data_entrega || null, status || 'Rascunho', condicao_pagamento, observacoes,
                  desc, fr, total_itens, total_geral, criado_por, criado_por_perfil,
                  endereco_entrega, responsavel_recebimento, tipo_frete]);
 
@@ -4369,20 +4818,22 @@ app.post('/api/pedidos-venda', async (req, res) => {
 app.put('/api/pedidos-venda/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
+        const { cliente_id, cliente_nome, data_emissao, data_entrega, status, condicao_pagamento,
                 observacoes, desconto_pct, frete, itens, criado_por_perfil,
                 endereco_entrega, responsavel_recebimento, tipo_frete } = req.body;
         const total_itens = (itens || []).reduce((s, i) => s + parseFloat(i.total_item || 0), 0);
         const desc = parseFloat(desconto_pct || 0);
         const fr = parseFloat(frete || 0);
         const total_geral = total_itens * (1 - desc / 100) + fr;
+        const cid = (cliente_id && !isNaN(parseInt(cliente_id))) ? parseInt(cliente_id) : null;
 
         if (!dbAvailable) {
             const idx = (memStore.pedidos_venda || []).findIndex(x => x.id === id);
             if (idx === -1) return res.status(404).json({ error: 'Pedido não encontrado' });
             memStore.pedidos_venda[idx] = {
                 ...memStore.pedidos_venda[idx],
-                cliente_id: cliente_id ? parseInt(cliente_id) : memStore.pedidos_venda[idx].cliente_id,
+                cliente_id: cid || memStore.pedidos_venda[idx].cliente_id,
+                cliente_nome: cliente_nome !== undefined ? cliente_nome : memStore.pedidos_venda[idx].cliente_nome,
                 data_emissao,
                 data_entrega,
                 status,
@@ -4406,16 +4857,16 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
         try {
             await client.query('BEGIN');
             await client.query(`
-                UPDATE pedidos_venda SET cliente_id=$1, data_emissao=$2, data_entrega=$3, status=$4,
-                    condicao_pagamento=$5, observacoes=$6, desconto_pct=$7, frete=$8,
-                    total_itens=$9, total_geral=$10, criado_por_perfil=$11, endereco_entrega=$12,
-                    responsavel_recebimento=$13, tipo_frete=$14, atualizado_em=NOW()
-                WHERE id=$15
-            `, [cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
+                UPDATE pedidos_venda SET cliente_id=$1, cliente_nome=$2, data_emissao=$3, data_entrega=$4, status=$5,
+                    condicao_pagamento=$6, observacoes=$7, desconto_pct=$8, frete=$9,
+                    total_itens=$10, total_geral=$11, criado_por_perfil=$12, endereco_entrega=$13,
+                    responsavel_recebimento=$14, tipo_frete=$15, atualizado_em=NOW()
+                WHERE id=$16
+            `, [cid, cliente_nome || '', data_emissao, data_entrega || null, status, condicao_pagamento,
                  observacoes, desc, fr, total_itens, total_geral, criado_por_perfil,
                  endereco_entrega, responsavel_recebimento, tipo_frete, id]);
             await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = $1', [id]);
-            for (const item of itens) {
+            for (const item of (itens || [])) {
                 await client.query(`
                     INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)

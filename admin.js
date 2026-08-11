@@ -9158,7 +9158,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function getLogoWatermarkBase64JsPDF() {
         if (cachedLogoWatermarkBase64) return cachedLogoWatermarkBase64;
         try {
-            const res = await fetch('/assets/img/logo%20(2).png');
+            let res = await fetch('/assets/img/logo%20(2).png');
+            if (!res.ok) res = await fetch('/assets/img/apexlogo.png');
             if (res.ok) {
                 const blob = await res.blob();
                 cachedLogoWatermarkBase64 = await new Promise(resolve => {
@@ -9184,14 +9185,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (doc.GState && doc.setGState) {
                 try {
-                    doc.setGState(new doc.GState({ opacity: 0.04 }));
+                    doc.setGState(new doc.GState({ opacity: 0.08 }));
                 } catch(e) {}
             }
             
             const pw = doc.internal.pageSize.getWidth();
             const ph = doc.internal.pageSize.getHeight();
-            const imgW = 100;
-            const imgH = 75;
+            const imgW = 120;
+            const imgH = 90;
             const x = (pw - imgW) / 2;
             const y = (ph - imgH) / 2;
             
@@ -9234,11 +9235,615 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            fecharModalPlanejamento();
             carregarPlanejamento();
             carregarAmostras();
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    // =========================================================================
+    // NAVEGAÇÃO DE SUB-GUIAS DE PLANEJAMENTO INTEGRADO
+    // =========================================================================
+    let subAbaPlanejamentoAtual = 'simulacao';
+    let localMRP = [];
+    let localEquipamentos = [];
+    let localOPs = [];
+    let etapasOpFormDraft = [];
+
+    window.alternarSubAbaPlanejamento = function(aba) {
+        subAbaPlanejamentoAtual = aba;
+
+        const subtabs = ['simulacao', 'compras', 'industrial', 'producao'];
+        subtabs.forEach(t => {
+            const btn = document.getElementById(`tab-btn-pl-${t}`);
+            const view = document.getElementById(`pl-subview-${t}`);
+            if (btn) {
+                if (t === aba) {
+                    btn.classList.add('active');
+                    btn.style.background = '#1e4e8c';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = '#101a24';
+                    btn.style.color = '#aaa';
+                }
+            }
+            if (view) {
+                view.style.display = (t === aba) ? 'block' : 'none';
+            }
+        });
+
+        if (aba === 'compras') carregarPlanejamentoCompras();
+        if (aba === 'industrial') carregarCapacidadeIndustrial();
+        if (aba === 'producao') carregarOrdensProducao();
+    };
+
+    // ── 1. Planejamento de Compra (MRP) ──────────────────────────────────────
+    window.carregarPlanejamentoCompras = async function() {
+        try {
+            const res = await fetch('/api/planejamento/compras');
+            const data = await res.json();
+            localMRP = Array.isArray(data) ? data : [];
+            renderPlanejamentoCompras();
+        } catch (err) {
+            console.error('Erro ao carregar MRP compras:', err);
+            localMRP = [];
+            renderPlanejamentoCompras();
+        }
+    };
+
+    function renderPlanejamentoCompras() {
+        const tbody = document.getElementById('mrp-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totalQty = 0;
+        let totalCusto = 0;
+        let totalLeadTime = 0;
+        let criticosCount = 0;
+
+        localMRP.forEach(p => {
+            const qty = parseFloat(p.quantidade_necessaria || 0);
+            const ponto = parseFloat(p.ponto_pedido_kg || 0);
+            const lt = parseInt(p.lead_time_dias || 7);
+            const prc = parseFloat(p.preco_estimado || 0);
+            const total = parseFloat(p.custo_total_estimado || (qty * prc));
+
+            totalQty += qty;
+            totalCusto += total;
+            totalLeadTime += lt;
+
+            const isCritico = ponto > 0 && qty <= ponto;
+            if (isCritico) criticosCount++;
+
+            let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Sugerido</span>';
+            if (p.status === 'Em Cotação') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🔍 Em Cotação</span>';
+            if (p.status === 'Aprovado') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Aprovado</span>';
+            if (p.status === 'Em Trânsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🚚 Em Trânsito</span>';
+            if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">📦 Recebido</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><strong>${p.material_nome || '-'}</strong></td>
+                <td style="padding:10px 8px;">${p.fornecedor_nome || '-'}</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${qty.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; color:${isCritico ? '#ff4d4d' : '#aaa'};">${ponto > 0 ? ponto.toLocaleString('pt-BR') + ' kg' : '-'} ${isCritico ? '⚠️' : ''}</td>
+                <td style="padding:10px 8px; text-align:center;"><span style="color:#3e7cb1; font-weight:bold;">${lt} dias</span></td>
+                <td style="padding:10px 8px; text-align:right;">R$ ${fmtBRL(prc)}</td>
+                <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:center;">${p.mes_referencia || '-'}</td>
+                <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+                <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="excluirPlanejamentoCompra(${p.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const kpiDem = document.getElementById('mrp-kpi-demandas');
+        const kpiCrit = document.getElementById('mrp-kpi-critico');
+        const kpiLt = document.getElementById('mrp-kpi-leadtime');
+        const kpiCust = document.getElementById('mrp-kpi-custototal');
+
+        if (kpiDem) kpiDem.textContent = localMRP.length;
+        if (kpiCrit) kpiCrit.textContent = criticosCount + ' Mat.';
+        if (kpiLt) kpiLt.textContent = (localMRP.length > 0 ? Math.round(totalLeadTime / localMRP.length) : 0) + ' dias';
+        if (kpiCust) kpiCust.textContent = 'R$ ' + totalCusto.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    }
+
+    window.abrirModalPlanejamentoCompra = function() {
+        const selMat = document.getElementById('mrp-material-id');
+        const selForn = document.getElementById('mrp-fornecedor-id');
+        if (selMat) {
+            selMat.innerHTML = '<option value="">Selecione o Material...</option>' +
+                (window.localMateriais || []).map(m => `<option value="${m.id}">${m.nome} (${m.categoria})</option>`).join('');
+        }
+        if (selForn) {
+            selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' +
+                (window.localFornecedores || []).map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
+        }
+
+        const inputMes = document.getElementById('mrp-mes-referencia');
+        if (inputMes) inputMes.value = new Date().toISOString().slice(0, 7);
+
+        document.getElementById('form-planejamento-compra').reset();
+        document.getElementById('mrp-mes-referencia').value = new Date().toISOString().slice(0, 7);
+        document.getElementById('mrp-txt-custo-total').textContent = 'R$ 0,00';
+        document.getElementById('modal-planejamento-compra').style.display = 'flex';
+    };
+
+    window.fecharModalPlanejamentoCompra = function() {
+        document.getElementById('modal-planejamento-compra').style.display = 'none';
+    };
+
+    window.atualizarPrecoEstCompra = function() {
+        const matId = document.getElementById('mrp-material-id').value;
+        if (!matId) return;
+        const prc = (window.localPrecos || []).find(x => x.material_id == matId);
+        if (prc && prc.preco_entregar) {
+            document.getElementById('mrp-preco-estimado').value = prc.preco_entregar;
+            calcularTotalMRPForm();
+        }
+    };
+
+    window.calcularTotalMRPForm = function() {
+        const qty = parseFloat(document.getElementById('mrp-qtd-necessaria').value) || 0;
+        const prc = parseFloat(document.getElementById('mrp-preco-estimado').value) || 0;
+        const total = qty * prc;
+        document.getElementById('mrp-txt-custo-total').textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    };
+
+    window.salvarPlanejamentoCompraForm = async function(e) {
+        e.preventDefault();
+        const payload = {
+            material_id: document.getElementById('mrp-material-id').value,
+            fornecedor_id: document.getElementById('mrp-fornecedor-id').value,
+            quantidade_necessaria: document.getElementById('mrp-qtd-necessaria').value,
+            ponto_pedido_kg: document.getElementById('mrp-ponto-pedido').value || 0,
+            lead_time_dias: document.getElementById('mrp-lead-time').value || 7,
+            preco_estimado: document.getElementById('mrp-preco-estimado').value || 0,
+            mes_referencia: document.getElementById('mrp-mes-referencia').value,
+            status: document.getElementById('mrp-status').value,
+            observacoes: document.getElementById('mrp-obs').value
+        };
+
+        try {
+            const res = await fetch('/api/planejamento/compras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar planejamento de compra');
+            _apexNotify('Sucesso', 'Demanda de compra (MRP) salva com sucesso!', 'success');
+            fecharModalPlanejamentoCompra();
+            await carregarPlanejamentoCompras();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.excluirPlanejamentoCompra = async function(id) {
+        if (!confirm('Remover esta necessidade de compra?')) return;
+        try {
+            await fetch(`/api/planejamento/compras/${id}`, { method: 'DELETE' });
+            await carregarPlanejamentoCompras();
+        } catch (err) {
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
+        }
+    };
+
+    // ── 2. Planejamento Industrial / Capacidade ──────────────────────────────────
+    window.carregarCapacidadeIndustrial = async function() {
+        try {
+            const res = await fetch('/api/planejamento/industrial/equipamentos');
+            const data = await res.json();
+            localEquipamentos = Array.isArray(data) ? data : [];
+            renderCapacidadeIndustrial();
+        } catch (err) {
+            console.error('Erro ao carregar equipamentos industriais:', err);
+            localEquipamentos = [];
+            renderCapacidadeIndustrial();
+        }
+    };
+
+    function renderCapacidadeIndustrial() {
+        const tbody = document.getElementById('ind-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totalCap = 0;
+        let totalSetup = 0;
+        let totalOee = 0;
+
+        localEquipamentos.forEach(eq => {
+            const cap = parseFloat(eq.capacidade_nominal_kgh || 0);
+            const disp = parseFloat(eq.disponibilidade_horas_dia || 16);
+            const setup = parseFloat(eq.tempo_setup_horas || 1.0);
+            const oee = parseFloat(eq.eficiencia_oee_pct || 85);
+
+            totalCap += cap;
+            totalSetup += setup;
+            totalOee += oee;
+
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Operacional</span>';
+            if (eq.status === 'Manutenção') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⚠️ Manutenção</span>';
+            if (eq.status === 'Parado') statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem;">❌ Parado</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><span style="background:#101a24; border:1px solid #1e4e8c; color:#3e7cb1; padding:2px 6px; border-radius:4px; font-weight:bold;">${eq.codigo_tag}</span></td>
+                <td style="padding:10px 8px;"><strong>${eq.nome_equipamento}</strong></td>
+                <td style="padding:10px 8px;">${eq.setor || 'Processamento'}</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${cap.toLocaleString('pt-BR')} kg/h</td>
+                <td style="padding:10px 8px; text-align:center;">${disp} h/dia</td>
+                <td style="padding:10px 8px; text-align:center; color:#ffb74d;">${setup} h</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:#9b59b6;">${oee}%</td>
+                <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+                <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="editarEquipamentoIndustrial(${eq.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; font-size:0.9rem; margin-right:8px;" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" onclick="excluirEquipamentoIndustrial(${eq.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const kpiTot = document.getElementById('ind-kpi-total');
+        const kpiCap = document.getElementById('ind-kpi-capacidade');
+        const kpiSet = document.getElementById('ind-kpi-setup');
+        const kpiOee = document.getElementById('ind-kpi-oee');
+
+        if (kpiTot) kpiTot.textContent = localEquipamentos.length;
+        if (kpiCap) kpiCap.textContent = totalCap.toLocaleString('pt-BR') + ' kg/h';
+        if (kpiSet) kpiSet.textContent = (localEquipamentos.length > 0 ? (totalSetup / localEquipamentos.length).toFixed(1) : '0.0') + ' h';
+        if (kpiOee) kpiOee.textContent = (localEquipamentos.length > 0 ? Math.round(totalOee / localEquipamentos.length) : 0) + ' %';
+    }
+
+    window.abrirModalEquipamentoIndustrial = function() {
+        document.getElementById('form-equipamento-industrial').reset();
+        document.getElementById('eq-id').value = '';
+        document.getElementById('modal-eq-titulo').textContent = 'Cadastrar Equipamento Industrial';
+        document.getElementById('modal-equipamento-industrial').style.display = 'flex';
+    };
+
+    window.editarEquipamentoIndustrial = function(id) {
+        const eq = localEquipamentos.find(x => x.id === id);
+        if (!eq) return;
+        document.getElementById('eq-id').value = eq.id;
+        document.getElementById('eq-codigo-tag').value = eq.codigo_tag;
+        document.getElementById('eq-nome').value = eq.nome_equipamento;
+        document.getElementById('eq-setor').value = eq.setor;
+        document.getElementById('eq-capacidade').value = eq.capacidade_nominal_kgh;
+        document.getElementById('eq-disponibilidade').value = eq.disponibilidade_horas_dia;
+        document.getElementById('eq-tempo-setup').value = eq.tempo_setup_horas;
+        document.getElementById('eq-oee').value = eq.eficiencia_oee_pct;
+        document.getElementById('eq-status').value = eq.status;
+        document.getElementById('eq-obs').value = eq.observacoes || '';
+        document.getElementById('modal-eq-titulo').textContent = 'Editar Equipamento Industrial';
+        document.getElementById('modal-equipamento-industrial').style.display = 'flex';
+    };
+
+    window.fecharModalEquipamentoIndustrial = function() {
+        document.getElementById('modal-equipamento-industrial').style.display = 'none';
+    };
+
+    window.salvarEquipamentoIndustrialForm = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('eq-id').value;
+        const payload = {
+            codigo_tag: document.getElementById('eq-codigo-tag').value,
+            nome_equipamento: document.getElementById('eq-nome').value,
+            setor: document.getElementById('eq-setor').value,
+            capacidade_nominal_kgh: document.getElementById('eq-capacidade').value,
+            disponibilidade_horas_dia: document.getElementById('eq-disponibilidade').value,
+            tempo_setup_horas: document.getElementById('eq-tempo-setup').value,
+            eficiencia_oee_pct: document.getElementById('eq-oee').value,
+            status: document.getElementById('eq-status').value,
+            observacoes: document.getElementById('eq-obs').value
+        };
+
+        const url = id ? `/api/planejamento/industrial/equipamentos/${id}` : '/api/planejamento/industrial/equipamentos';
+        const method = id ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar equipamento industrial');
+            _apexNotify('Sucesso', 'Equipamento salvo com sucesso!', 'success');
+            fecharModalEquipamentoIndustrial();
+            await carregarCapacidadeIndustrial();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.excluirEquipamentoIndustrial = async function(id) {
+        if (!confirm('Excluir este equipamento industrial?')) return;
+        try {
+            await fetch(`/api/planejamento/industrial/equipamentos/${id}`, { method: 'DELETE' });
+            await carregarCapacidadeIndustrial();
+        } catch (err) {
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
+        }
+    };
+
+    // ── 3. Produção & PCP (Ordens de Produção com Tempos Operacionais) ─────────
+    window.carregarOrdensProducao = async function() {
+        try {
+            const res = await fetch('/api/planejamento/producao/ops');
+            const data = await res.json();
+            localOPs = Array.isArray(data) ? data : [];
+            renderOrdensProducao();
+        } catch (err) {
+            console.error('Erro ao carregar Ordens de Produção PCP:', err);
+            localOPs = [];
+            renderOrdensProducao();
+        }
+    };
+
+    function renderOrdensProducao() {
+        const tbody = document.getElementById('pcp-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let opsExecucaoCount = 0;
+        let volumeTotal = 0;
+        let tempoEstTotal = 0;
+        let tempoRealTotal = 0;
+
+        localOPs.forEach(op => {
+            const pesoEnt = parseFloat(op.peso_entrada_kg || 0);
+            if (op.status === 'Em Execução') opsExecucaoCount++;
+            volumeTotal += pesoEnt;
+
+            const etapas = op.etapas || [];
+            let opEstHours = 0;
+            let opRealHours = 0;
+
+            const etapasHtml = etapas.map(et => {
+                const estH = parseFloat(et.tempo_estimado_horas || 0);
+                const realH = parseFloat(et.tempo_real_horas || 0);
+                opEstHours += estH;
+                opRealHours += realH;
+
+                let stBg = '#aaa';
+                if (et.status_etapa === 'Em Andamento') stBg = '#f0b800';
+                if (et.status_etapa === 'Concluída') stBg = '#2AD07A';
+
+                return `
+                    <div style="background:#0d1826; border:1px solid #1a2a3a; padding:6px 10px; border-radius:6px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; font-size:0.78rem;">
+                        <div>
+                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${stBg}; margin-right:5px;"></span>
+                            <strong>${et.ordem}. ${et.nome_etapa}</strong>
+                            <span style="color:#aaa; font-size:0.72rem; margin-left:5px;">(${et.operador_responsavel || 'Operador'})</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="color:#aaa;">Est: <strong style="color:#2AD07A;">${estH.toFixed(1)}h</strong> | Real: <strong style="color:${realH > estH ? '#ff4d4d' : realH > 0 ? '#9b59b6' : '#888'};">${realH.toFixed(1)}h</strong></span>
+                            <button type="button" onclick="abrirModalApontamentoTempo(${op.id}, ${et.id})" style="background:#1e4e8c; color:#fff; border:none; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:0.72rem;">
+                                <i class="fa-solid fa-clock"></i> Apontar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            tempoEstTotal += opEstHours;
+            tempoRealTotal += opRealHours;
+
+            let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Planejada</span>';
+            if (op.status === 'Em Execução') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⏳ Em Execução</span>';
+            if (op.status === 'Concluída') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Concluída</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><strong style="color:#ffb74d;">${op.numero_op}</strong></td>
+                <td style="padding:10px 8px;">${op.material_entrada || '-'}</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold;">${pesoEnt.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px;">${op.material_saida_nome || '-'} (${parseFloat(op.peso_saida_estimado_kg||0).toLocaleString('pt-BR')} kg)</td>
+                <td style="padding:10px 8px; text-align:center; font-size:0.78rem;">${fmtD(op.data_inicio_prevista)} até ${fmtD(op.data_fim_prevista)}</td>
+                <td style="padding:10px 8px; min-width:280px;">${etapasHtml}</td>
+                <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+                <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="excluirOrdemProducao(${op.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir OP"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const kpiOps = document.getElementById('pcp-kpi-ops');
+        const kpiVol = document.getElementById('pcp-kpi-volume');
+        const kpiEst = document.getElementById('pcp-kpi-tempo-est');
+        const kpiReal = document.getElementById('pcp-kpi-tempo-real');
+
+        if (kpiOps) kpiOps.textContent = opsExecucaoCount;
+        if (kpiVol) kpiVol.textContent = volumeTotal.toLocaleString('pt-BR') + ' kg';
+        if (kpiEst) kpiEst.textContent = tempoEstTotal.toFixed(1) + ' h';
+        if (kpiReal) kpiReal.textContent = tempoRealTotal.toFixed(1) + ' h';
+    }
+
+    window.abrirModalOrdemProducao = function() {
+        const opId = Date.now().toString().slice(-4);
+        document.getElementById('op-numero').value = `OP-2026-${opId}`;
+
+        const selMat = document.getElementById('op-material-saida-id');
+        if (selMat) {
+            selMat.innerHTML = '<option value="">Selecione o Material de Saída...</option>' +
+                (window.localMateriais || []).map(m => `<option value="${m.id}">${m.nome} (${m.categoria})</option>`).join('');
+        }
+
+        const hoje = new Date().toISOString().slice(0, 10);
+        const amanha = new Date(Date.now() + 86400000*2).toISOString().slice(0, 10);
+        document.getElementById('op-data-inicio').value = hoje;
+        document.getElementById('op-data-fim').value = amanha;
+
+        // Etapas padrão pré-carregadas para acelerar o PCP
+        etapasOpFormDraft = [
+            { nome_etapa: 'Recepção & Pesagem', equipamento_id: '', tempo_estimado_horas: 1.5, operador_responsavel: 'Carlos' },
+            { nome_etapa: 'Trituração & Desmonte', equipamento_id: '', tempo_estimado_horas: 4.0, operador_responsavel: 'João' },
+            { nome_etapa: 'Separação Magnética & Prensagem', equipamento_id: '', tempo_estimado_horas: 3.0, operador_responsavel: 'Marcos' },
+            { nome_etapa: 'Qualidade & Embalagem', equipamento_id: '', tempo_estimado_horas: 1.5, operador_responsavel: 'Eng. Roberto' }
+        ];
+
+        renderEtapasOpFormDraft();
+        document.getElementById('modal-ordem-producao').style.display = 'flex';
+    };
+
+    window.fecharModalOrdemProducao = function() {
+        document.getElementById('modal-ordem-producao').style.display = 'none';
+    };
+
+    function renderEtapasOpFormDraft() {
+        const tbody = document.getElementById('op-etapas-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totalEst = 0;
+
+        etapasOpFormDraft.forEach((et, i) => {
+            const estH = parseFloat(et.tempo_estimado_horas || 0);
+            totalEst += estH;
+
+            const eqOptions = (localEquipamentos || []).map(eq =>
+                `<option value="${eq.id}" ${eq.id == et.equipamento_id ? 'selected' : ''}>${eq.codigo_tag} - ${eq.nome_equipamento}</option>`
+            ).join('');
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:6px; text-align:center;">${i + 1}</td>
+                <td style="padding:6px;">
+                    <input type="text" value="${et.nome_etapa}" onchange="etapasOpFormDraft[${i}].nome_etapa = this.value" class="noble-input" style="padding:4px 8px; font-size:0.8rem;" />
+                </td>
+                <td style="padding:6px;">
+                    <select onchange="etapasOpFormDraft[${i}].equipamento_id = this.value" class="noble-input" style="padding:4px 8px; font-size:0.8rem;">
+                        <option value="">Nenhum / Manual</option>
+                        ${eqOptions}
+                    </select>
+                </td>
+                <td style="padding:6px; text-align:right;">
+                    <input type="number" step="0.1" value="${estH}" oninput="etapasOpFormDraft[${i}].tempo_estimado_horas = parseFloat(this.value)||0; calcularTotalHorasOpForm();" class="noble-input" style="width:75px; text-align:right; padding:4px 8px; font-size:0.8rem;" />
+                </td>
+                <td style="padding:6px;">
+                    <input type="text" value="${et.operador_responsavel || ''}" onchange="etapasOpFormDraft[${i}].operador_responsavel = this.value" class="noble-input" style="padding:4px 8px; font-size:0.8rem;" placeholder="Operador" />
+                </td>
+                <td style="padding:6px; text-align:center;">
+                    <button type="button" onclick="removerEtapaOpForm(${i})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        calcularTotalHorasOpForm();
+    }
+
+    window.calcularTotalHorasOpForm = function() {
+        const total = etapasOpFormDraft.reduce((s, et) => s + (parseFloat(et.tempo_estimado_horas) || 0), 0);
+        const el = document.getElementById('op-tempo-total-est');
+        if (el) el.textContent = total.toFixed(1) + ' Horas';
+    };
+
+    window.adicionarEtapaOpForm = function() {
+        etapasOpFormDraft.push({
+            nome_etapa: `Etapa ${etapasOpFormDraft.length + 1}`,
+            equipamento_id: '',
+            tempo_estimado_horas: 2.0,
+            operador_responsavel: ''
+        });
+        renderEtapasOpFormDraft();
+    };
+
+    window.removerEtapaOpForm = function(idx) {
+        etapasOpFormDraft.splice(idx, 1);
+        renderEtapasOpFormDraft();
+    };
+
+    window.salvarOrdemProducaoForm = async function(e) {
+        e.preventDefault();
+        const payload = {
+            numero_op: document.getElementById('op-numero').value,
+            material_entrada: document.getElementById('op-material-entrada').value,
+            peso_entrada_kg: document.getElementById('op-peso-entrada').value,
+            material_saida_id: document.getElementById('op-material-saida-id').value,
+            peso_saida_estimado_kg: document.getElementById('op-peso-saida-est').value || 0,
+            data_inicio_prevista: document.getElementById('op-data-inicio').value,
+            data_fim_prevista: document.getElementById('op-data-fim').value,
+            responsavel_pcp: document.getElementById('op-responsavel').value,
+            observacoes: document.getElementById('op-obs').value,
+            etapas: etapasOpFormDraft
+        };
+
+        try {
+            const res = await fetch('/api/planejamento/producao/ops', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar Ordem de Produção');
+            _apexNotify('Sucesso', 'Ordem de Produção (OP) criada com sucesso!', 'success');
+            fecharModalOrdemProducao();
+            await carregarOrdensProducao();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.excluirOrdemProducao = async function(id) {
+        if (!confirm('Excluir esta Ordem de Produção (OP)?')) return;
+        try {
+            await fetch(`/api/planejamento/producao/ops/${id}`, { method: 'DELETE' });
+            await carregarOrdensProducao();
+        } catch (err) {
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
+        }
+    };
+
+    // ── 4. Apontamento de Tempo Real da Etapa ────────────────────────────────────
+    window.abrirModalApontamentoTempo = function(opId, etapaId) {
+        const op = localOPs.find(x => x.id === opId);
+        if (!op) return;
+        const et = (op.etapas || []).find(e => e.id == etapaId);
+        if (!et) return;
+
+        document.getElementById('ap-op-id').value = opId;
+        document.getElementById('ap-etapa-id').value = etapaId;
+        document.getElementById('ap-txt-op').textContent = op.numero_op;
+        document.getElementById('ap-txt-etapa').textContent = et.nome_etapa;
+        document.getElementById('ap-tempo-real').value = et.tempo_real_horas || et.tempo_estimado_horas || 0;
+        document.getElementById('ap-txt-tempo-est').textContent = (et.tempo_estimado_horas || 0) + 'h';
+        document.getElementById('ap-status-etapa').value = et.status_etapa || 'Em Andamento';
+        document.getElementById('ap-operador').value = et.operador_responsavel || '';
+        document.getElementById('modal-apontamento-tempo').style.display = 'flex';
+    };
+
+    window.fecharModalApontamentoTempo = function() {
+        document.getElementById('modal-apontamento-tempo').style.display = 'none';
+    };
+
+    window.salvarApontamentoTempoForm = async function(e) {
+        e.preventDefault();
+        const opId = document.getElementById('ap-op-id').value;
+        const etapaId = document.getElementById('ap-etapa-id').value;
+        const payload = {
+            etapa_id: etapaId,
+            tempo_real_horas: document.getElementById('ap-tempo-real').value,
+            status_etapa: document.getElementById('ap-status-etapa').value,
+            operador_responsavel: document.getElementById('ap-operador').value
+        };
+
+        try {
+            const res = await fetch(`/api/planejamento/producao/ops/${opId}/etapas`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar apontamento de tempo');
+            _apexNotify('Sucesso', 'Apontamento de tempo registrado com sucesso!', 'success');
+            fecharModalApontamentoTempo();
+            await carregarOrdensProducao();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -10314,7 +10919,10 @@ window.carregarFinanceiroView = async function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao salvar pedido');
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || 'Erro ao salvar pedido');
+            }
             _apexNotify('Sucesso', 'Pedido de Venda salvo com sucesso!', 'success');
             fecharModalPedido();
             await carregarPedidos();
@@ -10429,7 +11037,11 @@ window.carregarFinanceiroView = async function() {
         const doc = new jsPDF('p', 'mm', 'a4');
 
         // Marca d'água do logo em toda a folha
-        await aplicarMarcaDaguaLogoJsPDF(doc);
+        if (typeof window.aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await window.aplicarMarcaDaguaLogoJsPDF(doc);
+        } else if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
 
         if (doc.GState && doc.setGState) {
             try { doc.setGState(new doc.GState({ opacity: 1.0 })); } catch(e){}
@@ -10624,6 +11236,13 @@ window.carregarFinanceiroView = async function() {
         doc.setFont('helvetica', 'normal');
         doc.text(`Apex Tech Metais — Emissor: ${p.criado_por || 'Admin'}`, 55, sigY + 5, { align: 'center' });
         doc.text('Aceito e De Acordo (Cliente)', 155, sigY + 5, { align: 'center' });
+
+        // Aplicar Marca d'água oficial em todas as páginas
+        if (typeof window.aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await window.aplicarMarcaDaguaLogoJsPDF(doc);
+        } else if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
 
         // Rodapé
         const pageCount = doc.internal.getNumberOfPages();
