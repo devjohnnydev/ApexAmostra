@@ -25,6 +25,25 @@
                 for (let name of names) caches.delete(name);
             });
         }
+
+        // Funções globais imediatas de abertura de modais
+        window._forcarAbrirModalPlanejamentoProducao = function() {
+            console.log('[APEX SYSTEM] Executando _forcarAbrirModalPlanejamentoProducao...');
+            var modal = document.getElementById('modal-planejamento-producao');
+            if (modal) {
+                modal.style.cssText = 'display: flex !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: rgba(0,0,0,0.85) !important; align-items: center !important; justify-content: center !important;';
+            } else {
+                console.error('[APEX SYSTEM] Elemento #modal-planejamento-producao não encontrado!');
+            }
+            if (typeof window.abrirModalPlanejamentoProducao === 'function') {
+                try { window.abrirModalPlanejamentoProducao(); } catch(e) { console.error(e); }
+            }
+        };
+
+        window.fecharModalPlanejamentoProducao = function() {
+            var modal = document.getElementById('modal-planejamento-producao');
+            if (modal) modal.style.display = 'none';
+        };
     </script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d2416">
@@ -2292,7 +2311,7 @@
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button type="button" class="btn-secondary" onclick="imprimirPlanejamentoProducaoPdf()" style="background:#162b20; border-color:#2AD07A; color:#2AD07A; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> PDF Insumos Produção</button>
-                            <button type="button" class="btn-primary" id="btn-novo-planejamento-producao" style="position:relative; z-index:100; cursor:pointer;" onclick="_forcarAbrirModalPlanejamentoProducao()"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
+                            <button type="button" class="btn-primary" id="btn-novo-planejamento-producao" style="position:relative; z-index:100; cursor:pointer;" onclick="window._forcarAbrirModalPlanejamentoProducao()"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
                         </div>
                     </div>
 
@@ -4665,7 +4684,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=110"></script>
+    <script src="admin.js?v=200"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
