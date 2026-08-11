@@ -10972,7 +10972,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ── PDF Export: Planejado vs. Realizado (Metas & Caixa) ────────────────────
-    window.imprimirComparativoRealizadoPdf = function() {
+    window.imprimirComparativoRealizadoPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) {
@@ -10982,40 +10982,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
             const dataToExport = localMRP || [];
 
-            doc.setFillColor(16, 26, 36);
-            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
-
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(16);
+            // Título e Meta Info em Fundo Branco
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text("APEXTECH METAIS - DEMONSTRATIVO PLANEJADO VS. REALIZADO", 40, 40);
 
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(170, 170, 170);
-            doc.text(`Acompanhamento de Metas de Compra & Projeção de Caixa | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Acompanhamento de Metas de Compra & Projeção de Caixa | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 56);
 
-            let y = 80;
-            doc.setFillColor(30, 78, 140);
-            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFont('helvetica', 'bold');
-            doc.text("Tipo", 50, y + 15);
-            doc.text("Material / Produto", 120, y + 15);
-            doc.text("Meta (kg)", 300, y + 15);
-            doc.text("Realizado (kg)", 400, y + 15);
-            doc.text("Desvio %", 500, y + 15);
-            doc.text("Previsto (R$)", 590, y + 15);
-            doc.text("Realizado (R$)", 700, y + 15);
-
-            y += 28;
-            doc.setFont('helvetica', 'normal');
-            dataToExport.forEach((item, idx) => {
-                if (y > doc.internal.pageSize.getHeight() - 50) {
-                    aplicarMarcaDaguaLogoJsPDF(doc);
-                    doc.addPage();
-                    y = 40;
-                }
+            const headers = [['Tipo', 'Material / Produto', 'Meta (kg)', 'Realizado (kg)', 'Desvio %', 'Previsto (R$)', 'Realizado (R$)']];
+            const body = dataToExport.map(item => {
                 const qty = parseFloat(item.quantidade_necessaria || 0);
                 const qtyReal = parseFloat(item.quantidade_realizada_kg || 0);
                 const prc = parseFloat(item.preco_estimado || 0);
@@ -11024,22 +11002,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 const desvioPct = qty > 0 ? (((qtyReal - qty) / qty) * 100) : 0;
                 const tipoStr = (item.tipo_planejamento || 'COMPRA_VENDA') === 'COMPRA_VENDA' ? 'Trading' : 'Insumo';
 
-                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
-                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.text(tipoStr, 50, y + 2);
-                doc.text(String(item.material_nome || '-').slice(0, 24), 120, y + 2);
-                doc.text(qty.toLocaleString('pt-BR') + ' kg', 300, y + 2);
-                doc.text(qtyReal.toLocaleString('pt-BR') + ' kg', 400, y + 2);
-                doc.text((desvioPct >= 0 ? '+' : '') + desvioPct.toFixed(1) + '%', 500, y + 2);
-                doc.text('R$ ' + totalEst.toLocaleString('pt-BR', {minimumFractionDigits:2}), 590, y + 2);
-                doc.text('R$ ' + totalReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), 700, y + 2);
-                y += 22;
+                return [
+                    tipoStr,
+                    item.material_nome || '-',
+                    qty.toLocaleString('pt-BR') + ' kg',
+                    qtyReal.toLocaleString('pt-BR') + ' kg',
+                    (desvioPct >= 0 ? '+' : '') + desvioPct.toFixed(1) + '%',
+                    'R$ ' + totalEst.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                    'R$ ' + totalReal.toLocaleString('pt-BR', {minimumFractionDigits:2})
+                ];
             });
 
-            aplicarMarcaDaguaLogoJsPDF(doc);
+            doc.autoTable({
+                startY: 70,
+                head: headers,
+                body: body,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8.5, cellPadding: 4 }
+            });
+
+            let nextY = doc.lastAutoTable.finalY + 20;
+
+            // Capturar e Inserir o Gráfico de Metas
+            const chartCanvas = document.getElementById('chart-planejado-vs-realizado');
+            if (chartCanvas) {
+                try {
+                    // Garantir que cabe na página atual, senão cria nova
+                    if (nextY + 160 > doc.internal.pageSize.getHeight() - 40) {
+                        await aplicarMarcaDaguaLogoJsPDF(doc);
+                        doc.addPage();
+                        nextY = 40;
+                    }
+
+                    // Fundo escuro apenas para a caixa do gráfico (para visualizar as linhas/labels claras do chart)
+                    doc.setFillColor(17, 28, 36);
+                    doc.rect(40, nextY, doc.internal.pageSize.getWidth() - 80, 165, 'F');
+
+                    const chartImgData = chartCanvas.toDataURL('image/png');
+                    doc.addImage(chartImgData, 'PNG', 50, nextY + 10, doc.internal.pageSize.getWidth() - 100, 145);
+                } catch (e) {
+                    console.warn('Erro ao inserir gráfico no PDF:', e);
+                }
+            }
+
+            await aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejado_vs_Realizado_${new Date().toISOString().slice(0, 10)}.pdf`);
-            _apexNotify('Sucesso', 'PDF Planejado vs. Realizado gerado com marca d\'água!', 'success');
+            _apexNotify('Sucesso', 'PDF Planejado vs. Realizado baixado com gráficos e marca d\'água!', 'success');
         } catch (err) {
             console.error('Erro ao gerar PDF Planejado vs Realizado:', err);
             _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
