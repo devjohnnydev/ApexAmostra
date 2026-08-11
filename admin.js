@@ -9352,16 +9352,49 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiCust) kpiCust.textContent = 'R$ ' + totalCusto.toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
 
-    window.abrirModalPlanejamentoCompra = function() {
+    window.abrirModalPlanejamentoCompra = async function() {
+        // Garantir que fornecedores e materiais estejam carregados da API
+        if (!localFornecedores || localFornecedores.length === 0) {
+            try {
+                const res = await fetch('/api/fornecedores?limit=200');
+                if (res.ok) {
+                    const data = await res.json();
+                    localFornecedores = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+                    window.localFornecedores = localFornecedores;
+                }
+            } catch(e){}
+        } else {
+            window.localFornecedores = localFornecedores;
+        }
+
+        if (!localMateriais || localMateriais.length === 0) {
+            try {
+                const res = await fetch('/api/materiais-catalogo');
+                if (res.ok) {
+                    const data = await res.json();
+                    localMateriais = Array.isArray(data) ? data : [];
+                    window.localMateriais = localMateriais;
+                }
+            } catch(e){}
+        } else {
+            window.localMateriais = localMateriais;
+        }
+
         const selMat = document.getElementById('mrp-material-id');
         const selForn = document.getElementById('mrp-fornecedor-id');
+
+        const listMat = (localMateriais && localMateriais.length > 0) ? localMateriais : (window.localMateriais || []);
+        const listForn = (localFornecedores && localFornecedores.length > 0) ? localFornecedores : (window.localFornecedores || []);
+
         if (selMat) {
             selMat.innerHTML = '<option value="">Selecione o Material...</option>' +
-                (window.localMateriais || []).map(m => `<option value="${m.id}">${m.nome} (${m.categoria})</option>`).join('');
+                listMat.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Geral'})</option>`).join('') +
+                '<option value="NOVO" style="color:#2AD07A; font-weight:bold;">+ Cadastrar Novo Material...</option>';
         }
         if (selForn) {
             selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' +
-                (window.localFornecedores || []).map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
+                listForn.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('') +
+                '<option value="NOVO" style="color:#2AD07A; font-weight:bold;">+ Cadastrar Novo Fornecedor...</option>';
         }
 
         const inputMes = document.getElementById('mrp-mes-referencia');
@@ -9375,6 +9408,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.fecharModalPlanejamentoCompra = function() {
         document.getElementById('modal-planejamento-compra').style.display = 'none';
+    };
+
+    window.onMrpMaterialChange = function() {
+        const val = document.getElementById('mrp-material-id').value;
+        if (val === 'NOVO') {
+            document.getElementById('mrp-material-id').value = '';
+            fecharModalPlanejamentoCompra();
+            if (window.abrirModalMaterial) window.abrirModalMaterial();
+            return;
+        }
+        atualizarPrecoEstCompra();
+    };
+
+    window.onMrpFornecedorChange = function() {
+        const val = document.getElementById('mrp-fornecedor-id').value;
+        if (val === 'NOVO') {
+            document.getElementById('mrp-fornecedor-id').value = '';
+            fecharModalPlanejamentoCompra();
+            if (window.abrirModalFornecedor) window.abrirModalFornecedor();
+            return;
+        }
     };
 
     window.atualizarPrecoEstCompra = function() {
@@ -9664,14 +9718,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiReal) kpiReal.textContent = tempoRealTotal.toFixed(1) + ' h';
     }
 
-    window.abrirModalOrdemProducao = function() {
+    window.abrirModalOrdemProducao = async function() {
         const opId = Date.now().toString().slice(-4);
         document.getElementById('op-numero').value = `OP-2026-${opId}`;
 
+        if (!localMateriais || localMateriais.length === 0) {
+            try {
+                const res = await fetch('/api/materiais-catalogo');
+                if (res.ok) {
+                    const data = await res.json();
+                    localMateriais = Array.isArray(data) ? data : [];
+                    window.localMateriais = localMateriais;
+                }
+            } catch(e){}
+        } else {
+            window.localMateriais = localMateriais;
+        }
+
         const selMat = document.getElementById('op-material-saida-id');
+        const listMat = (localMateriais && localMateriais.length > 0) ? localMateriais : (window.localMateriais || []);
         if (selMat) {
             selMat.innerHTML = '<option value="">Selecione o Material de Saída...</option>' +
-                (window.localMateriais || []).map(m => `<option value="${m.id}">${m.nome} (${m.categoria})</option>`).join('');
+                listMat.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Geral'})</option>`).join('');
         }
 
         const hoje = new Date().toISOString().slice(0, 10);

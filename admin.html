@@ -3795,14 +3795,20 @@
             </h3>
             <form id="form-planejamento-compra" onsubmit="salvarPlanejamentoCompraForm(event)">
                 <div class="form-group" style="margin-bottom:12px;">
-                    <label style="color:#fff;">Material Requerido *</label>
-                    <select id="mrp-material-id" class="noble-input" required onchange="atualizarPrecoEstCompra()">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label style="color:#fff; margin:0;">Material Requerido *</label>
+                        <button type="button" onclick="fecharModalPlanejamentoCompra(); if(window.abrirModalMaterial) window.abrirModalMaterial();" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer;"><i class="fa-solid fa-plus"></i> + Novo Material</button>
+                    </div>
+                    <select id="mrp-material-id" class="noble-input" required onchange="onMrpMaterialChange()">
                         <option value="">Selecione o Material...</option>
                     </select>
                 </div>
                 <div class="form-group" style="margin-bottom:12px;">
-                    <label style="color:#fff;">Fornecedor Homologado *</label>
-                    <select id="mrp-fornecedor-id" class="noble-input" required>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label style="color:#fff; margin:0;">Fornecedor Homologado *</label>
+                        <button type="button" onclick="fecharModalPlanejamentoCompra(); if(window.abrirModalFornecedor) window.abrirModalFornecedor();" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer;"><i class="fa-solid fa-plus"></i> + Novo Fornecedor</button>
+                    </div>
+                    <select id="mrp-fornecedor-id" class="noble-input" required onchange="onMrpFornecedorChange()">
                         <option value="">Selecione o Fornecedor...</option>
                     </select>
                 </div>
