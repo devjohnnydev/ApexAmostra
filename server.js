@@ -2140,20 +2140,22 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
     try {
         const { numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes, etapas } = req.body;
 
+        let numOpFinal = (numero_op && numero_op.trim()) ? numero_op.trim() : ('OP-' + new Date().getFullYear() + '-' + String(Math.floor(Date.now() / 1000) % 100000).padStart(5, '0'));
+
         if (!dbAvailable) {
             if (!memStore.ordens_producao) memStore.ordens_producao = [];
             const opId = nextId++;
             const newOp = {
                 id: opId,
-                numero_op: numero_op || ('OP-' + String(opId).padStart(4, '0')),
-                amostra_id: amostra_id ? parseInt(amostra_id) : null,
-                lote_id: lote_id ? parseInt(lote_id) : null,
-                material_entrada,
+                numero_op: numOpFinal,
+                amostra_id: amostra_id && !isNaN(parseInt(amostra_id)) ? parseInt(amostra_id) : null,
+                lote_id: lote_id && !isNaN(parseInt(lote_id)) ? parseInt(lote_id) : null,
+                material_entrada: material_entrada || 'Material de Entrada',
                 peso_entrada_kg: parseFloat(peso_entrada_kg || 0),
-                material_saida_id: material_saida_id ? parseInt(material_saida_id) : null,
+                material_saida_id: material_saida_id && !isNaN(parseInt(material_saida_id)) ? parseInt(material_saida_id) : null,
                 peso_saida_estimado_kg: parseFloat(peso_saida_estimado_kg || 0),
-                data_inicio_prevista,
-                data_fim_prevista,
+                data_inicio_prevista: data_inicio_prevista || null,
+                data_fim_prevista: data_fim_prevista || null,
                 responsavel_pcp: responsavel_pcp || 'Admin PCP',
                 status: status || 'Planejada',
                 observacoes: observacoes || '',
@@ -2161,9 +2163,9 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
                 etapas: (etapas || []).map((et, idx) => ({
                     id: idx + 1,
                     op_id: opId,
-                    nome_etapa: et.nome_etapa,
+                    nome_etapa: et.nome_etapa || `Etapa ${idx + 1}`,
                     ordem: idx + 1,
-                    equipamento_id: et.equipamento_id ? parseInt(et.equipamento_id) : null,
+                    equipamento_id: et.equipamento_id && !isNaN(parseInt(et.equipamento_id)) ? parseInt(et.equipamento_id) : null,
                     tempo_estimado_horas: parseFloat(et.tempo_estimado_horas || 0),
                     tempo_real_horas: parseFloat(et.tempo_real_horas || 0),
                     status_etapa: et.status_etapa || 'Pendente',
@@ -2178,20 +2180,67 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-            const opRes = await client.query(`
-                INSERT INTO ordens_producao (numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
-            `, [numero_op || ('OP-' + Date.now().toString().slice(-5)), amostra_id || null, lote_id || null, material_entrada, peso_entrada_kg, material_saida_id || null, peso_saida_estimado_kg || 0, data_inicio_prevista || null, data_fim_prevista || null, responsavel_pcp || 'PCP Admin', status || 'Planejada', observacoes || '']);
+            let opRes;
+            try {
+                opRes = await client.query(`
+                    INSERT INTO ordens_producao (numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
+                `, [
+                    numOpFinal,
+                    amostra_id && !isNaN(parseInt(amostra_id)) ? parseInt(amostra_id) : null,
+                    lote_id && !isNaN(parseInt(lote_id)) ? parseInt(lote_id) : null,
+                    material_entrada || 'Material de Entrada',
+                    parseFloat(peso_entrada_kg || 0),
+                    material_saida_id && !isNaN(parseInt(material_saida_id)) ? parseInt(material_saida_id) : null,
+                    parseFloat(peso_saida_estimado_kg || 0),
+                    data_inicio_prevista || null,
+                    data_fim_prevista || null,
+                    responsavel_pcp || 'PCP Admin',
+                    status || 'Planejada',
+                    observacoes || ''
+                ]);
+            } catch (errDup) {
+                // Se der duplicidade de numero_op, recria com timestamp unico
+                numOpFinal = 'OP-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-6);
+                opRes = await client.query(`
+                    INSERT INTO ordens_producao (numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
+                `, [
+                    numOpFinal,
+                    amostra_id && !isNaN(parseInt(amostra_id)) ? parseInt(amostra_id) : null,
+                    lote_id && !isNaN(parseInt(lote_id)) ? parseInt(lote_id) : null,
+                    material_entrada || 'Material de Entrada',
+                    parseFloat(peso_entrada_kg || 0),
+                    material_saida_id && !isNaN(parseInt(material_saida_id)) ? parseInt(material_saida_id) : null,
+                    parseFloat(peso_saida_estimado_kg || 0),
+                    data_inicio_prevista || null,
+                    data_fim_prevista || null,
+                    responsavel_pcp || 'PCP Admin',
+                    status || 'Planejada',
+                    observacoes || ''
+                ]);
+            }
 
             const createdOp = opRes.rows[0];
             const createdEtapas = [];
             if (etapas && Array.isArray(etapas)) {
                 for (let i = 0; i < etapas.length; i++) {
                     const et = etapas[i];
+                    const eqId = et.equipamento_id && !isNaN(parseInt(et.equipamento_id)) ? parseInt(et.equipamento_id) : null;
                     const etRes = await client.query(`
                         INSERT INTO ordens_producao_etapas (op_id, nome_etapa, ordem, equipamento_id, tempo_estimado_horas, tempo_real_horas, status_etapa, operador_responsavel, observacoes)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
-                    `, [createdOp.id, et.nome_etapa, i + 1, et.equipamento_id || null, et.tempo_estimado_horas || 0, et.tempo_real_horas || 0, et.status_etapa || 'Pendente', et.operador_responsavel || '', et.observacoes || '']);
+                    `, [
+                        createdOp.id,
+                        et.nome_etapa || `Etapa ${i + 1}`,
+                        i + 1,
+                        eqId,
+                        parseFloat(et.tempo_estimado_horas || 0),
+                        parseFloat(et.tempo_real_horas || 0),
+                        et.status_etapa || 'Pendente',
+                        et.operador_responsavel || '',
+                        et.observacoes || ''
+                    ]);
                     createdEtapas.push(etRes.rows[0]);
                 }
             }
