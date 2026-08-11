@@ -9335,6 +9335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 8px; text-align:center;">${p.mes_referencia || '-'}</td>
                 <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                 <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#162b20; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:6px;" title="Baixar PDF MRP com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                     <button type="button" onclick="excluirPlanejamentoCompra(${p.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
@@ -9535,6 +9536,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:#9b59b6;">${oee}%</td>
                 <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                 <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="imprimirEquipamentoPdf(${eq.id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:6px;" title="Baixar PDF Ficha do Equipamento com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                     <button type="button" onclick="editarEquipamentoIndustrial(${eq.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; font-size:0.9rem; margin-right:8px;" title="Editar"><i class="fa-solid fa-pen"></i></button>
                     <button type="button" onclick="excluirEquipamentoIndustrial(${eq.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -9701,6 +9703,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 8px; min-width:280px;">${etapasHtml}</td>
                 <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                 <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="imprimirOPPdf(${op.id})" style="background:#3b2d18; border:1px solid #ffb74d; color:#ffb74d; border-radius:4px; padding:4px 10px; font-size:0.78rem; font-weight:bold; cursor:pointer; margin-right:8px;" title="Baixar PDF da OP com Roteiro PCP e Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF OP</button>
                     <button type="button" onclick="excluirOrdemProducao(${op.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir OP"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
@@ -11546,6 +11549,335 @@ window.carregarFinanceiroView = async function() {
             });
             _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
         }
+    };
+
+    // ── GERAÇÃO DE PDFS DE PLANEJAMENTO, MRP, INDUSTRIAL E ORDENS DE PRODUÇÃO (PCP) ──
+
+    window.imprimirOPPdf = async function(opId) {
+        if (!window.jspdf) {
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
+            return;
+        }
+        const op = (localOPs || []).find(x => x.id == opId);
+        if (!op) {
+            _apexNotify('Atenção', 'Ordem de Produção não encontrada.', 'error');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('portrait', 'mm', 'a4');
+
+        doc.setFillColor(16, 26, 36);
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 183, 77);
+        doc.text('APEXTECH METAIS ERP', 15, 15);
+
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`ORDEM DE PRODUÇÃO & ROTEIRO PCP — ${op.numero_op}`, 15, 24);
+
+        doc.setFontSize(8);
+        doc.setTextColor(180, 200, 220);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 145, 15);
+        doc.text(`Emissor: ${sessionStorage.getItem('apex_logged_user_name') || 'Administrador'}`, 145, 22);
+
+        doc.autoTable({
+            startY: 38,
+            head: [['Campo / Parâmetro', 'Especificação Industrial']],
+            body: [
+                ['Número da OP', op.numero_op],
+                ['Material de Entrada', op.material_entrada || '-'],
+                ['Peso de Entrada (kg)', parseFloat(op.peso_entrada_kg || 0).toLocaleString('pt-BR') + ' kg'],
+                ['Material Resultante Esperado', op.material_saida_nome || '-'],
+                ['Peso de Saída Estimado (kg)', parseFloat(op.peso_saida_estimado_kg || 0).toLocaleString('pt-BR') + ' kg'],
+                ['Cronograma Previsto', `${fmtD(op.data_inicio_prevista)} até ${fmtD(op.data_fim_prevista)}`],
+                ['Responsável PCP', op.responsavel_pcp || 'Eng. Roberto'],
+                ['Status da Ordem de Produção', op.status || 'Planejada'],
+                ['Observações / Instruções', op.observacoes || 'Sem observações']
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 3 }
+        });
+
+        const etapas = op.etapas || [];
+        let totalEst = 0;
+        let totalReal = 0;
+
+        const etapasBody = etapas.map(et => {
+            const estH = parseFloat(et.tempo_estimado_horas || 0);
+            const realH = parseFloat(et.tempo_real_horas || 0);
+            totalEst += estH;
+            totalReal += realH;
+            return [
+                et.ordem || '-',
+                et.nome_etapa || '-',
+                et.equipamento_nome || 'Nenhum / Manual',
+                estH.toFixed(1) + ' h',
+                realH.toFixed(1) + ' h',
+                et.status_etapa || 'Pendente',
+                et.operador_responsavel || 'Operador'
+            ];
+        });
+
+        etapasBody.push([
+            '', 'TOTAL ACUMULADO DA OP', '', totalEst.toFixed(1) + ' h', totalReal.toFixed(1) + ' h', '', ''
+        ]);
+
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 10,
+            head: [['#', 'Etapa Operacional', 'Equipamento', 'Tempo Est.', 'Tempo Real', 'Status Etapa', 'Operador']],
+            body: etapasBody,
+            theme: 'grid',
+            headStyles: { fillColor: [255, 183, 77], textColor: [10, 20, 30], fontStyle: 'bold' },
+            styles: { fontSize: 8.5, cellPadding: 3 },
+            didParseCell: function(data) {
+                if (data.row.index === etapasBody.length - 1) {
+                    data.cell.styles.fontStyle = 'bold';
+                    data.cell.styles.fillColor = [240, 240, 240];
+                    data.cell.styles.textColor = [0, 0, 0];
+                }
+            }
+        });
+
+        if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
+
+        doc.save(`Ordem_Producao_${op.numero_op}_${new Date().toISOString().split('T')[0]}.pdf`);
+        _apexNotify('Sucesso', `PDF da Ordem de Produção ${op.numero_op} baixado com marca d'água!`, 'success');
+    };
+
+    window.imprimirRelatorioOPsPdf = async function() {
+        if (!window.jspdf) {
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+
+        doc.setFillColor(16, 26, 36);
+        doc.rect(0, 0, 297, 28, 'F');
+
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 183, 77);
+        doc.text('APEXTECH METAIS ERP — RELATÓRIO GERAL DE ORDENS DE PRODUÇÃO & PCP', 15, 18);
+
+        const body = (localOPs || []).map(op => {
+            const etapas = op.etapas || [];
+            const totalEst = etapas.reduce((s, e) => s + parseFloat(e.tempo_estimado_horas || 0), 0);
+            const totalReal = etapas.reduce((s, e) => s + parseFloat(e.tempo_real_horas || 0), 0);
+            return [
+                op.numero_op,
+                op.material_entrada || '-',
+                parseFloat(op.peso_entrada_kg || 0).toLocaleString('pt-BR') + ' kg',
+                op.material_saida_nome || '-',
+                parseFloat(op.peso_saida_estimado_kg || 0).toLocaleString('pt-BR') + ' kg',
+                `${fmtD(op.data_inicio_prevista)} a ${fmtD(op.data_fim_prevista)}`,
+                totalEst.toFixed(1) + ' h',
+                totalReal.toFixed(1) + ' h',
+                op.status || 'Planejada',
+                op.responsavel_pcp || '-'
+            ];
+        });
+
+        doc.autoTable({
+            startY: 34,
+            head: [['Nº OP', 'Mat. Entrada', 'Peso Entrada', 'Mat. Saída Esperado', 'Peso Saída Est.', 'Cronograma', 'Tempo Est.', 'Tempo Real', 'Status OP', 'Responsável']],
+            body: body,
+            theme: 'grid',
+            headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+            styles: { fontSize: 8, cellPadding: 3.5 }
+        });
+
+        if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
+
+        doc.save(`Relatorio_Ordens_Producao_PCP_${new Date().toISOString().split('T')[0]}.pdf`);
+        _apexNotify('Sucesso', 'Relatório Geral de Ordens de Produção baixado com marca d\'água!', 'success');
+    };
+
+    window.imprimirMrpPdf = async function(id) {
+        if (!window.jspdf) return;
+        const item = (localMRP || []).find(x => x.id == id);
+        if (!item) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('portrait', 'mm', 'a4');
+
+        doc.setFillColor(16, 26, 36);
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(42, 208, 122);
+        doc.text('APEXTECH METAIS ERP', 15, 15);
+
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`DEMANDA DE COMPRA (MRP) — MATÉRIA-PRIMA`, 15, 24);
+
+        doc.autoTable({
+            startY: 38,
+            head: [['Item de Demanda', 'Especificação MRP']],
+            body: [
+                ['Material Requerido', item.material_nome || 'Material'],
+                ['Fornecedor Homologado', item.fornecedor_nome || 'Fornecedor'],
+                ['Quantidade Necessária (kg)', parseFloat(item.quantidade_necessaria || 0).toLocaleString('pt-BR') + ' kg'],
+                ['Ponto de Pedido / Est. Mínimo (kg)', parseFloat(item.ponto_pedido_kg || 0).toLocaleString('pt-BR') + ' kg'],
+                ['Lead Time de Entrega (Dias)', (item.lead_time_dias || 7) + ' dias'],
+                ['Preço Estimado (R$/kg)', 'R$ ' + parseFloat(item.preco_estimado || 0).toFixed(2)],
+                ['Custo Total Previsto (R$)', 'R$ ' + parseFloat(item.custo_total_estimado || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})],
+                ['Mês Referência', item.mes_referencia || '-'],
+                ['Status da Demanda', item.status || 'Sugerido'],
+                ['Observações', item.observacoes || '-']
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: [42, 208, 122], textColor: [0, 0, 0], fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 3.5 }
+        });
+
+        if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
+
+        doc.save(`Demanda_Compra_MRP_${item.id}_${new Date().toISOString().split('T')[0]}.pdf`);
+        _apexNotify('Sucesso', 'Demanda de compra MRP baixada em PDF!', 'success');
+    };
+
+    window.imprimirRelatorioMrpPdf = async function() {
+        if (!window.jspdf) return;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+
+        doc.setFillColor(16, 26, 36);
+        doc.rect(0, 0, 297, 28, 'F');
+
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(42, 208, 122);
+        doc.text('APEXTECH METAIS ERP — PLANEJAMENTO DE NECESSIDADES DE COMPRA (MRP)', 15, 18);
+
+        const body = (localMRP || []).map(m => [
+            m.material_nome || '-',
+            m.fornecedor_nome || '-',
+            parseFloat(m.quantidade_necessaria || 0).toLocaleString('pt-BR') + ' kg',
+            parseFloat(m.ponto_pedido_kg || 0).toLocaleString('pt-BR') + ' kg',
+            (m.lead_time_dias || 7) + ' dias',
+            'R$ ' + parseFloat(m.preco_estimado || 0).toFixed(2),
+            'R$ ' + parseFloat(m.custo_total_estimado || 0).toLocaleString('pt-BR', {minimumFractionDigits:2}),
+            m.mes_referencia || '-',
+            m.status || 'Sugerido'
+        ]);
+
+        doc.autoTable({
+            startY: 34,
+            head: [['Material', 'Fornecedor', 'Qtd Necessária', 'Est. Mínimo', 'Lead Time', 'Preço Est.', 'Custo Total', 'Mês Ref.', 'Status']],
+            body: body,
+            theme: 'grid',
+            headStyles: { fillColor: [42, 208, 122], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 8.5 },
+            styles: { fontSize: 8, cellPadding: 3.5 }
+        });
+
+        if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
+
+        doc.save(`Relatorio_Planejamento_MRP_${new Date().toISOString().split('T')[0]}.pdf`);
+        _apexNotify('Sucesso', 'Relatório Geral MRP baixado em PDF com marca d\'água!', 'success');
+    };
+
+    window.imprimirEquipamentoPdf = async function(id) {
+        if (!window.jspdf) return;
+        const eq = (localEquipamentos || []).find(x => x.id == id);
+        if (!eq) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('portrait', 'mm', 'a4');
+
+        doc.setFillColor(16, 26, 36);
+        doc.rect(0, 0, 210, 32, 'F');
+
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(62, 124, 177);
+        doc.text('APEXTECH METAIS ERP', 15, 15);
+
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`FICHA DE CAPACIDADE INDUSTRIAL — TAG: ${eq.codigo_tag}`, 15, 24);
+
+        doc.autoTable({
+            startY: 38,
+            head: [['Parâmetro Operacional', 'Especificação da Máquina']],
+            body: [
+                ['Código / TAG', eq.codigo_tag],
+                ['Nome do Equipamento', eq.nome_equipamento],
+                ['Setor Operacional', eq.setor],
+                ['Capacidade Nominal (kg/h)', parseFloat(eq.capacidade_nominal_kgh || 0).toLocaleString('pt-BR') + ' kg/h'],
+                ['Disponibilidade (h/dia)', (eq.disponibilidade_horas_dia || 16) + ' horas/dia'],
+                ['Tempo de Setup (Horas)', (eq.tempo_setup_horas || 1.0) + ' horas'],
+                ['Eficiência OEE (%)', (eq.eficiencia_oee_pct || 85) + ' %'],
+                ['Status Operacional', eq.status || 'Operacional'],
+                ['Observações Técnicas', eq.observacoes || '-']
+            ],
+            theme: 'grid',
+            headStyles: { fillColor: [62, 124, 177], textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 3.5 }
+        });
+
+        if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
+
+        doc.save(`Ficha_Equipamento_${eq.codigo_tag}_${new Date().toISOString().split('T')[0]}.pdf`);
+        _apexNotify('Sucesso', `Ficha do equipamento ${eq.codigo_tag} baixada em PDF!`, 'success');
+    };
+
+    window.imprimirRelatorioIndustrialPdf = async function() {
+        if (!window.jspdf) return;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+
+        doc.setFillColor(16, 26, 36);
+        doc.rect(0, 0, 297, 28, 'F');
+
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(62, 124, 177);
+        doc.text('APEXTECH METAIS ERP — MAPEAMENTO DE CAPACIDADE & LINHAS INDUSTRIAIS', 15, 18);
+
+        const body = (localEquipamentos || []).map(e => [
+            e.codigo_tag,
+            e.nome_equipamento,
+            e.setor,
+            parseFloat(e.capacidade_nominal_kgh || 0).toLocaleString('pt-BR') + ' kg/h',
+            (e.disponibilidade_horas_dia || 16) + ' h/dia',
+            (e.tempo_setup_horas || 1.0) + ' h',
+            (e.eficiencia_oee_pct || 85) + ' %',
+            e.status || 'Operacional'
+        ]);
+
+        doc.autoTable({
+            startY: 34,
+            head: [['TAG', 'Equipamento', 'Setor', 'Capacidade Nominal', 'Disponibilidade', 'Setup', 'OEE %', 'Status']],
+            body: body,
+            theme: 'grid',
+            headStyles: { fillColor: [62, 124, 177], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+            styles: { fontSize: 8, cellPadding: 3.5 }
+        });
+
+        if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
+            await aplicarMarcaDaguaLogoJsPDF(doc);
+        }
+
+        doc.save(`Relatorio_Capacidade_Industrial_${new Date().toISOString().split('T')[0]}.pdf`);
+        _apexNotify('Sucesso', 'Relatório Geral de Capacidade Industrial baixado em PDF com marca d\'água!', 'success');
     };
 
 })();

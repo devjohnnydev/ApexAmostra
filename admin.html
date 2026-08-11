@@ -2342,7 +2342,10 @@
                             <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-cart-shopping" style="color:#2AD07A;"></i> Planejamento de Necessidade de Matéria-Prima (MRP)</h3>
                             <span style="font-size:0.8rem; color:#aaa;">Dimensionamento de estoque de segurança, reposição e lead time por fornecedor.</span>
                         </div>
-                        <button class="btn-primary" onclick="abrirModalPlanejamentoCompra()"><i class="fa-solid fa-plus"></i> Nova Demanda de Compra</button>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-secondary" onclick="imprimirRelatorioMrpPdf()" style="background:#162b20; border-color:#2AD07A; color:#2AD07A; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> Imprimir MRP (PDF)</button>
+                            <button class="btn-primary" onclick="abrirModalPlanejamentoCompra()"><i class="fa-solid fa-plus"></i> Nova Demanda de Compra</button>
+                        </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
@@ -2398,7 +2401,10 @@
                             <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-industry" style="color:#3e7cb1;"></i> Mapeamento de Capacidade & Linhas Industriais</h3>
                             <span style="font-size:0.8rem; color:#aaa;">Capacidade nominal (kg/h), tempo de setup de equipamentos, OEE e gargalos da fábrica.</span>
                         </div>
-                        <button class="btn-primary" onclick="abrirModalEquipamentoIndustrial()"><i class="fa-solid fa-plus"></i> Novo Equipamento / Máquina</button>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-secondary" onclick="imprimirRelatorioIndustrialPdf()" style="background:#1e354d; border-color:#3e7cb1; color:#3e7cb1; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> Imprimir Equipamentos (PDF)</button>
+                            <button class="btn-primary" onclick="abrirModalEquipamentoIndustrial()"><i class="fa-solid fa-plus"></i> Novo Equipamento / Máquina</button>
+                        </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
@@ -2453,7 +2459,10 @@
                             <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-stopwatch" style="color:#ffb74d;"></i> Ordens de Produção & PCP (Com Tempos Operacionais)</h3>
                             <span style="font-size:0.8rem; color:#aaa;">Roteiro de etapas da fábrica, apontamento de tempo real vs. estimado e lead time por lote.</span>
                         </div>
-                        <button class="btn-primary" onclick="abrirModalOrdemProducao()"><i class="fa-solid fa-plus"></i> Nova Ordem de Produção (OP)</button>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-secondary" onclick="imprimirRelatorioOPsPdf()" style="background:#3b2d18; border-color:#ffb74d; color:#ffb74d; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> Imprimir OPs (PDF)</button>
+                            <button class="btn-primary" onclick="abrirModalOrdemProducao()"><i class="fa-solid fa-plus"></i> Nova Ordem de Produção (OP)</button>
+                        </div>
                     </div>
 
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
