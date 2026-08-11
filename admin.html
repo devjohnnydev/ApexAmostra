@@ -2292,7 +2292,7 @@
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button type="button" class="btn-secondary" onclick="imprimirPlanejamentoProducaoPdf()" style="background:#162b20; border-color:#2AD07A; color:#2AD07A; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> PDF Insumos Produção</button>
-                            <button type="button" class="btn-primary" onclick="abrirModalPlanejamentoProducao()"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
+                            <button type="button" class="btn-primary" id="btn-novo-planejamento-producao" onclick="const m = document.getElementById('modal-planejamento-producao'); if (m) { m.style.display = 'flex'; m.style.zIndex = '99999'; } if (window.abrirModalPlanejamentoProducao) window.abrirModalPlanejamentoProducao();"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
                         </div>
                     </div>
 
@@ -4665,7 +4665,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=100"></script>
+    <script src="admin.js?v=105"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
@@ -4889,7 +4889,7 @@
     </div>
 
     <!-- Modal: Novo Planejamento de Produção (Explosão de Insumos) -->
-    <div id="modal-planejamento-producao" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index:1200;">
+    <div id="modal-planejamento-producao" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index:99999;">
         <div style="width:840px; max-width:95vw; background:#101a24; border:1px solid #2AD07A; border-radius:12px; padding:25px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #223547; padding-bottom:12px; margin-bottom:20px;">
                 <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-industry" style="color:#2AD07A;"></i> Novo Planejamento de Produção & Explosão de Insumos</h3>

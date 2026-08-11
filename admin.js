@@ -9751,7 +9751,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (perEl) perEl.value = new Date().toISOString().slice(0, 7);
 
             const modal = document.getElementById('modal-planejamento-producao');
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                modal.style.display = 'flex';
+                modal.style.zIndex = '99999';
+            }
         } catch(err) {
             console.error("Erro ao abrir modal de Planejamento de Produção:", err);
         }
