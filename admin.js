@@ -9658,6 +9658,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tbody) return;
         tbody.innerHTML = '';
 
+        if (!localProducaoInsumos || localProducaoInsumos.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="11" style="text-align:center; padding:40px 15px; color:#aaa;">
+                        <i class="fa-solid fa-industry" style="font-size:2.8rem; opacity:0.25; margin-bottom:12px; display:block; color:#2AD07A;"></i>
+                        <span style="font-size:1.05rem; color:#fff; font-weight:700; display:block; margin-bottom:6px;">Nenhum planejamento registrado para este período</span>
+                        <span style="font-size:0.85rem; color:#7a9cb8; display:block; margin-bottom:18px;">Clique no botão abaixo para adicionar um produto acabado e calcular a explosão de insumos.</span>
+                        <button type="button" onclick="window._forcarAbrirModalPlanejamentoProducao()" style="background:#2AD07A; color:#0d1826; border:none; padding:10px 22px; border-radius:8px; font-weight:800; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(42,208,122,0.4);">
+                            <i class="fa-solid fa-plus-circle" style="font-size:1.1rem;"></i> + Criar Novo Planejamento de Produção
+                        </button>
+                    </td>
+                </tr>
+            `;
+            const kpiProd = document.getElementById('plprod-kpi-total-prod');
+            const kpiIns = document.getElementById('plprod-kpi-total-insumos');
+            const kpiLiq = document.getElementById('plprod-kpi-compra-liquida');
+            const kpiCusto = document.getElementById('plprod-kpi-custo-total');
+            if (kpiProd) kpiProd.textContent = '0 kg';
+            if (kpiIns) kpiIns.textContent = '0 kg';
+            if (kpiLiq) kpiLiq.textContent = '0 kg';
+            if (kpiCusto) kpiCusto.textContent = 'R$ 0,00';
+            return;
+        }
+
         let totProd = 0, totInsumo = 0, totCompraLiq = 0, totCusto = 0;
 
         localProducaoInsumos.forEach(item => {
