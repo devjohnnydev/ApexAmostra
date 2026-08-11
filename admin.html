@@ -2291,8 +2291,8 @@
                             <span style="font-size:0.8rem; color:#aaa;">Dimensionamento de necessidade de compra de insumos a partir da quantidade planejada de produção de produto acabado.</span>
                         </div>
                         <div style="display:flex; gap:10px;">
-                            <button class="btn-secondary" onclick="imprimirPlanejamentoProducaoPdf()" style="background:#162b20; border-color:#2AD07A; color:#2AD07A; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> PDF Insumos Produção</button>
-                            <button class="btn-primary" onclick="abrirModalPlanejamentoProducao()"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
+                            <button type="button" class="btn-secondary" onclick="imprimirPlanejamentoProducaoPdf()" style="background:#162b20; border-color:#2AD07A; color:#2AD07A; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> PDF Insumos Produção</button>
+                            <button type="button" class="btn-primary" onclick="abrirModalPlanejamentoProducao()"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
                         </div>
                     </div>
 
@@ -4134,90 +4134,6 @@
         </div>
     </div>
 
-    <!-- ═══ MODAL: NOVA DEMANDA DE COMPRA (MRP) ═══ -->
-    <div id="modal-planejamento-compra" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1050;">
-        <div class="login-box" style="width:840px; max-width:95vw; padding:30px; background:#101a24; border:1px solid #2AD07A; max-height:90vh; overflow-y:auto; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
-            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:14px; color:#fff; display:flex; align-items:center; gap:10px; font-size:1.2rem;">
-                <i class="fa-solid fa-cart-shopping" style="color:#2AD07A;"></i> Nova Demanda de Compra (MRP)
-            </h3>
-            <form id="form-planejamento-compra" onsubmit="salvarPlanejamentoCompraForm(event)">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                            <label style="color:#fff; margin:0; font-weight:600;">Material Requerido *</label>
-                            <button type="button" onclick="fecharModalPlanejamentoCompra(); if(window.abrirModalMaterial) window.abrirModalMaterial();" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer;"><i class="fa-solid fa-plus"></i> + Novo Material</button>
-                        </div>
-                        <select id="mrp-material-id" class="noble-input" required onchange="onMrpMaterialChange()">
-                            <option value="">Selecione o Material...</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                            <label style="color:#fff; margin:0; font-weight:600;">Fornecedor Homologado *</label>
-                            <button type="button" onclick="fecharModalPlanejamentoCompra(); if(window.abrirModalFornecedor) window.abrirModalFornecedor();" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; cursor:pointer;"><i class="fa-solid fa-plus"></i> + Novo Fornecedor</button>
-                        </div>
-                        <select id="mrp-fornecedor-id" class="noble-input" required onchange="onMrpFornecedorChange()">
-                            <option value="">Selecione o Fornecedor...</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
-                    <div class="form-group">
-                        <label style="color:#fff; font-weight:600;">Qtd Necessária (kg) *</label>
-                        <input type="number" step="0.01" id="mrp-qtd-necessaria" class="noble-input" required placeholder="Ex: 5000" oninput="calcularTotalMRPForm()">
-                    </div>
-                    <div class="form-group">
-                        <label style="color:#fff; font-weight:600;">Ponto de Pedido / Est. Mínimo (kg)</label>
-                        <input type="number" step="0.01" id="mrp-ponto-pedido" class="noble-input" placeholder="Ex: 2000">
-                    </div>
-                </div>
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
-                    <div class="form-group">
-                        <label style="color:#fff; font-weight:600;">Lead Time Entrega (Dias) *</label>
-                        <input type="number" id="mrp-lead-time" class="noble-input" value="7" required>
-                    </div>
-                    <div class="form-group">
-                        <label style="color:#fff; font-weight:600;">Preço Estimado (R$/kg) *</label>
-                        <input type="number" step="0.01" id="mrp-preco-estimado" class="noble-input" required placeholder="0.00" oninput="calcularTotalMRPForm()">
-                    </div>
-                </div>
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
-                    <div class="form-group">
-                        <label style="color:#fff; font-weight:600;">Mês Referência *</label>
-                        <input type="month" id="mrp-mes-referencia" class="noble-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label style="color:#fff; font-weight:600;">Status do Pedido</label>
-                        <select id="mrp-status" class="noble-input">
-                            <option value="Sugerido">📄 Sugerido</option>
-                            <option value="Em Cotação">🔍 Em Cotação</option>
-                            <option value="Aprovado">✅ Aprovado</option>
-                            <option value="Em Trânsito">🚚 Em Trânsito</option>
-                            <option value="Recebido">📦 Recebido</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom:18px;">
-                    <label style="color:#fff; font-weight:600;">Observações / Especificações</label>
-                    <input type="text" id="mrp-obs" class="noble-input" placeholder="Detalhes do lote...">
-                </div>
-
-                <div style="background:#0d1826; padding:12px 18px; border-radius:8px; margin-bottom:20px; border-left:4px solid #f0b800; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="color:#aaa; font-size:0.9rem;">Custo Total Previsto:</span>
-                    <strong style="color:#f0b800; font-size:1.25rem;" id="mrp-txt-custo-total">R$ 0,00</strong>
-                </div>
-
-                <div style="display:flex; gap:12px;">
-                    <button type="submit" class="btn-primary" style="flex:2; padding:12px; font-size:0.95rem; font-weight:bold;"><i class="fa-solid fa-save"></i> Salvar Necessidade de Compra</button>
-                    <button type="button" class="btn-secondary" onclick="fecharModalPlanejamentoCompra()" style="flex:1; padding:12px;">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- ═══ MODAL: EQUIPAMENTO INDUSTRIAL ═══ -->
     <div id="modal-equipamento-industrial" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1050;">

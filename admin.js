@@ -4257,6 +4257,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.fecharModalFornecedor = function() {
         document.getElementById('modal-fornecedor').style.display = 'none';
+        if (window.quickOpenedFromPlanning) {
+            window.quickOpenedFromPlanning = false;
+            if (window.abrirModalPlanejamentoCompra) {
+                window.abrirModalPlanejamentoCompra(window.mrpLastTipoOpened || 'COMPRA_VENDA');
+            }
+        }
     };
 
     window.editarFornecedor = function(id) {
@@ -4784,6 +4790,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.fecharModalMaterial = function() {
         fecharNcmDropdown();
         document.getElementById('modal-material').style.display = 'none';
+        if (window.quickOpenedFromPlanning) {
+            window.quickOpenedFromPlanning = false;
+            if (window.abrirModalPlanejamentoCompra) {
+                window.abrirModalPlanejamentoCompra(window.mrpLastTipoOpened || 'COMPRA_VENDA');
+            }
+        }
     };
 
     window.editarMaterial = function(id) {
@@ -9503,6 +9515,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mrp-custo-total-previsto').value = 'R$ 0,00';
 
         const tipoVal = tipoFix || 'COMPRA_VENDA';
+        window.mrpLastTipoOpened = tipoVal;
         document.getElementById('mrp-tipo-planejamento').value = tipoVal;
         document.getElementById('mrp-select-tipo').value = tipoVal;
 
@@ -9515,6 +9528,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.fecharModalPlanejamentoCompra = function() {
         document.getElementById('modal-planejamento-compra').style.display = 'none';
+    };
+
+    window.abrirModalQuickMaterial = function() {
+        window.quickOpenedFromPlanning = true;
+        window.mrpLastTipoOpened = document.getElementById('mrp-tipo-planejamento')?.value || 'COMPRA_VENDA';
+        window.fecharModalPlanejamentoCompra();
+        if (window.abrirModalMaterial) window.abrirModalMaterial();
+    };
+
+    window.abrirModalQuickFornecedor = function() {
+        window.quickOpenedFromPlanning = true;
+        window.mrpLastTipoOpened = document.getElementById('mrp-tipo-planejamento')?.value || 'COMPRA_VENDA';
+        window.fecharModalPlanejamentoCompra();
+        if (window.abrirModalFornecedor) window.abrirModalFornecedor();
     };
 
     window.calcularCustoTotalMrpForm = function() {
@@ -9682,30 +9709,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.abrirModalPlanejamentoProducao = async function() {
-        // Garante acesso cross-IIFE a localMateriais
-        let _mats = window.localMateriais || [];
-        if (_mats.length === 0) {
-            try {
-                const res = await fetch('/api/materiais-catalogo');
-                if (res.ok) {
-                    _mats = await res.json();
-                    window.localMateriais = _mats;
-                }
-            } catch(e){}
+        try {
+            let _mats = window.localMateriais || [];
+            if (!Array.isArray(_mats) || _mats.length === 0) {
+                try {
+                    const res = await fetch('/api/materiais-catalogo');
+                    if (res.ok) {
+                        const data = await res.json();
+                        _mats = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+                        window.localMateriais = _mats;
+                    }
+                } catch(e) { console.error('Erro ao buscar materiais para modal:', e); }
+            }
+            if (!Array.isArray(_mats)) _mats = [];
+
+            let _forns = window.localFornecedores || [];
+            if (!Array.isArray(_forns) || _forns.length === 0) {
+                try {
+                    const res = await fetch('/api/fornecedores?limit=200');
+                    if (res.ok) {
+                        const data = await res.json();
+                        _forns = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+                        window.localFornecedores = _forns;
+                    }
+                } catch(e) { console.error('Erro ao buscar fornecedores para modal:', e); }
+            }
+            if (!Array.isArray(_forns)) _forns = [];
+
+            const selProd = document.getElementById('plprod-produto-id');
+            const selIns = document.getElementById('plprod-insumo-id');
+            const selForn = document.getElementById('plprod-fornecedor-id');
+
+            if (selProd) selProd.innerHTML = '<option value="">Selecione o Produto Acabado...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+            if (selIns) selIns.innerHTML = '<option value="">Selecione o Insumo Necessário...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+            if (selForn) selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' + _forns.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
+
+            const form = document.getElementById('form-planejamento-producao');
+            if (form) form.reset();
+
+            const perEl = document.getElementById('plprod-periodo');
+            if (perEl) perEl.value = new Date().toISOString().slice(0, 7);
+
+            const modal = document.getElementById('modal-planejamento-producao');
+            if (modal) modal.style.display = 'flex';
+        } catch(err) {
+            console.error("Erro ao abrir modal de Planejamento de Produção:", err);
         }
-        const _forns = window.localFornecedores || [];
-
-        const selProd = document.getElementById('plprod-produto-id');
-        const selIns = document.getElementById('plprod-insumo-id');
-        const selForn = document.getElementById('plprod-fornecedor-id');
-
-        if (selProd) selProd.innerHTML = '<option value="">Selecione o Produto Acabado...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
-        if (selIns) selIns.innerHTML = '<option value="">Selecione o Insumo Necessário...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
-        if (selForn) selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' + _forns.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
-
-        document.getElementById('form-planejamento-producao').reset();
-        document.getElementById('plprod-periodo').value = new Date().toISOString().slice(0, 7);
-        document.getElementById('modal-planejamento-producao').style.display = 'flex';
     };
 
     window.fecharModalPlanejamentoProducao = function() {
