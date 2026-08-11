@@ -630,6 +630,8 @@ async function initDatabase() {
             ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_compra_realizado NUMERIC(14,2) DEFAULT 0.00;
             ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_venda_realizado NUMERIC(14,2) DEFAULT 0.00;
             ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS venda_realizada_kg NUMERIC(12,3) DEFAULT 0.00;
+            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS prazo_compra_ate DATE;
+            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS prazo_venda_ate DATE;
         `);
 
         // Semeando fornecedores e amostras
@@ -2366,7 +2368,8 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
             investimento_planejado_rs, faturamento_previsto_rs, compra_realizada_kg,
             venda_realizada_rs, status, observacoes,
             preco_compra_estimado, preco_venda_estimado,
-            preco_compra_realizado, preco_venda_realizado, venda_realizada_kg
+            preco_compra_realizado, preco_venda_realizado, venda_realizada_kg,
+            prazo_compra_ate, prazo_venda_ate
         } = req.body;
 
         const fatPrev = parseFloat(faturamento_previsto_rs || 0);
@@ -2394,7 +2397,9 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
                 preco_venda_estimado: parseFloat(preco_venda_estimado || 0),
                 preco_compra_realizado: parseFloat(preco_compra_realizado || 0),
                 preco_venda_realizado: parseFloat(preco_venda_realizado || 0),
-                venda_realizada_kg: parseFloat(venda_realizada_kg || 0)
+                venda_realizada_kg: parseFloat(venda_realizada_kg || 0),
+                prazo_compra_ate: prazo_compra_ate || null,
+                prazo_venda_ate: prazo_venda_ate || null
             };
             memStore.planejamento_comercial_revenda.push(item);
             return res.json(item);
@@ -2406,8 +2411,9 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
                 investimento_planejado_rs, faturamento_previsto_rs, compra_realizada_kg,
                 venda_realizada_rs, participacao_meta_pct, status, observacoes,
                 preco_compra_estimado, preco_venda_estimado,
-                preco_compra_realizado, preco_venda_realizado, venda_realizada_kg
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *
+                preco_compra_realizado, preco_venda_realizado, venda_realizada_kg,
+                prazo_compra_ate, prazo_venda_ate
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *
         `, [
             mes_referencia || new Date().toISOString().slice(0, 7),
             produto_id ? parseInt(produto_id) : null, produto_nome || 'Produto Comercial',
@@ -2417,7 +2423,8 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
             parseFloat(partPct.toFixed(2)), status || 'Em Cotação', observacoes || '',
             parseFloat(preco_compra_estimado || 0), parseFloat(preco_venda_estimado || 0),
             parseFloat(preco_compra_realizado || 0), parseFloat(preco_venda_realizado || 0),
-            parseFloat(venda_realizada_kg || 0)
+            parseFloat(venda_realizada_kg || 0),
+            prazo_compra_ate || null, prazo_venda_ate || null
         ]);
 
         res.json(r.rows[0]);
@@ -2427,6 +2434,7 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
 });
 
 app.put('/api/planejamento/comercial-revenda/:id/realizado', async (req, res) => {
+
     try {
         const id = parseInt(req.params.id);
         const {

@@ -5100,7 +5100,7 @@
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
                     <div class="form-group">
                         <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Investimento Necessário (R$) *</label>
                         <input type="number" step="0.01" id="plcom-investimento-rs" class="noble-input" required placeholder="Ex: 2500000.00">
@@ -5111,6 +5111,19 @@
                     </div>
                 </div>
 
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">🛒 Prazo Limite de Compra</label>
+                        <input type="date" id="plcom-prazo-compra" class="noble-input">
+                        <small style="color:#8eaabf; font-size:0.72rem;">Até quando comprar o volume planejado</small>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">💰 Prazo Limite de Venda</label>
+                        <input type="date" id="plcom-prazo-venda" class="noble-input">
+                        <small style="color:#8eaabf; font-size:0.72rem;">Até quando vender e faturar o previsto</small>
+                    </div>
+                </div>
+
                 <div style="display:flex; gap:10px;">
                     <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar Meta Comercial</button>
                     <button type="button" class="btn-secondary" onclick="fecharModalPlanejamentoComercial()" style="flex:1;">Cancelar</button>
@@ -5118,6 +5131,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- Modal: Lançar/Atualizar Realizado Comercial -->
     <div id="modal-atualizar-realizado-comercial" class="modal-comercial-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:9999999; overflow-y:auto; padding:20px; box-sizing:border-box;">
@@ -5357,13 +5371,43 @@
                 </button>
             </div>
 
-            <div style="padding:22px 26px;">
+            <div style="padding:22px 26px; overflow-y:auto; max-height:88vh;">
 
-                <!-- Painel de Análise -->
-                <div id="extrato-painel-analise" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; margin-bottom:22px;"></div>
+                <!-- Prazos de urgência -->
+                <div id="extrato-prazos-banner" style="display:none; margin-bottom:16px;"></div>
 
-                <!-- Divisor -->
-                <div style="border-top:1px solid #1a2e3f; margin-bottom:18px; padding-top:16px;">
+                <!-- Painel de Análise KPI cards -->
+                <div id="extrato-painel-analise" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px; margin-bottom:22px;"></div>
+
+                <!-- Gráficos -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:22px;">
+                    <!-- Donut: Meta Compra -->
+                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                        <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:10px; font-weight:600; text-transform:uppercase; text-align:center;">Meta de Compra</div>
+                        <canvas id="extrato-chart-compra" height="180"></canvas>
+                        <div id="extrato-legend-compra" style="text-align:center; margin-top:8px; font-size:0.8rem;"></div>
+                    </div>
+                    <!-- Donut: Meta Venda -->
+                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                        <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:10px; font-weight:600; text-transform:uppercase; text-align:center;">Meta de Venda</div>
+                        <canvas id="extrato-chart-venda" height="180"></canvas>
+                        <div id="extrato-legend-venda" style="text-align:center; margin-top:8px; font-size:0.8rem;"></div>
+                    </div>
+                    <!-- Barras: Preço Médio vs Tabela -->
+                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                        <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:10px; font-weight:600; text-transform:uppercase; text-align:center;">Preço Médio vs. Tabela</div>
+                        <canvas id="extrato-chart-preco" height="180"></canvas>
+                    </div>
+                </div>
+
+                <!-- Linha temporal de evoluçao das transações -->
+                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px; margin-bottom:22px;">
+                    <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:10px; font-weight:600; text-transform:uppercase;">Evolução Acumulada de Compras e Vendas (kg)</div>
+                    <canvas id="extrato-chart-evolucao" height="100"></canvas>
+                </div>
+
+                <!-- Histórico -->
+                <div style="border-top:1px solid #1a2e3f; padding-top:16px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
                         <span style="font-weight:700; color:#fff; font-size:0.92rem;">📋 Histórico de Movimentações</span>
                         <button onclick="abrirModalTransacaoComercialFromExtrato()" class="btn-primary" style="font-size:0.8rem; padding:6px 14px; border-radius:6px;">
@@ -5376,6 +5420,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- ── FIM DOS MODAIS ── -->
 

@@ -9276,6 +9276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let etapasOpFormDraft = [];
     let localProducaoInsumos = [];
     let localComercialRevenda = [];
+    window.localComercialRevenda = localComercialRevenda;
     let localParametrosPrazos = [];
     let chartRealizadoInstance = null;
     let chartCenariosInstance = null;
@@ -9895,10 +9896,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/planejamento/comercial-revenda');
             const data = await res.json();
             localComercialRevenda = Array.isArray(data) ? data : [];
+            window.localComercialRevenda = localComercialRevenda;
             renderPlanejamentoComercialRevenda();
         } catch (err) {
             console.error('Erro ao carregar planejamento comercial revenda:', err);
             localComercialRevenda = [];
+            window.localComercialRevenda = localComercialRevenda;
             renderPlanejamentoComercialRevenda();
         }
     };
@@ -9943,9 +9946,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const progressBar = (pct, cor) => `<div style="background:#1a2e3f; border-radius:4px; height:6px; margin-top:4px;"><div style="width:${pct.toFixed(0)}%; background:${cor}; height:6px; border-radius:4px; transition:width 0.4s;"></div></div><small style="color:${cor};">${pct.toFixed(0)}%</small>`;
 
+            const prazoCompraStr = item.prazo_compra_ate ? new Date(item.prazo_compra_ate).toLocaleDateString('pt-BR') : 'Sem prazo';
+            const prazoVendaStr = item.prazo_venda_ate ? new Date(item.prazo_venda_ate).toLocaleDateString('pt-BR') : 'Sem prazo';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding:10px 8px;"><strong>${item.produto_nome || 'Produto'}</strong><div style="font-size:0.72rem; color:#aaa;">${item.mes_referencia || ''}</div></td>
+                <td style="padding:10px 8px;">
+                    <strong>${item.produto_nome || 'Produto'}</strong>
+                    <div style="font-size:0.72rem; color:#aaa;">${item.mes_referencia || ''}</div>
+                    <div style="font-size:0.7rem; color:#8eaabf; margin-top:4px; line-height:1.2;">
+                        🛒 Compra: ${prazoCompraStr}<br>
+                        💰 Venda: ${prazoVendaStr}
+                    </div>
+                </td>
                 <td style="padding:10px 8px; text-align:right;">
                     <div style="font-weight:bold; color:#fff;">${cPlan.toLocaleString('pt-BR')} kg</div>
                     <div style="font-size:0.75rem; color:#8eaabf;">Comprado: ${totalCompraKgReal.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</div>
@@ -10117,6 +10130,8 @@ document.addEventListener('DOMContentLoaded', () => {
             preco_venda_estimado: document.getElementById('plcom-preco-venda').value,
             investimento_planejado_rs: document.getElementById('plcom-investimento-rs').value,
             faturamento_previsto_rs: document.getElementById('plcom-faturamento-rs').value,
+            prazo_compra_ate: document.getElementById('plcom-prazo-compra')?.value || null,
+            prazo_venda_ate: document.getElementById('plcom-prazo-venda')?.value || null,
             status: 'Meta Definida'
         };
 
@@ -10395,7 +10410,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalEl) modalEl.style.display = 'none';
     };
 
+    // Instâncias dos gráficos do extrato (para destruir antes de recriar)
+    let _extratoCharts = {};
+
+    function _destroyExtratoCharts() {
+        Object.values(_extratoCharts).forEach(c => { try { c.destroy(); } catch(e){} });
+        _extratoCharts = {};
+    }
+
     function _renderExtratoAnalise(item, transacoes) {
+        _destroyExtratoCharts();
+
         const compras = transacoes.filter(t => t.tipo === 'COMPRA');
         const vendas  = transacoes.filter(t => t.tipo === 'VENDA');
 
@@ -10414,62 +10439,245 @@ document.addEventListener('DOMContentLoaded', () => {
         const markupReal  = mediaCompra   > 0 ? ((mediaVenda - mediaCompra) / mediaCompra) * 100 : 0;
         const markupPlan  = pCompraTab    > 0 ? ((pVendaTab  - pCompraTab)  / pCompraTab)  * 100 : 0;
 
-        // Faturamento projetado = realizado + restante a vender a preço tabela
-        const kgRestVenda = Math.max(vPlan - totalVendaKg, 0);
+        const kgRestVenda  = Math.max(vPlan - totalVendaKg, 0);
+        const kgRestCompra = Math.max(cPlan - totalCompraKg, 0);
         const fatProjetado = totalVendaRs + (kgRestVenda * pVendaTab);
+        const reservaNecessaria = kgRestCompra * pCompraTab;
 
-        // Meta compra atingida
         const metaCompPct = cPlan > 0 ? (totalCompraKg / cPlan) * 100 : 0;
         const metaVendPct = vPlan > 0 ? (totalVendaKg  / vPlan) * 100 : 0;
         const faltaComprar = Math.max(cPlan - totalCompraKg, 0);
-        const faltaVender  = Math.max(vPlan - totalVendaKg, 0);
+        const faltaVender  = Math.max(vPlan - totalVendaKg,  0);
 
-        // Desvio preço médio vs tabela
         const desvioPCompra = pCompraTab > 0 && mediaCompra > 0 ? ((mediaCompra - pCompraTab) / pCompraTab) * 100 : null;
         const desvioPVenda  = pVendaTab  > 0 && mediaVenda  > 0 ? ((mediaVenda  - pVendaTab)  / pVendaTab)  * 100 : null;
 
-        const card = (icon, label, value, sub, cor) => `
-            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; border-left:3px solid ${cor};">
+        // ── Banner de prazos ───────────────────────────────────────────────────
+        const prazoCompra = item.prazo_compra_ate ? new Date(item.prazo_compra_ate) : null;
+        const prazoVenda  = item.prazo_venda_ate  ? new Date(item.prazo_venda_ate)  : null;
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        const bannerEl = document.getElementById('extrato-prazos-banner');
+        if (bannerEl) {
+            let bannerHtml = '<div style="display:flex; gap:12px; flex-wrap:wrap;">';
+            const addPrazo = (label, data, kgFalta, cor) => {
+                if (!data) return;
+                const diff = Math.ceil((data - hoje) / (1000*60*60*24));
+                const urgCor = diff <= 3 ? '#ff4d4d' : diff <= 7 ? '#f0b800' : cor;
+                const icon = diff <= 3 ? '🚨' : diff <= 7 ? '⚠️' : '📅';
+                bannerHtml += `<div style="flex:1; min-width:220px; background:#0d1826; border:1px solid ${urgCor}; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.3rem;">${icon}</span>
+                    <div>
+                        <div style="font-size:0.75rem; color:#8eaabf;">${label}</div>
+                        <div style="font-weight:bold; color:${urgCor}; font-size:0.95rem;">${data.toLocaleDateString('pt-BR')} — ${diff > 0 ? diff + ' dias restantes' : diff === 0 ? 'HOJE!' : 'VENCIDO'}</div>
+                        <div style="font-size:0.72rem; color:#aaa;">Falta comprar/vender: ${kgFalta.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</div>
+                    </div>
+                </div>`;
+            };
+            addPrazo('🛒 Prazo Limite de Compra', prazoCompra, faltaComprar, '#3e7cb1');
+            addPrazo('💰 Prazo Limite de Venda',  prazoVenda,  faltaVender,  '#2AD07A');
+            bannerHtml += '</div>';
+            bannerEl.innerHTML = bannerHtml;
+            bannerEl.style.display = (prazoCompra || prazoVenda) ? 'block' : 'none';
+        }
+
+        // ── KPI cards ─────────────────────────────────────────────────────────
+        const card = (icon, label, value, sub, cor) =>
+            `<div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; border-left:3px solid ${cor};">
                 <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:4px;">${icon} ${label}</div>
                 <div style="font-size:1.05rem; font-weight:bold; color:${cor};">${value}</div>
                 ${sub ? `<div style="font-size:0.72rem; color:#888; margin-top:3px;">${sub}</div>` : ''}
             </div>`;
 
-        const fmtKg = v => v.toLocaleString('pt-BR', {minimumFractionDigits:1}) + ' kg';
-        const fmtRs = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        const fmtKg  = v => v.toLocaleString('pt-BR', {minimumFractionDigits:1}) + ' kg';
+        const fmtRs  = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2});
         const fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
 
+        // Métrica de Eficiência de Compra
+        let statusCompraTxt = 'Sem compras';
+        let statusCompraCor = '#aaa';
+        if (mediaCompra > 0) {
+            if (mediaCompra < pCompraTab) {
+                statusCompraTxt = `COMPRANDO BEM (-${Math.abs(desvioPCompra).toFixed(1)}%)`;
+                statusCompraCor = '#2AD07A';
+            } else if (mediaCompra > pCompraTab) {
+                statusCompraTxt = `COMPRANDO MAL (+${Math.abs(desvioPCompra).toFixed(1)}%)`;
+                statusCompraCor = '#ff4d4d';
+            } else {
+                statusCompraTxt = 'NO PREÇO DA TABELA';
+                statusCompraCor = '#f0b800';
+            }
+        }
+
+        // Métrica de Eficiência de Venda
+        let statusVendaTxt = 'Sem vendas';
+        let statusVendaCor = '#aaa';
+        if (mediaVenda > 0) {
+            if (mediaVenda > pVendaTab) {
+                statusVendaTxt = `VENDENDO BEM (+${Math.abs(desvioPVenda).toFixed(1)}%)`;
+                statusVendaCor = '#2AD07A';
+            } else if (mediaVenda < pVendaTab) {
+                statusVendaTxt = `VENDENDO MAL (-${Math.abs(desvioPVenda).toFixed(1)}%)`;
+                statusVendaCor = '#ff4d4d';
+            } else {
+                statusVendaTxt = 'NO PREÇO DA TABELA';
+                statusVendaCor = '#f0b800';
+            }
+        }
+
         let html = '';
-        // Compra
-        html += card('🛒', 'Meta de Compra', fmtKg(cPlan), '', '#3e7cb1');
-        html += card('✅', 'Comprado Real', fmtKg(totalCompraKg),
+        html += card('🛒', 'Meta de Compra',       fmtKg(cPlan),             '', '#3e7cb1');
+        html += card('✅', 'Comprado Real',         fmtKg(totalCompraKg),
             `${metaCompPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaComprar)}`,
             metaCompPct >= 100 ? '#2AD07A' : metaCompPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('📊', 'Preço Médio Compra', mediaCompra > 0 ? fmtRs(mediaCompra) + '/kg' : 'Sem dados',
-            desvioPCompra !== null ? `Tabela: R$ ${pCompraTab.toFixed(2)} | Desvio: ${fmtPct(desvioPCompra)}` : `Ref. Tabela: R$ ${pCompraTab.toFixed(2)}/kg`,
-            desvioPCompra !== null ? (desvioPCompra > 5 ? '#ff4d4d' : desvioPCompra < -5 ? '#2AD07A' : '#f0b800') : '#aaa');
-        // Venda
-        html += card('💰', 'Meta de Venda', fmtKg(vPlan), '', '#3e7cb1');
-        html += card('✅', 'Vendido Real', fmtKg(totalVendaKg),
+        html += card('💰', 'Total Gasto (Compras)', fmtRs(totalCompraRs),      'Capital já investido em estoque', '#ff4d4d');
+        html += card('💵', 'Reserva p/ Comprar',   fmtRs(reservaNecessaria),
+            `${fmtKg(kgRestCompra)} × R$ ${pCompraTab.toFixed(2)}/kg (tab)`, '#f0b800');
+        html += card('📊', 'Eficiência de Compra',  statusCompraTxt,          mediaCompra > 0 ? `Média Real: ${fmtRs(mediaCompra)}/kg vs Tab: ${fmtRs(pCompraTab)}` : 'Nenhuma compra lançada', statusCompraCor);
+        html += card('💰', 'Meta de Venda',        fmtKg(vPlan),             '', '#3e7cb1');
+        html += card('✅', 'Vendido Real',          fmtKg(totalVendaKg),
             `${metaVendPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaVender)}`,
             metaVendPct >= 100 ? '#2AD07A' : metaVendPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('📊', 'Preço Médio Venda', mediaVenda > 0 ? fmtRs(mediaVenda) + '/kg' : 'Sem dados',
-            desvioPVenda !== null ? `Tabela: R$ ${pVendaTab.toFixed(2)} | Desvio: ${fmtPct(desvioPVenda)}` : `Ref. Tabela: R$ ${pVendaTab.toFixed(2)}/kg`,
-            desvioPVenda !== null ? (desvioPVenda > 0 ? '#2AD07A' : '#ff4d4d') : '#aaa');
-        // Financeiro
-        html += card('💵', 'Faturamento Realizado', fmtRs(totalVendaRs),
-            `Investido: ${fmtRs(totalCompraRs)}`,
-            '#2AD07A');
-        html += card('🔮', 'Faturamento Projetado', fmtRs(fatProjetado),
-            `Restante ${fmtKg(kgRestVenda)} × R$ ${pVendaTab.toFixed(2)}/kg (tab)`,
-            '#9b59b6');
-        // Markup
-        html += card('📈', 'Markup Planejado', fmtPct(markupPlan), `R$ ${pCompraTab.toFixed(2)} → R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
-        html += card('📈', 'Markup Médio Real', markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
+        html += card('💵', 'Faturamento Real',     fmtRs(totalVendaRs),      `Investido: ${fmtRs(totalCompraRs)}`, '#2AD07A');
+        html += card('🔮', 'Faturamento Projetado',fmtRs(fatProjetado),
+            `Restante ${fmtKg(kgRestVenda)} × R$ ${pVendaTab.toFixed(2)}/kg`, '#9b59b6');
+        html += card('📊', 'Eficiência de Venda',   statusVendaTxt,           mediaVenda > 0 ? `Média Real: ${fmtRs(mediaVenda)}/kg vs Tab: ${fmtRs(pVendaTab)}` : 'Nenhuma venda lançada', statusVendaCor);
+        html += card('📈', 'Markup Planejado',     fmtPct(markupPlan),       `R$ ${pCompraTab.toFixed(2)} → R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
+        html += card('📈', 'Markup Médio Real',    markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
             mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} → R$ ${mediaVenda.toFixed(2)}` : '',
             markupReal >= markupPlan ? '#2AD07A' : '#ff4d4d');
 
         document.getElementById('extrato-painel-analise').innerHTML = html;
+
+        // ── Renderizar gráficos ────────────────────────────────────────────────
+        // Precisamos de setTimeout para garantir que os canvas já existam no DOM
+        setTimeout(() => _renderExtratoGraficos(item, transacoes, {
+            totalCompraKg, totalVendaKg, cPlan, vPlan,
+            pCompraTab, pVendaTab, mediaCompra, mediaVenda
+        }), 50);
+    }
+
+    function _renderExtratoGraficos(item, transacoes, calc) {
+        const { totalCompraKg, totalVendaKg, cPlan, vPlan,
+                pCompraTab, pVendaTab, mediaCompra, mediaVenda } = calc;
+
+        const ChartJS = window.Chart;
+        if (!ChartJS) return;
+
+        // Estilo global
+        ChartJS.defaults.color = '#8eaabf';
+        ChartJS.defaults.font.family = 'Inter, sans-serif';
+
+        // ── 1. Donut: Meta de Compra ──
+        const ctxC = document.getElementById('extrato-chart-compra');
+        if (ctxC) {
+            const realC  = Math.min(totalCompraKg, cPlan);
+            const faltaC = Math.max(cPlan - totalCompraKg, 0);
+            _extratoCharts.compra = new ChartJS(ctxC, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Comprado', 'Falta'],
+                    datasets: [{ data: [realC, faltaC],
+                        backgroundColor: ['#3e7cb1', '#1a2e3f'],
+                        borderColor: ['#2e5c8a', '#0d1826'], borderWidth: 2 }]
+                },
+                options: { cutout:'70%', plugins:{ legend:{display:false},
+                    tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + parseFloat(ctx.raw).toLocaleString('pt-BR',{minimumFractionDigits:1}) + ' kg' }}},
+                    animation: { duration: 600 } }
+            });
+            const pct = cPlan > 0 ? ((totalCompraKg/cPlan)*100).toFixed(0) : 0;
+            const legCompra = document.getElementById('extrato-legend-compra');
+            if (legCompra) legCompra.innerHTML = `<span style="color:#3e7cb1; font-weight:bold; font-size:1.1rem;">${pct}%</span><br><span style="color:#8eaabf; font-size:0.72rem;">${totalCompraKg.toLocaleString('pt-BR',{minimumFractionDigits:1})} / ${cPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</span>`;
+        }
+
+        // ── 2. Donut: Meta de Venda ──
+        const ctxV = document.getElementById('extrato-chart-venda');
+        if (ctxV) {
+            const realV  = Math.min(totalVendaKg, vPlan);
+            const faltaV = Math.max(vPlan - totalVendaKg, 0);
+            _extratoCharts.venda = new ChartJS(ctxV, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Vendido', 'Falta'],
+                    datasets: [{ data: [realV, faltaV],
+                        backgroundColor: ['#2AD07A', '#1a2e3f'],
+                        borderColor: ['#1e9456', '#0d1826'], borderWidth: 2 }]
+                },
+                options: { cutout:'70%', plugins:{ legend:{display:false},
+                    tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + parseFloat(ctx.raw).toLocaleString('pt-BR',{minimumFractionDigits:1}) + ' kg' }}},
+                    animation: { duration: 600 } }
+            });
+            const pct = vPlan > 0 ? ((totalVendaKg/vPlan)*100).toFixed(0) : 0;
+            const legVenda = document.getElementById('extrato-legend-venda');
+            if (legVenda) legVenda.innerHTML = `<span style="color:#2AD07A; font-weight:bold; font-size:1.1rem;">${pct}%</span><br><span style="color:#8eaabf; font-size:0.72rem;">${totalVendaKg.toLocaleString('pt-BR',{minimumFractionDigits:1})} / ${vPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</span>`;
+        }
+
+        // ── 3. Barras: Preço Médio vs Tabela ──
+        const ctxP = document.getElementById('extrato-chart-preco');
+        if (ctxP) {
+            const labels = ['Compra', 'Venda'];
+            const tabela = [pCompraTab, pVendaTab];
+            const real   = [mediaCompra || 0, mediaVenda || 0];
+            _extratoCharts.preco = new ChartJS(ctxP, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Tabela Ref.',  data: tabela, backgroundColor: '#1e354d', borderColor: '#3e7cb1', borderWidth: 2, borderRadius: 4 },
+                        { label: 'Médio Real',   data: real,   backgroundColor: ctx => {
+                            const i = ctx.dataIndex;
+                            // Compra: vermelho se acima da tabela. Venda: verde se acima da tabela.
+                            if (i === 0) return real[0] > tabela[0] ? '#ff4d4d' : '#2AD07A';
+                            return real[1] >= tabela[1] ? '#2AD07A' : '#ff4d4d';
+                        }, borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    plugins: { legend:{ labels:{ color:'#8eaabf', font:{ size:10 } } } },
+                    scales: {
+                        x: { ticks:{ color:'#8eaabf' }, grid:{ color:'#1a2e3f' } },
+                        y: { ticks:{ color:'#8eaabf', callback: v => 'R$'+v.toFixed(2) }, grid:{ color:'#1a2e3f' } }
+                    },
+                    animation: { duration: 600 }
+                }
+            });
+        }
+
+        // ── 4. Linha: Evolução acumulada ──
+        const ctxE = document.getElementById('extrato-chart-evolucao');
+        if (ctxE && transacoes.length > 0) {
+            // Ordenar por data
+            const sorted = [...transacoes].sort((a,b) => new Date(a.data_transacao) - new Date(b.data_transacao));
+            const labels = []; let acumC = 0, acumV = 0;
+            const dataCompra = [], dataVenda = [];
+            sorted.forEach(t => {
+                const dt = new Date(t.data_transacao).toLocaleDateString('pt-BR');
+                if (!labels.includes(dt)) labels.push(dt);
+                if (t.tipo === 'COMPRA') acumC += parseFloat(t.quantidade_kg);
+                else                     acumV += parseFloat(t.quantidade_kg);
+                dataCompra.push(acumC);
+                dataVenda.push(acumV);
+            });
+            _extratoCharts.evolucao = new ChartJS(ctxE, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Compra Acum. (kg)', data: dataCompra, borderColor: '#3e7cb1', backgroundColor: 'rgba(62,124,177,0.1)', fill: true, tension: 0.3, pointRadius: 4, pointHoverRadius: 6 },
+                        { label: 'Venda Acum. (kg)',  data: dataVenda,  borderColor: '#2AD07A', backgroundColor: 'rgba(42,208,122,0.1)', fill: true, tension: 0.3, pointRadius: 4, pointHoverRadius: 6 },
+                        { label: 'Meta Compra',  data: Array(labels.length).fill(cPlan), borderColor: '#3e7cb1', borderDash:[5,5], pointRadius:0, borderWidth:1.5 },
+                        { label: 'Meta Venda',   data: Array(labels.length).fill(vPlan), borderColor: '#2AD07A', borderDash:[5,5], pointRadius:0, borderWidth:1.5 }
+                    ]
+                },
+                options: {
+                    plugins: { legend:{ labels:{ color:'#8eaabf', font:{ size:10 }, boxWidth:12 } } },
+                    scales: {
+                        x: { ticks:{ color:'#8eaabf', font:{ size:9 } }, grid:{ color:'#1a2e3f' } },
+                        y: { ticks:{ color:'#8eaabf', callback: v => v.toLocaleString('pt-BR',{minimumFractionDigits:0})+' kg' }, grid:{ color:'#1a2e3f' } }
+                    },
+                    animation: { duration: 600 }
+                }
+            });
+        }
     }
 
     function _renderExtratoTabela(transacoes) {
@@ -10477,19 +10685,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
 
         if (transacoes.length === 0) {
-            container.innerHTML = '<div style="text-align:center; color:#8eaabf; padding:24px;">Nenhuma movimentação lançada ainda.</div>';
+            container.innerHTML = '<div style="text-align:center; color:#8eaabf; padding:24px;">Nenhuma movimentação lançada ainda.<br><small>Use o botão "Nova Movimentação" para registrar compras e vendas fracionadas.</small></div>';
             return;
         }
 
-        let rows = transacoes.map(t => {
+        // Calcular saldo acumulado
+        let acumCompra = 0, acumVenda = 0;
+        const sorted = [...transacoes].sort((a,b) => new Date(a.data_transacao) - new Date(b.data_transacao));
+
+        let rows = sorted.map(t => {
             const isCompra = t.tipo === 'COMPRA';
             const cor = isCompra ? '#3e7cb1' : '#2AD07A';
+            const qtd = parseFloat(t.quantidade_kg);
+            const pUnit = parseFloat(t.preco_unitario);
+            const total = parseFloat(t.valor_total);
+            if (isCompra) acumCompra += qtd; else acumVenda += qtd;
             return `<tr style="border-bottom:1px solid #1a2e3f;">
                 <td style="padding:8px;">${new Date(t.data_transacao).toLocaleDateString('pt-BR')}</td>
                 <td style="padding:8px;"><span style="background:${isCompra?'#1e354d':'#1b382b'}; color:${cor}; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">${t.tipo}</span></td>
-                <td style="padding:8px; text-align:right; color:#fff; font-weight:bold;">${parseFloat(t.quantidade_kg).toLocaleString('pt-BR',{minimumFractionDigits:3})} kg</td>
-                <td style="padding:8px; text-align:right; color:${cor};">R$ ${parseFloat(t.preco_unitario).toFixed(2)}/kg</td>
-                <td style="padding:8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${parseFloat(t.valor_total).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                <td style="padding:8px; text-align:right; color:#fff; font-weight:bold;">${qtd.toLocaleString('pt-BR',{minimumFractionDigits:3})} kg</td>
+                <td style="padding:8px; text-align:right; color:${cor};">R$ ${pUnit.toFixed(2)}/kg</td>
+                <td style="padding:8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                <td style="padding:8px; text-align:right; color:#aaa; font-size:0.78rem;">Comp: ${acumCompra.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg<br>Vend: ${acumVenda.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</td>
                 <td style="padding:8px; color:#888; font-size:0.8rem;">${t.observacoes||''}</td>
                 <td style="padding:8px; text-align:center;">
                     <button onclick="excluirTransacaoComercial(${t.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.85rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
@@ -10505,7 +10722,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <th style="padding:8px;">Tipo</th>
                         <th style="padding:8px; text-align:right;">Qtd (kg)</th>
                         <th style="padding:8px; text-align:right;">Preço Unit.</th>
-                        <th style="padding:8px; text-align:right;">Total</th>
+                        <th style="padding:8px; text-align:right;">Total R$</th>
+                        <th style="padding:8px; text-align:right;">Acumulado</th>
                         <th style="padding:8px;">Obs</th>
                         <th style="padding:8px;"></th>
                     </tr>
@@ -10513,18 +10731,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tbody>${rows}</tbody>
             </table>`;
     }
-
-    window.excluirTransacaoComercial = async function(transId) {
-        if (!confirm('Excluir esta movimentação?')) return;
-        try {
-            await fetch(`/api/planejamento/comercial-transacao/${transId}`, { method: 'DELETE' });
-            await carregarPlanejamentoComercialRevenda();
-            // Recarregar extrato
-            if (_extratoCtx.planejamento_id) {
-                await abrirModalExtratoComercial(_extratoCtx.planejamento_id);
-            }
-        } catch(e) { console.error(e); }
-    };
 
     // ── 3. Planejado vs. Realizado Geral & Chart.js ──────────────────────────────
     window.carregarComparativoRealizadoGeral = async function() {
