@@ -34,22 +34,29 @@
                 console.error('[APEX] #modal-planejamento-producao não encontrado!');
                 return;
             }
-            // Mostrar modal com estilo direto (sem usar cssText para não perder o overflow-y)
+            // MOVER o modal para document.body como último filho
+            // Isso resolve qualquer problema de CSS stacking context (transform/filter em pai)
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            // Aplicar todos os estilos necessários
             modal.style.display = 'flex';
             modal.style.position = 'fixed';
             modal.style.top = '0';
             modal.style.left = '0';
             modal.style.width = '100vw';
             modal.style.height = '100vh';
-            modal.style.zIndex = '999999';
-            modal.style.background = 'rgba(0,0,0,0.88)';
-            modal.style.alignItems = 'center';
+            modal.style.zIndex = '9999999';
+            modal.style.background = 'rgba(0,0,0,0.92)';
+            modal.style.alignItems = 'flex-start';
             modal.style.justifyContent = 'center';
             modal.style.overflowY = 'auto';
-            // Marcar como aberto para evitar fechamento pelo ESC global
+            modal.style.padding = '30px 0';
+            modal.style.boxSizing = 'border-box';
             modal.dataset.modalOpen = 'true';
+            // Chamar função async para popular selects
             if (typeof window.abrirModalPlanejamentoProducao === 'function') {
-                try { window.abrirModalPlanejamentoProducao(); } catch(e) { console.error('[APEX] Erro em abrirModalPlanejamentoProducao:', e); }
+                try { window.abrirModalPlanejamentoProducao(); } catch(e) { console.error('[APEX] Erro:', e); }
             }
         };
 
@@ -97,7 +104,7 @@
             // Passo 3: registrar novo SW após limpeza
             window.addEventListener('load', () => {
                 setTimeout(() => {
-                    navigator.serviceWorker.register('/sw.js?v=11')
+                    navigator.serviceWorker.register('/sw.js?v=12')
                         .then(reg => console.log('[SW] Novo ServiceWorker registrado:', reg.scope))
                         .catch(err => console.warn('[SW] Erro ao registrar ServiceWorker:', err));
                 }, 500);

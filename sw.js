@@ -1,28 +1,29 @@
-// Service Worker - Passthrough Mode (sem cache agressivo)
-// Versao: v11 - Pass-through apenas, sem interceptacao de navegacao HTML/JS
-
-const CACHE_NAME = 'apextech-v11-cache';
+// Service Worker - Passthrough Mode v12
+// Não intercepta HTML, JS, CSS ou APIs - apenas pass-through
 
 self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  // Limpar todos os caches antigos
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((key) => caches.delete(key)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
 });
 
-// NÃO interceptar nenhuma requisição - deixar o browser tratar tudo
-// Isso evita o TypeError: Failed to convert value to 'Response'
+// Não intercepta nenhuma requisição - tudo vai para a rede diretamente
+// Isso evita todos os erros de TypeError e cache corrompido
 self.addEventListener('fetch', (event) => {
-  // Apenas requisições de outros recursos (imagens, fonts) podem ser cacheadas
   const url = event.request.url;
 
-  // Nunca interceptar: navegação HTML, JS, CSS, API
+  // Ignorar tudo exceto URLs http/https
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return; // Não interceptar chrome-extension://, etc.
+  }
+
+  // Não interceptar: HTML, JS, CSS, APIs, navegação
   if (
     event.request.mode === 'navigate' ||
     url.includes('.html') ||
@@ -30,22 +31,13 @@ self.addEventListener('fetch', (event) => {
     url.includes('.css') ||
     url.includes('/api/')
   ) {
-    return; // Deixar o browser tratar normalmente
+    return; // Browser trata diretamente
   }
 
-  // Para outros assets (imagens, fontes) - cache simples sem erros
+  // Para outros assets: tenta rede primeiro, sem cache
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => {
-        // Se falhar, retornar resposta vazia válida (nunca undefined)
-        return new Response('', { status: 408, statusText: 'Network timeout' });
-      });
+    fetch(event.request).catch(() => {
+      return new Response('', { status: 503, statusText: 'Service Unavailable' });
     })
   );
 });
