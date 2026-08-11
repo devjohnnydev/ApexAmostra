@@ -5360,69 +5360,72 @@
     </div>
 
     <!-- Modal: Extrato & Análise Comercial -->
-    <div id="modal-extrato-comercial" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#101a24; z-index:9999999; box-sizing:border-box; overflow:hidden; flex-direction:column;">
-            <div id="extrato-modal-header" style="position:relative; display:flex; align-items:center; justify-content:center; padding:18px 60px 16px; border-bottom:1px solid #1a2e3f; flex-shrink:0; background:#101a24;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <i class="fa-solid fa-chart-mixed" style="color:#3e7cb1; font-size:1.2rem;"></i>
-                    <h3 id="extrato-titulo" style="margin:0; color:#fff; font-size:1.05rem; font-weight:700;">Extrato & Análise — Meta Comercial</h3>
+    <div id="modal-extrato-comercial" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#101a24; z-index:9999999; overflow-y:auto; overflow-x:hidden; box-sizing:border-box;">
+
+        <!-- Header sticky -->
+        <div id="extrato-modal-header" style="position:sticky; top:0; z-index:10; background:#101a24; border-bottom:1px solid #1a2e3f; display:flex; align-items:center; justify-content:center; padding:14px 60px; box-sizing:border-box;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-chart-mixed" style="color:#3e7cb1; font-size:1.1rem;"></i>
+                <h3 id="extrato-titulo" style="margin:0; color:#fff; font-size:1rem; font-weight:700;">Extrato &amp; Análise — Meta Comercial</h3>
+            </div>
+            <button type="button" onclick="fecharModalExtratoComercial()" title="Fechar"
+                style="position:absolute; right:20px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:34px; height:34px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.95rem; padding:0;"
+                onmouseover="this.style.background='#1a2e3f';this.style.color='#3e7cb1';"
+                onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Conteúdo com scroll -->
+        <div id="extrato-modal-body" style="padding:20px 24px 50px; box-sizing:border-box;">
+
+            <!-- Prazos de urgência -->
+            <div id="extrato-prazos-banner" style="display:none; margin-bottom:14px;"></div>
+
+            <!-- Painel de Análise KPI cards -->
+            <div id="extrato-painel-analise" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; margin-bottom:20px;"></div>
+
+            <!-- Gráficos -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 2fr; gap:14px; margin-bottom:20px;">
+                <!-- Donut: Meta Compra -->
+                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px;">
+                    <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:8px; font-weight:600; text-transform:uppercase; text-align:center; letter-spacing:0.5px;">Meta de Compra</div>
+                    <canvas id="extrato-chart-compra" height="150"></canvas>
+                    <div id="extrato-legend-compra" style="text-align:center; margin-top:8px; font-size:0.8rem;"></div>
                 </div>
-                <button type="button" onclick="fecharModalExtratoComercial()" title="Fechar"
-                    style="position:absolute; right:20px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:34px; height:34px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.95rem; padding:0;"
-                    onmouseover="this.style.background='#1a2e3f';this.style.color='#3e7cb1';"
-                    onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <!-- Donut: Meta Venda -->
+                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px;">
+                    <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:8px; font-weight:600; text-transform:uppercase; text-align:center; letter-spacing:0.5px;">Meta de Venda</div>
+                    <canvas id="extrato-chart-venda" height="150"></canvas>
+                    <div id="extrato-legend-venda" style="text-align:center; margin-top:8px; font-size:0.8rem;"></div>
+                </div>
+                <!-- Barras: Preço Médio vs Tabela -->
+                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px;">
+                    <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:8px; font-weight:600; text-transform:uppercase; text-align:center; letter-spacing:0.5px;">Preço Médio vs. Tabela</div>
+                    <canvas id="extrato-chart-preco" height="150"></canvas>
+                </div>
             </div>
 
-            <div id="extrato-modal-body" style="padding:22px 26px 40px; overflow-y:auto; height:calc(100vh - 62px); box-sizing:border-box;">
-
-                <!-- Prazos de urgência -->
-                <div id="extrato-prazos-banner" style="display:none; margin-bottom:16px;"></div>
-
-                <!-- Painel de Análise KPI cards -->
-                <div id="extrato-painel-analise" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px; margin-bottom:24px;"></div>
-
-                <!-- Gráficos -->
-                <div style="display:grid; grid-template-columns:1fr 1fr 2fr; gap:18px; margin-bottom:24px;">
-                    <!-- Donut: Meta Compra -->
-                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:12px; padding:20px;">
-                        <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:12px; font-weight:600; text-transform:uppercase; text-align:center; letter-spacing:0.5px;">Meta de Compra</div>
-                        <canvas id="extrato-chart-compra" height="220"></canvas>
-                        <div id="extrato-legend-compra" style="text-align:center; margin-top:10px; font-size:0.85rem;"></div>
-                    </div>
-                    <!-- Donut: Meta Venda -->
-                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:12px; padding:20px;">
-                        <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:12px; font-weight:600; text-transform:uppercase; text-align:center; letter-spacing:0.5px;">Meta de Venda</div>
-                        <canvas id="extrato-chart-venda" height="220"></canvas>
-                        <div id="extrato-legend-venda" style="text-align:center; margin-top:10px; font-size:0.85rem;"></div>
-                    </div>
-                    <!-- Barras: Preço Médio vs Tabela -->
-                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:12px; padding:20px;">
-                        <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:12px; font-weight:600; text-transform:uppercase; text-align:center; letter-spacing:0.5px;">Preço Médio vs. Tabela</div>
-                        <canvas id="extrato-chart-preco" height="220"></canvas>
-                    </div>
-                </div>
-
-                <!-- Linha temporal de evoluçao das transações -->
-                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:12px; padding:20px; margin-bottom:24px;">
-                    <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Evolução Acumulada de Compras e Vendas (kg)</div>
-                    <canvas id="extrato-chart-evolucao" height="120"></canvas>
-                </div>
-
-                <!-- Histórico -->
-                <div style="border-top:1px solid #1a2e3f; padding-top:16px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                        <span style="font-weight:700; color:#fff; font-size:0.92rem;">📋 Histórico de Movimentações</span>
-                        <button onclick="abrirModalTransacaoComercialFromExtrato()" class="btn-primary" style="font-size:0.8rem; padding:6px 14px; border-radius:6px;">
-                            <i class="fa-solid fa-plus"></i> Nova Movimentação
-                        </button>
-                    </div>
-                    <div id="extrato-tabela-container" style="overflow-x:auto;"></div>
-                </div>
-
+            <!-- Linha temporal de evolução das transações -->
+            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; margin-bottom:20px;">
+                <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Evolução Acumulada de Compras e Vendas (kg)</div>
+                <canvas id="extrato-chart-evolucao" height="90"></canvas>
             </div>
+
+            <!-- Histórico -->
+            <div style="border-top:1px solid #1a2e3f; padding-top:14px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                    <span style="font-weight:700; color:#fff; font-size:0.92rem;">📋 Histórico de Movimentações</span>
+                    <button onclick="abrirModalTransacaoComercialFromExtrato()" class="btn-primary" style="font-size:0.8rem; padding:6px 14px; border-radius:6px;">
+                        <i class="fa-solid fa-plus"></i> Nova Movimentação
+                    </button>
+                </div>
+                <div id="extrato-tabela-container" style="overflow-x:auto;"></div>
+            </div>
+
         </div>
     </div>
+
 
 
     <!-- ── FIM DOS MODAIS ── -->

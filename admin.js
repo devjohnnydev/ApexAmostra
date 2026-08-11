@@ -10392,15 +10392,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(modalEl);
         modalEl.style.display = 'block';
 
-        // Após renderizar o header, recalcula a altura disponível para o scroll
-        requestAnimationFrame(() => {
-            const header = document.getElementById('extrato-modal-header');
-            const body   = document.getElementById('extrato-modal-body');
-            if (header && body) {
-                body.style.height = (window.innerHeight - header.offsetHeight) + 'px';
-            }
-        });
-
         document.getElementById('extrato-titulo').textContent = `Extrato & Análise — ${item.produto_nome} (${item.mes_referencia})`;
 
         // Buscar transações
