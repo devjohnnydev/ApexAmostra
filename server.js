@@ -611,6 +611,15 @@ async function initDatabase() {
             );
         `);
 
+        // Migrações adicionais para Planejamento Comercial
+        await client.query(`
+            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_compra_estimado NUMERIC(14,2) DEFAULT 0.00;
+            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_venda_estimado NUMERIC(14,2) DEFAULT 0.00;
+            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_compra_realizado NUMERIC(14,2) DEFAULT 0.00;
+            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_venda_realizado NUMERIC(14,2) DEFAULT 0.00;
+            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS venda_realizada_kg NUMERIC(12,3) DEFAULT 0.00;
+        `);
+
         // Semeando fornecedores e amostras
         const { rowCount: fCount } = await client.query('SELECT 1 FROM fornecedores LIMIT 1');
         if (fCount === 0) {
