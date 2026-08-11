@@ -543,6 +543,62 @@ async function initDatabase() {
                 operador_responsavel TEXT,
                 observacoes          TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS planejamento_producao_insumos (
+                id                             SERIAL PRIMARY KEY,
+                periodo                        TEXT NOT NULL,
+                produto_id                     INTEGER,
+                produto_nome                   TEXT,
+                quantidade_planejada_prod_kg   NUMERIC(12,3) NOT NULL,
+                unidade_medida                 TEXT DEFAULT 'kg',
+                insumo_material_id             INTEGER NOT NULL,
+                insumo_nome                    TEXT,
+                quantidade_insumo_nec_kg       NUMERIC(12,3) NOT NULL,
+                estoque_atual_kg               NUMERIC(12,3) DEFAULT 0.00,
+                estoque_minimo_kg              NUMERIC(12,3) DEFAULT 0.00,
+                estoque_seguranca_kg           NUMERIC(12,3) DEFAULT 0.00,
+                quantidade_disponivel_kg       NUMERIC(12,3) DEFAULT 0.00,
+                quantidade_necessaria_compra_kg NUMERIC(12,3) DEFAULT 0.00,
+                custo_estimado_rs              NUMERIC(14,2) DEFAULT 0.00,
+                fornecedor_id                  INTEGER,
+                fornecedor_nome                TEXT,
+                prazo_minimo_compra_dias       INTEGER DEFAULT 7,
+                prazo_entrega_dias             INTEGER DEFAULT 15,
+                prazo_producao_dias            INTEGER DEFAULT 5,
+                data_prevista_necessidade      DATE,
+                data_limite_pedido             DATE,
+                status                         TEXT DEFAULT 'Pendente',
+                criado_em                      TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS planejamento_comercial_revenda (
+                id                         SERIAL PRIMARY KEY,
+                mes_referencia             TEXT NOT NULL,
+                produto_id                 INTEGER,
+                produto_nome               TEXT,
+                compra_planejada_kg        NUMERIC(12,3) DEFAULT 0.00,
+                venda_planejada_kg         NUMERIC(12,3) DEFAULT 0.00,
+                investimento_planejado_rs  NUMERIC(14,2) DEFAULT 0.00,
+                faturamento_previsto_rs    NUMERIC(14,2) DEFAULT 0.00,
+                compra_realizada_kg        NUMERIC(12,3) DEFAULT 0.00,
+                venda_realizada_rs         NUMERIC(14,2) DEFAULT 0.00,
+                participacao_meta_pct      NUMERIC(5,2) DEFAULT 0.00,
+                status                     TEXT DEFAULT 'Em Cotação',
+                observacoes                TEXT,
+                criado_em                  TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS parametros_estoque_prazos (
+                id                         SERIAL PRIMARY KEY,
+                material_id                INTEGER UNIQUE NOT NULL,
+                lead_time_compra_dias      INTEGER DEFAULT 7,
+                prazo_entrega_dias         INTEGER DEFAULT 15,
+                prazo_producao_dias        INTEGER DEFAULT 5,
+                estoque_minimo_kg          NUMERIC(12,3) DEFAULT 0.00,
+                estoque_seguranca_kg       NUMERIC(12,3) DEFAULT 0.00,
+                prazo_permanencia_dias     INTEGER DEFAULT 30,
+                atualizado_em              TIMESTAMP DEFAULT NOW()
+            );
         `);
 
         // Semeando fornecedores e amostras
@@ -2068,6 +2124,260 @@ app.delete('/api/planejamento/compras/:id', async (req, res) => {
         }
         await pool.query('DELETE FROM planejamento_compras WHERE id = $1', [id]);
         res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── API: Planejamento de Produção & Explosão de Insumos ─────────────────────
+app.get('/api/planejamento/producao-insumos', async (req, res) => {
+    try {
+        if (!dbAvailable) {
+            return res.json(memStore.planejamento_producao_insumos || []);
+        }
+        const r = await pool.query('SELECT * FROM planejamento_producao_insumos ORDER BY id DESC');
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/producao-insumos', async (req, res) => {
+    try {
+        const {
+            periodo, produto_id, produto_nome, quantidade_planejada_prod_kg, unidade_medida,
+            insumo_material_id, insumo_nome, quantidade_insumo_nec_kg, estoque_atual_kg,
+            estoque_minimo_kg, estoque_seguranca_kg, quantidade_disponivel_kg,
+            quantidade_necessaria_compra_kg, custo_estimado_rs, fornecedor_id, fornecedor_nome,
+            prazo_minimo_compra_dias, prazo_entrega_dias, prazo_producao_dias,
+            data_prevista_necessidade, status
+        } = req.body;
+
+        const dataPrev = data_prevista_necessidade || new Date().toISOString().slice(0, 10);
+        const pEntrega = parseInt(prazo_entrega_dias || 15);
+        const pProd = parseInt(prazo_producao_dias || 5);
+        const dataNec = new Date(dataPrev);
+        dataNec.setDate(dataNec.getDate() - (pEntrega + pProd));
+        const dataLimitePedido = dataNec.toISOString().slice(0, 10);
+
+        if (!dbAvailable) {
+            if (!memStore.planejamento_producao_insumos) memStore.planejamento_producao_insumos = [];
+            const item = {
+                id: nextId++,
+                periodo: periodo || new Date().toISOString().slice(0, 7),
+                produto_id: parseInt(produto_id),
+                produto_nome: produto_nome || 'Produto Fábrica',
+                quantidade_planejada_prod_kg: parseFloat(quantidade_planejada_prod_kg || 0),
+                unidade_medida: unidade_medida || 'kg',
+                insumo_material_id: parseInt(insumo_material_id),
+                insumo_nome: insumo_nome || 'Insumo',
+                quantidade_insumo_nec_kg: parseFloat(quantidade_insumo_nec_kg || 0),
+                estoque_atual_kg: parseFloat(estoque_atual_kg || 0),
+                estoque_minimo_kg: parseFloat(estoque_minimo_kg || 0),
+                estoque_seguranca_kg: parseFloat(estoque_seguranca_kg || 0),
+                quantidade_disponivel_kg: parseFloat(quantidade_disponivel_kg || 0),
+                quantidade_necessaria_compra_kg: parseFloat(quantidade_necessaria_compra_kg || 0),
+                custo_estimado_rs: parseFloat(custo_estimado_rs || 0),
+                fornecedor_id: fornecedor_id ? parseInt(fornecedor_id) : null,
+                fornecedor_nome: fornecedor_nome || '',
+                prazo_minimo_compra_dias: parseInt(prazo_minimo_compra_dias || 7),
+                prazo_entrega_dias: pEntrega,
+                prazo_producao_dias: pProd,
+                data_prevista_necessidade: dataPrev,
+                data_limite_pedido: dataLimitePedido,
+                status: status || 'Pendente',
+                criado_em: new Date().toISOString()
+            };
+            memStore.planejamento_producao_insumos.push(item);
+            return res.json(item);
+        }
+
+        const r = await pool.query(`
+            INSERT INTO planejamento_producao_insumos (
+                periodo, produto_id, produto_nome, quantidade_planejada_prod_kg, unidade_medida,
+                insumo_material_id, insumo_nome, quantidade_insumo_nec_kg, estoque_atual_kg,
+                estoque_minimo_kg, estoque_seguranca_kg, quantidade_disponivel_kg,
+                quantidade_necessaria_compra_kg, custo_estimado_rs, fornecedor_id, fornecedor_nome,
+                prazo_minimo_compra_dias, prazo_entrega_dias, prazo_producao_dias,
+                data_prevista_necessidade, data_limite_pedido, status
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+            RETURNING *
+        `, [
+            periodo || new Date().toISOString().slice(0, 7),
+            produto_id ? parseInt(produto_id) : null, produto_nome || 'Produto Fábrica',
+            parseFloat(quantidade_planejada_prod_kg || 0), unidade_medida || 'kg',
+            insumo_material_id ? parseInt(insumo_material_id) : null, insumo_nome || 'Insumo',
+            parseFloat(quantidade_insumo_nec_kg || 0), parseFloat(estoque_atual_kg || 0),
+            parseFloat(estoque_minimo_kg || 0), parseFloat(estoque_seguranca_kg || 0),
+            parseFloat(quantidade_disponivel_kg || 0), parseFloat(quantidade_necessaria_compra_kg || 0),
+            parseFloat(custo_estimado_rs || 0), fornecedor_id ? parseInt(fornecedor_id) : null,
+            fornecedor_nome || '', parseInt(prazo_minimo_compra_dias || 7),
+            pEntrega, pProd, dataPrev, dataLimitePedido, status || 'Pendente'
+        ]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/planejamento/producao-insumos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            memStore.planejamento_producao_insumos = (memStore.planejamento_producao_insumos || []).filter(x => x.id !== id);
+            return res.json({ success: true });
+        }
+        await pool.query('DELETE FROM planejamento_producao_insumos WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── API: Planejamento Comercial (Compra e Venda / Revenda) ─────────────────
+app.get('/api/planejamento/comercial-revenda', async (req, res) => {
+    try {
+        if (!dbAvailable) {
+            return res.json(memStore.planejamento_comercial_revenda || []);
+        }
+        const r = await pool.query('SELECT * FROM planejamento_comercial_revenda ORDER BY id DESC');
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/comercial-revenda', async (req, res) => {
+    try {
+        const {
+            mes_referencia, produto_id, produto_nome, compra_planejada_kg, venda_planejada_kg,
+            investimento_planejado_rs, faturamento_previsto_rs, compra_realizada_kg,
+            venda_realizada_rs, status, observacoes
+        } = req.body;
+
+        const fatPrev = parseFloat(faturamento_previsto_rs || 0);
+        const metaGlobal = 5000000.00;
+        const partPct = (fatPrev / metaGlobal) * 100;
+
+        if (!dbAvailable) {
+            if (!memStore.planejamento_comercial_revenda) memStore.planejamento_comercial_revenda = [];
+            const item = {
+                id: nextId++,
+                mes_referencia: mes_referencia || new Date().toISOString().slice(0, 7),
+                produto_id: parseInt(produto_id),
+                produto_nome: produto_nome || 'Produto Comercial',
+                compra_planejada_kg: parseFloat(compra_planejada_kg || 0),
+                venda_planejada_kg: parseFloat(venda_planejada_kg || 0),
+                investimento_planejado_rs: parseFloat(investimento_planejado_rs || 0),
+                faturamento_previsto_rs: fatPrev,
+                compra_realizada_kg: parseFloat(compra_realizada_kg || 0),
+                venda_realizada_rs: parseFloat(venda_realizada_rs || 0),
+                participacao_meta_pct: parseFloat(partPct.toFixed(2)),
+                status: status || 'Em Cotação',
+                observacoes: observacoes || '',
+                criado_em: new Date().toISOString()
+            };
+            memStore.planejamento_comercial_revenda.push(item);
+            return res.json(item);
+        }
+
+        const r = await pool.query(`
+            INSERT INTO planejamento_comercial_revenda (
+                mes_referencia, produto_id, produto_nome, compra_planejada_kg, venda_planejada_kg,
+                investimento_planejado_rs, faturamento_previsto_rs, compra_realizada_kg,
+                venda_realizada_rs, participacao_meta_pct, status, observacoes
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *
+        `, [
+            mes_referencia || new Date().toISOString().slice(0, 7),
+            produto_id ? parseInt(produto_id) : null, produto_nome || 'Produto Comercial',
+            parseFloat(compra_planejada_kg || 0), parseFloat(venda_planejada_kg || 0),
+            parseFloat(investimento_planejado_rs || 0), fatPrev,
+            parseFloat(compra_realizada_kg || 0), parseFloat(venda_realizada_rs || 0),
+            parseFloat(partPct.toFixed(2)), status || 'Em Cotação', observacoes || ''
+        ]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/planejamento/comercial-revenda/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (!dbAvailable) {
+            memStore.planejamento_comercial_revenda = (memStore.planejamento_comercial_revenda || []).filter(x => x.id !== id);
+            return res.json({ success: true });
+        }
+        await pool.query('DELETE FROM planejamento_comercial_revenda WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── API: Parâmetros de Prazos & Estoque Mínimo ─────────────────────────────
+app.get('/api/planejamento/parametros-prazos', async (req, res) => {
+    try {
+        if (!dbAvailable) {
+            return res.json(memStore.parametros_estoque_prazos || []);
+        }
+        const r = await pool.query(`
+            SELECT p.*, mc.nome as material_nome
+            FROM parametros_estoque_prazos p
+            LEFT JOIN materiais_catalogo mc ON p.material_id = mc.id
+            ORDER BY p.id DESC
+        `);
+        res.json(r.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/parametros-prazos', async (req, res) => {
+    try {
+        const { material_id, lead_time_compra_dias, prazo_entrega_dias, prazo_producao_dias, estoque_minimo_kg, estoque_seguranca_kg, prazo_permanencia_dias } = req.body;
+        const matId = parseInt(material_id);
+
+        if (!dbAvailable) {
+            if (!memStore.parametros_estoque_prazos) memStore.parametros_estoque_prazos = [];
+            const idx = memStore.parametros_estoque_prazos.findIndex(x => x.material_id === matId);
+            const item = {
+                id: idx >= 0 ? memStore.parametros_estoque_prazos[idx].id : nextId++,
+                material_id: matId,
+                lead_time_compra_dias: parseInt(lead_time_compra_dias || 7),
+                prazo_entrega_dias: parseInt(prazo_entrega_dias || 15),
+                prazo_producao_dias: parseInt(prazo_producao_dias || 5),
+                estoque_minimo_kg: parseFloat(estoque_minimo_kg || 0),
+                estoque_seguranca_kg: parseFloat(estoque_seguranca_kg || 0),
+                prazo_permanencia_dias: parseInt(prazo_permanencia_dias || 30),
+                atualizado_em: new Date().toISOString()
+            };
+            if (idx >= 0) memStore.parametros_estoque_prazos[idx] = item;
+            else memStore.parametros_estoque_prazos.push(item);
+            return res.json(item);
+        }
+
+        const r = await pool.query(`
+            INSERT INTO parametros_estoque_prazos (material_id, lead_time_compra_dias, prazo_entrega_dias, prazo_producao_dias, estoque_minimo_kg, estoque_seguranca_kg, prazo_permanencia_dias)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (material_id) DO UPDATE SET
+                lead_time_compra_dias = EXCLUDED.lead_time_compra_dias,
+                prazo_entrega_dias = EXCLUDED.prazo_entrega_dias,
+                prazo_producao_dias = EXCLUDED.prazo_producao_dias,
+                estoque_minimo_kg = EXCLUDED.estoque_minimo_kg,
+                estoque_seguranca_kg = EXCLUDED.estoque_seguranca_kg,
+                prazo_permanencia_dias = EXCLUDED.prazo_permanencia_dias,
+                atualizado_em = NOW()
+            RETURNING *
+        `, [
+            matId, parseInt(lead_time_compra_dias || 7), parseInt(prazo_entrega_dias || 15),
+            parseInt(prazo_producao_dias || 5), parseFloat(estoque_minimo_kg || 0),
+            parseFloat(estoque_seguranca_kg || 0), parseInt(prazo_permanencia_dias || 30)
+        ]);
+
+        res.json(r.rows[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

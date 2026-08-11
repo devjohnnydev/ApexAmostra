@@ -9250,11 +9250,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let localEquipamentos = [];
     let localOPs = [];
     let etapasOpFormDraft = [];
+    let localProducaoInsumos = [];
+    let localComercialRevenda = [];
+    let localParametrosPrazos = [];
+    let chartRealizadoInstance = null;
 
     window.alternarSubAbaPlanejamento = function(aba) {
         subAbaPlanejamentoAtual = aba;
 
-        const subtabs = ['compras', 'insumos', 'realizado', 'simulacao'];
+        const subtabs = ['producao-insumos', 'compras', 'realizado', 'caixa', 'prazos', 'pcp-futuro'];
         subtabs.forEach(t => {
             const btn = document.getElementById(`tab-btn-pl-${t}`);
             const view = document.getElementById(`pl-subview-${t}`);
@@ -9274,7 +9278,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (aba === 'compras' || aba === 'insumos' || aba === 'realizado') carregarPlanejamentoCompras();
+        if (aba === 'producao-insumos') carregarPlanejamentoProducaoInsumos();
+        if (aba === 'compras') carregarPlanejamentoComercialRevenda();
+        if (aba === 'realizado') carregarComparativoRealizadoGeral();
+        if (aba === 'caixa') carregarProjecaoCaixa();
+        if (aba === 'prazos') carregarParametrosPrazos();
     };
 
     // ── 1. Planejamento de Compra (Trading Comercial & Insumos da Indústria) ────
@@ -9593,6 +9601,683 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
         }
+    };
+
+    // ── 1. Planejamento de Produção & Explosão de Insumos ────────────────────────
+    window.carregarPlanejamentoProducaoInsumos = async function() {
+        try {
+            const res = await fetch('/api/planejamento/producao-insumos');
+            const data = await res.json();
+            localProducaoInsumos = Array.isArray(data) ? data : [];
+            renderPlanejamentoProducaoInsumos();
+        } catch (err) {
+            console.error('Erro ao carregar planejamento de produção insumos:', err);
+            localProducaoInsumos = [];
+            renderPlanejamentoProducaoInsumos();
+        }
+    };
+
+    function renderPlanejamentoProducaoInsumos() {
+        const tbody = document.getElementById('plprod-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totProd = 0, totInsumo = 0, totCompraLiq = 0, totCusto = 0;
+
+        localProducaoInsumos.forEach(item => {
+            const qProd = parseFloat(item.quantidade_planejada_prod_kg || 0);
+            const qIns = parseFloat(item.quantidade_insumo_nec_kg || 0);
+            const qEst = parseFloat(item.estoque_atual_kg || 0);
+            const qMin = parseFloat(item.estoque_minimo_kg || 0);
+            const qLiq = parseFloat(item.quantidade_necessaria_compra_kg || Math.max(0, qIns - qEst));
+            const cEst = parseFloat(item.custo_estimado_rs || 0);
+
+            totProd += qProd;
+            totInsumo += qIns;
+            totCompraLiq += qLiq;
+            totCusto += cEst;
+
+            const isVermelho = qLiq > 0;
+            const statusBadge = isVermelho ?
+                '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 NECESSIDADE DE COMPRA</span>' :
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 ESTOQUE SUFICIENTE</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><strong>${item.produto_nome || 'Produto'}</strong></td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${qProd.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px;"><strong>${item.insumo_nome || 'Insumo'}</strong></td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${qIns.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; color:#aaa;">${qEst.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; color:#aaa;">${qMin.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:${isVermelho ? '#ff4d4d' : '#2AD07A'};">${qLiq.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${cEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:center;"><span style="color:#ffb74d; font-weight:bold;">${item.data_limite_pedido || '-'}</span></td>
+                <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+                <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="excluirPlanejamentoProducaoInsumo(${item.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const kpiProd = document.getElementById('plprod-kpi-total-prod');
+        const kpiIns = document.getElementById('plprod-kpi-total-insumos');
+        const kpiLiq = document.getElementById('plprod-kpi-compra-liquida');
+        const kpiCusto = document.getElementById('plprod-kpi-custo-total');
+
+        if (kpiProd) kpiProd.textContent = totProd.toLocaleString('pt-BR') + ' kg';
+        if (kpiIns) kpiIns.textContent = totInsumo.toLocaleString('pt-BR') + ' kg';
+        if (kpiLiq) kpiLiq.textContent = totCompraLiq.toLocaleString('pt-BR') + ' kg';
+        if (kpiCusto) kpiCusto.textContent = 'R$ ' + totCusto.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    }
+
+    window.abrirModalPlanejamentoProducao = async function() {
+        if (!localMateriais || localMateriais.length === 0) {
+            try {
+                const res = await fetch('/api/materiais-catalogo');
+                if (res.ok) localMateriais = await res.json();
+            } catch(e){}
+        }
+
+        const selProd = document.getElementById('plprod-produto-id');
+        const selIns = document.getElementById('plprod-insumo-id');
+        const selForn = document.getElementById('plprod-fornecedor-id');
+
+        const listMat = (localMateriais || []);
+        const listForn = (localFornecedores || []);
+
+        if (selProd) selProd.innerHTML = '<option value="">Selecione o Produto Acabado...</option>' + listMat.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        if (selIns) selIns.innerHTML = '<option value="">Selecione o Insumo Necessário...</option>' + listMat.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        if (selForn) selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' + listForn.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
+
+        document.getElementById('form-planejamento-producao').reset();
+        document.getElementById('plprod-periodo').value = new Date().toISOString().slice(0, 7);
+        document.getElementById('modal-planejamento-producao').style.display = 'flex';
+    };
+
+    window.fecharModalPlanejamentoProducao = function() {
+        document.getElementById('modal-planejamento-producao').style.display = 'none';
+    };
+
+    window.calcularExplosaoInsumoForm = function() {
+        const qProd = parseFloat(document.getElementById('plprod-qtd-prod').value) || 0;
+        const insumoId = document.getElementById('plprod-insumo-id').value;
+        const qIns = parseFloat(document.getElementById('plprod-qtd-insumo').value) || 0;
+
+        let qEst = 0, qMin = 0;
+        if (insumoId) {
+            const stk = (window.localEstoque || []).find(e => e.material_id == insumoId);
+            if (stk) qEst = parseFloat(stk.saldo || 0);
+            const par = (localParametrosPrazos || []).find(p => p.material_id == insumoId);
+            if (par) qMin = parseFloat(par.estoque_minimo_kg || 0);
+        }
+
+        const qDisp = Math.max(0, qEst - qMin);
+        const qLiq = Math.max(0, qIns - qDisp);
+
+        document.getElementById('plprod-est-atual').value = qEst.toLocaleString('pt-BR') + ' kg';
+        document.getElementById('plprod-est-minimo').value = qMin.toLocaleString('pt-BR') + ' kg';
+        document.getElementById('plprod-est-disp').value = qDisp.toLocaleString('pt-BR') + ' kg';
+        document.getElementById('plprod-compra-liquida').value = qLiq.toLocaleString('pt-BR') + ' kg';
+    };
+
+    window.salvarPlanejamentoProducaoForm = async function(e) {
+        e.preventDefault();
+        const prodId = document.getElementById('plprod-produto-id').value;
+        const insId = document.getElementById('plprod-insumo-id').value;
+        const prodObj = (localMateriais || []).find(m => m.id == prodId);
+        const insObj = (localMateriais || []).find(m => m.id == insId);
+
+        const qProd = parseFloat(document.getElementById('plprod-qtd-prod').value) || 0;
+        const qIns = parseFloat(document.getElementById('plprod-qtd-insumo').value) || 0;
+        const qEstText = document.getElementById('plprod-est-atual').value.replace(' kg', '').replace(/\./g, '').replace(',', '.');
+        const qEst = parseFloat(qEstText) || 0;
+        const qLiqText = document.getElementById('plprod-compra-liquida').value.replace(' kg', '').replace(/\./g, '').replace(',', '.');
+        const qLiq = parseFloat(qLiqText) || Math.max(0, qIns - qEst);
+        const cUnit = parseFloat(document.getElementById('plprod-custo-unit').value) || 0;
+
+        const payload = {
+            periodo: document.getElementById('plprod-periodo').value,
+            produto_id: prodId,
+            produto_nome: prodObj ? prodObj.nome : 'Produto Acabado',
+            quantidade_planejada_prod_kg: qProd,
+            insumo_material_id: insId,
+            insumo_nome: insObj ? insObj.nome : 'Insumo',
+            quantidade_insumo_nec_kg: qIns,
+            estoque_atual_kg: qEst,
+            quantidade_necessaria_compra_kg: qLiq,
+            custo_estimado_rs: qLiq * cUnit,
+            fornecedor_id: document.getElementById('plprod-fornecedor-id').value,
+            data_prevista_necessidade: document.getElementById('plprod-data-prevista').value,
+            status: qLiq > 0 ? 'Compra Necessária' : 'Estoque Suficiente'
+        };
+
+        try {
+            const res = await fetch('/api/planejamento/producao-insumos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar planejamento de produção');
+            _apexNotify('Sucesso', 'Planejamento de produção e explosão de insumos salvo!', 'success');
+            fecharModalPlanejamentoProducao();
+            await carregarPlanejamentoProducaoInsumos();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.excluirPlanejamentoProducaoInsumo = async function(id) {
+        if (!confirm('Excluir este planejamento de produção?')) return;
+        try {
+            await fetch(`/api/planejamento/producao-insumos/${id}`, { method: 'DELETE' });
+            await carregarPlanejamentoProducaoInsumos();
+        } catch(e){}
+    };
+
+    // ── 2. Planejamento Comercial (Compra e Venda / Revenda) ────────────────────
+    window.carregarPlanejamentoComercialRevenda = async function() {
+        try {
+            const res = await fetch('/api/planejamento/comercial-revenda');
+            const data = await res.json();
+            localComercialRevenda = Array.isArray(data) ? data : [];
+            renderPlanejamentoComercialRevenda();
+        } catch (err) {
+            console.error('Erro ao carregar planejamento comercial revenda:', err);
+            localComercialRevenda = [];
+            renderPlanejamentoComercialRevenda();
+        }
+    };
+
+    function renderPlanejamentoComercialRevenda() {
+        const tbody = document.getElementById('comercial-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totFatPrev = 0, totInvest = 0;
+        const metaGlobal = 5000000.00;
+
+        localComercialRevenda.forEach(item => {
+            const cPlan = parseFloat(item.compra_planejada_kg || 0);
+            const vPlan = parseFloat(item.venda_planejada_kg || 0);
+            const inv = parseFloat(item.investimento_planejado_rs || 0);
+            const fat = parseFloat(item.faturamento_previsto_rs || 0);
+            const partPct = (fat / metaGlobal) * 100;
+
+            totFatPrev += fat;
+            totInvest += inv;
+
+            const isAltoGiro = fat >= 1000000;
+            const giroBadge = isAltoGiro ?
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔥 ALTO GIRO</span>' :
+                '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:2px 6px; border-radius:12px; font-size:0.75rem;">GIRO NORMAL</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><strong>${item.produto_nome || 'Produto'}</strong></td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${cPlan.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${vPlan.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${inv.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${fat.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:center;">${giroBadge} <small style="color:#aaa;">(${partPct.toFixed(1)}% Meta)</small></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">🔵 META AZUL</span></td>
+                <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="excluirPlanejamentoComercial(${item.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const kpiFatPrev = document.getElementById('com-kpi-fat-previsto');
+        const kpiInvest = document.getElementById('com-kpi-investimento');
+        const kpiPart = document.getElementById('com-kpi-atingimento-meta');
+
+        if (kpiFatPrev) kpiFatPrev.textContent = 'R$ ' + totFatPrev.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        if (kpiInvest) kpiInvest.textContent = 'R$ ' + totInvest.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        if (kpiPart) kpiPart.textContent = ((totFatPrev / metaGlobal) * 100).toFixed(1) + '%';
+    }
+
+    window.abrirModalPlanejamentoComercial = async function() {
+        if (!localMateriais || localMateriais.length === 0) {
+            try {
+                const res = await fetch('/api/materiais-catalogo');
+                if (res.ok) localMateriais = await res.json();
+            } catch(e){}
+        }
+
+        const selProd = document.getElementById('plcom-produto-id');
+        if (selProd) {
+            selProd.innerHTML = '<option value="">Selecione o Produto Comercial...</option>' +
+                (localMateriais || []).map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        }
+
+        document.getElementById('form-planejamento-comercial').reset();
+        document.getElementById('plcom-mes').value = new Date().toISOString().slice(0, 7);
+        document.getElementById('modal-planejamento-comercial-meta').style.display = 'flex';
+    };
+
+    window.fecharModalPlanejamentoComercial = function() {
+        document.getElementById('modal-planejamento-comercial-meta').style.display = 'none';
+    };
+
+    window.salvarPlanejamentoComercialForm = async function(e) {
+        e.preventDefault();
+        const prodId = document.getElementById('plcom-produto-id').value;
+        const prodObj = (localMateriais || []).find(m => m.id == prodId);
+
+        const payload = {
+            mes_referencia: document.getElementById('plcom-mes').value,
+            produto_id: prodId,
+            produto_nome: prodObj ? prodObj.nome : 'Produto Comercial',
+            compra_planejada_kg: document.getElementById('plcom-compra-kg').value,
+            venda_planejada_kg: document.getElementById('plcom-venda-kg').value,
+            investimento_planejado_rs: document.getElementById('plcom-investimento-rs').value,
+            faturamento_previsto_rs: document.getElementById('plcom-faturamento-rs').value,
+            status: 'Meta Definida'
+        };
+
+        try {
+            const res = await fetch('/api/planejamento/comercial-revenda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar meta comercial');
+            _apexNotify('Sucesso', 'Meta comercial salva com sucesso!', 'success');
+            fecharModalPlanejamentoComercial();
+            await carregarPlanejamentoComercialRevenda();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.excluirPlanejamentoComercial = async function(id) {
+        if (!confirm('Excluir esta meta comercial?')) return;
+        try {
+            await fetch(`/api/planejamento/comercial-revenda/${id}`, { method: 'DELETE' });
+            await carregarPlanejamentoComercialRevenda();
+        } catch(e){}
+    };
+
+    // ── 3. Planejado vs. Realizado Geral & Chart.js ──────────────────────────────
+    window.carregarComparativoRealizadoGeral = async function() {
+        await Promise.all([
+            carregarPlanejamentoProducaoInsumos(),
+            carregarPlanejamentoComercialRevenda(),
+            carregarPlanejamentoCompras()
+        ]);
+        renderComparativoRealizadoGeral();
+    };
+
+    function renderComparativoRealizadoGeral() {
+        const tbody = document.getElementById('realizado-geral-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totPlanKg = 0, totRealKg = 0, totPlanRs = 0, totRealRs = 0;
+        const chartLabels = [];
+        const chartDataPlan = [];
+        const chartDataReal = [];
+
+        // Itens Comercial
+        (localComercialRevenda || []).forEach(c => {
+            const planKg = parseFloat(c.compra_planejada_kg || 0);
+            const realKg = parseFloat(c.compra_realizada_kg || 0);
+            const planRs = parseFloat(c.investimento_planejado_rs || 0);
+            const realRs = parseFloat(c.venda_realizada_rs || 0);
+            const desvioPct = planKg > 0 ? (((realKg - planKg) / planKg) * 100) : 0;
+
+            totPlanKg += planKg; totRealKg += realKg;
+            totPlanRs += planRs; totRealRs += realRs;
+
+            chartLabels.push(c.produto_nome || 'Produto');
+            chartDataPlan.push(planKg);
+            chartDataReal.push(realKg);
+
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 DENTRO DO PLANEJADO</span>';
+            if (desvioPct < -10) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 ABAIXO DO PLANEJADO</span>';
+            else if (desvioPct > 10) statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 ACIMA DO PLANEJADO</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><span style="background:#162b20; color:#2AD07A; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:0.75rem;">Commercial</span></td>
+                <td style="padding:10px 8px;"><strong>${c.produto_nome || 'Produto'}</strong></td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${planKg.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${realKg.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${desvioPct >= 0 ? '#2AD07A' : '#ff4d4d'};">${desvioPct >= 0 ? '+' : ''}${desvioPct.toFixed(1)}%</td>
+                <td style="padding:10px 8px; text-align:right; color:#f0b800;">R$ ${planRs.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${realRs.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Itens Produção Insumos
+        (localProducaoInsumos || []).forEach(p => {
+            const planKg = parseFloat(p.quantidade_insumo_nec_kg || 0);
+            const realKg = parseFloat(p.estoque_atual_kg || 0);
+            const planRs = parseFloat(p.custo_estimado_rs || 0);
+            const realRs = 0;
+            const desvioPct = planKg > 0 ? (((realKg - planKg) / planKg) * 100) : 0;
+
+            totPlanKg += planKg; totRealKg += realKg;
+            totPlanRs += planRs;
+
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 DENTRO DO PLANEJADO</span>';
+            if (desvioPct < 0) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 NECESSIDADE DE INSUMO</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><span style="background:#1e354d; color:#3e7cb1; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:0.75rem;">Insumo Indústria</span></td>
+                <td style="padding:10px 8px;"><strong>${p.insumo_nome || 'Insumo'}</strong> <small style="color:#aaa;">(${p.produto_nome || ''})</small></td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${planKg.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${realKg.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${desvioPct >= 0 ? '#2AD07A' : '#ff4d4d'};">${desvioPct >= 0 ? '+' : ''}${desvioPct.toFixed(1)}%</td>
+                <td style="padding:10px 8px; text-align:right; color:#f0b800;">R$ ${planRs.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:right; color:#aaa;">R$ 0,00</td>
+                <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const desvioGeralPct = totPlanKg > 0 ? (((totRealKg - totPlanKg) / totPlanKg) * 100) : 0;
+        const txtDesvio = document.getElementById('real-desvio-geral-txt');
+        if (txtDesvio) {
+            txtDesvio.textContent = (desvioGeralPct >= 0 ? '+' : '') + desvioGeralPct.toFixed(1) + '%';
+            txtDesvio.style.color = desvioGeralPct >= 0 ? '#2AD07A' : '#ff4d4d';
+        }
+
+        renderGraficoPlanejadoVsRealizado(chartLabels, chartDataPlan, chartDataReal);
+    }
+
+    function renderGraficoPlanejadoVsRealizado(labels, dataPlan, dataReal) {
+        const ctx = document.getElementById('chart-planejado-vs-realizado');
+        if (!ctx) return;
+
+        if (chartRealizadoInstance) chartRealizadoInstance.destroy();
+
+        if (typeof Chart === 'undefined') return;
+
+        chartRealizadoInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels.length > 0 ? labels : ['Conector', 'Fio Cobre', 'Alumínio'],
+                datasets: [
+                    {
+                        label: 'Planejado (kg)',
+                        data: dataPlan.length > 0 ? dataPlan : [35000, 20000, 15000],
+                        backgroundColor: '#3e7cb1'
+                    },
+                    {
+                        label: 'Realizado (kg)',
+                        data: dataReal.length > 0 ? dataReal : [42000, 18000, 15000],
+                        backgroundColor: '#2AD07A'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#ccc' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#aaa' } },
+                    y: { ticks: { color: '#aaa' } }
+                }
+            }
+        });
+    }
+
+    // ── 4. Projeção Financeira de Caixa ──────────────────────────────────────────
+    window.carregarProjecaoCaixa = async function() {
+        let totPlan = 0, totReal = 0;
+        const desinstalos = [];
+
+        (localComercialRevenda || []).forEach(c => {
+            const inv = parseFloat(c.investimento_planejado_rs || 0);
+            totPlan += inv;
+            desinstalos.push({
+                nome: c.produto_nome || 'Produto Comercial',
+                qtd: parseFloat(c.compra_planejada_kg || 0),
+                preco: parseFloat(c.compra_planejada_kg || 0) > 0 ? inv / parseFloat(c.compra_planejada_kg) : 0,
+                desembolso: inv
+            });
+        });
+
+        (localProducaoInsumos || []).forEach(p => {
+            const cEst = parseFloat(p.custo_estimado_rs || 0);
+            totPlan += cEst;
+            desinstalos.push({
+                nome: (p.insumo_nome || 'Insumo') + ' (Indústria)',
+                qtd: parseFloat(p.quantidade_necessaria_compra_kg || 0),
+                preco: parseFloat(p.quantidade_necessaria_compra_kg || 0) > 0 ? cEst / parseFloat(p.quantidade_necessaria_compra_kg) : 0,
+                desembolso: cEst
+            });
+        });
+
+        (localMRP || []).forEach(m => {
+            const cEst = parseFloat(m.custo_total_estimado || 0);
+            const cReal = parseFloat(m.custo_total_realizado || 0);
+            totPlan += cEst;
+            totReal += cReal;
+        });
+
+        const kpiPlan = document.getElementById('cx-kpi-atual-plan');
+        const kpiReal = document.getElementById('cx-kpi-atual-real');
+        const kpiProx = document.getElementById('cx-kpi-prox-caixa');
+
+        if (kpiPlan) kpiPlan.textContent = 'R$ ' + totPlan.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        if (kpiReal) kpiReal.textContent = 'R$ ' + totReal.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        if (kpiProx) kpiProx.textContent = 'R$ ' + (totPlan * 1.15).toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+        const tbody = document.getElementById('caixa-desembolso-table-body');
+        if (tbody) {
+            tbody.innerHTML = '';
+            desinstalos.sort((a, b) => b.desembolso - a.desembolso);
+            desinstalos.forEach(item => {
+                const part = totPlan > 0 ? ((item.desembolso / totPlan) * 100) : 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding:10px 8px;"><strong>${item.nome}</strong></td>
+                    <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${item.qtd.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:10px 8px; text-align:right;">R$ ${item.preco.toFixed(2)}</td>
+                    <td style="padding:10px 8px; text-align:right; color:#9b59b6; font-weight:bold;">R$ ${item.desembolso.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; text-align:center;"><span style="color:#2AD07A; font-weight:bold;">${part.toFixed(1)}%</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    };
+
+    // ── 5. Parâmetros de Prazos & Estoque Mínimo ──────────────────────────────────
+    window.carregarParametrosPrazos = async function() {
+        try {
+            const res = await fetch('/api/planejamento/parametros-prazos');
+            const data = await res.json();
+            localParametrosPrazos = Array.isArray(data) ? data : [];
+            renderParametrosPrazos();
+        } catch (err) {
+            console.error('Erro ao carregar parâmetros de prazos:', err);
+            localParametrosPrazos = [];
+            renderParametrosPrazos();
+        }
+    };
+
+    function renderParametrosPrazos() {
+        const tbody = document.getElementById('prazos-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        localParametrosPrazos.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><strong>${p.material_nome || 'Material #' + p.material_id}</strong></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="color:#3e7cb1; font-weight:bold;">${p.lead_time_compra_dias || 7} dias</span></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="color:#ffb74d; font-weight:bold;">${p.prazo_entrega_dias || 15} dias</span></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="color:#9b59b6; font-weight:bold;">${p.prazo_producao_dias || 5} dias</span></td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${parseFloat(p.estoque_minimo_kg || 0).toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${parseFloat(p.estoque_seguranca_kg || 0).toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:center;">${p.prazo_permanencia_dias || 30} dias</td>
+                <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="editarParametrosPrazos(${p.material_id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer;" title="Editar Parâmetros"><i class="fa-solid fa-pen"></i> Editar</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.abrirModalParametrosPrazos = async function() {
+        if (!localMateriais || localMateriais.length === 0) {
+            try {
+                const res = await fetch('/api/materiais-catalogo');
+                if (res.ok) localMateriais = await res.json();
+            } catch(e){}
+        }
+
+        const selMat = document.getElementById('prazos-mat-id');
+        if (selMat) {
+            selMat.innerHTML = '<option value="">Selecione o Material...</option>' +
+                (localMateriais || []).map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        }
+
+        document.getElementById('form-parametros-prazos').reset();
+        document.getElementById('modal-parametros-prazos').style.display = 'flex';
+    };
+
+    window.fecharModalParametrosPrazos = function() {
+        document.getElementById('modal-parametros-prazos').style.display = 'none';
+    };
+
+    window.editarParametrosPrazos = function(matId) {
+        const p = localParametrosPrazos.find(x => x.material_id == matId);
+        if (!p) return;
+        abrirModalParametrosPrazos().then(() => {
+            document.getElementById('prazos-mat-id').value = p.material_id;
+            document.getElementById('prazos-lt-compra').value = p.lead_time_compra_dias || 7;
+            document.getElementById('prazos-pr-entrega').value = p.prazo_entrega_dias || 15;
+            document.getElementById('prazos-pr-producao').value = p.prazo_producao_dias || 5;
+            document.getElementById('prazos-est-min').value = p.estoque_minimo_kg || 0;
+            document.getElementById('prazos-est-seg').value = p.estoque_seguranca_kg || 0;
+        });
+    };
+
+    window.salvarParametrosPrazosForm = async function(e) {
+        e.preventDefault();
+        const payload = {
+            material_id: document.getElementById('prazos-mat-id').value,
+            lead_time_compra_dias: document.getElementById('prazos-lt-compra').value || 7,
+            prazo_entrega_dias: document.getElementById('prazos-pr-entrega').value || 15,
+            prazo_producao_dias: document.getElementById('prazos-pr-producao').value || 5,
+            estoque_minimo_kg: document.getElementById('prazos-est-min').value || 0,
+            estoque_seguranca_kg: document.getElementById('prazos-est-seg').value || 0
+        };
+
+        try {
+            const res = await fetch('/api/planejamento/parametros-prazos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar parâmetros');
+            _apexNotify('Sucesso', 'Parâmetros de prazos e estoque salvos!', 'success');
+            fecharModalParametrosPrazos();
+            await carregarParametrosPrazos();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    // ── Exportação PDF Adicional ────────────────────────────────────────────────
+    window.imprimirPlanejamentoProducaoPdf = function() {
+        try {
+            const jsPDFClass = getJsPDFClass();
+            if (!jsPDFClass) return;
+            const doc = new jsPDFClass('landscape', 'pt', 'a4');
+            doc.setFillColor(16, 26, 36);
+            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("APEXTECH METAIS - PLANEJAMENTO DE PRODUÇÃO & EXPLOSÃO DE INSUMOS", 40, 40);
+
+            let y = 80;
+            doc.setFillColor(30, 78, 140);
+            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text("Produto", 50, y + 15);
+            doc.text("Insumo", 220, y + 15);
+            doc.text("Insumo Nec. (kg)", 380, y + 15);
+            doc.text("Estoque Atual", 480, y + 15);
+            doc.text("Compra Líquida", 580, y + 15);
+            doc.text("Custo Est. (R$)", 680, y + 15);
+
+            y += 28;
+            (localProducaoInsumos || []).forEach((item, idx) => {
+                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
+                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
+                doc.text(String(item.produto_nome || '').slice(0, 22), 50, y + 2);
+                doc.text(String(item.insumo_nome || '').slice(0, 22), 220, y + 2);
+                doc.text(parseFloat(item.quantidade_insumo_nec_kg || 0).toLocaleString('pt-BR') + ' kg', 380, y + 2);
+                doc.text(parseFloat(item.estoque_atual_kg || 0).toLocaleString('pt-BR') + ' kg', 480, y + 2);
+                doc.text(parseFloat(item.quantidade_necessaria_compra_kg || 0).toLocaleString('pt-BR') + ' kg', 580, y + 2);
+                doc.text('R$ ' + parseFloat(item.custo_estimado_rs || 0).toLocaleString('pt-BR', {minimumFractionDigits:2}), 680, y + 2);
+                y += 22;
+            });
+
+            aplicarMarcaDaguaLogoJsPDF(doc);
+            doc.save(`Planejamento_Producao_Insumos_${new Date().toISOString().slice(0, 10)}.pdf`);
+            _apexNotify('Sucesso', 'PDF de Insumos da Produção baixado!', 'success');
+        } catch(e){}
+    };
+
+    window.imprimirPlanejamentoComercialPdf = function() {
+        try {
+            const jsPDFClass = getJsPDFClass();
+            if (!jsPDFClass) return;
+            const doc = new jsPDFClass('landscape', 'pt', 'a4');
+            doc.setFillColor(16, 26, 36);
+            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("APEXTECH METAIS - PLANEJAMENTO COMERCIAL & META R$ 5.000.000,00", 40, 40);
+
+            let y = 80;
+            doc.setFillColor(30, 78, 140);
+            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text("Produto Comercial", 50, y + 15);
+            doc.text("Compra Plan. (kg)", 240, y + 15);
+            doc.text("Venda Plan. (kg)", 360, y + 15);
+            doc.text("Investimento (R$)", 480, y + 15);
+            doc.text("Faturamento Prev. (R$)", 600, y + 15);
+            doc.text("% Meta Global", 730, y + 15);
+
+            y += 28;
+            (localComercialRevenda || []).forEach((item, idx) => {
+                const fat = parseFloat(item.faturamento_previsto_rs || 0);
+                const part = (fat / 5000000.00) * 100;
+                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
+                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
+                doc.text(String(item.produto_nome || '').slice(0, 25), 50, y + 2);
+                doc.text(parseFloat(item.compra_planejada_kg || 0).toLocaleString('pt-BR') + ' kg', 240, y + 2);
+                doc.text(parseFloat(item.venda_planejada_kg || 0).toLocaleString('pt-BR') + ' kg', 360, y + 2);
+                doc.text('R$ ' + parseFloat(item.investimento_planejado_rs || 0).toLocaleString('pt-BR', {minimumFractionDigits:2}), 480, y + 2);
+                doc.text('R$ ' + fat.toLocaleString('pt-BR', {minimumFractionDigits:2}), 600, y + 2);
+                doc.text(part.toFixed(1) + '%', 730, y + 2);
+                y += 22;
+            });
+
+            aplicarMarcaDaguaLogoJsPDF(doc);
+            doc.save(`Planejamento_Comercial_Revenda_${new Date().toISOString().slice(0, 10)}.pdf`);
+            _apexNotify('Sucesso', 'PDF Comercial de Revenda baixado!', 'success');
+        } catch(e){}
+    };
+
+    window.imprimirComparativoRealizadoGeralPdf = function() {
+        if (window.imprimirComparativoRealizadoPdf) window.imprimirComparativoRealizadoPdf();
     };
 
     // ── PDF Export: Planejamento de Compra & Venda (Trading) ────────────────────
