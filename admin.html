@@ -2292,7 +2292,7 @@
                         </div>
                         <div style="display:flex; gap:10px;">
                             <button type="button" class="btn-secondary" onclick="imprimirPlanejamentoProducaoPdf()" style="background:#162b20; border-color:#2AD07A; color:#2AD07A; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> PDF Insumos Produção</button>
-                            <button type="button" class="btn-primary" id="btn-novo-planejamento-producao" onclick="const m = document.getElementById('modal-planejamento-producao'); if (m) { m.style.display = 'flex'; m.style.zIndex = '99999'; } if (window.abrirModalPlanejamentoProducao) window.abrirModalPlanejamentoProducao();"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
+                            <button type="button" class="btn-primary" id="btn-novo-planejamento-producao" style="position:relative; z-index:100; cursor:pointer;" onclick="_forcarAbrirModalPlanejamentoProducao()"><i class="fa-solid fa-plus"></i> Novo Planejamento de Produção</button>
                         </div>
                     </div>
 
@@ -4665,7 +4665,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=105"></script>
+    <script src="admin.js?v=110"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
@@ -5078,6 +5078,42 @@
         </div>
     </div>
 
+    <!-- ── SCRIPT DE INTERCEPTAÇÃO E GARANTIA GLOBAL DE ABERTURA DE MODAIS ── -->
+    <script>
+        function _forcarAbrirModalPlanejamentoProducao() {
+            console.log('[APEX SYSTEM] Executando _forcarAbrirModalPlanejamentoProducao...');
+            var modal = document.getElementById('modal-planejamento-producao');
+            if (modal) {
+                modal.style.setProperty('display', 'flex', 'important');
+                modal.style.setProperty('z-index', '999999', 'important');
+                modal.style.setProperty('opacity', '1', 'important');
+                modal.style.setProperty('visibility', 'visible', 'important');
+            } else {
+                console.error('[APEX SYSTEM] Elemento #modal-planejamento-producao não encontrado no DOM!');
+            }
+            if (typeof window.abrirModalPlanejamentoProducao === 'function') {
+                try {
+                    window.abrirModalPlanejamentoProducao();
+                } catch(e) {
+                    console.error('[APEX SYSTEM] Erro ao executar abrirModalPlanejamentoProducao:', e);
+                }
+            }
+        }
+
+        // Listener global na fase de captura (Use Capture)
+        document.addEventListener('click', function(e) {
+            var el = e.target;
+            while (el && el !== document.body) {
+                if (el.id === 'btn-novo-planejamento-producao' || 
+                    (el.innerText && el.innerText.toLowerCase().includes('novo planejamento de produ'))) {
+                    console.log('[APEX CAPTURE] Clique capturado no botão Novo Planejamento de Produção');
+                    _forcarAbrirModalPlanejamentoProducao();
+                    break;
+                }
+                el = el.parentElement;
+            }
+        }, true);
+    </script>
 </body>
 
 </html>
