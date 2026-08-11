@@ -1,5 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    window.getJsPDFClass = function() {
+        if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+        if (window.jsPDF) return window.jsPDF;
+        return null;
+    };
+
     // ─── TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) ──────────────────────────────
     window.toggleDesktopSidebar = function(forceState) {
         const container = document.getElementById('admin-dashboard-container');
@@ -10447,7 +10453,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ── Exportação PDF Adicional ────────────────────────────────────────────────
-    window.imprimirPlanejamentoProducaoPdf = function() {
+    window.imprimirPlanejamentoProducaoPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) return;
@@ -10483,13 +10489,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 y += 22;
             });
 
-            aplicarMarcaDaguaLogoJsPDF(doc);
+            await aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejamento_Producao_Insumos_${new Date().toISOString().slice(0, 10)}.pdf`);
             _apexNotify('Sucesso', 'PDF de Insumos da Produção baixado!', 'success');
         } catch(e){}
     };
 
-    window.imprimirPlanejamentoComercialPdf = function() {
+    window.imprimirPlanejamentoComercialPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) return;
@@ -10527,7 +10533,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 y += 22;
             });
 
-            aplicarMarcaDaguaLogoJsPDF(doc);
+            await aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejamento_Comercial_Revenda_${new Date().toISOString().slice(0, 10)}.pdf`);
             _apexNotify('Sucesso', 'PDF Comercial de Revenda baixado!', 'success');
         } catch(e){}
@@ -10777,7 +10783,7 @@ document.addEventListener('DOMContentLoaded', () => {
             buildRow('🟢 AGRESSIVO', pAgr, '#2AD07A');
     }
 
-    window.imprimirCenariosPdf = function() {
+    window.imprimirCenariosPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) return;
@@ -10819,7 +10825,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 y += 24;
             });
 
-            aplicarMarcaDaguaLogoJsPDF(doc);
+            await aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejamento_Cenarios_Estrategicos_${new Date().toISOString().slice(0, 10)}.pdf`);
             _apexNotify('Sucesso', 'PDF de Cenários Estratégicos baixado!', 'success');
         } catch(e){}
