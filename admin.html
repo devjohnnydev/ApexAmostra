@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -2449,8 +2449,10 @@
                                         <th style="padding:10px 8px;">Produto Comercial</th>
                                         <th style="padding:10px 8px; text-align:right;">Compra Plan. (kg)</th>
                                         <th style="padding:10px 8px; text-align:right;">Venda Plan. (kg)</th>
+                                        <th style="padding:10px 8px; text-align:right;">Preços Unit. (C/V)</th>
                                         <th style="padding:10px 8px; text-align:right;">Investimento (R$)</th>
                                         <th style="padding:10px 8px; text-align:right;">Faturamento Prev. (R$)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Markup</th>
                                         <th style="padding:10px 8px; text-align:center;">Giro / Part. Meta</th>
                                         <th style="padding:10px 8px; text-align:center;">Status</th>
                                         <th style="padding:10px 8px; text-align:center;">Ações</th>
@@ -4727,7 +4729,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=1100"></script>
+    <script src="admin.js?v=1000"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
@@ -5083,6 +5085,21 @@
                     </div>
                 </div>
 
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Preço Compra Ref. (R$/kg) *</label>
+                        <input type="number" step="0.01" id="plcom-preco-compra" class="noble-input" required placeholder="Ex: 8.50">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Preço Venda Ref. (R$/kg) *</label>
+                        <input type="number" step="0.01" id="plcom-preco-venda" class="noble-input" required placeholder="Ex: 10.20">
+                    </div>
+                    <div class="form-group" style="display:flex; flex-direction:column; justify-content:center;">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Markup Calculado</label>
+                        <span id="plcom-markup-badge" style="background:#1e4e8c; color:#fff; padding:8px 12px; border-radius:6px; font-weight:bold; font-size:1rem; text-align:center; display:inline-block; border:1px solid #3e7cb1;">0.0%</span>
+                    </div>
+                </div>
+
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
                     <div class="form-group">
                         <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Investimento Necessário (R$) *</label>
@@ -5097,6 +5114,90 @@
                 <div style="display:flex; gap:10px;">
                     <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar Meta Comercial</button>
                     <button type="button" class="btn-secondary" onclick="fecharModalPlanejamentoComercial()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Lançar/Atualizar Realizado Comercial -->
+    <div id="modal-atualizar-realizado-comercial" class="modal-comercial-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:9999999; overflow-y:auto; padding:20px; box-sizing:border-box;">
+        <div style="width:780px; max-width:95vw; background:#101a24; border:1px solid #f0b800; border-radius:14px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+            <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:18px 60px 16px; border-bottom:1px solid #3b2d18;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-square-poll-vertical" style="color:#f0b800; font-size:1.2rem;"></i>
+                    <h3 style="margin:0; color:#fff; font-size:1.05rem; font-weight:700;">Lançar / Atualizar Realizado Comercial</h3>
+                </div>
+                <button type="button" onclick="fecharModalAtualizarRealizadoComercial()" title="Fechar"
+                    style="position:absolute; right:14px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; padding:0;"
+                    onmouseover="this.style.background='#3b2d18';this.style.color='#f0b800';"
+                    onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="form-realizado-comercial" onsubmit="salvarRealizadoComercialForm(event)" style="padding:22px 26px;">
+                <input type="hidden" id="realcom-item-id">
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Produto Comercial</label>
+                        <input type="text" id="realcom-produto-nome" class="noble-input" readonly style="background:#0d1826; color:#aaa;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Mês Referência</label>
+                        <input type="text" id="realcom-mes-ref" class="noble-input" readonly style="background:#0d1826; color:#aaa;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Qtd Compra Realizada (kg) *</label>
+                        <input type="number" step="0.001" id="realcom-compra-kg" class="noble-input" required placeholder="Ex: 95000">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Preço Compra Realizado (R$/kg) *</label>
+                        <input type="number" step="0.01" id="realcom-preco-compra" class="noble-input" required placeholder="Ex: 8.40">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Total Investido Real (R$)</label>
+                        <input type="number" step="0.01" id="realcom-investimento-rs" class="noble-input" readonly style="background:#0d1826; color:#f0b800; font-weight:bold;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Qtd Venda Realizada (kg) *</label>
+                        <input type="number" step="0.001" id="realcom-venda-kg" class="noble-input" required placeholder="Ex: 115000">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Preço Venda Realizado (R$/kg) *</label>
+                        <input type="number" step="0.01" id="realcom-preco-venda" class="noble-input" required placeholder="Ex: 10.10">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Total Faturado Real (R$)</label>
+                        <input type="number" step="0.01" id="realcom-faturamento-rs" class="noble-input" readonly style="background:#0d1826; color:#2AD07A; font-weight:bold;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+                    <div class="form-group" style="display:flex; flex-direction:column; justify-content:center;">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Markup Realizado</label>
+                        <span id="realcom-markup-badge" style="background:#1b382b; color:#2AD07A; padding:8px 12px; border-radius:6px; font-weight:bold; font-size:1rem; text-align:center; display:inline-block; border:1px solid #2AD07A;">0.0%</span>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Status da Meta *</label>
+                        <select id="realcom-status" class="noble-input" required>
+                            <option value="Meta Definida">Meta Definida</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Concluído">Concluído</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:1; background:#f0b800; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-save"></i> Salvar Realizado Comercial</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalAtualizarRealizadoComercial()" style="flex:1;">Cancelar</button>
                 </div>
             </form>
         </div>

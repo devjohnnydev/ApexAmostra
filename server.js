@@ -2263,7 +2263,9 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
         const {
             mes_referencia, produto_id, produto_nome, compra_planejada_kg, venda_planejada_kg,
             investimento_planejado_rs, faturamento_previsto_rs, compra_realizada_kg,
-            venda_realizada_rs, status, observacoes
+            venda_realizada_rs, status, observacoes,
+            preco_compra_estimado, preco_venda_estimado,
+            preco_compra_realizado, preco_venda_realizado, venda_realizada_kg
         } = req.body;
 
         const fatPrev = parseFloat(faturamento_previsto_rs || 0);
@@ -2286,7 +2288,12 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
                 participacao_meta_pct: parseFloat(partPct.toFixed(2)),
                 status: status || 'Em Cotação',
                 observacoes: observacoes || '',
-                criado_em: new Date().toISOString()
+                criado_em: new Date().toISOString(),
+                preco_compra_estimado: parseFloat(preco_compra_estimado || 0),
+                preco_venda_estimado: parseFloat(preco_venda_estimado || 0),
+                preco_compra_realizado: parseFloat(preco_compra_realizado || 0),
+                preco_venda_realizado: parseFloat(preco_venda_realizado || 0),
+                venda_realizada_kg: parseFloat(venda_realizada_kg || 0)
             };
             memStore.planejamento_comercial_revenda.push(item);
             return res.json(item);
@@ -2296,15 +2303,69 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
             INSERT INTO planejamento_comercial_revenda (
                 mes_referencia, produto_id, produto_nome, compra_planejada_kg, venda_planejada_kg,
                 investimento_planejado_rs, faturamento_previsto_rs, compra_realizada_kg,
-                venda_realizada_rs, participacao_meta_pct, status, observacoes
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *
+                venda_realizada_rs, participacao_meta_pct, status, observacoes,
+                preco_compra_estimado, preco_venda_estimado,
+                preco_compra_realizado, preco_venda_realizado, venda_realizada_kg
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *
         `, [
             mes_referencia || new Date().toISOString().slice(0, 7),
             produto_id ? parseInt(produto_id) : null, produto_nome || 'Produto Comercial',
             parseFloat(compra_planejada_kg || 0), parseFloat(venda_planejada_kg || 0),
             parseFloat(investimento_planejado_rs || 0), fatPrev,
             parseFloat(compra_realizada_kg || 0), parseFloat(venda_realizada_rs || 0),
-            parseFloat(partPct.toFixed(2)), status || 'Em Cotação', observacoes || ''
+            parseFloat(partPct.toFixed(2)), status || 'Em Cotação', observacoes || '',
+            parseFloat(preco_compra_estimado || 0), parseFloat(preco_venda_estimado || 0),
+            parseFloat(preco_compra_realizado || 0), parseFloat(preco_venda_realizado || 0),
+            parseFloat(venda_realizada_kg || 0)
+        ]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/planejamento/comercial-revenda/:id/realizado', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const {
+            compra_realizada_kg,
+            venda_realizada_rs,
+            venda_realizada_kg,
+            preco_compra_realizado,
+            preco_venda_realizado,
+            status
+        } = req.body;
+
+        if (!dbAvailable) {
+            const item = (memStore.planejamento_comercial_revenda || []).find(x => x.id === id);
+            if (!item) return res.status(404).json({ error: 'Planejamento não encontrado' });
+            if (compra_realizada_kg !== undefined) item.compra_realizada_kg = parseFloat(compra_realizada_kg);
+            if (venda_realizada_rs !== undefined) item.venda_realizada_rs = parseFloat(venda_realizada_rs);
+            if (venda_realizada_kg !== undefined) item.venda_realizada_kg = parseFloat(venda_realizada_kg);
+            if (preco_compra_realizado !== undefined) item.preco_compra_realizado = parseFloat(preco_compra_realizado);
+            if (preco_venda_realizado !== undefined) item.preco_venda_realizado = parseFloat(preco_venda_realizado);
+            if (status) item.status = status;
+            return res.json(item);
+        }
+
+        const r = await pool.query(`
+            UPDATE planejamento_comercial_revenda SET
+                compra_realizada_kg = COALESCE($1, compra_realizada_kg),
+                venda_realizada_rs = COALESCE($2, venda_realizada_rs),
+                venda_realizada_kg = COALESCE($3, venda_realizada_kg),
+                preco_compra_realizado = COALESCE($4, preco_compra_realizado),
+                preco_venda_realizado = COALESCE($5, preco_venda_realizado),
+                status = COALESCE($6, status)
+            WHERE id = $7 RETURNING *
+        `, [
+            compra_realizada_kg !== undefined ? parseFloat(compra_realizada_kg) : null,
+            venda_realizada_rs !== undefined ? parseFloat(venda_realizada_rs) : null,
+            venda_realizada_kg !== undefined ? parseFloat(venda_realizada_kg) : null,
+            preco_compra_realizado !== undefined ? parseFloat(preco_compra_realizado) : null,
+            preco_venda_realizado !== undefined ? parseFloat(preco_venda_realizado) : null,
+            status || null,
+            id
         ]);
 
         res.json(r.rows[0]);

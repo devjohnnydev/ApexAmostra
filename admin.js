@@ -9916,6 +9916,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const vPlan = parseFloat(item.venda_planejada_kg || 0);
             const inv = parseFloat(item.investimento_planejado_rs || 0);
             const fat = parseFloat(item.faturamento_previsto_rs || 0);
+            const pCompra = parseFloat(item.preco_compra_estimado || 0);
+            const pVenda = parseFloat(item.preco_venda_estimado || 0);
+            const markup = pCompra > 0 ? ((pVenda - pCompra) / pCompra) * 100 : 0;
             const partPct = (fat / metaGlobal) * 100;
 
             totFatPrev += fat;
@@ -9926,16 +9929,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔥 ALTO GIRO</span>' :
                 '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:2px 6px; border-radius:12px; font-size:0.75rem;">GIRO NORMAL</span>';
 
+            const markupColor = markup >= 0 ? '#2AD07A' : '#ff4d4d';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="padding:10px 8px;"><strong>${item.produto_nome || 'Produto'}</strong></td>
                 <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${cPlan.toLocaleString('pt-BR')} kg</td>
                 <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${vPlan.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; color:#ccc;">R$ ${pCompra.toFixed(2)} / R$ ${pVenda.toFixed(2)}</td>
                 <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${inv.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                 <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${fat.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${markupColor};">${markup.toFixed(1)}%</td>
                 <td style="padding:10px 8px; text-align:center;">${giroBadge} <small style="color:#aaa;">(${partPct.toFixed(1)}% Meta)</small></td>
-                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">🔵 META AZUL</span></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">🔵 ${item.status || 'Meta Definida'}</span></td>
                 <td style="padding:10px 8px; text-align:center;">
+                    <button type="button" onclick="abrirModalAtualizarRealizadoComercial(${item.id})" style="background:#3b2d18; border:1px solid #f0b800; color:#f0b800; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Atualizar Realizado Efetuado"><i class="fa-solid fa-pen-to-square"></i> Realizado</button>
                     <button type="button" onclick="excluirPlanejamentoComercial(${item.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
@@ -9951,11 +9959,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiPart) kpiPart.textContent = ((totFatPrev / metaGlobal) * 100).toFixed(1) + '%';
     }
 
+    window.calcularPlanejamentoComercialForm = function() {
+        const compraKg = parseFloat(document.getElementById('plcom-compra-kg').value) || 0;
+        const vendaKg = parseFloat(document.getElementById('plcom-venda-kg').value) || 0;
+        const precoCompra = parseFloat(document.getElementById('plcom-preco-compra').value) || 0;
+        const precoVenda = parseFloat(document.getElementById('plcom-preco-venda').value) || 0;
+
+        const investimento = compraKg * precoCompra;
+        const faturamento = vendaKg * precoVenda;
+        const markup = precoCompra > 0 ? ((precoVenda - precoCompra) / precoCompra) * 100 : 0;
+
+        document.getElementById('plcom-investimento-rs').value = investimento.toFixed(2);
+        document.getElementById('plcom-faturamento-rs').value = faturamento.toFixed(2);
+        
+        const badge = document.getElementById('plcom-markup-badge');
+        if (badge) {
+            badge.textContent = markup.toFixed(1) + '%';
+            badge.style.background = markup >= 0 ? '#1b382b' : '#3b1818';
+            badge.style.color = markup >= 0 ? '#2AD07A' : '#ff4d4d';
+            badge.style.borderColor = markup >= 0 ? '#2AD07A' : '#ff4d4d';
+        }
+    };
+
     window.abrirModalPlanejamentoComercial = async function() {
         const modalEl = document.getElementById('modal-planejamento-comercial-meta');
         if (!modalEl) return;
 
-        // Mover para document.body e aplicar estilos (igual ao padrão do modal de produção)
+        // Mover para document.body e aplicar estilos
         if (modalEl.parentElement !== document.body) {
             document.body.appendChild(modalEl);
         }
@@ -9985,10 +10015,36 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch(e){}
         }
 
+        // Garante localPrecos carregados
+        if (!window.localPrecos || window.localPrecos.length === 0) {
+            try {
+                const res = await fetch('/api/tabela-precos');
+                window.localPrecos = await res.json();
+            } catch(e){}
+        }
+
         const selProd = document.getElementById('plcom-produto-id');
         if (selProd) {
             selProd.innerHTML = '<option value="">Selecione o Produto Comercial...</option>' +
                 _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+            
+            selProd.onchange = function() {
+                const matId = this.value;
+                if (matId && window.localPrecos) {
+                    const priceItem = window.localPrecos.find(p => p.material_id == matId);
+                    if (priceItem) {
+                        document.getElementById('plcom-preco-compra').value = priceItem.preco_coletar || 0;
+                        document.getElementById('plcom-preco-venda').value = priceItem.venda_ref || 0;
+                    } else {
+                        document.getElementById('plcom-preco-compra').value = '';
+                        document.getElementById('plcom-preco-venda').value = '';
+                    }
+                } else {
+                    document.getElementById('plcom-preco-compra').value = '';
+                    document.getElementById('plcom-preco-venda').value = '';
+                }
+                window.calcularPlanejamentoComercialForm();
+            };
         }
 
         const form = document.getElementById('form-planejamento-comercial');
@@ -9996,7 +10052,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const mesEl = document.getElementById('plcom-mes');
         if (mesEl) mesEl.value = new Date().toISOString().slice(0, 7);
 
-        // Garantir visível após fetches
+        // Bind calculators
+        document.getElementById('plcom-compra-kg').oninput = window.calcularPlanejamentoComercialForm;
+        document.getElementById('plcom-venda-kg').oninput = window.calcularPlanejamentoComercialForm;
+        document.getElementById('plcom-preco-compra').oninput = window.calcularPlanejamentoComercialForm;
+        document.getElementById('plcom-preco-venda').oninput = window.calcularPlanejamentoComercialForm;
+
+        // Reset markup badge
+        const badge = document.getElementById('plcom-markup-badge');
+        if (badge) {
+            badge.textContent = '0.0%';
+            badge.style.background = '#1e4e8c';
+            badge.style.color = '#fff';
+            badge.style.borderColor = '#3e7cb1';
+        }
+
         modalEl.style.display = 'flex';
     };
 
@@ -10004,7 +10074,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalEl = document.getElementById('modal-planejamento-comercial-meta');
         if (modalEl) modalEl.style.display = 'none';
     };
-
 
     window.salvarPlanejamentoComercialForm = async function(e) {
         e.preventDefault();
@@ -10017,6 +10086,8 @@ document.addEventListener('DOMContentLoaded', () => {
             produto_nome: prodObj ? prodObj.nome : 'Produto Comercial',
             compra_planejada_kg: document.getElementById('plcom-compra-kg').value,
             venda_planejada_kg: document.getElementById('plcom-venda-kg').value,
+            preco_compra_estimado: document.getElementById('plcom-preco-compra').value,
+            preco_venda_estimado: document.getElementById('plcom-preco-venda').value,
             investimento_planejado_rs: document.getElementById('plcom-investimento-rs').value,
             faturamento_previsto_rs: document.getElementById('plcom-faturamento-rs').value,
             status: 'Meta Definida'
@@ -10032,6 +10103,114 @@ document.addEventListener('DOMContentLoaded', () => {
             _apexNotify('Sucesso', 'Meta comercial salva com sucesso!', 'success');
             fecharModalPlanejamentoComercial();
             await carregarPlanejamentoComercialRevenda();
+            if (typeof window.carregarComparativoRealizadoGeral === 'function') {
+                window.carregarComparativoRealizadoGeral();
+            }
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.calcularRealizadoComercialForm = function() {
+        const compraKg = parseFloat(document.getElementById('realcom-compra-kg').value) || 0;
+        const vendaKg = parseFloat(document.getElementById('realcom-venda-kg').value) || 0;
+        const precoCompra = parseFloat(document.getElementById('realcom-preco-compra').value) || 0;
+        const precoVenda = parseFloat(document.getElementById('realcom-preco-venda').value) || 0;
+
+        const investimento = compraKg * precoCompra;
+        const faturamento = vendaKg * precoVenda;
+        const markup = precoCompra > 0 ? ((precoVenda - precoCompra) / precoCompra) * 100 : 0;
+
+        document.getElementById('realcom-investimento-rs').value = investimento.toFixed(2);
+        document.getElementById('realcom-faturamento-rs').value = faturamento.toFixed(2);
+        
+        const badge = document.getElementById('realcom-markup-badge');
+        if (badge) {
+            badge.textContent = markup.toFixed(1) + '%';
+            badge.style.background = markup >= 0 ? '#1b382b' : '#3b1818';
+            badge.style.color = markup >= 0 ? '#2AD07A' : '#ff4d4d';
+            badge.style.borderColor = markup >= 0 ? '#2AD07A' : '#ff4d4d';
+        }
+    };
+
+    window.abrirModalAtualizarRealizadoComercial = function(id) {
+        const item = (window.localComercialRevenda || []).find(x => x.id === id);
+        if (!item) return;
+
+        const modalEl = document.getElementById('modal-atualizar-realizado-comercial');
+        if (modalEl) {
+            if (modalEl.parentElement !== document.body) {
+                document.body.appendChild(modalEl);
+            }
+            modalEl.style.display = 'flex';
+            modalEl.style.position = 'fixed';
+            modalEl.style.top = '0';
+            modalEl.style.left = '0';
+            modalEl.style.width = '100vw';
+            modalEl.style.height = '100vh';
+            modalEl.style.zIndex = '9999999';
+            modalEl.style.background = 'rgba(0,0,0,0.92)';
+            modalEl.style.alignItems = 'center';
+            modalEl.style.justifyContent = 'center';
+            modalEl.style.overflowY = 'auto';
+            modalEl.style.padding = '20px';
+            modalEl.style.boxSizing = 'border-box';
+        }
+
+        document.getElementById('realcom-item-id').value = item.id;
+        document.getElementById('realcom-produto-nome').value = item.produto_nome || '';
+        document.getElementById('realcom-mes-ref').value = item.mes_referencia || '';
+        document.getElementById('realcom-compra-kg').value = item.compra_realizada_kg || item.compra_planejada_kg || '';
+        document.getElementById('realcom-preco-compra').value = item.preco_compra_realizado || item.preco_compra_estimado || '';
+        document.getElementById('realcom-venda-kg').value = item.venda_realizada_kg || item.venda_planejada_kg || '';
+        document.getElementById('realcom-preco-venda').value = item.preco_venda_realizado || item.preco_venda_estimado || '';
+        document.getElementById('realcom-status').value = item.status || 'Meta Definida';
+
+        // Bind input calculators
+        document.getElementById('realcom-compra-kg').oninput = window.calcularRealizadoComercialForm;
+        document.getElementById('realcom-venda-kg').oninput = window.calcularRealizadoComercialForm;
+        document.getElementById('realcom-preco-compra').oninput = window.calcularRealizadoComercialForm;
+        document.getElementById('realcom-preco-venda').oninput = window.calcularRealizadoComercialForm;
+
+        window.calcularRealizadoComercialForm();
+    };
+
+    window.fecharModalAtualizarRealizadoComercial = function() {
+        const modalEl = document.getElementById('modal-atualizar-realizado-comercial');
+        if (modalEl) modalEl.style.display = 'none';
+    };
+
+    window.salvarRealizadoComercialForm = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('realcom-item-id').value;
+        const compraRealKg = document.getElementById('realcom-compra-kg').value;
+        const precoCompraReal = document.getElementById('realcom-preco-compra').value;
+        const vendaRealKg = document.getElementById('realcom-venda-kg').value;
+        const precoVendaReal = document.getElementById('realcom-preco-venda').value;
+        const faturamentoReal = parseFloat(vendaRealKg || 0) * parseFloat(precoVendaReal || 0);
+
+        const payload = {
+            compra_realizada_kg: compraRealKg,
+            venda_realizada_rs: faturamentoReal,
+            venda_realizada_kg: vendaRealKg,
+            preco_compra_realizado: precoCompraReal,
+            preco_venda_realizado: precoVendaReal,
+            status: document.getElementById('realcom-status').value
+        };
+
+        try {
+            const res = await fetch(`/api/planejamento/comercial-revenda/${id}/realizado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao atualizar realizado comercial');
+            _apexNotify('Sucesso', 'Realizado comercial atualizado com sucesso!', 'success');
+            fecharModalAtualizarRealizadoComercial();
+            await carregarPlanejamentoComercialRevenda();
+            if (typeof window.carregarComparativoRealizadoGeral === 'function') {
+                window.carregarComparativoRealizadoGeral();
+            }
         } catch (err) {
             _apexNotify('Atenção', err.message, 'error');
         }
@@ -10073,8 +10252,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const realRs = parseFloat(c.venda_realizada_rs || 0);
             const desvioPct = planKg > 0 ? (((realKg - planKg) / planKg) * 100) : 0;
 
+            const pCompraPlan = parseFloat(c.preco_compra_estimado || 0);
+            const pVendaPlan = parseFloat(c.preco_venda_estimado || 0);
+            const markupPlan = pCompraPlan > 0 ? ((pVendaPlan - pCompraPlan) / pCompraPlan) * 100 : 0;
+
+            const pCompraReal = parseFloat(c.preco_compra_realizado || 0);
+            const pVendaReal = parseFloat(c.preco_venda_realizado || 0);
+            const markupReal = pCompraReal > 0 ? ((pVendaReal - pCompraReal) / pCompraReal) * 100 : 0;
+
+            const realInvest = realKg * pCompraReal;
+
             totPlanKg += planKg; totRealKg += realKg;
-            totPlanRs += planRs; totRealRs += realRs;
+            totPlanRs += planRs; totRealRs += realInvest; // investimento real
 
             chartLabels.push(c.produto_nome || 'Produto');
             chartDataPlan.push(planKg);
@@ -10087,12 +10276,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="padding:10px 8px;"><span style="background:#162b20; color:#2AD07A; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:0.75rem;">Commercial</span></td>
-                <td style="padding:10px 8px;"><strong>${c.produto_nome || 'Produto'}</strong></td>
+                <td style="padding:10px 8px;">
+                    <strong>${c.produto_nome || 'Produto'}</strong>
+                    <div style="font-size:0.78rem; color:#aaa; margin-top:4px; line-height:1.3;">
+                        Unit. Compra: Plan R$ ${pCompraPlan.toFixed(2)} | Real R$ ${pCompraReal.toFixed(2)}<br>
+                        Unit. Venda: Plan R$ ${pVendaPlan.toFixed(2)} | Real R$ ${pVendaReal.toFixed(2)}<br>
+                        <span style="color:#f0b800; font-weight:bold;">Markup: Plan ${markupPlan.toFixed(1)}% | Real ${markupReal.toFixed(1)}%</span>
+                    </div>
+                </td>
                 <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${planKg.toLocaleString('pt-BR')} kg</td>
                 <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${realKg.toLocaleString('pt-BR')} kg</td>
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${desvioPct >= 0 ? '#2AD07A' : '#ff4d4d'};">${desvioPct >= 0 ? '+' : ''}${desvioPct.toFixed(1)}%</td>
-                <td style="padding:10px 8px; text-align:right; color:#f0b800;">R$ ${planRs.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${realRs.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px 8px; text-align:right; color:#f0b800;">
+                    R$ ${planRs.toLocaleString('pt-BR', {minimumFractionDigits:2})}
+                    <div style="font-size:0.75rem; color:#888;">Fat: R$ ${(parseFloat(c.faturamento_previsto_rs) || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+                </td>
+                <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">
+                    R$ ${realInvest.toLocaleString('pt-BR', {minimumFractionDigits:2})}
+                    <div style="font-size:0.75rem; color:#2AD07A; font-weight:normal;">Fat: R$ ${realRs.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+                </td>
                 <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
             `;
             tbody.appendChild(tr);
