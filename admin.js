@@ -10458,35 +10458,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) return;
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
-            doc.setFillColor(16, 26, 36);
-            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(16);
+            
+            // Título e Meta Info em Fundo Branco
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text("APEXTECH METAIS - PLANEJAMENTO DE PRODUÇÃO & EXPLOSÃO DE INSUMOS", 40, 40);
 
-            let y = 80;
-            doc.setFillColor(30, 78, 140);
-            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.text("Produto", 50, y + 15);
-            doc.text("Insumo", 220, y + 15);
-            doc.text("Insumo Nec. (kg)", 380, y + 15);
-            doc.text("Estoque Atual", 480, y + 15);
-            doc.text("Compra Líquida", 580, y + 15);
-            doc.text("Custo Est. (R$)", 680, y + 15);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Inteligência`, 40, 56);
 
-            y += 28;
-            (localProducaoInsumos || []).forEach((item, idx) => {
-                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
-                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
-                doc.text(String(item.produto_nome || '').slice(0, 22), 50, y + 2);
-                doc.text(String(item.insumo_nome || '').slice(0, 22), 220, y + 2);
-                doc.text(parseFloat(item.quantidade_insumo_nec_kg || 0).toLocaleString('pt-BR') + ' kg', 380, y + 2);
-                doc.text(parseFloat(item.estoque_atual_kg || 0).toLocaleString('pt-BR') + ' kg', 480, y + 2);
-                doc.text(parseFloat(item.quantidade_necessaria_compra_kg || 0).toLocaleString('pt-BR') + ' kg', 580, y + 2);
-                doc.text('R$ ' + parseFloat(item.custo_estimado_rs || 0).toLocaleString('pt-BR', {minimumFractionDigits:2}), 680, y + 2);
-                y += 22;
+            const headers = [['Produto', 'Insumo', 'Insumo Nec. (kg)', 'Estoque Atual', 'Compra Líquida', 'Custo Est. (R$)']];
+            const body = (localProducaoInsumos || []).map(item => [
+                item.produto_nome || '',
+                item.insumo_nome || '',
+                parseFloat(item.quantidade_insumo_nec_kg || 0).toLocaleString('pt-BR') + ' kg',
+                parseFloat(item.estoque_atual_kg || 0).toLocaleString('pt-BR') + ' kg',
+                parseFloat(item.quantidade_necessaria_compra_kg || 0).toLocaleString('pt-BR') + ' kg',
+                'R$ ' + parseFloat(item.custo_estimado_rs || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})
+            ]);
+
+            doc.autoTable({
+                startY: 70,
+                head: headers,
+                body: body,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8.5, cellPadding: 5 }
             });
 
             await aplicarMarcaDaguaLogoJsPDF(doc);
@@ -10500,37 +10499,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) return;
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
-            doc.setFillColor(16, 26, 36);
-            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(16);
+            
+            // Título e Meta Info em Fundo Branco
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text("APEXTECH METAIS - PLANEJAMENTO COMERCIAL & META R$ 5.000.000,00", 40, 40);
 
-            let y = 80;
-            doc.setFillColor(30, 78, 140);
-            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.text("Produto Comercial", 50, y + 15);
-            doc.text("Compra Plan. (kg)", 240, y + 15);
-            doc.text("Venda Plan. (kg)", 360, y + 15);
-            doc.text("Investimento (R$)", 480, y + 15);
-            doc.text("Faturamento Prev. (R$)", 600, y + 15);
-            doc.text("% Meta Global", 730, y + 15);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Inteligência`, 40, 56);
 
-            y += 28;
-            (localComercialRevenda || []).forEach((item, idx) => {
+            const headers = [['Produto Comercial', 'Compra Plan. (kg)', 'Venda Plan. (kg)', 'Investimento (R$)', 'Faturamento Prev. (R$)', '% Meta Global']];
+            const body = (localComercialRevenda || []).map(item => {
                 const fat = parseFloat(item.faturamento_previsto_rs || 0);
                 const part = (fat / 5000000.00) * 100;
-                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
-                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
-                doc.text(String(item.produto_nome || '').slice(0, 25), 50, y + 2);
-                doc.text(parseFloat(item.compra_planejada_kg || 0).toLocaleString('pt-BR') + ' kg', 240, y + 2);
-                doc.text(parseFloat(item.venda_planejada_kg || 0).toLocaleString('pt-BR') + ' kg', 360, y + 2);
-                doc.text('R$ ' + parseFloat(item.investimento_planejado_rs || 0).toLocaleString('pt-BR', {minimumFractionDigits:2}), 480, y + 2);
-                doc.text('R$ ' + fat.toLocaleString('pt-BR', {minimumFractionDigits:2}), 600, y + 2);
-                doc.text(part.toFixed(1) + '%', 730, y + 2);
-                y += 22;
+                return [
+                    item.produto_nome || '',
+                    parseFloat(item.compra_planejada_kg || 0).toLocaleString('pt-BR') + ' kg',
+                    parseFloat(item.venda_planejada_kg || 0).toLocaleString('pt-BR') + ' kg',
+                    'R$ ' + parseFloat(item.investimento_planejado_rs || 0).toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                    'R$ ' + fat.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                    part.toFixed(1) + '%'
+                ];
+            });
+
+            doc.autoTable({
+                startY: 70,
+                head: headers,
+                body: body,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8.5, cellPadding: 5 }
             });
 
             await aplicarMarcaDaguaLogoJsPDF(doc);
@@ -10788,12 +10788,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) return;
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
-            doc.setFillColor(16, 26, 36);
-            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(16);
+            
+            // Título e Meta Info em Fundo Branco
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text("APEXTECH METAIS - PLANEJAMENTO POR CENÁRIOS ESTRATÉGICOS", 40, 40);
+
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Inteligência`, 40, 56);
 
             if (!currentCenariosSimulation || !currentCenariosSimulation.cenarios) return;
 
@@ -10801,28 +10805,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const mod = currentCenariosSimulation.cenarios.moderado;
             const agr = currentCenariosSimulation.cenarios.agressivo;
 
-            let y = 80;
-            doc.setFillColor(30, 78, 140);
-            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.text("Cenário", 50, y + 15);
-            doc.text("% Meta", 180, y + 15);
-            doc.text("Faturamento (R$)", 270, y + 15);
-            doc.text("Investimento (R$)", 420, y + 15);
-            doc.text("Caixa (R$)", 570, y + 15);
-            doc.text("Volume (kg)", 700, y + 15);
+            const headers = [['Cenário', '% Meta', 'Faturamento (R$)', 'Investimento (R$)', 'Caixa (R$)', 'Volume (kg)']];
+            const body = [cons, mod, agr].map(item => [
+                item.cenario,
+                item.percentual + '%',
+                'R$ ' + item.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + item.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                'R$ ' + item.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                item.volume_vendas_kg.toLocaleString('pt-BR') + ' kg'
+            ]);
 
-            y += 28;
-            [cons, mod, agr].forEach((item, idx) => {
-                doc.setFillColor(idx === 0 ? 35 : (idx === 1 ? 40 : 25), idx === 2 ? 55 : 30, 45);
-                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 22, 'F');
-                doc.text(String(item.cenario), 50, y + 3);
-                doc.text(String(item.percentual) + '%', 180, y + 3);
-                doc.text('R$ ' + item.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}), 270, y + 3);
-                doc.text('R$ ' + item.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}), 420, y + 3);
-                doc.text('R$ ' + item.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}), 570, y + 3);
-                doc.text(item.volume_vendas_kg.toLocaleString('pt-BR') + ' kg', 700, y + 3);
-                y += 24;
+            doc.autoTable({
+                startY: 70,
+                head: headers,
+                body: body,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8.5, cellPadding: 5 }
             });
 
             await aplicarMarcaDaguaLogoJsPDF(doc);
