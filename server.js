@@ -49,12 +49,22 @@ if (process.env.DATABASE_URL) {
     });
 }
 
-// ─── Proteção contra Crashes (Estabilidade) ─────────────────────────────
+// ─── Proteção contra Crashes & Desligamento Gracioso (Railway) ─────────
 process.on('uncaughtException', (err) => {
     console.error('💥 Erro não tratado (uncaughtException):', err);
 });
 process.on('unhandledRejection', (reason, promise) => {
     console.error('💥 Promessa rejeitada não tratada (unhandledRejection):', reason);
+});
+process.on('SIGTERM', () => {
+    console.log('🛑 Sinal SIGTERM recebido do Railway. Encerrando servidor graciosamente...');
+    if (pool) pool.end().catch(() => {});
+    process.exit(0);
+});
+process.on('SIGINT', () => {
+    console.log('🛑 Sinal SIGINT recebido. Encerrando servidor...');
+    if (pool) pool.end().catch(() => {});
+    process.exit(0);
 });
 
 // ─── Armazenamento em memória (fallback sem banco) ──────────────────────────
