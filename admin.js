@@ -9254,11 +9254,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let localComercialRevenda = [];
     let localParametrosPrazos = [];
     let chartRealizadoInstance = null;
+    let chartCenariosInstance = null;
+    let currentCenariosConfig = { percentual_conservador: 80, percentual_moderado: 100, percentual_agressivo: 120, cenario_foco: 'AGRESSIVO', meta_base_padrao_rs: 1000000 };
+    let currentCenariosSimulation = null;
 
     window.alternarSubAbaPlanejamento = function(aba) {
         subAbaPlanejamentoAtual = aba;
 
-        const subtabs = ['producao-insumos', 'compras', 'realizado', 'caixa', 'prazos', 'pcp-futuro'];
+        const subtabs = ['producao-insumos', 'compras', 'realizado', 'caixa', 'prazos', 'cenarios', 'pcp-futuro'];
         subtabs.forEach(t => {
             const btn = document.getElementById(`tab-btn-pl-${t}`);
             const view = document.getElementById(`pl-subview-${t}`);
@@ -9283,6 +9286,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (aba === 'realizado') carregarComparativoRealizadoGeral();
         if (aba === 'caixa') carregarProjecaoCaixa();
         if (aba === 'prazos') carregarParametrosPrazos();
+        if (aba === 'cenarios') carregarPlanejamentoCenarios();
     };
 
     // ── 1. Planejamento de Compra (Trading Comercial & Insumos da Indústria) ────
@@ -10278,6 +10282,290 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.imprimirComparativoRealizadoGeralPdf = function() {
         if (window.imprimirComparativoRealizadoPdf) window.imprimirComparativoRealizadoPdf();
+    };
+
+    // ── 7. Planejamento por Cenários Estratégicos (16 a 22) ─────────────────────
+    window.carregarPlanejamentoCenarios = async function() {
+        try {
+            const resCfg = await fetch('/api/planejamento/cenarios/configuracao');
+            if (resCfg.ok) {
+                currentCenariosConfig = await resCfg.json();
+                document.getElementById('cfg-pct-conservador').value = currentCenariosConfig.percentual_conservador || 80;
+                document.getElementById('cfg-pct-moderado').value = currentCenariosConfig.percentual_moderado || 100;
+                document.getElementById('cfg-pct-agressivo').value = currentCenariosConfig.percentual_agressivo || 120;
+                document.getElementById('cfg-cenario-foco').value = currentCenariosConfig.cenario_foco || 'AGRESSIVO';
+            }
+        } catch(e){}
+
+        // Popular Select de Produtos para Requisito 22
+        if (!localMateriais || localMateriais.length === 0) {
+            try {
+                const resM = await fetch('/api/materiais-catalogo');
+                if (resM.ok) localMateriais = await resM.json();
+            } catch(e){}
+        }
+
+        const selProd = document.getElementById('cenarios-select-produto');
+        if (selProd) {
+            selProd.innerHTML = '<option value="">Selecione o Produto para Análise...</option>' +
+                (localMateriais || []).map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+        }
+
+        const metaInput = document.getElementById('sim-meta-base-input');
+        const metaVal = metaInput ? parseFloat(metaInput.value || 1000000) : 1000000;
+        await executarSimulacaoCenarios(metaVal);
+    };
+
+    window.toggleConfiguracaoCenariosPanel = function() {
+        const panel = document.getElementById('cenarios-config-panel');
+        if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+    };
+
+    window.salvarConfiguracaoCenariosForm = async function() {
+        const payload = {
+            percentual_conservador: parseFloat(document.getElementById('cfg-pct-conservador').value || 80),
+            percentual_moderado: parseFloat(document.getElementById('cfg-pct-moderado').value || 100),
+            percentual_agressivo: parseFloat(document.getElementById('cfg-pct-agressivo').value || 120),
+            cenario_foco: document.getElementById('cfg-cenario-foco').value || 'AGRESSIVO',
+            meta_base_padrao_rs: parseFloat(document.getElementById('sim-meta-base-input').value || 1000000)
+        };
+
+        try {
+            const res = await fetch('/api/planejamento/cenarios/configuracao', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao salvar configuração dos cenários');
+            _apexNotify('Sucesso', 'Percentuais dos cenários salvos com sucesso!', 'success');
+            currentCenariosConfig = payload;
+            toggleConfiguracaoCenariosPanel();
+            await executarSimulacaoCenarios(payload.meta_base_padrao_rs);
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.onSimuladorMetaBaseInput = function(val) {
+        const metaVal = parseFloat(val || 0);
+        executarSimulacaoCenarios(metaVal);
+    };
+
+    window.executarSimulacaoCenarios = async function(metaBase) {
+        const payload = {
+            meta_base_rs: metaBase,
+            p_conservador: parseFloat(document.getElementById('cfg-pct-conservador').value || 80),
+            p_moderado: parseFloat(document.getElementById('cfg-pct-moderado').value || 100),
+            p_agressivo: parseFloat(document.getElementById('cfg-pct-agressivo').value || 120)
+        };
+
+        try {
+            const res = await fetch('/api/planejamento/cenarios/simular', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Erro ao simular cenários');
+            const data = await res.json();
+            currentCenariosSimulation = data;
+            renderCenariosEstrategicos(data);
+        } catch (err) {
+            console.error('Erro na simulação dos cenários:', err);
+        }
+    };
+
+    function renderCenariosEstrategicos(data) {
+        if (!data || !data.cenarios) return;
+
+        const cons = data.cenarios.conservador;
+        const mod = data.cenarios.moderado;
+        const agr = data.cenarios.agressivo;
+
+        // 1. Destaque do Cenário Foco (Agressivo por padrão ou configurável)
+        const foco = data.cenario_foco || agr;
+        document.getElementById('foco-titulo-cenario').textContent = `CENÁRIO ${foco.cenario}`;
+        document.getElementById('foco-fat-rs').textContent = 'R$ ' + foco.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('foco-invest-rs').textContent = 'R$ ' + foco.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('foco-caixa-rs').textContent = 'R$ ' + foco.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('foco-volume-kg').textContent = foco.volume_vendas_kg.toLocaleString('pt-BR') + ' kg';
+
+        const diffMod = data.diferenca_foco_moderado_rs || (foco.faturamento_previsto_rs - mod.faturamento_previsto_rs);
+        const diffCons = data.diferenca_foco_conservador_rs || (foco.faturamento_previsto_rs - cons.faturamento_previsto_rs);
+
+        document.getElementById('foco-diff-mod').textContent = (diffMod >= 0 ? '+' : '') + 'R$ ' + diffMod.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${((diffMod / (mod.faturamento_previsto_rs || 1)) * 100).toFixed(1)}%)`;
+        document.getElementById('foco-diff-cons').textContent = (diffCons >= 0 ? '+' : '') + 'R$ ' + diffCons.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${((diffCons / (cons.faturamento_previsto_rs || 1)) * 100).toFixed(1)}%)`;
+
+        // 2. Triple Cards dos 3 Cenários
+        // Conservador
+        document.getElementById('cons-pct-badge').textContent = `${cons.percentual}% Meta`;
+        document.getElementById('cons-fat-txt').textContent = 'R$ ' + cons.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('cons-inv-txt').textContent = 'R$ ' + cons.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('cons-caixa-txt').textContent = 'R$ ' + cons.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('cons-margem-txt').textContent = 'R$ ' + cons.margem_estimada_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${cons.margem_estimada_pct.toFixed(1)}%)`;
+        document.getElementById('cons-vol-txt').textContent = cons.volume_compras_kg.toLocaleString('pt-BR') + ' kg';
+
+        // Moderado
+        document.getElementById('mod-pct-badge').textContent = `${mod.percentual}% Meta`;
+        document.getElementById('mod-fat-txt').textContent = 'R$ ' + mod.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('mod-inv-txt').textContent = 'R$ ' + mod.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('mod-caixa-txt').textContent = 'R$ ' + mod.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('mod-margem-txt').textContent = 'R$ ' + mod.margem_estimada_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${mod.margem_estimada_pct.toFixed(1)}%)`;
+        document.getElementById('mod-vol-txt').textContent = mod.volume_compras_kg.toLocaleString('pt-BR') + ' kg';
+
+        // Agressivo
+        document.getElementById('agr-pct-badge').textContent = `${agr.percentual}% Meta`;
+        document.getElementById('agr-fat-txt').textContent = 'R$ ' + agr.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('agr-inv-txt').textContent = 'R$ ' + agr.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('agr-caixa-txt').textContent = 'R$ ' + agr.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('agr-margem-txt').textContent = 'R$ ' + agr.margem_estimada_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${agr.margem_estimada_pct.toFixed(1)}%)`;
+        document.getElementById('agr-vol-txt').textContent = agr.volume_compras_kg.toLocaleString('pt-BR') + ' kg';
+
+        // 3. Frases da Apresentação Gerencial (Requisito 20)
+        document.getElementById('apres-cons-txt').textContent = `"Se trabalharmos no cenário conservador (${cons.percentual}%), teremos R$ ${cons.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})} de faturamento."`;
+        document.getElementById('apres-mod-txt').textContent = `"No cenário moderado (${mod.percentual}%), atingiremos R$ ${mod.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})}."`;
+        document.getElementById('apres-agr-txt').textContent = `"Para atingir nossa meta estratégica, precisamos trabalhar no cenário agressivo (${agr.percentual}%), chegando a R$ ${agr.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})}."`;
+
+        // 4. Gráfico Comparativo Chart.js
+        renderGraficoCenarios(cons, mod, agr);
+
+        // 5. Atualizar Produto se houver selecionado
+        const selProdVal = document.getElementById('cenarios-select-produto').value;
+        if (selProdVal) renderCenariosPorProduto(selProdVal);
+    }
+
+    function renderGraficoCenarios(cons, mod, agr) {
+        const ctx = document.getElementById('chart-cenarios-faturamento');
+        if (!ctx) return;
+
+        if (chartCenariosInstance) chartCenariosInstance.destroy();
+
+        if (typeof Chart === 'undefined') return;
+
+        chartCenariosInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [`Conservador (${cons.percentual}%)`, `Moderado (${mod.percentual}%)`, `Agressivo (${agr.percentual}%)`],
+                datasets: [
+                    {
+                        label: 'Faturamento Previsto (R$)',
+                        data: [cons.faturamento_previsto_rs, mod.faturamento_previsto_rs, agr.faturamento_previsto_rs],
+                        backgroundColor: ['#ff4d4d', '#f0b800', '#2AD07A']
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { ticks: { color: '#ccc' } },
+                    y: { ticks: { color: '#ccc' } }
+                }
+            }
+        });
+    }
+
+    window.onCenamProdutoChange = function(prodId) {
+        renderCenariosPorProduto(prodId);
+    };
+
+    function renderCenariosPorProduto(prodId) {
+        const tbody = document.getElementById('cenarios-produto-table-body');
+        if (!tbody) return;
+
+        if (!prodId) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto acima para visualizar os cenários individuais.</td></tr>';
+            return;
+        }
+
+        const prod = (localMateriais || []).find(m => m.id == prodId);
+        const prodNome = prod ? prod.nome : 'Produto #' + prodId;
+        const metaBaseVal = parseFloat(document.getElementById('sim-meta-base-input').value || 1000000);
+
+        const pCons = parseFloat(document.getElementById('cfg-pct-conservador').value || 80);
+        const pMod = parseFloat(document.getElementById('cfg-pct-moderado').value || 100);
+        const pAgr = parseFloat(document.getElementById('cfg-pct-agressivo').value || 120);
+
+        const metaVolBaseKg = (metaBaseVal * 0.25) / 30.00; // Assume 25% da meta global para o produto
+
+        const buildRow = (nome, pct, color) => {
+            const volKg = metaVolBaseKg * (pct / 100);
+            const valVenda = volKg * 30.00;
+            const valCompra = volKg * 21.00;
+            const margem = valVenda - valCompra;
+            const invest = valCompra;
+            const caixa = invest * 1.15;
+
+            return `
+                <tr>
+                    <td style="padding:10px 8px;"><strong style="color:${color};">${nome} (${pct}%)</strong></td>
+                    <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${volKg.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:10px 8px; text-align:right; color:#f0b800;">R$ ${valCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${valVenda.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${margem.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; text-align:right; color:#f0b800;">R$ ${invest.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; text-align:right; color:#9b59b6; font-weight:bold;">R$ ${caixa.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; text-align:center;"><span style="background:#101a24; border:1px solid ${color}; color:${color}; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:bold;">${nome}</span></td>
+                </tr>
+            `;
+        };
+
+        tbody.innerHTML =
+            buildRow('🔴 CONSERVADOR', pCons, '#ff4d4d') +
+            buildRow('🟡 MODERADO', pMod, '#f0b800') +
+            buildRow('🟢 AGRESSIVO', pAgr, '#2AD07A');
+    }
+
+    window.imprimirCenariosPdf = function() {
+        try {
+            const jsPDFClass = getJsPDFClass();
+            if (!jsPDFClass) return;
+            const doc = new jsPDFClass('landscape', 'pt', 'a4');
+            doc.setFillColor(16, 26, 36);
+            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("APEXTECH METAIS - PLANEJAMENTO POR CENÁRIOS ESTRATÉGICOS", 40, 40);
+
+            if (!currentCenariosSimulation || !currentCenariosSimulation.cenarios) return;
+
+            const cons = currentCenariosSimulation.cenarios.conservador;
+            const mod = currentCenariosSimulation.cenarios.moderado;
+            const agr = currentCenariosSimulation.cenarios.agressivo;
+
+            let y = 80;
+            doc.setFillColor(30, 78, 140);
+            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text("Cenário", 50, y + 15);
+            doc.text("% Meta", 180, y + 15);
+            doc.text("Faturamento (R$)", 270, y + 15);
+            doc.text("Investimento (R$)", 420, y + 15);
+            doc.text("Caixa (R$)", 570, y + 15);
+            doc.text("Volume (kg)", 700, y + 15);
+
+            y += 28;
+            [cons, mod, agr].forEach((item, idx) => {
+                doc.setFillColor(idx === 0 ? 35 : (idx === 1 ? 40 : 25), idx === 2 ? 55 : 30, 45);
+                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 22, 'F');
+                doc.text(String(item.cenario), 50, y + 3);
+                doc.text(String(item.percentual) + '%', 180, y + 3);
+                doc.text('R$ ' + item.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}), 270, y + 3);
+                doc.text('R$ ' + item.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}), 420, y + 3);
+                doc.text('R$ ' + item.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}), 570, y + 3);
+                doc.text(item.volume_vendas_kg.toLocaleString('pt-BR') + ' kg', 700, y + 3);
+                y += 24;
+            });
+
+            aplicarMarcaDaguaLogoJsPDF(doc);
+            doc.save(`Planejamento_Cenarios_Estrategicos_${new Date().toISOString().slice(0, 10)}.pdf`);
+            _apexNotify('Sucesso', 'PDF de Cenários Estratégicos baixado!', 'success');
+        } catch(e){}
     };
 
     // ── PDF Export: Planejamento de Compra & Venda (Trading) ────────────────────

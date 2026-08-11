@@ -599,6 +599,16 @@ async function initDatabase() {
                 prazo_permanencia_dias     INTEGER DEFAULT 30,
                 atualizado_em              TIMESTAMP DEFAULT NOW()
             );
+
+            CREATE TABLE IF NOT EXISTS configuracao_cenarios_planejamento (
+                id                         SERIAL PRIMARY KEY,
+                percentual_conservador     NUMERIC(5,2) DEFAULT 80.00,
+                percentual_moderado        NUMERIC(5,2) DEFAULT 100.00,
+                percentual_agressivo       NUMERIC(5,2) DEFAULT 120.00,
+                cenario_foco               VARCHAR(20) DEFAULT 'AGRESSIVO',
+                meta_base_padrao_rs        NUMERIC(15,2) DEFAULT 1000000.00,
+                atualizado_em              TIMESTAMP DEFAULT NOW()
+            );
         `);
 
         // Semeando fornecedores e amostras
@@ -2378,6 +2388,136 @@ app.post('/api/planejamento/parametros-prazos', async (req, res) => {
         ]);
 
         res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── API: Planejamento por Cenários (Conservador, Moderado, Agressivo) ──────
+app.get('/api/planejamento/cenarios/configuracao', async (req, res) => {
+    try {
+        const defaultConfig = {
+            id: 1,
+            percentual_conservador: 80.00,
+            percentual_moderado: 100.00,
+            percentual_agressivo: 120.00,
+            cenario_foco: 'AGRESSIVO',
+            meta_base_padrao_rs: 1000000.00
+        };
+
+        if (!dbAvailable) {
+            if (!memStore.configuracao_cenarios_planejamento) {
+                memStore.configuracao_cenarios_planejamento = [defaultConfig];
+            }
+            return res.json(memStore.configuracao_cenarios_planejamento[0]);
+        }
+
+        const r = await pool.query('SELECT * FROM configuracao_cenarios_planejamento ORDER BY id ASC LIMIT 1');
+        if (r.rows.length === 0) {
+            const ins = await pool.query(`
+                INSERT INTO configuracao_cenarios_planejamento (percentual_conservador, percentual_moderado, percentual_agressivo, cenario_foco, meta_base_padrao_rs)
+                VALUES (80.00, 100.00, 120.00, 'AGRESSIVO', 1000000.00) RETURNING *
+            `);
+            return res.json(ins.rows[0]);
+        }
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/cenarios/configuracao', async (req, res) => {
+    try {
+        const { percentual_conservador, percentual_moderado, percentual_agressivo, cenario_foco, meta_base_padrao_rs } = req.body;
+        const pCons = parseFloat(percentual_conservador || 80);
+        const pMod = parseFloat(percentual_moderado || 100);
+        const pAgr = parseFloat(percentual_agressivo || 120);
+        const cFoco = cenario_foco || 'AGRESSIVO';
+        const mBase = parseFloat(meta_base_padrao_rs || 1000000);
+
+        if (!dbAvailable) {
+            const item = {
+                id: 1,
+                percentual_conservador: pCons,
+                percentual_moderado: pMod,
+                percentual_agressivo: pAgr,
+                cenario_foco: cFoco,
+                meta_base_padrao_rs: mBase,
+                atualizado_em: new Date().toISOString()
+            };
+            memStore.configuracao_cenarios_planejamento = [item];
+            return res.json(item);
+        }
+
+        const r = await pool.query(`
+            INSERT INTO configuracao_cenarios_planejamento (id, percentual_conservador, percentual_moderado, percentual_agressivo, cenario_foco, meta_base_padrao_rs)
+            VALUES (1, $1, $2, $3, $4, $5)
+            ON CONFLICT (id) DO UPDATE SET
+                percentual_conservador = EXCLUDED.percentual_conservador,
+                percentual_moderado = EXCLUDED.percentual_moderado,
+                percentual_agressivo = EXCLUDED.percentual_agressivo,
+                cenario_foco = EXCLUDED.cenario_foco,
+                meta_base_padrao_rs = EXCLUDED.meta_base_padrao_rs,
+                atualizado_em = NOW()
+            RETURNING *
+        `, [pCons, pMod, pAgr, cFoco, mBase]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/planejamento/cenarios/simular', async (req, res) => {
+    try {
+        const { meta_base_rs, p_conservador, p_moderado, p_agressivo, produto_id } = req.body;
+        const metaBase = parseFloat(meta_base_rs || 1000000);
+        const pctCons = parseFloat(p_conservador || 80);
+        const pctMod = parseFloat(p_moderado || 100);
+        const pctAgr = parseFloat(p_agressivo || 120);
+
+        const calcCenario = (nome, pct, riskLabel, statusTag) => {
+            const faturamento = metaBase * (pct / 100);
+            const investimento = faturamento * 0.70; // 70% custo das vendas/compras
+            const caixa = investimento * 1.15; // 15% reserva operacional
+            const margem = faturamento - investimento;
+            const margemPct = faturamento > 0 ? (margem / faturamento) * 100 : 0;
+            const volumeVendasKg = faturamento / 30.00; // R$ 30/kg médio
+            const volumeComprasKg = volumeVendasKg * 1.05; // 5% perda/quebra
+            const qtdProdutos = Math.max(1, Math.round(faturamento / 250000));
+
+            return {
+                cenario: nome,
+                percentual: pct,
+                faturamento_previsto_rs: faturamento,
+                investimento_necessario_rs: investimento,
+                necessidade_caixa_rs: caixa,
+                margem_estimada_rs: margem,
+                margem_estimada_pct: margemPct,
+                volume_vendas_kg: volumeVendasKg,
+                volume_compras_kg: volumeComprasKg,
+                qtd_produtos: qtdProdutos,
+                crescimento_esperado_pct: pct - 100,
+                risco: riskLabel,
+                status: statusTag
+            };
+        };
+
+        const conservador = calcCenario('CONSERVADOR', pctCons, 'Baixo Risco (Cenário de Segurança)', '🔴 ABAIXO DA META BASE');
+        const moderado = calcCenario('MODERADO', pctMod, 'Risco Moderado (Padrão Operacional)', '🟡 META BASE');
+        const agressivo = calcCenario('AGRESSIVO', pctAgr, 'Risco Controlado (Expansão)', '🟢 META ESTRATÉGICA');
+
+        res.json({
+            meta_base_rs: metaBase,
+            cenarios: {
+                conservador,
+                moderado,
+                agressivo
+            },
+            cenario_foco: agressivo,
+            diferenca_foco_moderado_rs: agressivo.faturamento_previsto_rs - moderado.faturamento_previsto_rs,
+            diferenca_foco_conservador_rs: agressivo.faturamento_previsto_rs - conservador.faturamento_previsto_rs
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
