@@ -11035,12 +11035,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         nextY = 40;
                     }
 
-                    // Fundo escuro apenas para a caixa do gráfico (para visualizar as linhas/labels claras do chart)
-                    doc.setFillColor(17, 28, 36);
-                    doc.rect(40, nextY, doc.internal.pageSize.getWidth() - 80, 165, 'F');
-
                     const chartImgData = chartCanvas.toDataURL('image/png');
-                    doc.addImage(chartImgData, 'PNG', 50, nextY + 10, doc.internal.pageSize.getWidth() - 100, 145);
+                    doc.addImage(chartImgData, 'PNG', 40, nextY, doc.internal.pageSize.getWidth() - 80, 150);
                 } catch (e) {
                     console.warn('Erro ao inserir gráfico no PDF:', e);
                 }
