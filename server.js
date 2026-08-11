@@ -201,7 +201,11 @@ const memStore = {
         { id: 4, user: "producao", pass: "prod123", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
         { id: 5, user: "financeiro", pass: "fin123", perfil: "Financeiro", nome: "Mariana (Fin)" },
         { id: 6, user: "diretoria", pass: "dir123", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
-    ]
+    ],
+    clientes: [],
+    pedidos_venda: [],
+    pedidos_venda_itens: [],
+    audit_logs: []
 };
 
 // Inicializa tabelas na primeira execução (apenas se DB disponível)
@@ -4904,33 +4908,45 @@ app.delete('/api/pedidos-venda/:id', async (req, res) => {
 
 // ─── Iniciar servidor ─────────────────────────────────────────────────────────
 app.get('/api/admin/run-migrations', (req, res) => {
-    const { exec } = require('child_process');
-    exec('node scripts/force-migrations.js', (err, stdout, stderr) => {
-        if (err) {
-            return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
-        }
-        res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
-    });
+    try {
+        const { exec } = require('child_process');
+        exec('node scripts/force-migrations.js', (err, stdout, stderr) => {
+            if (err) {
+                return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
+            }
+            res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.get('/api/admin/run-import-clientes', (req, res) => {
-    const { exec } = require('child_process');
-    exec('npm run import:clientes', (err, stdout, stderr) => {
-        if (err) {
-            return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
-        }
-        res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
-    });
+    try {
+        const { exec } = require('child_process');
+        exec('npm run import:clientes', (err, stdout, stderr) => {
+            if (err) {
+                return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
+            }
+            res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.get('/api/admin/run-import-fornecedores', (req, res) => {
-    const { exec } = require('child_process');
-    exec('npm run import:fornecedores', (err, stdout, stderr) => {
-        if (err) {
-            return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
-        }
-        res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
-    });
+    try {
+        const { exec } = require('child_process');
+        exec('npm run import:fornecedores', (err, stdout, stderr) => {
+            if (err) {
+                return res.status(500).send('<pre>ERRO:\n' + stderr + '\n\nSTDOUT:\n' + stdout + '</pre>');
+            }
+            res.send('<pre>SUCESSO:\n' + stdout + '\n\nAVISOS:\n' + stderr + '</pre>');
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 initDatabase().then(() => {

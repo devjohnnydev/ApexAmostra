@@ -2190,27 +2190,27 @@
                             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1e3a5f; color:#fff;" title="Etapa 1: Foto do lote original recebido">
                                     <i class="fa-solid fa-box-open"></i> 1. Recebimento
-                                    <input type="file" id="foto-input-recebimento" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'bruta','Recebimento')">
+                                    <input type="file" id="foto-input-recebimento-geral" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'bruta','Recebimento')">
                                 </label>
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1e3a5f; color:#fff;" title="Etapa 2: Fotos da triagem e partes desmontadas">
                                     <i class="fa-solid fa-screwdriver-wrench"></i> 2. Desmonte
-                                    <input type="file" id="foto-input-desmonte" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'separada','Desmonte')">
+                                    <input type="file" id="foto-input-desmonte-geral" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'separada','Desmonte')">
                                 </label>
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1e3a5f; color:#fff;" title="Etapa 3: Fotos do laudo de viabilidade/pesagem">
                                     <i class="fa-solid fa-calculator"></i> 3. Viabilidade
-                                    <input type="file" id="foto-input-viabilidade" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'componente','Viabilidade')">
+                                    <input type="file" id="foto-input-viabilidade-geral" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'componente','Viabilidade')">
                                 </label>
                                 <label class="btn-secondary" style="cursor:pointer; font-size:0.8rem; padding:6px 10px; display:inline-flex; align-items:center; gap:5px; background:#1b382b; color:#2AD07A; border-color:#2AD07A;" title="Etapa 4: Fotos da aprovação da diretoria/parecer">
                                     <i class="fa-solid fa-user-check"></i> 4. Aprovação Adm
-                                    <input type="file" id="foto-input-aprovacao" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'aprovacao','Aprovação')">
+                                    <input type="file" id="foto-input-aprovacao-geral" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'aprovacao','Aprovação')">
                                 </label>
-                                <span id="foto-input-spinner" style="display:none; color:#2AD07A; font-size:0.85rem; align-items:center; gap:6px;">
+                                <span id="foto-input-spinner-geral" style="display:none; color:#2AD07A; font-size:0.85rem; align-items:center; gap:6px;">
                                     <i class="fa-solid fa-spinner fa-spin"></i> Enviando foto...
                                 </span>
                             </div>
                         </div>
-                        <div id="fotos-gallery" style="display:flex; flex-wrap:wrap; gap:12px; min-height:80px; align-items:flex-start;">
-                            <div id="fotos-placeholder" style="color:#555; font-size:0.85rem; padding:15px; width:100%; text-align:center;">
+                        <div id="fotos-gallery-geral" style="display:flex; flex-wrap:wrap; gap:12px; min-height:80px; align-items:flex-start;">
+                            <div id="fotos-placeholder-geral" style="color:#555; font-size:0.85rem; padding:15px; width:100%; text-align:center;">
                                 <i class="fa-solid fa-images" style="font-size:2rem; margin-bottom:8px; display:block; opacity:0.3;"></i>
                                 Nenhuma foto registrada para esta amostra. Selecione uma etapa acima para anexar.
                             </div>
