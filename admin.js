@@ -9254,7 +9254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.alternarSubAbaPlanejamento = function(aba) {
         subAbaPlanejamentoAtual = aba;
 
-        const subtabs = ['simulacao', 'compras', 'industrial', 'producao'];
+        const subtabs = ['compras', 'insumos', 'realizado', 'simulacao'];
         subtabs.forEach(t => {
             const btn = document.getElementById(`tab-btn-pl-${t}`);
             const view = document.getElementById(`pl-subview-${t}`);
@@ -9274,12 +9274,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (aba === 'compras') carregarPlanejamentoCompras();
-        if (aba === 'industrial') carregarPlanejamentoIndustrial();
-        if (aba === 'producao') carregarOrdensProducao();
+        if (aba === 'compras' || aba === 'insumos' || aba === 'realizado') carregarPlanejamentoCompras();
     };
 
-    // ── 1. Planejamento de Compra (MRP) ──────────────────────────────────────
+    // ── 1. Planejamento de Compra (Trading Comercial & Insumos da Indústria) ────
     window.carregarPlanejamentoCompras = async function() {
         try {
             const res = await fetch('/api/planejamento/compras');
@@ -9296,28 +9294,26 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function renderPlanejamentoCompras() {
-        const tbody = document.getElementById('mrp-table-body');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+        const tbodyCompras = document.getElementById('mrp-table-body');
+        const tbodyInsumos = document.getElementById('insumos-table-body');
+        const tbodyRealizado = document.getElementById('realizado-table-body');
 
-        let totalQty = 0;
-        let totalCusto = 0;
-        let totalLeadTime = 0;
-        let criticosCount = 0;
+        if (tbodyCompras) tbodyCompras.innerHTML = '';
+        if (tbodyInsumos) tbodyInsumos.innerHTML = '';
+        if (tbodyRealizado) tbodyRealizado.innerHTML = '';
 
-        localMRP.forEach(p => {
+        let totalQtyCompras = 0, totalCustoCompras = 0, totalLeadTimeCompras = 0, totalRealizadoVolCompras = 0;
+        let totalQtyInsumos = 0, totalCustoInsumos = 0;
+        let totalMetaRealizado = 0, totalVolumeRealizado = 0, totalInvestimentoPrevisto = 0, totalInvestimentoRealizado = 0;
+
+        (localMRP || []).forEach(p => {
             const qty = parseFloat(p.quantidade_necessaria || 0);
-            const ponto = parseFloat(p.ponto_pedido_kg || 0);
-            const lt = parseInt(p.lead_time_dias || 7);
+            const qtyReal = parseFloat(p.quantidade_realizada_kg || 0);
             const prc = parseFloat(p.preco_estimado || 0);
-            const total = parseFloat(p.custo_total_estimado || (qty * prc));
-
-            totalQty += qty;
-            totalCusto += total;
-            totalLeadTime += lt;
-
-            const isCritico = ponto > 0 && qty <= ponto;
-            if (isCritico) criticosCount++;
+            const lt = parseInt(p.lead_time_dias || 7);
+            const totalEst = parseFloat(p.custo_total_estimado || (qty * prc));
+            const totalReal = parseFloat(p.custo_total_realizado || (qtyReal * prc));
+            const tipo = p.tipo_planejamento || 'COMPRA_VENDA';
 
             let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Sugerido</span>';
             if (p.status === 'Em Cotação') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🔍 Em Cotação</span>';
@@ -9325,38 +9321,129 @@ document.addEventListener('DOMContentLoaded', () => {
             if (p.status === 'Em Trânsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🚚 Em Trânsito</span>';
             if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">📦 Recebido</span>';
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding:10px 8px;"><strong>${p.material_nome || '-'}</strong></td>
-                <td style="padding:10px 8px;">${p.fornecedor_nome || '-'}</td>
-                <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${qty.toLocaleString('pt-BR')} kg</td>
-                <td style="padding:10px 8px; text-align:right; color:${isCritico ? '#ff4d4d' : '#aaa'};">${ponto > 0 ? ponto.toLocaleString('pt-BR') + ' kg' : '-'} ${isCritico ? '⚠️' : ''}</td>
-                <td style="padding:10px 8px; text-align:center;"><span style="color:#3e7cb1; font-weight:bold;">${lt} dias</span></td>
-                <td style="padding:10px 8px; text-align:right;">R$ ${fmtBRL(prc)}</td>
-                <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:10px 8px; text-align:center;">${p.mes_referencia || '-'}</td>
-                <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
-                <td style="padding:10px 8px; text-align:center;">
-                    <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#162b20; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:6px;" title="Baixar PDF MRP com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-                    <button type="button" onclick="excluirPlanejamentoCompra(${p.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+            if (tipo === 'COMPRA_VENDA') {
+                totalQtyCompras += qty;
+                totalCustoCompras += totalEst;
+                totalLeadTimeCompras += lt;
+                totalRealizadoVolCompras += qtyReal;
+
+                if (tbodyCompras) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="padding:10px 8px;"><strong>${p.material_nome || '-'}</strong></td>
+                        <td style="padding:10px 8px;">${p.fornecedor_nome || '-'}</td>
+                        <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${qty.toLocaleString('pt-BR')} kg</td>
+                        <td style="padding:10px 8px; text-align:right;">R$ ${fmtBRL(prc)}</td>
+                        <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${totalEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                        <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${qtyReal.toLocaleString('pt-BR')} kg</td>
+                        <td style="padding:10px 8px; text-align:center;"><span style="color:#3e7cb1; font-weight:bold;">${lt} dias</span></td>
+                        <td style="padding:10px 8px; text-align:center;">${p.mes_referencia || '-'}</td>
+                        <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+                        <td style="padding:10px 8px; text-align:center;">
+                            <button type="button" onclick="abrirModalAtualizarRealizado(${p.id})" style="background:#3b2d18; border:1px solid #f0b800; color:#f0b800; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Atualizar Realizado Efetuado"><i class="fa-solid fa-pen-to-square"></i> Realizado</button>
+                            <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#162b20; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Baixar PDF com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <button type="button" onclick="excluirPlanejamentoCompra(${p.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbodyCompras.appendChild(tr);
+                }
+            } else {
+                totalQtyInsumos += qty;
+                totalCustoInsumos += totalEst;
+
+                if (tbodyInsumos) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="padding:10px 8px;"><strong>${p.material_nome || '-'}</strong></td>
+                        <td style="padding:10px 8px;">${p.fornecedor_nome || '-'}</td>
+                        <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${qty.toLocaleString('pt-BR')} kg</td>
+                        <td style="padding:10px 8px; text-align:right; color:#aaa;">${parseFloat(p.ponto_pedido_kg || 0).toLocaleString('pt-BR')} kg</td>
+                        <td style="padding:10px 8px; text-align:center;"><span style="color:#3e7cb1; font-weight:bold;">${lt} dias</span></td>
+                        <td style="padding:10px 8px; text-align:right; color:#ffb74d; font-weight:bold;">R$ ${totalEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                        <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
+                        <td style="padding:10px 8px; text-align:center;">
+                            <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Baixar PDF com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <button type="button" onclick="excluirPlanejamentoCompra(${p.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbodyInsumos.appendChild(tr);
+                }
+            }
+
+            // Tabela 3: Planejado vs. Realizado (Metas)
+            totalMetaRealizado += qty;
+            totalVolumeRealizado += qtyReal;
+            totalInvestimentoPrevisto += totalEst;
+            totalInvestimentoRealizado += totalReal;
+
+            if (tbodyRealizado) {
+                const desvioPct = qty > 0 ? (((qtyReal - qty) / qty) * 100) : 0;
+                const desvioCor = desvioPct >= 0 ? '#2AD07A' : '#ff6b6b';
+                const desvioTexto = (desvioPct >= 0 ? '+' : '') + desvioPct.toFixed(1) + '%';
+                const pctBarra = qty > 0 ? Math.min(Math.round((qtyReal / qty) * 100), 100) : 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding:10px 8px;"><span style="background:${tipo === 'COMPRA_VENDA' ? '#162b20' : '#1e354d'}; color:${tipo === 'COMPRA_VENDA' ? '#2AD07A' : '#3e7cb1'}; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">${tipo === 'COMPRA_VENDA' ? 'Trading' : 'Insumo'}</span></td>
+                    <td style="padding:10px 8px;"><strong>${p.material_nome || '-'}</strong> <small style="color:#aaa;">(${p.fornecedor_nome || '-'})</small></td>
+                    <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${qty.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${qtyReal.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${desvioCor};">${desvioTexto}</td>
+                    <td style="padding:10px 8px; text-align:right; color:#f0b800;">R$ ${totalEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${totalReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:10px 8px; min-width:140px;">
+                        <div style="background:#162432; border-radius:10px; height:12px; overflow:hidden; border:1px solid #223547;">
+                            <div style="background:${pctBarra >= 100 ? '#2AD07A' : '#f0b800'}; height:100%; width:${pctBarra}%;"></div>
+                        </div>
+                        <small style="font-size:0.75rem; color:#aaa; display:block; text-align:center; margin-top:2px;">${pctBarra}% Atingido</small>
+                    </td>
+                    <td style="padding:10px 8px; text-align:center;">
+                        <button type="button" onclick="abrirModalAtualizarRealizado(${p.id})" style="background:#3b2d18; border:1px solid #f0b800; color:#f0b800; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer;" title="Lançar Volume Realizado"><i class="fa-solid fa-pen"></i> Lançar</button>
+                    </td>
+                `;
+                tbodyRealizado.appendChild(tr);
+            }
         });
 
+        // KPIs Sub-aba 1 (Trading)
         const kpiDem = document.getElementById('mrp-kpi-demandas');
-        const kpiCrit = document.getElementById('mrp-kpi-critico');
-        const kpiLt = document.getElementById('mrp-kpi-leadtime');
         const kpiCust = document.getElementById('mrp-kpi-custototal');
+        const kpiLt = document.getElementById('mrp-kpi-leadtime');
+        const kpiAt = document.getElementById('mrp-kpi-atingimento');
 
-        if (kpiDem) kpiDem.textContent = localMRP.length;
-        if (kpiCrit) kpiCrit.textContent = criticosCount + ' Mat.';
-        if (kpiLt) kpiLt.textContent = (localMRP.length > 0 ? Math.round(totalLeadTime / localMRP.length) : 0) + ' dias';
-        if (kpiCust) kpiCust.textContent = 'R$ ' + totalCusto.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        const comprasList = (localMRP || []).filter(x => (x.tipo_planejamento || 'COMPRA_VENDA') === 'COMPRA_VENDA');
+        if (kpiDem) kpiDem.textContent = totalQtyCompras.toLocaleString('pt-BR') + ' kg';
+        if (kpiCust) kpiCust.textContent = 'R$ ' + totalCustoCompras.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        if (kpiLt) kpiLt.textContent = (comprasList.length > 0 ? Math.round(totalLeadTimeCompras / comprasList.length) : 0) + ' dias';
+        if (kpiAt) kpiAt.textContent = (totalQtyCompras > 0 ? Math.round((totalRealizadoVolCompras / totalQtyCompras) * 100) : 0) + '%';
+
+        // KPIs Sub-aba 2 (Insumos)
+        const kpiInsTot = document.getElementById('ins-kpi-total');
+        const kpiInsVol = document.getElementById('ins-kpi-volume');
+        const kpiInsCusto = document.getElementById('ins-kpi-custo');
+
+        const insumosList = (localMRP || []).filter(x => x.tipo_planejamento === 'INSUMO_INDUSTRIA');
+        if (kpiInsTot) kpiInsTot.textContent = insumosList.length;
+        if (kpiInsVol) kpiInsVol.textContent = totalQtyInsumos.toLocaleString('pt-BR') + ' kg';
+        if (kpiInsCusto) kpiInsCusto.textContent = 'R$ ' + totalCustoInsumos.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+        // KPIs Sub-aba 3 (Realizado & Projeção)
+        const kpiRealPlan = document.getElementById('real-kpi-planejado-vol');
+        const kpiRealEfet = document.getElementById('real-kpi-realizado-vol');
+        const kpiRealDesv = document.getElementById('real-kpi-desvio');
+        const kpiRealProj = document.getElementById('real-kpi-proj-caixa');
+
+        if (kpiRealPlan) kpiRealPlan.textContent = totalMetaRealizado.toLocaleString('pt-BR') + ' kg';
+        if (kpiRealEfet) kpiRealEfet.textContent = totalVolumeRealizado.toLocaleString('pt-BR') + ' kg';
+        const desvioGeralPct = totalMetaRealizado > 0 ? (((totalVolumeRealizado - totalMetaRealizado) / totalMetaRealizado) * 100) : 0;
+        if (kpiRealDesv) {
+            kpiRealDesv.textContent = (desvioGeralPct >= 0 ? '+' : '') + desvioGeralPct.toFixed(1) + '%';
+            kpiRealDesv.style.color = desvioGeralPct >= 0 ? '#2AD07A' : '#ff6b6b';
+        }
+        if (kpiRealProj) kpiRealProj.textContent = 'R$ ' + totalInvestimentoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
 
-    window.abrirModalPlanejamentoCompra = async function() {
-        // Garantir que fornecedores e materiais estejam carregados da API
+    window.abrirModalPlanejamentoCompra = async function(tipoFix) {
         if (!localFornecedores || localFornecedores.length === 0) {
             try {
                 const res = await fetch('/api/fornecedores?limit=200');
@@ -9366,8 +9453,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.localFornecedores = localFornecedores;
                 }
             } catch(e){}
-        } else {
-            window.localFornecedores = localFornecedores;
         }
 
         if (!localMateriais || localMateriais.length === 0) {
@@ -9379,33 +9464,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.localMateriais = localMateriais;
                 }
             } catch(e){}
-        } else {
-            window.localMateriais = localMateriais;
         }
 
         const selMat = document.getElementById('mrp-material-id');
         const selForn = document.getElementById('mrp-fornecedor-id');
-
         const listMat = (localMateriais && localMateriais.length > 0) ? localMateriais : (window.localMateriais || []);
         const listForn = (localFornecedores && localFornecedores.length > 0) ? localFornecedores : (window.localFornecedores || []);
 
         if (selMat) {
             selMat.innerHTML = '<option value="">Selecione o Material...</option>' +
-                listMat.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Geral'})</option>`).join('') +
-                '<option value="NOVO" style="color:#2AD07A; font-weight:bold;">+ Cadastrar Novo Material...</option>';
+                listMat.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Geral'})</option>`).join('');
         }
         if (selForn) {
             selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' +
-                listForn.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('') +
-                '<option value="NOVO" style="color:#2AD07A; font-weight:bold;">+ Cadastrar Novo Fornecedor...</option>';
+                listForn.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
         }
 
-        const inputMes = document.getElementById('mrp-mes-referencia');
-        if (inputMes) inputMes.value = new Date().toISOString().slice(0, 7);
-
         document.getElementById('form-planejamento-compra').reset();
+        document.getElementById('mrp-id').value = '';
         document.getElementById('mrp-mes-referencia').value = new Date().toISOString().slice(0, 7);
-        document.getElementById('mrp-txt-custo-total').textContent = 'R$ 0,00';
+        document.getElementById('mrp-custo-total-previsto').value = 'R$ 0,00';
+
+        const tipoVal = tipoFix || 'COMPRA_VENDA';
+        document.getElementById('mrp-tipo-planejamento').value = tipoVal;
+        document.getElementById('mrp-select-tipo').value = tipoVal;
+
+        document.getElementById('modal-mrp-titulo').innerHTML = tipoVal === 'COMPRA_VENDA' ?
+            '<i class="fa-solid fa-cart-shopping" style="color:#2AD07A;"></i> Nova Meta de Compra & Venda (Trading)' :
+            '<i class="fa-solid fa-boxes-packing" style="color:#3e7cb1;"></i> Novo Insumo da Indústria (Produção)';
+
         document.getElementById('modal-planejamento-compra').style.display = 'flex';
     };
 
@@ -9413,51 +9500,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-planejamento-compra').style.display = 'none';
     };
 
-    window.onMrpMaterialChange = function() {
-        const val = document.getElementById('mrp-material-id').value;
-        if (val === 'NOVO') {
-            document.getElementById('mrp-material-id').value = '';
-            fecharModalPlanejamentoCompra();
-            if (window.abrirModalMaterial) window.abrirModalMaterial();
-            return;
-        }
-        atualizarPrecoEstCompra();
-    };
-
-    window.onMrpFornecedorChange = function() {
-        const val = document.getElementById('mrp-fornecedor-id').value;
-        if (val === 'NOVO') {
-            document.getElementById('mrp-fornecedor-id').value = '';
-            fecharModalPlanejamentoCompra();
-            if (window.abrirModalFornecedor) window.abrirModalFornecedor();
-            return;
-        }
-    };
-
-    window.atualizarPrecoEstCompra = function() {
-        const matId = document.getElementById('mrp-material-id').value;
-        if (!matId) return;
-        const prc = (window.localPrecos || []).find(x => x.material_id == matId);
-        if (prc && prc.preco_entregar) {
-            document.getElementById('mrp-preco-estimado').value = prc.preco_entregar;
-            calcularTotalMRPForm();
-        }
-    };
-
-    window.calcularTotalMRPForm = function() {
+    window.calcularCustoTotalMrpForm = function() {
         const qty = parseFloat(document.getElementById('mrp-qtd-necessaria').value) || 0;
         const prc = parseFloat(document.getElementById('mrp-preco-estimado').value) || 0;
         const total = qty * prc;
-        document.getElementById('mrp-txt-custo-total').textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        const el = document.getElementById('mrp-custo-total-previsto');
+        if (el) el.value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2});
     };
 
     window.salvarPlanejamentoCompraForm = async function(e) {
         e.preventDefault();
         const payload = {
+            tipo_planejamento: document.getElementById('mrp-tipo-planejamento').value || 'COMPRA_VENDA',
             material_id: document.getElementById('mrp-material-id').value,
             fornecedor_id: document.getElementById('mrp-fornecedor-id').value,
             quantidade_necessaria: document.getElementById('mrp-qtd-necessaria').value,
-            ponto_pedido_kg: document.getElementById('mrp-ponto-pedido').value || 0,
+            quantidade_realizada_kg: document.getElementById('mrp-qtd-realizada').value || 0,
             lead_time_dias: document.getElementById('mrp-lead-time').value || 7,
             preco_estimado: document.getElementById('mrp-preco-estimado').value || 0,
             mes_referencia: document.getElementById('mrp-mes-referencia').value,
@@ -9471,12 +9529,285 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao salvar planejamento de compra');
-            _apexNotify('Sucesso', 'Demanda de compra (MRP) salva com sucesso!', 'success');
+            if (!res.ok) throw new Error('Erro ao salvar planejamento');
+            _apexNotify('Sucesso', 'Planejamento salvo com sucesso no banco de dados!', 'success');
             fecharModalPlanejamentoCompra();
             await carregarPlanejamentoCompras();
         } catch (err) {
             _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.abrirModalAtualizarRealizado = function(id) {
+        const item = (localMRP || []).find(x => x.id == id);
+        if (!item) return;
+
+        document.getElementById('real-item-id').value = item.id;
+        document.getElementById('real-item-material').value = item.material_nome || 'Material';
+        document.getElementById('real-item-meta').value = parseFloat(item.quantidade_necessaria || 0).toLocaleString('pt-BR') + ' kg';
+        document.getElementById('real-item-qtd-realizada').value = item.quantidade_realizada_kg || 0;
+        document.getElementById('real-item-status').value = item.status || 'Sugerido';
+
+        document.getElementById('modal-atualizar-realizado').style.display = 'flex';
+    };
+
+    window.fecharModalAtualizarRealizado = function() {
+        document.getElementById('modal-atualizar-realizado').style.display = 'none';
+    };
+
+    window.salvarRealizadoForm = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('real-item-id').value;
+        const qtyReal = parseFloat(document.getElementById('real-item-qtd-realizada').value) || 0;
+        const status = document.getElementById('real-item-status').value;
+
+        const item = (localMRP || []).find(x => x.id == id);
+        const prc = item ? parseFloat(item.preco_estimado || 0) : 0;
+        const custoReal = qtyReal * prc;
+
+        try {
+            const res = await fetch(`/api/planejamento/compras/${id}/realizado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quantidade_realizada_kg: qtyReal,
+                    custo_total_realizado: custoReal,
+                    status: status
+                })
+            });
+            if (!res.ok) throw new Error('Erro ao atualizar volume realizado');
+            _apexNotify('Sucesso', 'Volume realizado atualizado com sucesso!', 'success');
+            fecharModalAtualizarRealizado();
+            await carregarPlanejamentoCompras();
+        } catch (err) {
+            _apexNotify('Atenção', err.message, 'error');
+        }
+    };
+
+    window.excluirPlanejamentoCompra = async function(id) {
+        if (!confirm('Excluir este planejamento?')) return;
+        try {
+            await fetch(`/api/planejamento/compras/${id}`, { method: 'DELETE' });
+            _apexNotify('Sucesso', 'Registro excluído.', 'success');
+            await carregarPlanejamentoCompras();
+        } catch (err) {
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
+        }
+    };
+
+    // ── PDF Export: Planejamento de Compra & Venda (Trading) ────────────────────
+    window.imprimirRelatorioMrpPdf = window.imprimirMrpPdf = function(id) {
+        try {
+            const jsPDFClass = getJsPDFClass();
+            if (!jsPDFClass) {
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
+                return;
+            }
+            const doc = new jsPDFClass('landscape', 'pt', 'a4');
+            const dataToExport = id ? (localMRP || []).filter(x => x.id == id) : (localMRP || []).filter(x => (x.tipo_planejamento || 'COMPRA_VENDA') === 'COMPRA_VENDA');
+
+            doc.setFillColor(16, 26, 36);
+            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("APEXTECH METAIS - PLANEJAMENTO DE COMPRA & VENDA (TRADING)", 40, 40);
+
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(170, 170, 170);
+            doc.text(`Relatório Gerencial Comercial | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+
+            let y = 80;
+            doc.setFillColor(30, 78, 140);
+            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Material / Produto", 50, y + 15);
+            doc.text("Fornecedor", 220, y + 15);
+            doc.text("Meta (kg)", 380, y + 15);
+            doc.text("Preço (R$/kg)", 460, y + 15);
+            doc.text("Investimento (R$)", 550, y + 15);
+            doc.text("Realizado (kg)", 670, y + 15);
+            doc.text("Status", 770, y + 15);
+
+            y += 28;
+            doc.setFont('helvetica', 'normal');
+            dataToExport.forEach((item, idx) => {
+                if (y > doc.internal.pageSize.getHeight() - 50) {
+                    aplicarMarcaDaguaLogoJsPDF(doc);
+                    doc.addPage();
+                    y = 40;
+                }
+                const qty = parseFloat(item.quantidade_necessaria || 0);
+                const prc = parseFloat(item.preco_estimado || 0);
+                const total = parseFloat(item.custo_total_estimado || (qty * prc));
+                const realQty = parseFloat(item.quantidade_realizada_kg || 0);
+
+                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
+                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.text(String(item.material_nome || '-').slice(0, 25), 50, y + 2);
+                doc.text(String(item.fornecedor_nome || '-').slice(0, 25), 220, y + 2);
+                doc.text(qty.toLocaleString('pt-BR') + ' kg', 380, y + 2);
+                doc.text('R$ ' + prc.toFixed(2), 460, y + 2);
+                doc.text('R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2}), 550, y + 2);
+                doc.text(realQty.toLocaleString('pt-BR') + ' kg', 670, y + 2);
+                doc.text(String(item.status || 'Sugerido'), 770, y + 2);
+                y += 22;
+            });
+
+            aplicarMarcaDaguaLogoJsPDF(doc);
+            doc.save(`Planejamento_Trading_${new Date().toISOString().slice(0, 10)}.pdf`);
+            _apexNotify('Sucesso', 'PDF de Trading Comercial gerado com marca d\'água!', 'success');
+        } catch (err) {
+            console.error('Erro ao gerar PDF Trading:', err);
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
+        }
+    };
+
+    // ── PDF Export: Insumos da Indústria ───────────────────────────────────────
+    window.imprimirInsumosIndustriaPdf = function() {
+        try {
+            const jsPDFClass = getJsPDFClass();
+            if (!jsPDFClass) {
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
+                return;
+            }
+            const doc = new jsPDFClass('landscape', 'pt', 'a4');
+            const dataToExport = (localMRP || []).filter(x => x.tipo_planejamento === 'INSUMO_INDUSTRIA');
+
+            doc.setFillColor(16, 26, 36);
+            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("APEXTECH METAIS - PLANEJAMENTO DE INSUMOS DA INDÚSTRIA", 40, 40);
+
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(170, 170, 170);
+            doc.text(`Consumo e Abastecimento de Fábrica | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+
+            let y = 80;
+            doc.setFillColor(30, 78, 140);
+            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Insumo / Material", 50, y + 15);
+            doc.text("Fornecedor", 240, y + 15);
+            doc.text("Qtd Necessária (kg)", 420, y + 15);
+            doc.text("Lead Time", 550, y + 15);
+            doc.text("Custo Previsto (R$)", 640, y + 15);
+            doc.text("Status", 770, y + 15);
+
+            y += 28;
+            doc.setFont('helvetica', 'normal');
+            dataToExport.forEach((item, idx) => {
+                if (y > doc.internal.pageSize.getHeight() - 50) {
+                    aplicarMarcaDaguaLogoJsPDF(doc);
+                    doc.addPage();
+                    y = 40;
+                }
+                const qty = parseFloat(item.quantidade_necessaria || 0);
+                const prc = parseFloat(item.preco_estimado || 0);
+                const total = parseFloat(item.custo_total_estimado || (qty * prc));
+
+                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
+                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.text(String(item.material_nome || '-').slice(0, 28), 50, y + 2);
+                doc.text(String(item.fornecedor_nome || '-').slice(0, 25), 240, y + 2);
+                doc.text(qty.toLocaleString('pt-BR') + ' kg', 420, y + 2);
+                doc.text(String(item.lead_time_dias || 7) + ' dias', 550, y + 2);
+                doc.text('R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2}), 640, y + 2);
+                doc.text(String(item.status || 'Sugerido'), 770, y + 2);
+                y += 22;
+            });
+
+            aplicarMarcaDaguaLogoJsPDF(doc);
+            doc.save(`Planejamento_Insumos_Industria_${new Date().toISOString().slice(0, 10)}.pdf`);
+            _apexNotify('Sucesso', 'PDF de Insumos da Indústria gerado com marca d\'água!', 'success');
+        } catch (err) {
+            console.error('Erro ao gerar PDF Insumos:', err);
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
+        }
+    };
+
+    // ── PDF Export: Planejado vs. Realizado (Metas & Caixa) ────────────────────
+    window.imprimirComparativoRealizadoPdf = function() {
+        try {
+            const jsPDFClass = getJsPDFClass();
+            if (!jsPDFClass) {
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
+                return;
+            }
+            const doc = new jsPDFClass('landscape', 'pt', 'a4');
+            const dataToExport = localMRP || [];
+
+            doc.setFillColor(16, 26, 36);
+            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("APEXTECH METAIS - DEMONSTRATIVO PLANEJADO VS. REALIZADO", 40, 40);
+
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(170, 170, 170);
+            doc.text(`Acompanhamento de Metas de Compra & Projeção de Caixa | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+
+            let y = 80;
+            doc.setFillColor(30, 78, 140);
+            doc.rect(40, y, doc.internal.pageSize.getWidth() - 80, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Tipo", 50, y + 15);
+            doc.text("Material / Produto", 120, y + 15);
+            doc.text("Meta (kg)", 300, y + 15);
+            doc.text("Realizado (kg)", 400, y + 15);
+            doc.text("Desvio %", 500, y + 15);
+            doc.text("Previsto (R$)", 590, y + 15);
+            doc.text("Realizado (R$)", 700, y + 15);
+
+            y += 28;
+            doc.setFont('helvetica', 'normal');
+            dataToExport.forEach((item, idx) => {
+                if (y > doc.internal.pageSize.getHeight() - 50) {
+                    aplicarMarcaDaguaLogoJsPDF(doc);
+                    doc.addPage();
+                    y = 40;
+                }
+                const qty = parseFloat(item.quantidade_necessaria || 0);
+                const qtyReal = parseFloat(item.quantidade_realizada_kg || 0);
+                const prc = parseFloat(item.preco_estimado || 0);
+                const totalEst = parseFloat(item.custo_total_estimado || (qty * prc));
+                const totalReal = parseFloat(item.custo_total_realizado || (qtyReal * prc));
+                const desvioPct = qty > 0 ? (((qtyReal - qty) / qty) * 100) : 0;
+                const tipoStr = (item.tipo_planejamento || 'COMPRA_VENDA') === 'COMPRA_VENDA' ? 'Trading' : 'Insumo';
+
+                doc.setFillColor(idx % 2 === 0 ? 18 : 24, 34, 48);
+                doc.rect(40, y - 10, doc.internal.pageSize.getWidth() - 80, 20, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.text(tipoStr, 50, y + 2);
+                doc.text(String(item.material_nome || '-').slice(0, 24), 120, y + 2);
+                doc.text(qty.toLocaleString('pt-BR') + ' kg', 300, y + 2);
+                doc.text(qtyReal.toLocaleString('pt-BR') + ' kg', 400, y + 2);
+                doc.text((desvioPct >= 0 ? '+' : '') + desvioPct.toFixed(1) + '%', 500, y + 2);
+                doc.text('R$ ' + totalEst.toLocaleString('pt-BR', {minimumFractionDigits:2}), 590, y + 2);
+                doc.text('R$ ' + totalReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), 700, y + 2);
+                y += 22;
+            });
+
+            aplicarMarcaDaguaLogoJsPDF(doc);
+            doc.save(`Planejado_vs_Realizado_${new Date().toISOString().slice(0, 10)}.pdf`);
+            _apexNotify('Sucesso', 'PDF Planejado vs. Realizado gerado com marca d\'água!', 'success');
+        } catch (err) {
+            console.error('Erro ao gerar PDF Planejado vs Realizado:', err);
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 

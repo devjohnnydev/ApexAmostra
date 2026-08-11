@@ -480,18 +480,24 @@ async function initDatabase() {
 
             CREATE TABLE IF NOT EXISTS planejamento_compras (
                 id                     SERIAL PRIMARY KEY,
+                tipo_planejamento      TEXT DEFAULT 'COMPRA_VENDA',
                 material_id            INTEGER,
                 fornecedor_id          INTEGER,
                 quantidade_necessaria  NUMERIC(12,3) NOT NULL,
+                quantidade_realizada_kg NUMERIC(12,3) DEFAULT 0.00,
                 ponto_pedido_kg        NUMERIC(12,3) DEFAULT 0.00,
                 lead_time_dias         INTEGER DEFAULT 7,
                 preco_estimado         NUMERIC(10,4) DEFAULT 0.00,
                 custo_total_estimado   NUMERIC(14,2) DEFAULT 0.00,
+                custo_total_realizado  NUMERIC(14,2) DEFAULT 0.00,
                 mes_referencia         TEXT,
                 status                 TEXT DEFAULT 'Sugerido',
                 observacoes            TEXT,
                 criado_em              TIMESTAMP DEFAULT NOW()
             );
+            ALTER TABLE planejamento_compras ADD COLUMN IF NOT EXISTS tipo_planejamento TEXT DEFAULT 'COMPRA_VENDA';
+            ALTER TABLE planejamento_compras ADD COLUMN IF NOT EXISTS quantidade_realizada_kg NUMERIC(12,3) DEFAULT 0.00;
+            ALTER TABLE planejamento_compras ADD COLUMN IF NOT EXISTS custo_total_realizado NUMERIC(14,2) DEFAULT 0.00;
 
             CREATE TABLE IF NOT EXISTS equipamentos_industriais (
                 id                         SERIAL PRIMARY KEY,
@@ -1921,28 +1927,41 @@ app.post('/api/planejamento-compras', async (req, res) => {
     }
 });
 
-// ─── API: Planejamento de Compras (MRP) ──────────────────────────────────────
+// ─── API: Planejamento de Compras (Trading Comercial & Insumos da Indústria) ─
 app.get('/api/planejamento/compras', async (req, res) => {
     try {
+        const { tipo } = req.query;
         if (!dbAvailable) {
-            const list = (memStore.planejamento_compras || []).map(p => {
+            let list = (memStore.planejamento_compras || []).map(p => {
                 const mc = (memStore.materiais_catalogo || []).find(m => m.id == p.material_id);
                 const f = (memStore.fornecedores || []).find(x => x.id == p.fornecedor_id);
                 return {
                     ...p,
+                    tipo_planejamento: p.tipo_planejamento || 'COMPRA_VENDA',
                     material_nome: mc ? mc.nome : 'Material',
                     fornecedor_nome: f ? (f.apelido || f.nome) : 'Fornecedor'
                 };
             });
+            if (tipo) {
+                list = list.filter(x => x.tipo_planejamento === tipo);
+            }
             return res.json(list.sort((a, b) => b.id - a.id));
         }
-        const r = await pool.query(`
+
+        let query = `
             SELECT pc.*, mc.nome as material_nome, COALESCE(f.apelido, f.nome) as fornecedor_nome
             FROM planejamento_compras pc
             LEFT JOIN materiais_catalogo mc ON pc.material_id = mc.id
             LEFT JOIN fornecedores f ON pc.fornecedor_id = f.id
-            ORDER BY pc.id DESC
-        `);
+        `;
+        const params = [];
+        if (tipo) {
+            query += ` WHERE pc.tipo_planejamento = $1 `;
+            params.push(tipo);
+        }
+        query += ` ORDER BY pc.id DESC `;
+
+        const r = await pool.query(query, params);
         res.json(r.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1951,22 +1970,28 @@ app.get('/api/planejamento/compras', async (req, res) => {
 
 app.post('/api/planejamento/compras', async (req, res) => {
     try {
-        const { material_id, fornecedor_id, quantidade_necessaria, ponto_pedido_kg, lead_time_dias, preco_estimado, mes_referencia, status, observacoes } = req.body;
+        const { tipo_planejamento, material_id, fornecedor_id, quantidade_necessaria, quantidade_realizada_kg, ponto_pedido_kg, lead_time_dias, preco_estimado, mes_referencia, status, observacoes } = req.body;
+        const tipoFinal = tipo_planejamento || 'COMPRA_VENDA';
         const qty = parseFloat(quantidade_necessaria || 0);
+        const qtyReal = parseFloat(quantidade_realizada_kg || 0);
         const prc = parseFloat(preco_estimado || 0);
-        const custoTotal = qty * prc;
+        const custoTotalEst = qty * prc;
+        const custoTotalReal = qtyReal * prc;
 
         if (!dbAvailable) {
             if (!memStore.planejamento_compras) memStore.planejamento_compras = [];
             const item = {
                 id: nextId++,
-                material_id: parseInt(material_id),
-                fornecedor_id: parseInt(fornecedor_id),
+                tipo_planejamento: tipoFinal,
+                material_id: material_id ? parseInt(material_id) : null,
+                fornecedor_id: fornecedor_id ? parseInt(fornecedor_id) : null,
                 quantidade_necessaria: qty,
+                quantidade_realizada_kg: qtyReal,
                 ponto_pedido_kg: parseFloat(ponto_pedido_kg || 0),
                 lead_time_dias: parseInt(lead_time_dias || 7),
                 preco_estimado: prc,
-                custo_total_estimado: custoTotal,
+                custo_total_estimado: custoTotalEst,
+                custo_total_realizado: custoTotalReal,
                 mes_referencia: mes_referencia || new Date().toISOString().slice(0, 7),
                 status: status || 'Sugerido',
                 observacoes: observacoes || '',
@@ -1977,9 +2002,56 @@ app.post('/api/planejamento/compras', async (req, res) => {
         }
 
         const r = await pool.query(`
-            INSERT INTO planejamento_compras (material_id, fornecedor_id, quantidade_necessaria, ponto_pedido_kg, lead_time_dias, preco_estimado, custo_total_estimado, mes_referencia, status, observacoes)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
-        `, [material_id, fornecedor_id, qty, ponto_pedido_kg || 0, lead_time_dias || 7, prc, custoTotal, mes_referencia || new Date().toISOString().slice(0, 7), status || 'Sugerido', observacoes]);
+            INSERT INTO planejamento_compras (tipo_planejamento, material_id, fornecedor_id, quantidade_necessaria, quantidade_realizada_kg, ponto_pedido_kg, lead_time_dias, preco_estimado, custo_total_estimado, custo_total_realizado, mes_referencia, status, observacoes)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *
+        `, [
+            tipoFinal,
+            material_id ? parseInt(material_id) : null,
+            fornecedor_id ? parseInt(fornecedor_id) : null,
+            qty,
+            qtyReal,
+            parseFloat(ponto_pedido_kg || 0),
+            parseInt(lead_time_dias || 7),
+            prc,
+            custoTotalEst,
+            custoTotalReal,
+            mes_referencia || new Date().toISOString().slice(0, 7),
+            status || 'Sugerido',
+            observacoes || ''
+        ]);
+
+        res.json(r.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/planejamento/compras/:id/realizado', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { quantidade_realizada_kg, custo_total_realizado, status } = req.body;
+
+        if (!dbAvailable) {
+            const item = (memStore.planejamento_compras || []).find(x => x.id === id);
+            if (!item) return res.status(404).json({ error: 'Planejamento não encontrado' });
+            if (quantidade_realizada_kg !== undefined) item.quantidade_realizada_kg = parseFloat(quantidade_realizada_kg);
+            if (custo_total_realizado !== undefined) item.custo_total_realizado = parseFloat(custo_total_realizado);
+            if (status) item.status = status;
+            return res.json(item);
+        }
+
+        const r = await pool.query(`
+            UPDATE planejamento_compras SET
+                quantidade_realizada_kg = COALESCE($1, quantidade_realizada_kg),
+                custo_total_realizado = COALESCE($2, custo_total_realizado),
+                status = COALESCE($3, status)
+            WHERE id = $4 RETURNING *
+        `, [
+            quantidade_realizada_kg !== undefined ? parseFloat(quantidade_realizada_kg) : null,
+            custo_total_realizado !== undefined ? parseFloat(custo_total_realizado) : null,
+            status || null,
+            id
+        ]);
 
         res.json(r.rows[0]);
     } catch (err) {
