@@ -1,70 +1,50 @@
-const CACHE_NAME = 'apextech-v10-cache';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/admin.html',
-  '/admin.css',
-  '/admin.js',
-  '/style.css',
-  '/script.js',
-  '/manifest.json'
-];
+// Service Worker - Passthrough Mode (sem cache agressivo)
+// Versao: v11 - Pass-through apenas, sem interceptacao de navegacao HTML/JS
 
-self.addEventListener('install', (event) => {
+const CACHE_NAME = 'apextech-v11-cache';
+
+self.addEventListener('install', () => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch(() => {});
-    })
-  );
 });
 
 self.addEventListener('activate', (event) => {
+  // Limpar todos os caches antigos
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((key) => caches.delete(key)))
+    ).then(() => self.clients.claim())
   );
 });
 
+// NÃO interceptar nenhuma requisição - deixar o browser tratar tudo
+// Isso evita o TypeError: Failed to convert value to 'Response'
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  
-  // Ignora APIs
-  if (event.request.url.includes('/api/')) return;
-  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) return;
+  // Apenas requisições de outros recursos (imagens, fonts) podem ser cacheadas
+  const url = event.request.url;
 
-  // Para scripts e HTML, utiliza Network-First para garantir atualizacao constante
-  const isCode = event.request.url.includes('.js') || event.request.url.includes('.html') || event.request.mode === 'navigate';
-
-  if (isCode) {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
-          }
-          return networkResponse;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
+  // Nunca interceptar: navegação HTML, JS, CSS, API
+  if (
+    event.request.mode === 'navigate' ||
+    url.includes('.html') ||
+    url.includes('.js') ||
+    url.includes('.css') ||
+    url.includes('/api/')
+  ) {
+    return; // Deixar o browser tratar normalmente
   }
 
+  // Para outros assets (imagens, fontes) - cache simples sem erros
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request).then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
-        return networkResponse;
+        return response;
+      }).catch(() => {
+        // Se falhar, retornar resposta vazia válida (nunca undefined)
+        return new Response('', { status: 408, statusText: 'Network timeout' });
       });
     })
   );

@@ -76,11 +76,31 @@
         }
     </style>
     <script>
+        // Limpar TODOS os Service Workers e caches antigos antes de registrar o novo
         if ('serviceWorker' in navigator) {
+            // Passo 1: desregistrar todos os SWs existentes
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let reg of registrations) {
+                    reg.unregister();
+                    console.log('[SW] Desregistrado:', reg.scope);
+                }
+            });
+            // Passo 2: limpar todos os caches
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                        console.log('[SW] Cache deletado:', name);
+                    }
+                });
+            }
+            // Passo 3: registrar novo SW após limpeza
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('PWA ServiceWorker registrado com sucesso:', reg.scope))
-                    .catch(err => console.warn('Erro ao registrar ServiceWorker:', err));
+                setTimeout(() => {
+                    navigator.serviceWorker.register('/sw.js?v=11')
+                        .then(reg => console.log('[SW] Novo ServiceWorker registrado:', reg.scope))
+                        .catch(err => console.warn('[SW] Erro ao registrar ServiceWorker:', err));
+                }, 500);
             });
         }
     </script>
