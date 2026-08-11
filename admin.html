@@ -3943,88 +3943,90 @@
 
     <!-- ═══ MODAL: ORDEM DE PRODUÇÃO (PCP COM TEMPOS OPERACIONAIS) ═══ -->
     <div id="modal-ordem-producao" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1050;">
-        <div class="login-box" style="width:720px; padding:25px; background:#101a24; border:1px solid #ffb74d; max-height:92vh; overflow-y:auto; border-radius:10px;">
-            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:10px; color:#fff; display:flex; align-items:center; gap:8px;">
+        <div class="login-box" style="width:900px; max-width:95vw; padding:30px; background:#101a24; border:1px solid #ffb74d; max-height:92vh; overflow-y:auto; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:14px; color:#fff; display:flex; align-items:center; gap:10px; font-size:1.2rem;">
                 <i class="fa-solid fa-stopwatch" style="color:#ffb74d;"></i> Nova Ordem de Produção & Roteiro PCP
             </h3>
             <form id="form-ordem-producao" onsubmit="salvarOrdemProducaoForm(event)">
-                <div style="display:grid; grid-template-columns:160px 1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div style="display:grid; grid-template-columns:180px 1fr 180px; gap:16px; margin-bottom:14px;">
                     <div class="form-group">
-                        <label style="color:#fff;">Número OP *</label>
+                        <label style="color:#fff; font-weight:600;">Número OP *</label>
                         <input type="text" id="op-numero" class="noble-input" readonly style="background:#0a1622; color:#2AD07A; font-weight:bold;">
                     </div>
                     <div class="form-group">
-                        <label style="color:#fff;">Material Entrada *</label>
+                        <label style="color:#fff; font-weight:600;">Material Entrada *</label>
                         <input type="text" id="op-material-entrada" class="noble-input" required placeholder="Ex: Fio de Instalação Misto">
                     </div>
                     <div class="form-group">
-                        <label style="color:#fff;">Peso Entrada (kg) *</label>
+                        <label style="color:#fff; font-weight:600;">Peso Entrada (kg) *</label>
                         <input type="number" step="0.01" id="op-peso-entrada" class="noble-input" required placeholder="Ex: 5000">
                     </div>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
                     <div class="form-group">
-                        <label style="color:#fff;">Material Resultante Esperado *</label>
+                        <label style="color:#fff; font-weight:600;">Material Resultante Esperado *</label>
                         <select id="op-material-saida-id" class="noble-input" required>
                             <option value="">Selecione o Material de Saída...</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label style="color:#fff;">Peso Saída Estimado (kg)</label>
+                        <label style="color:#fff; font-weight:600;">Peso Saída Estimado (kg)</label>
                         <input type="number" step="0.01" id="op-peso-saida-est" class="noble-input" placeholder="Ex: 3100">
                     </div>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:15px;">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px;">
                     <div class="form-group">
-                        <label style="color:#fff;">Início Previsto *</label>
+                        <label style="color:#fff; font-weight:600;">Início Previsto *</label>
                         <input type="date" id="op-data-inicio" class="noble-input" required>
                     </div>
                     <div class="form-group">
-                        <label style="color:#fff;">Fim Previsto *</label>
+                        <label style="color:#fff; font-weight:600;">Fim Previsto *</label>
                         <input type="date" id="op-data-fim" class="noble-input" required>
                     </div>
                     <div class="form-group">
-                        <label style="color:#fff;">Responsável PCP *</label>
+                        <label style="color:#fff; font-weight:600;">Responsável PCP *</label>
                         <input type="text" id="op-responsavel" class="noble-input" required value="Eng. Roberto">
                     </div>
                 </div>
 
                 <!-- Roteiro de Etapas Operacionais e Tempos -->
-                <div style="background:#0a1520; border:1px solid #1a2e40; border-radius:8px; padding:14px; margin-bottom:15px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="color:#ffb74d; font-weight:700; font-size:0.9rem;">
+                <div style="background:#0a1520; border:1px solid #1a2e40; border-radius:8px; padding:16px; margin-bottom:18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="color:#ffb74d; font-weight:700; font-size:0.95rem;">
                             <i class="fa-solid fa-list-check"></i> Roteiro de Etapas Operacionais & Tempos (Horas)
                         </span>
-                        <button type="button" onclick="adicionarEtapaOpForm()" style="background:#1e4e8c; border:1px solid #3e7cb1; color:#fff; padding:4px 10px; border-radius:4px; font-size:0.8rem; cursor:pointer;">
-                            <i class="fa-solid fa-plus"></i> Add Etapa
+                        <button type="button" onclick="adicionarEtapaOpForm()" style="background:#1e4e8c; border:1px solid #3e7cb1; color:#fff; padding:6px 14px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+                            <i class="fa-solid fa-plus"></i> + Add Etapa
                         </button>
                     </div>
-                    <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; color:#7fa8c8;">
-                                <th style="padding:6px;">#</th>
-                                <th style="padding:6px; text-align:left;">Etapa Operacional</th>
-                                <th style="padding:6px; text-align:left;">Equipamento</th>
-                                <th style="padding:6px; text-align:right;">Tempo Est. (Horas)</th>
-                                <th style="padding:6px; text-align:left;">Operador</th>
-                                <th style="padding:6px; text-align:center;">Ação</th>
+                                <th style="padding:8px; width:40px; text-align:center;">#</th>
+                                <th style="padding:8px; text-align:left;">Etapa Operacional</th>
+                                <th style="padding:8px; text-align:left; width:220px;">Equipamento</th>
+                                <th style="padding:8px; text-align:right; width:130px;">Tempo Est. (h)</th>
+                                <th style="padding:8px; text-align:left; width:140px;">Operador</th>
+                                <th style="padding:8px; text-align:center; width:50px;">Ação</th>
                             </tr>
                         </thead>
                         <tbody id="op-etapas-tbody"></tbody>
                     </table>
-                    <div style="text-align:right; margin-top:8px; font-size:0.85rem; color:#aaa;">
-                        Tempo Total Estimado da OP: <strong id="op-tempo-total-est" style="color:#2AD07A;">0.0 Horas</strong>
+                    <div style="text-align:right; margin-top:10px; font-size:0.9rem; color:#aaa;">
+                        Tempo Total Estimado da OP: <strong id="op-tempo-total-est" style="color:#2AD07A; font-size:1.05rem;">0.0 Horas</strong>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom:15px;">
-                    <label style="color:#fff;">Observações / Instruções de Fábrica</label>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="color:#fff; font-weight:600;">Observações / Instruções de Fábrica</label>
                     <input type="text" id="op-obs" class="noble-input" placeholder="Prioridade, clientes FIDC...">
                 </div>
 
-                <div style="display:flex; gap:10px;">
-                    <button type="submit" class="btn-primary" style="flex:2;"><i class="fa-solid fa-save"></i> Criar Ordem de Produção</button>
-                    <button type="button" class="btn-secondary" onclick="fecharModalOrdemProducao()" style="flex:1;">Cancelar</button>
+                <div style="display:flex; gap:12px;">
+                    <button type="submit" class="btn-primary" style="flex:2; padding:12px; font-size:0.95rem; font-weight:bold; background:#ffb74d; color:#000;"><i class="fa-solid fa-save"></i> Criar Ordem de Produção</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalOrdemProducao()" style="flex:1; padding:12px;">Cancelar</button>
                 </div>
             </form>
         </div>
