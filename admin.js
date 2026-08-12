@@ -9286,7 +9286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.alternarSubAbaPlanejamento = function(aba) {
         subAbaPlanejamentoAtual = aba;
 
-        const subtabs = ['producao-insumos', 'compras', 'realizado', 'caixa', 'prazos', 'cenarios'];
+        const subtabs = ['producao-insumos', 'compras', 'realizado', 'caixa', 'prazos', 'cenarios', 'estrategico'];
         subtabs.forEach(t => {
             const btn = document.getElementById(`tab-btn-pl-${t}`);
             const view = document.getElementById(`pl-subview-${t}`);
@@ -9312,7 +9312,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (aba === 'caixa') carregarProjecaoCaixa();
         if (aba === 'prazos') carregarParametrosPrazos();
         if (aba === 'cenarios') carregarPlanejamentoCenarios();
+        if (aba === 'estrategico') carregarPlanejamentoEstrategico();
     };
+
 
     // ── 1. Planejamento de Compra (Trading Comercial & Insumos da Indústria) ────
     window.carregarPlanejamentoCompras = async function() {
@@ -14926,6 +14928,568 @@ window.carregarFinanceiroView = async function() {
         } catch (err) {
             console.error('Erro ao gerar relatório industrial:', err);
             _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
+        }
+    };
+
+
+    // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO COMERCIAL & FINANCEIRO ─────────
+    let _listMetasEstrategicas = [];
+    let _listTabelaPrecosEstrategica = [];
+    let _chartEstrategicoCenarios = null;
+
+    window.carregarPlanejamentoEstrategico = async function() {
+        try {
+            // Inicializar filtro de mês com o mês atual se estiver vazio
+            const filterMes = document.getElementById('plest-filter-mes');
+            if (filterMes && !filterMes.value) {
+                const today = new Date();
+                filterMes.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+            }
+
+            // Buscar tabela de preços completa e metas estratégicas cadastradas
+            const [resPrecos, resMetas] = await Promise.all([
+                fetch('/api/tabela-precos'),
+                fetch('/api/planejamento-estrategico')
+            ]);
+            
+            _listTabelaPrecosEstrategica = await resPrecos.json();
+            const rawMetas = await resMetas.json();
+            _listMetasEstrategicas = Array.isArray(rawMetas) ? rawMetas : [];
+
+            // Alimentar comboboxes de seleção de produto
+            popularSelectsProdutoEstrategico();
+
+            // Renderizar dashboard e listagem
+            renderDashboardEstrategico();
+        } catch(e) {
+            console.error('Erro ao carregar planejamento estratégico:', e);
+            _apexNotify('Erro', 'Não foi possível carregar os dados estratégicos.', 'error');
+        }
+    };
+
+    function popularSelectsProdutoEstrategico() {
+        const selectProd = document.getElementById('plest-select-produto');
+        const selectModal = document.getElementById('metaest-material-id');
+        if (!selectProd || !selectModal) return;
+
+        // Limpar e preencher
+        selectProd.innerHTML = '<option value="">-- Selecione um Produto --</option>';
+        selectModal.innerHTML = '<option value="">-- Selecione o Insumo/Produto --</option>';
+
+        // Tabela de preços possui material_id e material_nome
+        _listTabelaPrecosEstrategica.forEach(tp => {
+            const opt1 = document.createElement('option');
+            opt1.value = tp.material_id;
+            opt1.textContent = tp.material_nome + ' (' + tp.material_categoria + ')';
+            selectProd.appendChild(opt1);
+
+            const opt2 = document.createElement('option');
+            opt2.value = tp.material_id;
+            opt2.textContent = tp.material_nome + ' (' + tp.material_categoria + ')';
+            selectModal.appendChild(opt2);
+        });
+    }
+
+    window.onSelectProdutoEstrategico = function() {
+        renderDashboardEstrategico();
+    };
+
+    window.onSelectModalMaterial = function() {
+        const matId = parseInt(document.getElementById('metaest-material-id').value);
+        const lblCompra = document.getElementById('metaest-lbl-compra');
+        const lblVenda = document.getElementById('metaest-lbl-venda');
+        const lblMargem = document.getElementById('metaest-lbl-margem');
+
+        const preco = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
+        if (preco) {
+            const pCompra = parseFloat(preco.preco_entregar || 0);
+            const pVenda = parseFloat(preco.venda_ref || 0);
+            const lucro = pVenda - pCompra;
+            const margem = pVenda > 0 ? (lucro / pVenda) * 100 : 0;
+
+            lblCompra.textContent = 'R$ ' + pCompra.toFixed(2);
+            lblVenda.textContent = 'R$ ' + pVenda.toFixed(2);
+            lblMargem.textContent = margem.toFixed(1) + '%';
+        } else {
+            lblCompra.textContent = '—';
+            lblVenda.textContent = '—';
+            lblMargem.textContent = '—';
+        }
+    };
+
+    function renderDashboardEstrategico() {
+        const filterMes = document.getElementById('plest-filter-mes').value;
+        const targetMatId = parseInt(document.getElementById('plest-select-produto').value) || null;
+
+        // Filtrar metas cadastradas para o mês selecionado
+        const metasMes = _listMetasEstrategicas.filter(m => m.mes === filterMes);
+
+        // Agregadores gerais do mês para o dashboard KPI (Moderado)
+        let totalFaturamentoProjetado = 0;
+        let totalCustoCompraProjetado = 0;
+        let totalLucroProjetado = 0;
+        let totalFidcProjetado = 0;
+        let countMateriais = 0;
+        let somaMargem = 0;
+        let somaMarkup = 0;
+
+        const tableBody = document.getElementById('plest-geral-table-body');
+        if (tableBody) tableBody.innerHTML = '';
+
+        // Tabela de preços é a base de tudo
+        _listTabelaPrecosEstrategica.forEach(tp => {
+            // Achar se existe meta cadastrada para este produto no mês
+            const meta = metasMes.find(m => m.material_id === tp.material_id);
+            
+            // Metas de volume para os cenários (padrão 0 se não cadastrado)
+            const qCons = meta ? parseFloat(meta.qtd_conservador || 0) : 0;
+            const qMod = meta ? parseFloat(meta.qtd_moderado || 0) : 0;
+            const qAgr = meta ? parseFloat(meta.qtd_agressivo || 0) : 0;
+            const qReal = meta ? parseFloat(meta.qtd_realizado || 0) : 0;
+
+            // Valores comerciais oficiais da tabela
+            const pCompra = parseFloat(tp.preco_entregar || 0);
+            const pVenda = parseFloat(tp.venda_ref || 0);
+            const comissaoPct = parseFloat(tp.comissao || 0);
+            const pisCofinsPct = parseFloat(tp.pis_cofins || 0);
+            const fidcPct = parseFloat(tp.fidc || 0);
+            const icmsPct = parseFloat(tp.icms || 0);
+            const freteColeta = parseFloat(tp.frete_coleta || 0);
+
+            // Custos unitários baseados nos percentuais
+            const custoImpostos = pVenda * ((pisCofinsPct + icmsPct) / 100);
+            const custoComissao = pVenda * (comissaoPct / 100);
+            const custoFidc = pVenda * (fidcPct / 100);
+            const custoTotalUnit = pCompra + freteColeta + custoImpostos + custoComissao + custoFidc;
+
+            const lucroUnit = pVenda - custoTotalUnit;
+            const margemUnitPct = pVenda > 0 ? (lucroUnit / pVenda) * 100 : 0;
+            const markupUnit = pCompra > 0 ? (pVenda / pCompra) : 0;
+
+            // Faturamento e custos totais projetados no cenário moderado (alvo)
+            const fatMod = qMod * pVenda;
+            const custoMod = qMod * custoTotalUnit;
+            const lucroMod = fatMod - custoMod;
+            const fidcTotalMod = qMod * custoFidc;
+
+            totalFaturamentoProjetado += fatMod;
+            totalCustoCompraProjetado += custoMod;
+            totalLucroProjetado += lucroMod;
+            totalFidcProjetado += fidcTotalMod;
+
+            if (qMod > 0) {
+                somaMargem += margemUnitPct;
+                somaMarkup += markupUnit;
+                countMateriais++;
+            }
+
+            // Atingimento
+            const atingimentoPct = qMod > 0 ? (qReal / qMod) * 100 : 0;
+            const saldo = qMod - qReal;
+
+            // Inserir na planilha geral se houver meta
+            if (tableBody && (meta || qMod > 0)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding:8px;"><strong>${tp.material_nome}</strong></td>
+                    <td style="padding:8px; text-align:right;">${qCons.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:8px; text-align:right; font-weight:bold; color:#00e5ff;">${qMod.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:8px; text-align:right;">${qAgr.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${pCompra.toFixed(2)}</td>
+                    <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${pVenda.toFixed(2)}</td>
+                    <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${fatMod.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${lucroMod.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td style="padding:8px; text-align:center; font-weight:bold; color:${margemUnitPct >= 10 ? '#2AD07A' : '#ff4d4d'};">${margemUnitPct.toFixed(1)}%</td>
+                    <td style="padding:8px; text-align:right; color:#fff;">${qReal.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:8px; text-align:center; font-weight:bold;">
+                        <span style="color:${atingimentoPct >= 100 ? '#2AD07A' : (atingimentoPct >= 75 ? '#ffb74d' : '#ff4d4d')};">${atingimentoPct.toFixed(1)}%</span>
+                        <div style="font-size:0.7rem; color:#aaa; margin-top:2px;">Saldo: ${saldo.toLocaleString('pt-BR')} kg</div>
+                    </td>
+                    <td style="padding:8px; text-align:center;">
+                        <button onclick="editarMetaEstrategicaRapido(${tp.material_id}, '${filterMes}', ${qCons}, ${qMod}, ${qAgr}, ${qReal})" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826;" title="Editar"><i class="fa-solid fa-edit"></i></button>
+                        ${meta ? `<button onclick="deletarMetaEstrategica(${meta.id})" style="background:none; border:none; color:#ff6b6b; margin-left:8px; cursor:pointer;" title="Remover Meta"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            }
+        });
+
+        if (tableBody && tableBody.children.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:#aaa;">Nenhuma meta cadastrada para este mês. Clique em "Lançar/Alterar Meta" no topo para planejar.</td></tr>`;
+        }
+
+        // Renderizar KPIs no topo
+        document.getElementById('est-kpi-fat-previsto').textContent = 'R$ ' + totalFaturamentoProjetado.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('est-kpi-custo-previsto').textContent = 'R$ ' + totalCustoCompraProjetado.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('est-kpi-lucro-previsto').textContent = 'R$ ' + totalLucroProjetado.toLocaleString('pt-BR', {minimumFractionDigits:2});
+        document.getElementById('est-kpi-margem-media').textContent = (countMateriais > 0 ? (somaMargem / countMateriais) : 0).toFixed(1) + '%';
+        document.getElementById('est-kpi-markup-medio').textContent = (countMateriais > 0 ? (somaMarkup / countMateriais) : 0).toFixed(2) + 'x';
+        document.getElementById('est-kpi-fidc-total').textContent = 'R$ ' + totalFidcProjetado.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+        // 3. Renderizar produto detalhado ativo e cenários individuais
+        renderDetalhesProdutoSelecionado(targetMatId, filterMes);
+
+        // 4. Renderizar rankings executivos
+        renderRankingEstrategico();
+
+        // 5. Atualizar insights automáticos de IA
+        gerarInsightsIAEstrategicos(metasMes);
+    }
+
+    function renderDetalhesProdutoSelecionado(matId, mes) {
+        const container = document.getElementById('plest-produto-detalhes-container');
+        const cenBody = document.getElementById('plest-cenarios-table-body');
+        const prBody = document.getElementById('plest-planejado-realizado-tbody');
+        if (!container || !cenBody || !prBody) return;
+
+        const preco = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
+        const meta = _listMetasEstrategicas.find(m => m.material_id === matId && m.mes === mes);
+
+        if (!preco) {
+            container.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:15px; color:#aaa; font-size:0.85rem;">
+                    Selecione um produto no combobox acima para avaliar custos, spreads e margens integradas.
+                </div>
+            `;
+            cenBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto para visualizar cenários.</td></tr>`;
+            prBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto.</td></tr>`;
+            if (_chartEstrategicoCenarios) { _chartEstrategicoCenarios.destroy(); _chartEstrategicoCenarios = null; }
+            return;
+        }
+
+        const pCompra = parseFloat(preco.preco_entregar || 0);
+        const pVenda = parseFloat(preco.venda_ref || 0);
+        const comissao = parseFloat(preco.comissao || 0);
+        const pisCofins = parseFloat(preco.pis_cofins || 0);
+        const fidc = parseFloat(preco.fidc || 0);
+        const icms = parseFloat(preco.icms || 0);
+        const frete = parseFloat(preco.frete_coleta || 0);
+
+        const impostoUnit = pVenda * ((pisCofins + icms) / 100);
+        const comissaoUnit = pVenda * (comissao / 100);
+        const fidcUnit = pVenda * (fidc / 100);
+        const custoTotal = pCompra + frete + impostoUnit + comissaoUnit + fidcUnit;
+
+        const lucroUnit = pVenda - custoTotal;
+        const margem = pVenda > 0 ? (lucroUnit / pVenda) * 100 : 0;
+        const markup = pCompra > 0 ? (pVenda / pCompra) : 0;
+
+        container.innerHTML = `
+            <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
+                <small style="color:#aaa; font-size:0.75rem;">Compra (Tabela)</small>
+                <div style="font-weight:bold; color:#ffb74d; margin-top:2px;">R$ ${pCompra.toFixed(2)}</div>
+            </div>
+            <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
+                <small style="color:#aaa; font-size:0.75rem;">Venda (Tabela)</small>
+                <div style="font-weight:bold; color:#2AD07A; margin-top:2px;">R$ ${pVenda.toFixed(2)}</div>
+            </div>
+            <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
+                <small style="color:#aaa; font-size:0.75rem;">Markup Médio</small>
+                <div style="font-weight:bold; color:#9b59b6; margin-top:2px;">${markup.toFixed(2)}x</div>
+            </div>
+            <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
+                <small style="color:#aaa; font-size:0.75rem;">Lucro Unitário</small>
+                <div style="font-weight:bold; color:#00e5ff; margin-top:2px;">R$ ${lucroUnit.toFixed(2)}</div>
+            </div>
+            <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
+                <small style="color:#aaa; font-size:0.75rem;">Margem Líquida</small>
+                <div style="font-weight:bold; color:#3e7cb1; margin-top:2px;">${margem.toFixed(1)}%</div>
+            </div>
+        `;
+
+        // Cenários individuais
+        const qCons = meta ? parseFloat(meta.qtd_conservador || 0) : 0;
+        const qMod = meta ? parseFloat(meta.qtd_moderado || 0) : 0;
+        const qAgr = meta ? parseFloat(meta.qtd_agressivo || 0) : 0;
+        const qReal = meta ? parseFloat(meta.qtd_realizado || 0) : 0;
+
+        const fillCenario = (nome, qtd, cor) => {
+            const fat = qtd * pVenda;
+            const custo = qtd * custoTotal;
+            const lucro = fat - custo;
+            return `
+                <tr>
+                    <td style="padding:8px; font-weight:bold; color:${cor};">${nome}</td>
+                    <td style="padding:8px; text-align:right; color:#fff;">${qtd.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${fat.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${custo.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td style="padding:8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${lucro.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td style="padding:8px; text-align:center; font-weight:bold; color:#2AD07A;">${margem.toFixed(1)}%</td>
+                    <td style="padding:8px; text-align:center; color:#9b59b6;">${markup.toFixed(2)}x</td>
+                </tr>
+            `;
+        };
+
+        cenBody.innerHTML = `
+            ${fillCenario('Conservador', qCons, '#ffeb3b')}
+            ${fillCenario('Moderado (Meta)', qMod, '#00e5ff')}
+            ${fillCenario('Agressivo', qAgr, '#ff4d4d')}
+        `;
+
+        // Planejado vs Realizado
+        const fatPlan = qMod * pVenda;
+        const fatReal = qReal * pVenda;
+        const lucroPlan = fatPlan - (qMod * custoTotal);
+        const lucroReal = fatReal - (qReal * custoTotal);
+
+        const compRow = (nome, planVal, realVal, unit, isMoney) => {
+            const diff = planVal - realVal;
+            const pct = planVal > 0 ? (realVal / planVal) * 100 : 0;
+            const fmt = (v) => isMoney ? 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2}) : v.toLocaleString('pt-BR') + ' ' + unit;
+            return `
+                <tr>
+                    <td style="padding:8px; font-weight:600; color:#fff;">${nome}</td>
+                    <td style="padding:8px; text-align:right; color:#aaa;">${fmt(planVal)}</td>
+                    <td style="padding:8px; text-align:right; font-weight:bold; color:#fff;">${fmt(realVal)}</td>
+                    <td style="padding:8px; text-align:right; color:${diff <= 0 ? '#2AD07A' : '#ff4d4d'};">${diff <= 0 ? 'Meta Atingida' : fmt(diff) + ' restante'}</td>
+                    <td style="padding:8px; text-align:center; font-weight:bold; color:${pct >= 100 ? '#2AD07A' : (pct >= 80 ? '#ffb74d' : '#ff4d4d')};">${pct.toFixed(1)}%</td>
+                </tr>
+            `;
+        };
+
+        prBody.innerHTML = `
+            ${compRow('Quantidade (Volume)', qMod, qReal, 'kg', false)}
+            ${compRow('Faturamento Bruto', fatPlan, fatReal, '', true)}
+            ${compRow('Lucro Operacional', lucroPlan, lucroReal, '', true)}
+        `;
+
+        // Renderizar gráfico de cenários com Chart.js
+        renderGraficoCenariosEstrategicos(qCons, qMod, qAgr, qReal, preco.material_nome);
+    }
+
+    function renderGraficoCenariosEstrategicos(cons, mod, agr, real, produtoNome) {
+        const ctx = document.getElementById('plest-chart-cenarios');
+        if (!ctx) return;
+
+        if (_chartEstrategicoCenarios) {
+            _chartEstrategicoCenarios.destroy();
+        }
+
+        _chartEstrategicoCenarios = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Conservador', 'Moderado', 'Agressivo', 'Realizado'],
+                datasets: [{
+                    label: 'Volume (kg) - ' + produtoNome,
+                    data: [cons, mod, agr, real],
+                    backgroundColor: ['rgba(255, 235, 59, 0.4)', 'rgba(0, 229, 255, 0.4)', 'rgba(255, 77, 77, 0.4)', 'rgba(42, 208, 122, 0.5)'],
+                    borderColor: ['#ffeb3b', '#00e5ff', '#ff4d4d', '#2AD07A'],
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8eaabf', font: { size: 9 } } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8eaabf', font: { size: 9 } } }
+                }
+            }
+        });
+    }
+
+    window.renderRankingEstrategico = function() {
+        const select = document.getElementById('plest-select-ranking-tipo');
+        const tbody = document.getElementById('plest-rankings-tbody');
+        if (!select || !tbody) return;
+
+        const tipo = select.value;
+        tbody.innerHTML = '';
+
+        // Mapear produtos com cálculos
+        const dadosRanked = _listTabelaPrecosEstrategica.map(tp => {
+            const pCompra = parseFloat(tp.preco_entregar || 0);
+            const pVenda = parseFloat(tp.venda_ref || 0);
+            const comissao = parseFloat(tp.comissao || 0);
+            const pisCofins = parseFloat(tp.pis_cofins || 0);
+            const fidc = parseFloat(tp.fidc || 0);
+            const icms = parseFloat(tp.icms || 0);
+            const frete = parseFloat(tp.frete_coleta || 0);
+
+            const impostoUnit = pVenda * ((pisCofins + icms) / 100);
+            const custoTotal = pCompra + frete + impostoUnit + (pVenda * (comissao / 100)) + (pVenda * (fidc / 100));
+
+            const lucro = pVenda - custoTotal;
+            const margem = pVenda > 0 ? (lucro / pVenda) * 100 : 0;
+            const markup = pCompra > 0 ? (pVenda / pCompra) : 0;
+            const spread = pVenda - pCompra;
+
+            return {
+                material_nome: tp.material_nome,
+                material_categoria: tp.material_categoria,
+                preco_compra: pCompra,
+                preco_venda: pVenda,
+                lucro,
+                margem,
+                markup,
+                spread
+            };
+        });
+
+        // Ordenação com base no tipo selecionado
+        if (tipo === 'lucro') {
+            dadosRanked.sort((a,b) => b.lucro - a.lucro);
+        } else if (tipo === 'margem') {
+            dadosRanked.sort((a,b) => b.margem - a.margem);
+        } else if (tipo === 'markup') {
+            dadosRanked.sort((a,b) => b.markup - a.markup);
+        } else if (tipo === 'oportunidade' || tipo === 'faturamento') {
+            dadosRanked.sort((a,b) => b.spread - a.spread);
+        } else if (tipo === 'abaixo') {
+            dadosRanked.sort((a,b) => a.margem - b.margem);
+        }
+
+        // Exibir Top 10
+        const top10 = dadosRanked.slice(0, 10);
+        top10.forEach((item, idx) => {
+            let keyMetricStr = '';
+            if (tipo === 'lucro') keyMetricStr = 'R$ ' + item.lucro.toFixed(2);
+            else if (tipo === 'margem' || tipo === 'abaixo') keyMetricStr = item.margem.toFixed(1) + '%';
+            else if (tipo === 'markup') keyMetricStr = item.markup.toFixed(2) + 'x';
+            else if (tipo === 'oportunidade' || tipo === 'faturamento') keyMetricStr = 'Spread: R$ ' + item.spread.toFixed(2);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:8px; text-align:center; font-weight:bold; color:#00e5ff;">#${idx+1}</td>
+                <td style="padding:8px;"><strong>${item.material_nome}</strong></td>
+                <td style="padding:8px;"><span style="background:#122a3f; color:#3e7cb1; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${item.material_categoria}</span></td>
+                <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${item.preco_compra.toFixed(2)}</td>
+                <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${item.preco_venda.toFixed(2)}</td>
+                <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${item.lucro.toFixed(2)} /kg</td>
+                <td style="padding:8px; text-align:center; font-weight:bold; color:#2AD07A;">${keyMetricStr}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function gerarInsightsIAEstrategicos(metasMes) {
+        const insightsContainer = document.getElementById('plest-ia-insights');
+        if (!insightsContainer) return;
+
+        if (_listTabelaPrecosEstrategica.length === 0) {
+            insightsContainer.textContent = 'Sem dados de cotações para formular insights estratégicos.';
+            return;
+        }
+
+        // Mapear margens
+        const listCalculada = _listTabelaPrecosEstrategica.map(tp => {
+            const pCompra = parseFloat(tp.preco_entregar || 0);
+            const pVenda = parseFloat(tp.venda_ref || 0);
+            const comissao = parseFloat(tp.comissao || 0);
+            const pisCofins = parseFloat(tp.pis_cofins || 0);
+            const fidc = parseFloat(tp.fidc || 0);
+            const icms = parseFloat(tp.icms || 0);
+            const frete = parseFloat(tp.frete_coleta || 0);
+
+            const impostoUnit = pVenda * ((pisCofins + icms) / 100);
+            const custoTotal = pCompra + frete + impostoUnit + (pVenda * (comissao / 100)) + (pVenda * (fidc / 100));
+            const lucro = pVenda - custoTotal;
+            const margem = pVenda > 0 ? (lucro / pVenda) * 100 : 0;
+            return { nome: tp.material_nome, margem, lucro, pCompra, pVenda };
+        });
+
+        // Achar campeão de margem
+        const melhorMargem = [...listCalculada].sort((a,b) => b.margem - a.margem)[0];
+        // Achar risco de margem (margem negativa ou menor que 5%)
+        const riscoMargem = listCalculada.filter(x => x.margem < 5);
+
+        let html = `<ul style="margin:0; padding-left:16px; display:flex; flex-direction:column; gap:6px;">`;
+        if (melhorMargem) {
+            html += `<li>🚀 <strong>Destaque Comercial</strong>: O produto <strong>${melhorMargem.nome}</strong> possui a melhor margem líquida da tabela com <strong>${melhorMargem.margem.toFixed(1)}%</strong>. Focar volume nele aumenta exponencialmente o lucro.</li>`;
+        }
+
+        if (riscoMargem.length > 0) {
+            html += `<li>⚠️ <strong>Alerta de Risco</strong>: Encontramos ${riscoMargem.length} produtos com margem crítica ou negativa (ex: <strong>${riscoMargem[0].nome}</strong> com ${riscoMargem[0].margem.toFixed(1)}%). Recomenda-se renegociar compra ou reajustar tabela de venda.</li>`;
+        } else {
+            html += `<li>✅ <strong>Saúde da Carteira</strong>: Todos os produtos da Tabela de Preços apresentam margens unitárias saudáveis e seguras contra flutuações.</li>`;
+        }
+
+        // Acompanhar realizado
+        if (metasMes.length > 0) {
+            const atingimentoMedio = metasMes.reduce((acc, curr) => {
+                const mod = parseFloat(curr.qtd_moderado || 0);
+                const real = parseFloat(curr.qtd_realizado || 0);
+                return acc + (mod > 0 ? (real / mod) * 100 : 0);
+            }, 0) / metasMes.length;
+
+            html += `<li>📊 <strong>Atingimento</strong>: O atingimento médio das metas estratégicas do mês atual está em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
+        }
+
+        html += `</ul>`;
+        insightsContainer.innerHTML = html;
+    }
+
+    // Modal meta estratégica handlers
+    window.abrirModalMetaEstrategica = function() {
+        const modal = document.getElementById('modal-meta-estrategica');
+        if (modal) {
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+        }
+    };
+
+    window.fecharModalMetaEstrategica = function() {
+        const modal = document.getElementById('modal-meta-estrategica');
+        if (modal) modal.style.display = 'none';
+        document.getElementById('form-meta-estrategica').reset();
+    };
+
+    window.editarMetaEstrategicaRapido = function(materialId, mes, cons, mod, agr, real) {
+        document.getElementById('metaest-material-id').value = materialId;
+        document.getElementById('metaest-mes').value = mes;
+        document.getElementById('metaest-qtd-conservador').value = cons;
+        document.getElementById('metaest-qtd-moderado').value = mod;
+        document.getElementById('metaest-qtd-agressivo').value = agr;
+        document.getElementById('metaest-qtd-realizado').value = real;
+
+        onSelectModalMaterial();
+        abrirModalMetaEstrategica();
+    };
+
+    window.salvarMetaEstrategicaForm = async function(event) {
+        event.preventDefault();
+        const material_id = document.getElementById('metaest-material-id').value;
+        const mes = document.getElementById('metaest-mes').value;
+        const qtd_conservador = document.getElementById('metaest-qtd-conservador').value;
+        const qtd_moderado = document.getElementById('metaest-qtd-moderado').value;
+        const qtd_agressivo = document.getElementById('metaest-qtd-agressivo').value;
+        const qtd_realizado = document.getElementById('metaest-qtd-realizado').value;
+
+        try {
+            const res = await fetch('/api/planejamento-estrategico', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    material_id, mes, qtd_conservador, qtd_moderado, qtd_agressivo, qtd_realizado
+                })
+            });
+
+            if (res.ok) {
+                _apexNotify('Sucesso', 'Meta de planejamento estratégico salva com sucesso!', 'success');
+                fecharModalMetaEstrategica();
+                await carregarPlanejamentoEstrategico();
+            } else {
+                throw new Error('Falha ao salvar meta');
+            }
+        } catch(e) {
+            console.error(e);
+            _apexNotify('Erro', 'Não foi possível salvar a meta estratégica.', 'error');
+        }
+    };
+
+    window.deletarMetaEstrategica = async function(id) {
+        if (!confirm('Deseja realmente remover esta meta de planejamento estratégico?')) return;
+        try {
+            const res = await fetch(`/api/planejamento-estrategico/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                _apexNotify('Sucesso', 'Meta estratégica excluída.', 'success');
+                await carregarPlanejamentoEstrategico();
+            }
+        } catch(e) {
+            console.error(e);
+            _apexNotify('Erro', 'Não foi possível excluir a meta.', 'error');
         }
     };
 

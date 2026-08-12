@@ -2385,6 +2385,124 @@ app.delete('/api/planejamento/producao-insumos/:id', async (req, res) => {
 });
 
 
+// ─── API: Planejamento Estratégico ──────────────────────────────────────────
+app.get('/api/planejamento-estrategico', async (req, res) => {
+    let useDb = dbAvailable && pool;
+    try {
+        if (useDb) {
+            const queryStr = `
+                SELECT pe.*,
+                       mc.nome as material_nome,
+                       mc.categoria as material_categoria,
+                       tp.preco_entregar as preco_compra,
+                       tp.preco_coletar as preco_compra_coletar,
+                       tp.venda_ref as preco_venda,
+                       tp.comissao,
+                       tp.pis_cofins,
+                       tp.fidc,
+                       tp.icms,
+                       tp.frete_coleta
+                FROM planejamento_estrategico pe
+                JOIN materiais_catalogo mc ON pe.material_id = mc.id
+                LEFT JOIN tabela_precos tp ON pe.material_id = tp.material_id
+                ORDER BY pe.mes DESC, mc.nome ASC
+            `;
+            const result = await pool.query(queryStr);
+            return res.json(result.rows);
+        }
+    } catch (err) {
+        console.warn('⚠️ Erro de banco no GET planejamento-estrategico, usando memStore:', err.message);
+        dbAvailable = false;
+    }
+
+    const list = memStore.planejamento_estrategico || [];
+    const enriched = list.map(pe => {
+        const mc = (memStore.materiais_catalogo || []).find(x => x.id === pe.material_id);
+        const tp = (memStore.tabela_precos || []).find(x => x.material_id === pe.material_id) || {};
+        return {
+            ...pe,
+            material_nome: mc ? mc.nome : 'Material desconhecido',
+            material_categoria: mc ? mc.categoria : 'Outros',
+            preco_compra: tp.preco_entregar || 0,
+            preco_compra_coletar: tp.preco_coletar || 0,
+            preco_venda: tp.venda_ref || 0,
+            comissao: tp.comissao || 0,
+            pis_cofins: tp.pis_cofins || 0,
+            fidc: tp.fidc || 0,
+            icms: tp.icms || 0,
+            frete_coleta: tp.frete_coleta || 0
+        };
+    });
+    res.json(enriched);
+});
+
+app.post('/api/planejamento-estrategico', async (req, res) => {
+    const { mes, material_id, qtd_conservador, qtd_moderado, qtd_agressivo, qtd_realizado } = req.body;
+    const matId = parseInt(material_id);
+    const qCons = parseFloat(qtd_conservador || 0);
+    const qMod = parseFloat(qtd_moderado || 0);
+    const qAgr = parseFloat(qtd_agressivo || 0);
+    const qReal = parseFloat(qtd_realizado || 0);
+    const mesStr = mes || new Date().toISOString().slice(0, 7);
+
+    let useDb = dbAvailable && pool;
+    try {
+        if (useDb) {
+            const queryStr = `
+                INSERT INTO planejamento_estrategico (mes, material_id, qtd_conservador, qtd_moderado, qtd_agressivo, qtd_realizado)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                ON CONFLICT (mes, material_id) DO UPDATE
+                SET qtd_conservador = EXCLUDED.qtd_conservador,
+                    qtd_moderado = EXCLUDED.qtd_moderado,
+                    qtd_agressivo = EXCLUDED.qtd_agressivo,
+                    qtd_realizado = EXCLUDED.qtd_realizado
+                RETURNING *
+            `;
+            const r = await pool.query(queryStr, [mesStr, matId, qCons, qMod, qAgr, qReal]);
+            return res.json(r.rows[0]);
+        }
+    } catch (err) {
+        console.warn('⚠️ Erro de banco no POST planejamento-estrategico, usando memStore:', err.message);
+        dbAvailable = false;
+    }
+
+    if (!memStore.planejamento_estrategico) memStore.planejamento_estrategico = [];
+    const idx = memStore.planejamento_estrategico.findIndex(x => x.mes === mesStr && x.material_id === matId);
+    const item = {
+        id: idx >= 0 ? memStore.planejamento_estrategico[idx].id : nextId++,
+        mes: mesStr,
+        material_id: matId,
+        qtd_conservador: qCons,
+        qtd_moderado: qMod,
+        qtd_agressivo: qAgr,
+        qtd_realizado: qReal,
+        criado_em: new Date().toISOString()
+    };
+    if (idx >= 0) {
+        memStore.planejamento_estrategico[idx] = item;
+    } else {
+        memStore.planejamento_estrategico.push(item);
+    }
+    res.json(item);
+});
+
+app.delete('/api/planejamento-estrategico/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    let useDb = dbAvailable && pool;
+    try {
+        if (useDb) {
+            await pool.query('DELETE FROM planejamento_estrategico WHERE id = $1', [id]);
+            return res.json({ success: true });
+        }
+    } catch (err) {
+        console.warn('⚠️ Erro de banco no DELETE planejamento-estrategico, usando memStore:', err.message);
+        dbAvailable = false;
+    }
+
+    memStore.planejamento_estrategico = (memStore.planejamento_estrategico || []).filter(x => x.id !== id);
+    res.json({ success: true });
+});
+
 
 // ─── API: Planejamento Comercial (Compra e Venda / Revenda) ─────────────────
 app.get('/api/planejamento/comercial-revenda', async (req, res) => {
