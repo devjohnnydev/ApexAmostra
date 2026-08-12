@@ -2891,185 +2891,221 @@
 
                 <!-- ════ GUI 7: PLANEJAMENTO ESTRATÉGICO ════ -->
                 <div id="pl-subview-estrategico" class="pl-subview" style="display:none;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-compass" style="color:#00e5ff;"></i> Módulo de Planejamento Estratégico</h3>
-                            <span style="font-size:0.8rem; color:#aaa;">Visão executiva e simulação de cenários comerciais baseados na Tabela de Preços oficial.</span>
-                        </div>
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <label style="color:#ccc; font-size:0.85rem;">Mês Referência:</label>
-                            <input type="month" id="plest-filter-mes" onchange="carregarPlanejamentoEstrategico()" style="background:#0d1826; border:1px solid #1e4e8c; color:#fff; padding:6px 12px; border-radius:6px; font-family:inherit;">
+                    
+                    <!-- TELA 1: VISÃO DE 12 MESES CONSOLIDADA -->
+                    <div id="plest-view-12meses">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-compass" style="color:#00e5ff;"></i> Planejamento Estratégico — 12 Meses</h3>
+                                <span style="font-size:0.8rem; color:#aaa;">Visão executiva anual e atingimento geral de metas comerciais consolidadas.</span>
+                            </div>
                             <button class="btn-primary" onclick="abrirModalMetaEstrategica()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Lançar/Alterar Meta</button>
                         </div>
-                    </div>
 
-                    <!-- Dashboard Executivo KPIs -->
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:20px;">
-                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #00e5ff; background:#12212f;">
-                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Fat. Projetado (Mod.)</span>
-                            <h3 id="est-kpi-fat-previsto" style="margin:4px 0 0 0; color:#00e5ff; font-size:1.25rem;">R$ 0,00</h3>
-                        </div>
-                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #ffb74d; background:#12212f;">
-                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛒 Custo Compra (Mod.)</span>
-                            <h3 id="est-kpi-custo-previsto" style="margin:4px 0 0 0; color:#ffb74d; font-size:1.25rem;">R$ 0,00</h3>
-                        </div>
-                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #2AD07A; background:#12212f;">
-                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">💰 Lucro Projetado (Mod.)</span>
-                            <h3 id="est-kpi-lucro-previsto" style="margin:4px 0 0 0; color:#2AD07A; font-size:1.25rem;">R$ 0,00</h3>
-                        </div>
-                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #3e7cb1; background:#12212f;">
-                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📊 Margem Média</span>
-                            <h3 id="est-kpi-margem-media" style="margin:4px 0 0 0; color:#3e7cb1; font-size:1.25rem;">0.0%</h3>
-                        </div>
-                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #9b59b6; background:#12212f;">
-                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🔗 Markup Médio</span>
-                            <h3 id="est-kpi-markup-medio" style="margin:4px 0 0 0; color:#9b59b6; font-size:1.25rem;">0.00x</h3>
-                        </div>
-                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #e74c3c; background:#12212f;">
-                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📉 FIDC Projetado</span>
-                            <h3 id="est-kpi-fidc-total" style="margin:4px 0 0 0; color:#e74c3c; font-size:1.25rem;">R$ 0,00</h3>
-                        </div>
-                    </div>
-
-                    <!-- Layout Principal Estratégico (Duas Colunas) -->
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:20px; align-items:start;">
-                        <!-- Coluna da Esquerda: Filtro de Produto, Cenários do Produto e Planejado vs Realizado -->
-                        <div style="display:flex; flex-direction:column; gap:16px;">
-                            <!-- Seleção e Avaliação de Produto -->
-                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-                                    <span style="font-weight:700; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-cube" style="color:#00e5ff;"></i> Avaliação de Produto Dinâmica (Dados da Tabela de Preços)</span>
-                                    <select id="plest-select-produto" onchange="onSelectProdutoEstrategico()" class="noble-input" style="max-width:280px; margin:0;"></select>
-                                </div>
-                                <div id="plest-produto-detalhes-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
-                                    <!-- Preenchido via JS com Preço de Compra, Venda, FIDC, Markup, Lucro Unitario, Margem -->
-                                    <div style="text-align:center; padding:10px; background:#101a24; border-radius:8px; border:1px solid #1a2e3f;"><small style="color:#aaa; font-size:0.75rem;">P. Compra</small><div style="font-weight:bold; color:#ffb74d; margin-top:2px;">—</div></div>
-                                    <div style="text-align:center; padding:10px; background:#101a24; border-radius:8px; border:1px solid #1a2e3f;"><small style="color:#aaa; font-size:0.75rem;">P. Venda</small><div style="font-weight:bold; color:#2AD07A; margin-top:2px;">—</div></div>
-                                    <div style="text-align:center; padding:10px; background:#101a24; border-radius:8px; border:1px solid #1a2e3f;"><small style="color:#aaa; font-size:0.75rem;">Markup</small><div style="font-weight:bold; color:#9b59b6; margin-top:2px;">—</div></div>
-                                    <div style="text-align:center; padding:10px; background:#101a24; border-radius:8px; border:1px solid #1a2e3f;"><small style="color:#aaa; font-size:0.75rem;">Lucro Unit.</small><div style="font-weight:bold; color:#00e5ff; margin-top:2px;">—</div></div>
-                                    <div style="text-align:center; padding:10px; background:#101a24; border-radius:8px; border:1px solid #1a2e3f;"><small style="color:#aaa; font-size:0.75rem;">Margem %</small><div style="font-weight:bold; color:#3e7cb1; margin-top:2px;">—</div></div>
-                                </div>
-                            </div>
-
-                            <!-- Comparação entre Cenários (Conservador x Moderado x Agressivo) -->
-                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-scale-balanced" style="color:#9b59b6;"></i> Comparativo entre Cenários para o Produto Selecionado</span>
-                                <div style="overflow-x:auto;">
-                                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                                        <thead>
-                                            <tr style="background:#162433; text-align:left; color:#fff;">
-                                                <th style="padding:8px;">Cenário</th>
-                                                <th style="padding:8px; text-align:right;">Quantidade (kg)</th>
-                                                <th style="padding:8px; text-align:right;">Faturamento (R$)</th>
-                                                <th style="padding:8px; text-align:right;">Custo Compras (R$)</th>
-                                                <th style="padding:8px; text-align:right;">Lucro Esperado (R$)</th>
-                                                <th style="padding:8px; text-align:center;">Margem</th>
-                                                <th style="padding:8px; text-align:center;">Markup</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="plest-cenarios-table-body">
-                                            <tr><td colspan="7" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto acima para carregar a projeção de cenários.</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Planejado vs Realizado (Mês Atual) -->
-                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-code-compare" style="color:#2AD07A;"></i> Comparativo de Metas Planejado × Realizado (Cenário Moderado)</span>
-                                <div style="overflow-x:auto;">
-                                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                                        <thead>
-                                            <tr style="background:#162433; text-align:left; color:#fff;">
-                                                <th style="padding:8px;">Indicador</th>
-                                                <th style="padding:8px; text-align:right;">Planejado</th>
-                                                <th style="padding:8px; text-align:right;">Realizado</th>
-                                                <th style="padding:8px; text-align:right;">Diferença (Saldo)</th>
-                                                <th style="padding:8px; text-align:center;">% Atingimento</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="plest-planejado-realizado-tbody">
-                                            <tr><td colspan="5" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto para visualizar o atingimento de metas.</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Coluna da Direita: Análise de Texto e Rankings Rápidos -->
-                        <div style="display:flex; flex-direction:column; gap:16px;">
-                            <!-- Análise Estratégica Automática (Natural Language Insights) -->
-                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:10px;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i> Análise Estratégica &amp; Recomendações</span>
-                                <div id="plest-ia-insights" style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px; font-size:0.82rem; line-height:1.4; color:#fff;">
-                                    Calculando recomendações executivas para a carteira de produtos...
-                                </div>
-                            </div>
-
-                            <!-- Gráfico de Comparação de Cenários (Conservador x Moderado x Agressivo x Realizado) -->
-                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-chart-simple" style="color:#ffb74d;"></i> Volume por Cenários vs. Realizado (kg)</span>
-                                <div style="height:170px; position:relative;">
-                                    <canvas id="plest-chart-cenarios"></canvas>
-                                </div>
+                        <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                    <thead>
+                                        <tr style="background:#162433; text-align:left; color:#fff;">
+                                            <th style="padding:10px 8px;">Mês Referência</th>
+                                            <th style="padding:10px 8px; text-align:right;">Meta Compra (kg)</th>
+                                            <th style="padding:10px 8px; text-align:right;">Meta Venda (kg)</th>
+                                            <th style="padding:10px 8px; text-align:right;">Fat. Projetado (R$)</th>
+                                            <th style="padding:10px 8px; text-align:right;">Realizado Consolidado (kg)</th>
+                                            <th style="padding:10px 8px; text-align:center;">Atingimento</th>
+                                            <th style="padding:10px 8px; text-align:center;">Cenário Alcançado</th>
+                                            <th style="padding:10px 8px; text-align:center;">Status</th>
+                                            <th style="padding:10px 8px; text-align:center;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plest-12meses-tbody">
+                                        <!-- Preenchido via JS com os 12 meses dinâmicos -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Seção de Rankings Estratégicos (Tops 10) -->
-                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px; margin-bottom:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <span style="font-weight:700; color:#fff; font-size:0.95rem;"><i class="fa-solid fa-list-ol" style="color:#2AD07A;"></i> Rankings Estratégicos de Materiais (Base Tabela de Preços)</span>
-                            <select id="plest-select-ranking-tipo" onchange="renderRankingEstrategico()" class="noble-input" style="max-width:240px; margin:0;">
-                                <option value="lucro">Top 10 — Maior Lucro Unitário</option>
-                                <option value="margem">Top 10 — Maior Margem %</option>
-                                <option value="markup">Top 10 — Maior Markup</option>
-                                <option value="faturamento">Top 10 — Maior Faturamento Potencial (Moderado)</option>
-                                <option value="oportunidade">Top 10 — Maior Oportunidade (Spread Venda - Compra)</option>
-                                <option value="abaixo">Top 10 — Margem Abaixo do Ideal</option>
-                            </select>
+                    <!-- TELA 2: DETALHES DO MÊS SELECIONADO -->
+                    <div id="plest-view-detalhes-mes" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <button onclick="voltarPara12MesesEstrategico()" class="btn-secondary" style="font-size:0.8rem; padding:6px 12px; background:#1b382b; border-color:#2AD07A; color:#2AD07A;">
+                                    <i class="fa-solid fa-arrow-left"></i> Voltar aos 12 Meses
+                                </button>
+                                <div>
+                                    <h3 style="margin:0; color:#fff;" id="plest-txt-mes-ativo">Planejamento Estratégico — Mês</h3>
+                                    <span style="font-size:0.8rem; color:#aaa;">Avaliação detalhada, metas por produto e análise de cenários do período.</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <button class="btn-primary" onclick="abrirModalMetaEstrategica()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Alterar Metas do Mês</button>
+                            </div>
                         </div>
-                        <div style="overflow-x:auto;">
-                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                                <thead>
-                                    <tr style="background:#162433; text-align:left; color:#fff;">
-                                        <th style="padding:8px; width:60px; text-align:center;">Posição</th>
-                                        <th style="padding:8px;">Material</th>
-                                        <th style="padding:8px;">Categoria</th>
-                                        <th style="padding:8px; text-align:right;">Preço Compra</th>
-                                        <th style="padding:8px; text-align:right;">Preço Venda</th>
-                                        <th style="padding:8px; text-align:right;">Resultado Financeiro</th>
-                                        <th style="padding:8px; text-align:center;">Métrica Chave</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="plest-rankings-tbody"></tbody>
-                            </table>
-                        </div>
-                    </div>
 
-                    <!-- Tabela Completa de Metas e Acompanhamento Geral -->
-                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                        <span style="font-weight:700; color:#fff; font-size:0.95rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-table" style="color:#3e7cb1;"></i> Planilha Geral de Planejamento Mensal</span>
-                        <div style="overflow-x:auto;">
-                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                                <thead>
-                                    <tr style="background:#162433; text-align:left; color:#fff;">
-                                        <th style="padding:8px;">Produto</th>
-                                        <th style="padding:8px; text-align:right;">Conservador (kg)</th>
-                                        <th style="padding:8px; text-align:right;">Moderado / Meta (kg)</th>
-                                        <th style="padding:8px; text-align:right;">Agressivo (kg)</th>
-                                        <th style="padding:8px; text-align:right;">P. Compra</th>
-                                        <th style="padding:8px; text-align:right;">P. Venda</th>
-                                        <th style="padding:8px; text-align:right;">Fat. Projetado (Mod.)</th>
-                                        <th style="padding:8px; text-align:right;">Lucro Projetado (Mod.)</th>
-                                        <th style="padding:8px; text-align:center;">Margem</th>
-                                        <th style="padding:8px; text-align:right;">Realizado (kg)</th>
-                                        <th style="padding:8px; text-align:center;">Atingimento</th>
-                                        <th style="padding:8px; text-align:center;">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="plest-geral-table-body"></tbody>
-                            </table>
+                        <!-- Dashboard Executivo KPIs do Mês -->
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:20px;">
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #00e5ff; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Fat. Projetado (Mod.)</span>
+                                <h3 id="est-kpi-fat-previsto" style="margin:4px 0 0 0; color:#00e5ff; font-size:1.25rem;">R$ 0,00</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #ffb74d; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛒 Custo Compra (Mod.)</span>
+                                <h3 id="est-kpi-custo-previsto" style="margin:4px 0 0 0; color:#ffb74d; font-size:1.25rem;">R$ 0,00</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #2AD07A; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">💰 Lucro Projetado (Mod.)</span>
+                                <h3 id="est-kpi-lucro-previsto" style="margin:4px 0 0 0; color:#2AD07A; font-size:1.25rem;">R$ 0,00</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #3e7cb1; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📊 Margem Média</span>
+                                <h3 id="est-kpi-margem-media" style="margin:4px 0 0 0; color:#3e7cb1; font-size:1.25rem;">0.0%</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #9b59b6; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🔗 Markup Médio</span>
+                                <h3 id="est-kpi-markup-medio" style="margin:4px 0 0 0; color:#9b59b6; font-size:1.25rem;">0.00x</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #e74c3c; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📉 FIDC Projetado</span>
+                                <h3 id="est-kpi-fidc-total" style="margin:4px 0 0 0; color:#e74c3c; font-size:1.25rem;">R$ 0,00</h3>
+                            </div>
+                        </div>
+
+                        <!-- Layout Principal Estratégico (Duas Colunas) -->
+                        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:20px; align-items:start;">
+                            <!-- Coluna da Esquerda: Filtro de Produto, Cenários do Produto e Planejado vs Realizado -->
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <!-- Seleção e Avaliação de Produto -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                                        <span style="font-weight:700; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-cube" style="color:#00e5ff;"></i> Avaliação de Produto Dinâmica (Dados da Tabela de Preços)</span>
+                                        <select id="plest-select-produto" onchange="onSelectProdutoEstrategico()" class="noble-input" style="max-width:280px; margin:0;"></select>
+                                    </div>
+                                    <div id="plest-produto-detalhes-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+                                        <!-- Preenchido via JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Comparação entre Cenários (Conservador x Moderado x Agressivo) -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-scale-balanced" style="color:#9b59b6;"></i> Comparativo entre Cenários para o Produto Selecionado</span>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                            <thead>
+                                                <tr style="background:#162433; text-align:left; color:#fff;">
+                                                    <th style="padding:8px;">Cenário</th>
+                                                    <th style="padding:8px; text-align:right;">Quantidade (kg)</th>
+                                                    <th style="padding:8px; text-align:right;">Faturamento (R$)</th>
+                                                    <th style="padding:8px; text-align:right;">Custo Compras (R$)</th>
+                                                    <th style="padding:8px; text-align:right;">Lucro Esperado (R$)</th>
+                                                    <th style="padding:8px; text-align:center;">Margem</th>
+                                                    <th style="padding:8px; text-align:center;">Markup</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="plest-cenarios-table-body">
+                                                <!-- Preenchido via JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Planejado vs Realizado (Mês Atual) -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-code-compare" style="color:#2AD07A;"></i> Comparativo de Metas Planejado × Realizado (Mês Consolidado)</span>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                            <thead>
+                                                <tr style="background:#162433; text-align:left; color:#fff;">
+                                                    <th style="padding:8px;">Indicador</th>
+                                                    <th style="padding:8px; text-align:right;">Planejado</th>
+                                                    <th style="padding:8px; text-align:right;">Realizado</th>
+                                                    <th style="padding:8px; text-align:right;">Diferença (Saldo)</th>
+                                                    <th style="padding:8px; text-align:center;">% Atingimento</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="plest-planejado-realizado-tbody">
+                                                <!-- Preenchido via JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Coluna da Direita: Análise de Texto e Rankings Rápidos -->
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <!-- Análise Estratégica Automática -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:10px;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i> Análise Estratégica &amp; Recomendações</span>
+                                    <div id="plest-ia-insights" style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px; font-size:0.82rem; line-height:1.4; color:#fff;">
+                                        Calculando recomendações executivas para a carteira de produtos...
+                                    </div>
+                                </div>
+
+                                <!-- Gráfico de Comparação de Cenários -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-chart-simple" style="color:#ffb74d;"></i> Volume por Cenários vs. Realizado (kg)</span>
+                                    <div style="height:170px; position:relative;">
+                                        <canvas id="plest-chart-cenarios"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seção de Rankings Estratégicos (Tops 10) -->
+                        <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px; margin-bottom:20px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <span style="font-weight:700; color:#fff; font-size:0.95rem;"><i class="fa-solid fa-list-ol" style="color:#2AD07A;"></i> Rankings Estratégicos de Materiais (Base Tabela de Preços)</span>
+                                <select id="plest-select-ranking-tipo" onchange="renderRankingEstrategico()" class="noble-input" style="max-width:240px; margin:0;">
+                                    <option value="lucro">Top 10 — Maior Lucro Unitário</option>
+                                    <option value="margem">Top 10 — Maior Margem %</option>
+                                    <option value="markup">Top 10 — Maior Markup</option>
+                                    <option value="faturamento">Top 10 — Maior Faturamento Potencial (Moderado)</option>
+                                    <option value="oportunidade">Top 10 — Maior Oportunidade (Spread Venda - Compra)</option>
+                                    <option value="abaixo">Top 10 — Margem Abaixo do Ideal</option>
+                                </select>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                    <thead>
+                                        <tr style="background:#162433; text-align:left; color:#fff;">
+                                            <th style="padding:8px; width:60px; text-align:center;">Posição</th>
+                                            <th style="padding:8px;">Material</th>
+                                            <th style="padding:8px;">Categoria</th>
+                                            <th style="padding:8px; text-align:right;">Preço Compra</th>
+                                            <th style="padding:8px; text-align:right;">Preço Venda</th>
+                                            <th style="padding:8px; text-align:right;">Resultado Financeiro</th>
+                                            <th style="padding:8px; text-align:center;">Métrica Chave</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plest-rankings-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tabela Completa de Metas e Acompanhamento Geral do Mês -->
+                        <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                            <span style="font-weight:700; color:#fff; font-size:0.95rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-table" style="color:#3e7cb1;"></i> Planilha de Metas de Produtos Comercializados no Mês</span>
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                    <thead>
+                                        <tr style="background:#162433; text-align:left; color:#fff;">
+                                            <th style="padding:8px;">Produto</th>
+                                            <th style="padding:8px; text-align:right;">Conservador (kg)</th>
+                                            <th style="padding:8px; text-align:right;">Moderado / Meta (kg)</th>
+                                            <th style="padding:8px; text-align:right;">Agressivo (kg)</th>
+                                            <th style="padding:8px; text-align:right;">P. Compra (Tabela)</th>
+                                            <th style="padding:8px; text-align:right;">P. Venda (Tabela)</th>
+                                            <th style="padding:8px; text-align:right;">Fat. Projetado (Mod.)</th>
+                                            <th style="padding:8px; text-align:right;">Lucro Projetado (Mod.)</th>
+                                            <th style="padding:8px; text-align:center;">Margem</th>
+                                            <th style="padding:8px; text-align:right;">Realizado Consolidado (kg)</th>
+                                            <th style="padding:8px; text-align:center;">Atingimento</th>
+                                            <th style="padding:8px; text-align:center;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plest-geral-table-body"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3120,7 +3156,7 @@
                                     <input type="number" step="0.001" min="0" id="metaest-qtd-agressivo" class="noble-input" required placeholder="Ex: 20000">
                                 </div>
                                 <div class="form-group">
-                                    <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Realizado no Mês (kg)</label>
+                                    <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Realizado Consolidado no Mês (kg) *</label>
                                     <input type="number" step="0.001" min="0" id="metaest-qtd-realizado" class="noble-input" placeholder="Ex: 3233">
                                 </div>
                             </div>

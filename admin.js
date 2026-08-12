@@ -14936,16 +14936,10 @@ window.carregarFinanceiroView = async function() {
     let _listMetasEstrategicas = [];
     let _listTabelaPrecosEstrategica = [];
     let _chartEstrategicoCenarios = null;
+    let _mesEstrategicoAtivo = null; // null significa visualizando tela de 12 meses
 
     window.carregarPlanejamentoEstrategico = async function() {
         try {
-            // Inicializar filtro de mês com o mês atual se estiver vazio
-            const filterMes = document.getElementById('plest-filter-mes');
-            if (filterMes && !filterMes.value) {
-                const today = new Date();
-                filterMes.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
-            }
-
             // Buscar tabela de preços completa e metas estratégicas cadastradas
             const [resPrecos, resMetas] = await Promise.all([
                 fetch('/api/tabela-precos'),
@@ -14956,11 +14950,16 @@ window.carregarFinanceiroView = async function() {
             const rawMetas = await resMetas.json();
             _listMetasEstrategicas = Array.isArray(rawMetas) ? rawMetas : [];
 
-            // Alimentar comboboxes de seleção de produto
+            // Popular comboboxes de seleção de produto
             popularSelectsProdutoEstrategico();
 
-            // Renderizar dashboard e listagem
-            renderDashboardEstrategico();
+            if (_mesEstrategicoAtivo) {
+                // Se um mês está ativo, renderiza os detalhes daquele mês
+                renderDashboardEstrategico();
+            } else {
+                // Caso contrário, mostra a visão geral dos 12 meses
+                renderVisualizacao12Meses();
+            }
         } catch(e) {
             console.error('Erro ao carregar planejamento estratégico:', e);
             _apexNotify('Erro', 'Não foi possível carregar os dados estratégicos.', 'error');
@@ -14971,6 +14970,9 @@ window.carregarFinanceiroView = async function() {
         const selectProd = document.getElementById('plest-select-produto');
         const selectModal = document.getElementById('metaest-material-id');
         if (!selectProd || !selectModal) return;
+
+        const currentValProd = selectProd.value;
+        const currentValModal = selectModal.value;
 
         // Limpar e preencher
         selectProd.innerHTML = '<option value="">-- Selecione um Produto --</option>';
@@ -14988,10 +14990,159 @@ window.carregarFinanceiroView = async function() {
             opt2.textContent = tp.material_nome + ' (' + tp.material_categoria + ')';
             selectModal.appendChild(opt2);
         });
+
+        if (currentValProd) selectProd.value = currentValProd;
+        if (currentValModal) selectModal.value = currentValModal;
+    }
+
+    window.voltarPara12MesesEstrategico = function() {
+        _mesEstrategicoAtivo = null;
+        document.getElementById('plest-view-12meses').style.display = 'block';
+        document.getElementById('plest-view-detalhes-mes').style.display = 'none';
+        renderVisualizacao12Meses();
+    };
+
+    window.detalharMesEstrategico = function(mes) {
+        _mesEstrategicoAtivo = mes;
+        document.getElementById('plest-view-12meses').style.display = 'none';
+        document.getElementById('plest-view-detalhes-mes').style.display = 'block';
+        document.getElementById('plest-txt-mes-ativo').innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Planejamento Estratégico — ${formatarMesAnoLabel(mes)}`;
+        
+        // Selecionar o primeiro produto por padrão se não houver um selecionado
+        const selectProd = document.getElementById('plest-select-produto');
+        if (selectProd && !selectProd.value && _listTabelaPrecosEstrategica.length > 0) {
+            selectProd.value = _listTabelaPrecosEstrategica[0].material_id;
+        }
+
+        renderDashboardEstrategico();
+    };
+
+    function formatarMesAnoLabel(mesStr) {
+        if (!mesStr) return '';
+        const [year, month] = mesStr.split('-');
+        const mesesNomes = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        return `${mesesNomes[parseInt(month) - 1]} de ${year}`;
+    }
+
+    function renderVisualizacao12Meses() {
+        const tbody = document.getElementById('plest-12meses-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        // Obter os 12 meses a partir de Agosto/2026
+        const listMeses = [];
+        let startYear = 2026;
+        let startMonth = 8; // Agosto
+
+        // Obter data atual do sistema para comparar status do mês
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1; // 1-indexed
+
+        for (let i = 0; i < 12; i++) {
+            const m = String(startMonth).padStart(2, '0');
+            const mesKey = `${startYear}-${m}`;
+            listMeses.push(mesKey);
+
+            startMonth++;
+            if (startMonth > 12) {
+                startMonth = 1;
+                startYear++;
+            }
+        }
+
+        listMeses.forEach(mesKey => {
+            // Filtrar metas cadastradas neste mês
+            const metasMes = _listMetasEstrategicas.filter(m => m.mes === mesKey);
+
+            let totalMetaCompra = 0;
+            let totalMetaVenda = 0;
+            let totalFaturamentoProjetado = 0;
+            let totalRealizado = 0;
+            let totalConservador = 0;
+            let totalAgressivo = 0;
+
+            metasMes.forEach(meta => {
+                const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === meta.material_id);
+                const pVenda = tp ? parseFloat(tp.venda_ref || 0) : 0;
+
+                const qCons = parseFloat(meta.qtd_conservador || 0);
+                const qMod = parseFloat(meta.qtd_moderado || 0);
+                const qAgr = parseFloat(meta.qtd_agressivo || 0);
+                const qReal = parseFloat(meta.qtd_realizado || 0);
+
+                totalMetaCompra += qMod;
+                totalMetaVenda += qMod;
+                totalFaturamentoProjetado += (qMod * pVenda);
+                totalRealizado += qReal;
+                totalConservador += qCons;
+                totalAgressivo += qAgr;
+            });
+
+            const atingimentoPct = totalMetaCompra > 0 ? (totalRealizado / totalMetaCompra) * 100 : 0;
+
+            // Determinar Status
+            let statusStr = '';
+            let statusCor = '';
+            const [y, m] = mesKey.split('-').map(Number);
+            const isFuturo = (y > currentYear) || (y === currentYear && m > currentMonth);
+            const isAtual = (y === currentYear && m === currentMonth);
+
+            if (totalRealizado === 0 && isFuturo) {
+                statusStr = 'NÃO INICIADO';
+                statusCor = '#aaa';
+            } else if (isAtual) {
+                statusStr = 'EM ANDAMENTO';
+                statusCor = '#00e5ff';
+            } else if (atingimentoPct >= 100) {
+                statusStr = atingimentoPct > 100 ? 'META SUPERADA' : 'META ATINGIDA';
+                statusCor = '#2AD07A';
+            } else {
+                statusStr = 'ABAIXO DA META';
+                statusCor = '#ff4d4d';
+            }
+
+            // Posição entre os cenários
+            let cenarioAlcancado = '—';
+            if (totalRealizado > 0) {
+                if (totalRealizado >= totalAgressivo && totalAgressivo > 0) {
+                    cenarioAlcancado = '<span style="color:#ff4d4d; font-weight:bold;">Agressivo</span>';
+                } else if (totalRealizado >= totalMetaCompra && totalMetaCompra > 0) {
+                    cenarioAlcancado = '<span style="color:#00e5ff; font-weight:bold;">Moderado</span>';
+                } else if (totalRealizado >= totalConservador && totalConservador > 0) {
+                    cenarioAlcancado = '<span style="color:#ffeb3b; font-weight:bold;">Conservador</span>';
+                } else {
+                    cenarioAlcancado = '<span style="color:#ff4d4d;">Abaixo do Conservador</span>';
+                }
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding:10px 8px;"><strong>${formatarMesAnoLabel(mesKey)}</strong></td>
+                <td style="padding:10px 8px; text-align:right;">${totalMetaCompra.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right;">${totalMetaVenda.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${totalFaturamentoProjetado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td style="padding:10px 8px; text-align:right; color:#fff;">${totalRealizado.toLocaleString('pt-BR')} kg</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct.toFixed(1)}%</td>
+                <td style="padding:10px 8px; text-align:center;">${cenarioAlcancado}</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${statusCor};">${statusStr}</td>
+                <td style="padding:10px 8px; text-align:center;">
+                    <button onclick="detalharMesEstrategico('${mesKey}')" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#2AD07A; color:#0d1826; font-weight:bold;">
+                        <i class="fa-solid fa-magnifying-glass"></i> Detalhar Mês
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     window.onSelectProdutoEstrategico = function() {
-        renderDashboardEstrategico();
+        if (_mesEstrategicoAtivo) {
+            renderDashboardEstrategico();
+        }
     };
 
     window.onSelectModalMaterial = function() {
@@ -15000,11 +15151,19 @@ window.carregarFinanceiroView = async function() {
         const lblVenda = document.getElementById('metaest-lbl-venda');
         const lblMargem = document.getElementById('metaest-lbl-margem');
 
-        const preco = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
-        if (preco) {
-            const pCompra = parseFloat(preco.preco_entregar || 0);
-            const pVenda = parseFloat(preco.venda_ref || 0);
-            const lucro = pVenda - pCompra;
+        const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
+        if (tp) {
+            const pCompra = parseFloat(tp.preco_entregar || 0);
+            const pVenda = parseFloat(tp.venda_ref || 0);
+            const comissao = parseFloat(tp.comissao || 0);
+            const pisCofins = parseFloat(tp.pis_cofins || 0);
+            const fidc = parseFloat(tp.fidc || 0);
+            const icms = parseFloat(tp.icms || 0);
+            const frete = parseFloat(tp.frete_coleta || 0);
+
+            const impostoUnit = pVenda * ((pisCofins + icms) / 100);
+            const custoTotal = pCompra + frete + impostoUnit + (pVenda * (comissao / 100)) + (pVenda * (fidc / 100));
+            const lucro = pVenda - custoTotal;
             const margem = pVenda > 0 ? (lucro / pVenda) * 100 : 0;
 
             lblCompra.textContent = 'R$ ' + pCompra.toFixed(2);
@@ -15018,7 +15177,8 @@ window.carregarFinanceiroView = async function() {
     };
 
     function renderDashboardEstrategico() {
-        const filterMes = document.getElementById('plest-filter-mes').value;
+        if (!_mesEstrategicoAtivo) return;
+        const filterMes = _mesEstrategicoAtivo;
         const targetMatId = parseInt(document.getElementById('plest-select-produto').value) || null;
 
         // Filtrar metas cadastradas para o mês selecionado
@@ -15115,7 +15275,7 @@ window.carregarFinanceiroView = async function() {
         });
 
         if (tableBody && tableBody.children.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:#aaa;">Nenhuma meta cadastrada para este mês. Clique em "Lançar/Alterar Meta" no topo para planejar.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:#aaa;">Nenhuma meta cadastrada para este mês. Clique em "Alterar Metas do Mês" no topo para planejar.</td></tr>`;
         }
 
         // Renderizar KPIs no topo
@@ -15226,16 +15386,21 @@ window.carregarFinanceiroView = async function() {
             ${fillCenario('Agressivo', qAgr, '#ff4d4d')}
         `;
 
-        // Planejado vs Realizado
+        // Planejado vs Realizado (Mês Consolidado)
         const fatPlan = qMod * pVenda;
         const fatReal = qReal * pVenda;
         const lucroPlan = fatPlan - (qMod * custoTotal);
         const lucroReal = fatReal - (qReal * custoTotal);
+        const investPlan = qMod * custoTotal;
+        const investReal = qReal * custoTotal;
 
-        const compRow = (nome, planVal, realVal, unit, isMoney) => {
+        const compRow = (nome, planVal, realVal, unit, isMoney, isPercent = false) => {
             const diff = planVal - realVal;
             const pct = planVal > 0 ? (realVal / planVal) * 100 : 0;
-            const fmt = (v) => isMoney ? 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2}) : v.toLocaleString('pt-BR') + ' ' + unit;
+            const fmt = (v) => {
+                if (isPercent) return v.toFixed(1) + '%';
+                return isMoney ? 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2}) : v.toLocaleString('pt-BR') + ' ' + unit;
+            };
             return `
                 <tr>
                     <td style="padding:8px; font-weight:600; color:#fff;">${nome}</td>
@@ -15248,9 +15413,12 @@ window.carregarFinanceiroView = async function() {
         };
 
         prBody.innerHTML = `
-            ${compRow('Quantidade (Volume)', qMod, qReal, 'kg', false)}
-            ${compRow('Faturamento Bruto', fatPlan, fatReal, '', true)}
-            ${compRow('Lucro Operacional', lucroPlan, lucroReal, '', true)}
+            ${compRow('Meta de Compra (Volume)', qMod, qReal, 'kg', false)}
+            ${compRow('Meta de Venda (Volume)', qMod, qReal, 'kg', false)}
+            ${compRow('Faturamento', fatPlan, fatReal, '', true)}
+            ${compRow('Investimento (Reserva)', investPlan, investReal, '', true)}
+            ${compRow('Lucro Projetado', lucroPlan, lucroReal, '', true)}
+            ${compRow('Margem Líquida', margem, margem, '', false, true)}
         `;
 
         // Renderizar gráfico de cenários com Chart.js
@@ -15417,6 +15585,25 @@ window.carregarFinanceiroView = async function() {
             html += `<li>📊 <strong>Atingimento</strong>: O atingimento médio das metas estratégicas do mês atual está em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
         }
 
+        // Análises de progresso por produto
+        metasMes.forEach(m => {
+            const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === m.material_id);
+            if (tp) {
+                const mod = parseFloat(m.qtd_moderado || 0);
+                const real = parseFloat(m.qtd_realizado || 0);
+                const cons = parseFloat(m.qtd_conservador || 0);
+
+                if (real >= mod && mod > 0) {
+                    html += `<li>🏆 <strong>Meta Atingida</strong>: O produto <strong>${tp.material_nome}</strong> superou a meta moderada com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
+                } else if (real >= cons && cons > 0) {
+                    html += `<li>📈 <strong>Cenário Conservador</strong>: O produto <strong>${tp.material_nome}</strong> superou o cenário conservador e está buscando a meta moderada.</li>`;
+                } else if (mod > 0) {
+                    const restante = mod - real;
+                    html += `<li>🕒 <strong>Restante</strong>: Faltam <strong>${restante.toLocaleString('pt-BR')} kg</strong> de <strong>${tp.material_nome}</strong> para atingir a meta moderada do mês.</li>`;
+                }
+            }
+        });
+
         html += `</ul>`;
         insightsContainer.innerHTML = html;
     }
@@ -15425,6 +15612,17 @@ window.carregarFinanceiroView = async function() {
     window.abrirModalMetaEstrategica = function() {
         const modal = document.getElementById('modal-meta-estrategica');
         if (modal) {
+            // Preencher mês atual ou ativo no input
+            const mesInput = document.getElementById('metaest-mes');
+            if (mesInput) {
+                if (_mesEstrategicoAtivo) {
+                    mesInput.value = _mesEstrategicoAtivo;
+                } else {
+                    const today = new Date();
+                    mesInput.value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+                }
+            }
+
             document.body.appendChild(modal);
             modal.style.display = 'flex';
         }
