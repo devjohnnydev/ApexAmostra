@@ -15207,9 +15207,12 @@ window.carregarFinanceiroView = async function() {
             const qAgr = meta ? parseFloat(meta.qtd_agressivo || 0) : 0;
             const qReal = meta ? parseFloat(meta.qtd_realizado || 0) : 0;
 
+            // Margem customizada definida pelo usuário
+            const margemCustom = (meta && meta.margem_alvo !== null) ? parseFloat(meta.margem_alvo) : null;
+
             // Valores comerciais oficiais da tabela
             const pCompra = parseFloat(tp.preco_entregar || 0);
-            const pVenda = parseFloat(tp.venda_ref || 0);
+            const pVendaBase = parseFloat(tp.venda_ref || 0);
             const comissaoPct = parseFloat(tp.comissao || 0);
             const pisCofinsPct = parseFloat(tp.pis_cofins || 0);
             const fidcPct = parseFloat(tp.fidc || 0);
@@ -15217,17 +15220,23 @@ window.carregarFinanceiroView = async function() {
             const freteColeta = parseFloat(tp.frete_coleta || 0);
 
             // Custos unitários baseados nos percentuais
-            const custoImpostos = pVenda * ((pisCofinsPct + icmsPct) / 100);
-            const custoComissao = pVenda * (comissaoPct / 100);
-            const custoFidc = pVenda * (fidcPct / 100);
+            const custoImpostos = pVendaBase * ((pisCofinsPct + icmsPct) / 100);
+            const custoComissao = pVendaBase * (comissaoPct / 100);
+            const custoFidc = pVendaBase * (fidcPct / 100);
             const custoTotalUnit = pCompra + freteColeta + custoImpostos + custoComissao + custoFidc;
 
-            const lucroUnit = pVenda - custoTotalUnit;
-            const margemUnitPct = pVenda > 0 ? (lucroUnit / pVenda) * 100 : 0;
-            const markupUnit = pCompra > 0 ? (pVenda / pCompra) : 0;
+            // Calcular preço de venda planejado se houver margem customizada
+            let pVendaProjetado = pVendaBase;
+            if (margemCustom !== null && margemCustom < 100) {
+                pVendaProjetado = custoTotalUnit / (1 - margemCustom / 100);
+            }
+
+            const lucroUnit = pVendaProjetado - custoTotalUnit;
+            const margemUnitPct = pVendaProjetado > 0 ? (lucroUnit / pVendaProjetado) * 100 : 0;
+            const markupUnit = pCompra > 0 ? (pVendaProjetado / pCompra) : 0;
 
             // Faturamento e custos totais projetados no cenário moderado (alvo)
-            const fatMod = qMod * pVenda;
+            const fatMod = qMod * pVendaProjetado;
             const custoMod = qMod * custoTotalUnit;
             const lucroMod = fatMod - custoMod;
             const fidcTotalMod = qMod * custoFidc;
@@ -15243,30 +15252,58 @@ window.carregarFinanceiroView = async function() {
                 countMateriais++;
             }
 
-            // Atingimento
+            // Atingimento e desvios
             const atingimentoPct = qMod > 0 ? (qReal / qMod) * 100 : 0;
             const saldo = qMod - qReal;
+
+            // Comparação de qual cenário de volume o realizado alcançou
+            let cenarioAlcancado = 'Abaixo';
+            let cenarioCor = '#ff4d4d';
+            if (qReal > 0) {
+                if (qReal >= qAgr && qAgr > 0) {
+                    cenarioAlcancado = 'Agressivo';
+                    cenarioCor = '#ff4d4d';
+                } else if (qReal >= qMod && qMod > 0) {
+                    cenarioAlcancado = 'Moderado';
+                    cenarioCor = '#00e5ff';
+                } else if (qReal >= qCons && qCons > 0) {
+                    cenarioAlcancado = 'Conservador';
+                    cenarioCor = '#ffeb3b';
+                } else {
+                    cenarioAlcancado = 'Abaixo';
+                    cenarioCor = '#aaa';
+                }
+            }
+
+            // Detectar prejuízo unitário
+            const isPrejuizo = lucroUnit < 0;
 
             // Inserir na planilha geral se houver meta
             if (tableBody && (meta || qMod > 0)) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="padding:8px;"><strong>${tp.material_nome}</strong></td>
+                    <td style="padding:8px;">
+                        <strong>${tp.material_nome}</strong>
+                        ${isPrejuizo ? '<span style="background:#ff4d4d; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PREJUÍZO</span>' : ''}
+                    </td>
                     <td style="padding:8px; text-align:right;">${qCons.toLocaleString('pt-BR')} kg</td>
                     <td style="padding:8px; text-align:right; font-weight:bold; color:#00e5ff;">${qMod.toLocaleString('pt-BR')} kg</td>
                     <td style="padding:8px; text-align:right;">${qAgr.toLocaleString('pt-BR')} kg</td>
                     <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${pCompra.toFixed(2)}</td>
-                    <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${pVenda.toFixed(2)}</td>
+                    <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${pVendaProjetado.toFixed(2)}</td>
                     <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${fatMod.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-                    <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${lucroMod.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td style="padding:8px; text-align:right; color:${lucroMod >= 0 ? '#2AD07A' : '#ff4d4d'}; font-weight:bold;">R$ ${lucroMod.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
                     <td style="padding:8px; text-align:center; font-weight:bold; color:${margemUnitPct >= 10 ? '#2AD07A' : '#ff4d4d'};">${margemUnitPct.toFixed(1)}%</td>
-                    <td style="padding:8px; text-align:right; color:#fff;">${qReal.toLocaleString('pt-BR')} kg</td>
+                    <td style="padding:8px; text-align:right; color:#fff;">
+                        ${qReal.toLocaleString('pt-BR')} kg
+                        <div style="font-size:0.7rem; color:${cenarioCor}; margin-top:2px;">Cenário: ${cenarioAlcancado}</div>
+                    </td>
                     <td style="padding:8px; text-align:center; font-weight:bold;">
                         <span style="color:${atingimentoPct >= 100 ? '#2AD07A' : (atingimentoPct >= 75 ? '#ffb74d' : '#ff4d4d')};">${atingimentoPct.toFixed(1)}%</span>
                         <div style="font-size:0.7rem; color:#aaa; margin-top:2px;">Saldo: ${saldo.toLocaleString('pt-BR')} kg</div>
                     </td>
                     <td style="padding:8px; text-align:center;">
-                        <button onclick="editarMetaEstrategicaRapido(${tp.material_id}, '${filterMes}', ${qCons}, ${qMod}, ${qAgr}, ${qReal})" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826;" title="Editar"><i class="fa-solid fa-edit"></i></button>
+                        <button onclick="editarMetaEstrategicaRapido(${tp.material_id}, '${filterMes}', ${qCons}, ${qMod}, ${qAgr}, ${qReal}, ${margemCustom || '""'}, ${meta ? meta.valor_compra_realizado : 0}, ${meta ? meta.valor_venda_realizado : 0})" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826;" title="Editar"><i class="fa-solid fa-edit"></i></button>
                         ${meta ? `<button onclick="deletarMetaEstrategica(${meta.id})" style="background:none; border:none; color:#ff6b6b; margin-left:8px; cursor:pointer;" title="Remover Meta"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </td>
                 `;
@@ -15318,21 +15355,28 @@ window.carregarFinanceiroView = async function() {
         }
 
         const pCompra = parseFloat(preco.preco_entregar || 0);
-        const pVenda = parseFloat(preco.venda_ref || 0);
+        const pVendaBase = parseFloat(preco.venda_ref || 0);
         const comissao = parseFloat(preco.comissao || 0);
         const pisCofins = parseFloat(preco.pis_cofins || 0);
         const fidc = parseFloat(preco.fidc || 0);
         const icms = parseFloat(preco.icms || 0);
         const frete = parseFloat(preco.frete_coleta || 0);
 
-        const impostoUnit = pVenda * ((pisCofins + icms) / 100);
-        const comissaoUnit = pVenda * (comissao / 100);
-        const fidcUnit = pVenda * (fidc / 100);
+        const impostoUnit = pVendaBase * ((pisCofins + icms) / 100);
+        const comissaoUnit = pVendaBase * (comissao / 100);
+        const fidcUnit = pVendaBase * (fidc / 100);
         const custoTotal = pCompra + frete + impostoUnit + comissaoUnit + fidcUnit;
 
-        const lucroUnit = pVenda - custoTotal;
-        const margem = pVenda > 0 ? (lucroUnit / pVenda) * 100 : 0;
-        const markup = pCompra > 0 ? (pVenda / pCompra) : 0;
+        // Custom Target Margin
+        const margemCustom = (meta && meta.margem_alvo !== null) ? parseFloat(meta.margem_alvo) : null;
+        let pVendaProjetado = pVendaBase;
+        if (margemCustom !== null && margemCustom < 100) {
+            pVendaProjetado = custoTotal / (1 - margemCustom / 100);
+        }
+
+        const lucroUnit = pVendaProjetado - custoTotal;
+        const margem = pVendaProjetado > 0 ? (lucroUnit / pVendaProjetado) * 100 : 0;
+        const markup = pCompra > 0 ? (pVendaProjetado / pCompra) : 0;
 
         container.innerHTML = `
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
@@ -15340,20 +15384,20 @@ window.carregarFinanceiroView = async function() {
                 <div style="font-weight:bold; color:#ffb74d; margin-top:2px;">R$ ${pCompra.toFixed(2)}</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
-                <small style="color:#aaa; font-size:0.75rem;">Venda (Tabela)</small>
-                <div style="font-weight:bold; color:#2AD07A; margin-top:2px;">R$ ${pVenda.toFixed(2)}</div>
+                <small style="color:#aaa; font-size:0.75rem;">Venda Projetada</small>
+                <div style="font-weight:bold; color:#2AD07A; margin-top:2px;">R$ ${pVendaProjetado.toFixed(2)}</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
-                <small style="color:#aaa; font-size:0.75rem;">Markup Médio</small>
+                <small style="color:#aaa; font-size:0.75rem;">Markup Projetado</small>
                 <div style="font-weight:bold; color:#9b59b6; margin-top:2px;">${markup.toFixed(2)}x</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
                 <small style="color:#aaa; font-size:0.75rem;">Lucro Unitário</small>
-                <div style="font-weight:bold; color:#00e5ff; margin-top:2px;">R$ ${lucroUnit.toFixed(2)}</div>
+                <div style="font-weight:bold; color:${lucroUnit >= 0 ? '#00e5ff' : '#ff4d4d'}; margin-top:2px;">R$ ${lucroUnit.toFixed(2)}</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
                 <small style="color:#aaa; font-size:0.75rem;">Margem Líquida</small>
-                <div style="font-weight:bold; color:#3e7cb1; margin-top:2px;">${margem.toFixed(1)}%</div>
+                <div style="font-weight:bold; color:${margem >= 10 ? '#3e7cb1' : '#ff4d4d'}; margin-top:2px;">${margem.toFixed(1)}%</div>
             </div>
         `;
 
@@ -15364,7 +15408,7 @@ window.carregarFinanceiroView = async function() {
         const qReal = meta ? parseFloat(meta.qtd_realizado || 0) : 0;
 
         const fillCenario = (nome, qtd, cor) => {
-            const fat = qtd * pVenda;
+            const fat = qtd * pVendaProjetado;
             const custo = qtd * custoTotal;
             const lucro = fat - custo;
             return `
@@ -15373,7 +15417,7 @@ window.carregarFinanceiroView = async function() {
                     <td style="padding:8px; text-align:right; color:#fff;">${qtd.toLocaleString('pt-BR')} kg</td>
                     <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${fat.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
                     <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${custo.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-                    <td style="padding:8px; text-align:right; color:#2AD07A; font-weight:bold;">R$ ${lucro.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td style="padding:8px; text-align:right; color:${lucro >= 0 ? '#2AD07A' : '#ff4d4d'}; font-weight:bold;">R$ ${lucro.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
                     <td style="padding:8px; text-align:center; font-weight:bold; color:#2AD07A;">${margem.toFixed(1)}%</td>
                     <td style="padding:8px; text-align:center; color:#9b59b6;">${markup.toFixed(2)}x</td>
                 </tr>
@@ -15386,13 +15430,21 @@ window.carregarFinanceiroView = async function() {
             ${fillCenario('Agressivo', qAgr, '#ff4d4d')}
         `;
 
+        // Realizados financeiros consolidados
+        const valCompraReal = meta ? parseFloat(meta.valor_compra_realizado || 0) : 0;
+        const valVendaReal = meta ? parseFloat(meta.valor_venda_realizado || 0) : 0;
+
         // Planejado vs Realizado (Mês Consolidado)
-        const fatPlan = qMod * pVenda;
-        const fatReal = qReal * pVenda;
-        const lucroPlan = fatPlan - (qMod * custoTotal);
-        const lucroReal = fatReal - (qReal * custoTotal);
+        const fatPlan = qMod * pVendaProjetado;
+        const fatReal = valVendaReal > 0 ? valVendaReal : (qReal * pVendaProjetado);
         const investPlan = qMod * custoTotal;
-        const investReal = qReal * custoTotal;
+        const investReal = valCompraReal > 0 ? valCompraReal : (qReal * custoTotal);
+        const lucroPlan = fatPlan - investPlan;
+        const lucroReal = fatReal - investReal;
+
+        const precoMedioVendaReal = qReal > 0 ? (fatReal / qReal) : pVendaProjetado;
+        const precoMedioCompraReal = qReal > 0 ? (investReal / qReal) : pCompra;
+        const margemReal = precoMedioVendaReal > 0 ? ((precoMedioVendaReal - precoMedioCompraReal) / precoMedioVendaReal) * 100 : 0;
 
         const compRow = (nome, planVal, realVal, unit, isMoney, isPercent = false) => {
             const diff = planVal - realVal;
@@ -15418,7 +15470,7 @@ window.carregarFinanceiroView = async function() {
             ${compRow('Faturamento', fatPlan, fatReal, '', true)}
             ${compRow('Investimento (Reserva)', investPlan, investReal, '', true)}
             ${compRow('Lucro Projetado', lucroPlan, lucroReal, '', true)}
-            ${compRow('Margem Líquida', margem, margem, '', false, true)}
+            ${compRow('Margem Líquida', margem, margemReal, '', false, true)}
         `;
 
         // Renderizar gráfico de cenários com Chart.js
@@ -15525,7 +15577,7 @@ window.carregarFinanceiroView = async function() {
                 <td style="padding:8px;"><span style="background:#122a3f; color:#3e7cb1; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${item.material_categoria}</span></td>
                 <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${item.preco_compra.toFixed(2)}</td>
                 <td style="padding:8px; text-align:right; color:#2AD07A;">R$ ${item.preco_venda.toFixed(2)}</td>
-                <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${item.lucro.toFixed(2)} /kg</td>
+                <td style="padding:8px; text-align:right; color:${item.lucro >= 0 ? '#00e5ff' : '#ff4d4d'}; font-weight:bold;">R$ ${item.lucro.toFixed(2)} /kg</td>
                 <td style="padding:8px; text-align:center; font-weight:bold; color:#2AD07A;">${keyMetricStr}</td>
             `;
             tbody.appendChild(tr);

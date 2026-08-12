@@ -652,6 +652,29 @@ async function initDatabase() {
             );
         `);
 
+        // Tabela de Planejamento Estratégico (Consolidado por mês e produto)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS planejamento_estrategico (
+                id                         SERIAL PRIMARY KEY,
+                mes                        VARCHAR(7) NOT NULL,
+                material_id                INTEGER NOT NULL,
+                qtd_conservador            NUMERIC(12,3) DEFAULT 0.00,
+                qtd_moderado               NUMERIC(12,3) DEFAULT 0.00,
+                qtd_agressivo              NUMERIC(12,3) DEFAULT 0.00,
+                qtd_realizado              NUMERIC(12,3) DEFAULT 0.00,
+                margem_alvo                NUMERIC(8,4) DEFAULT NULL,
+                valor_compra_realizado     NUMERIC(14,2) DEFAULT 0.00,
+                valor_venda_realizado      NUMERIC(14,2) DEFAULT 0.00,
+                criado_em                  TIMESTAMP DEFAULT NOW(),
+                CONSTRAINT uq_mes_material UNIQUE (mes, material_id)
+            );
+
+            -- Migrações seguras das novas colunas
+            ALTER TABLE planejamento_estrategico ADD COLUMN IF NOT EXISTS margem_alvo NUMERIC(8,4) DEFAULT NULL;
+            ALTER TABLE planejamento_estrategico ADD COLUMN IF NOT EXISTS valor_compra_realizado NUMERIC(14,2) DEFAULT 0.00;
+            ALTER TABLE planejamento_estrategico ADD COLUMN IF NOT EXISTS valor_venda_realizado NUMERIC(14,2) DEFAULT 0.00;
+        `);
+
         // Migrações adicionais para Planejamento Comercial
         await client.query(`
             ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_compra_estimado NUMERIC(14,2) DEFAULT 0.00;
@@ -2437,28 +2460,47 @@ app.get('/api/planejamento-estrategico', async (req, res) => {
 });
 
 app.post('/api/planejamento-estrategico', async (req, res) => {
-    const { mes, material_id, qtd_conservador, qtd_moderado, qtd_agressivo, qtd_realizado } = req.body;
+    const { 
+        mes, 
+        material_id, 
+        qtd_conservador, 
+        qtd_moderado, 
+        qtd_agressivo, 
+        qtd_realizado,
+        margem_alvo,
+        valor_compra_realizado,
+        valor_venda_realizado
+    } = req.body;
     const matId = parseInt(material_id);
     const qCons = parseFloat(qtd_conservador || 0);
     const qMod = parseFloat(qtd_moderado || 0);
     const qAgr = parseFloat(qtd_agressivo || 0);
     const qReal = parseFloat(qtd_realizado || 0);
+    const mAlvo = margem_alvo !== undefined && margem_alvo !== null && margem_alvo !== '' ? parseFloat(margem_alvo) : null;
+    const valCompraReal = parseFloat(valor_compra_realizado || 0);
+    const valVendaReal = parseFloat(valor_venda_realizado || 0);
     const mesStr = mes || new Date().toISOString().slice(0, 7);
 
     let useDb = dbAvailable && pool;
     try {
         if (useDb) {
             const queryStr = `
-                INSERT INTO planejamento_estrategico (mes, material_id, qtd_conservador, qtd_moderado, qtd_agressivo, qtd_realizado)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO planejamento_estrategico (
+                    mes, material_id, qtd_conservador, qtd_moderado, qtd_agressivo, qtd_realizado, 
+                    margem_alvo, valor_compra_realizado, valor_venda_realizado
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (mes, material_id) DO UPDATE
                 SET qtd_conservador = EXCLUDED.qtd_conservador,
                     qtd_moderado = EXCLUDED.qtd_moderado,
                     qtd_agressivo = EXCLUDED.qtd_agressivo,
-                    qtd_realizado = EXCLUDED.qtd_realizado
+                    qtd_realizado = EXCLUDED.qtd_realizado,
+                    margem_alvo = EXCLUDED.margem_alvo,
+                    valor_compra_realizado = EXCLUDED.valor_compra_realizado,
+                    valor_venda_realizado = EXCLUDED.valor_venda_realizado
                 RETURNING *
             `;
-            const r = await pool.query(queryStr, [mesStr, matId, qCons, qMod, qAgr, qReal]);
+            const r = await pool.query(queryStr, [mesStr, matId, qCons, qMod, qAgr, qReal, mAlvo, valCompraReal, valVendaReal]);
             return res.json(r.rows[0]);
         }
     } catch (err) {
@@ -2476,6 +2518,9 @@ app.post('/api/planejamento-estrategico', async (req, res) => {
         qtd_moderado: qMod,
         qtd_agressivo: qAgr,
         qtd_realizado: qReal,
+        margem_alvo: mAlvo,
+        valor_compra_realizado: valCompraReal,
+        valor_venda_realizado: valVendaReal,
         criado_em: new Date().toISOString()
     };
     if (idx >= 0) {
