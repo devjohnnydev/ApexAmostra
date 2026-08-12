@@ -10498,13 +10498,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    let _metaComercialGlobalCache = 5000000.00;
+
+    window.onChangeMetaComercialGlobal = function() {
+        const inputVal = parseFloat(document.getElementById('com-kpi-meta-global-input').value) || 0;
+        _metaComercialGlobalCache = inputVal;
+        renderPlanejamentoComercialRevenda();
+    };
+
     function renderPlanejamentoComercialRevenda() {
         const tbody = document.getElementById('comercial-table-body');
         if (!tbody) return;
         tbody.innerHTML = '';
 
         let totFatPrev = 0, totInvest = 0;
-        const metaGlobal = 5000000.00;
+        const metaGlobal = _metaComercialGlobalCache;
+
+        // Arrays para guardar estatísticas de análise de impacto
+        const produtosEstatistica = [];
 
         localComercialRevenda.forEach(item => {
             const cPlan = parseFloat(item.compra_planejada_kg || 0);
@@ -10514,7 +10525,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const pCompra = parseFloat(item.preco_compra_estimado || 0);
             const pVenda = parseFloat(item.preco_venda_estimado || 0);
             const markup = pCompra > 0 ? ((pVenda - pCompra) / pCompra) * 100 : 0;
-            const partPct = (fat / metaGlobal) * 100;
+            const partPct = metaGlobal > 0 ? (fat / metaGlobal) * 100 : 0;
 
             // Dados reais das transações
             const totalCompraKgReal = parseFloat(item.totalCompraKg || 0);
@@ -10525,6 +10536,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const mediaVenda  = parseFloat(item.mediaPrecoVenda  || 0);
             const metaCompPct = cPlan > 0 ? Math.min((totalCompraKgReal / cPlan) * 100, 100) : 0;
             const metaVendPct = vPlan > 0 ? Math.min((totalVendaKgReal  / vPlan) * 100, 100) : 0;
+
+            // Para análise de impacto
+            const lucroPrevisto = fat - inv;
+            const lucroRealizado = totalVendaRsReal - totalCompraRsReal;
+            
+            // Margem real vs planejada desvios
+            const desvioPrecoCompra = mediaCompra > 0 ? (mediaCompra - pCompra) : 0;
+            const desvioPrecoVenda = mediaVenda > 0 ? (mediaVenda - pVenda) : 0;
+
+            produtosEstatistica.push({
+                nome: item.produto_nome,
+                lucroRealizado,
+                lucroPrevisto,
+                desvioPrecoCompra,
+                desvioPrecoVenda,
+                mediaCompra,
+                pCompra,
+                mediaVenda,
+                pVenda,
+                fat
+            });
 
             totFatPrev += fat;
             totInvest += inv;
@@ -10582,14 +10614,79 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
         });
 
+        // Atualiza a análise visual de lucro/perda
+        atualizarAnaliseLucroOfensores(produtosEstatistica);
+
         const kpiFatPrev = document.getElementById('com-kpi-fat-previsto');
         const kpiInvest = document.getElementById('com-kpi-investimento');
         const kpiPart = document.getElementById('com-kpi-atingimento-meta');
 
         if (kpiFatPrev) kpiFatPrev.textContent = 'R$ ' + totFatPrev.toLocaleString('pt-BR', {minimumFractionDigits:2});
         if (kpiInvest) kpiInvest.textContent = 'R$ ' + totInvest.toLocaleString('pt-BR', {minimumFractionDigits:2});
-        if (kpiPart) kpiPart.textContent = ((totFatPrev / metaGlobal) * 100).toFixed(1) + '%';
+        if (kpiPart) {
+            const pct = metaGlobal > 0 ? (totFatPrev / metaGlobal) * 100 : 0;
+            kpiPart.textContent = pct.toFixed(1) + '%';
+        }
     }
+
+    function atualizarAnaliseLucroOfensores(estatisticas) {
+        const lucroBox = document.getElementById('com-analise-lucro-box');
+        const ofensoresBox = document.getElementById('com-analise-ofensores-box');
+        if (!lucroBox || !ofensoresBox) return;
+
+        lucroBox.innerHTML = '';
+        ofensoresBox.innerHTML = '';
+
+        if (!estatisticas || estatisticas.length === 0) {
+            lucroBox.innerHTML = '<span style="color:#aaa;">Nenhuma meta ou transação ativa para análise.</span>';
+            ofensoresBox.innerHTML = '<span style="color:#aaa;">Nenhum desvio detectado nas movimentações.</span>';
+            return;
+        }
+
+        // 1. Campeões (ordenar por faturamento previsto / lucro esperado)
+        const campeoes = [...estatisticas].sort((a, b) => b.fat - a.fat).slice(0, 3);
+        campeoes.forEach(c => {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.display = 'flex';
+            itemDiv.style.justifyContent = 'space-between';
+            itemDiv.style.padding = '4px 0';
+            itemDiv.style.borderBottom = '1px solid #162433';
+            itemDiv.innerHTML = `
+                <span>🌟 <strong>${c.nome}</strong></span>
+                <span style="color:#2AD07A; font-weight:bold;">Fat. Projetado: R$ ${c.fat.toLocaleString('pt-BR', {maximumFractionDigits:0})}</span>
+            `;
+            lucroBox.appendChild(itemDiv);
+        });
+
+        // 2. Ofensores (verificar se comprou mais caro que o planejado ou vendeu mais barato)
+        const ofensores = estatisticas.filter(x => x.desvioPrecoCompra > 0 || x.desvioPrecoVenda < 0);
+        if (ofensores.length === 0) {
+            ofensoresBox.innerHTML = '<span style="color:#2AD07A; font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Todas as operações estão dentro ou melhores que o planejado!</span>';
+        } else {
+            ofensores.forEach(o => {
+                const itemDiv = document.createElement('div');
+                itemDiv.style.display = 'flex';
+                itemDiv.style.flexDirection = 'column';
+                itemDiv.style.padding = '6px 0';
+                itemDiv.style.borderBottom = '1px solid #162433';
+                
+                let alertaText = '';
+                if (o.desvioPrecoCompra > 0) {
+                    alertaText += `⚠️ Compra real (R$ ${o.mediaCompra.toFixed(2)}) acima do planejado (R$ ${o.pCompra.toFixed(2)}). `;
+                }
+                if (o.desvioPrecoVenda < 0) {
+                    alertaText += `📉 Venda real (R$ ${o.mediaVenda.toFixed(2)}) abaixo do planejado (R$ ${o.pVenda.toFixed(2)}).`;
+                }
+
+                itemDiv.innerHTML = `
+                    <span style="font-weight:bold; color:#fff;">${o.nome}</span>
+                    <span style="color:#ff4d4d; font-size:0.75rem; margin-top:2px;">${alertaText}</span>
+                `;
+                ofensoresBox.appendChild(itemDiv);
+            });
+        }
+    }
+
 
     window.calcularPlanejamentoComercialForm = function() {
         const compraKg = parseFloat(document.getElementById('plcom-compra-kg').value) || 0;

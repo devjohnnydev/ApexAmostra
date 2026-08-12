@@ -2421,10 +2421,15 @@
                     </div>
 
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:20px;">
-                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
-                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">🎯 Meta Faturamento Mensal</span>
-                            <h2 id="com-kpi-meta-global" style="margin:5px 0 0 0; color:#3e7cb1; font-size:1.4rem;">R$ 5.000.000,00</h2>
-                            <small style="color:#7a9cb8; font-size:0.78rem;">Meta estabelecida</small>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div>
+                                <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">🎯 Meta Faturamento Mensal</span>
+                                <div style="display:flex; align-items:center; gap:6px; margin-top:5px;">
+                                    <span style="color:#3e7cb1; font-weight:bold; font-size:1.1rem;">R$</span>
+                                    <input type="number" id="com-kpi-meta-global-input" value="5000000" step="50000" oninput="onChangeMetaComercialGlobal()" style="background:#0d1826; border:1px solid #1a2e3f; color:#3e7cb1; font-size:1.2rem; font-weight:800; width:130px; border-radius:6px; padding:3px 8px; font-family:inherit;">
+                                </div>
+                            </div>
+                            <small style="color:#7a9cb8; font-size:0.75rem; margin-top:4px;">Edite o valor para recalcular</small>
                         </div>
                         <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
                             <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Faturamento Previsto Total</span>
@@ -2439,7 +2444,32 @@
                         <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
                             <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📊 % da Meta Atingido</span>
                             <h2 id="com-kpi-atingimento-meta" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0.0%</h2>
-                            <small style="color:#7a9cb8; font-size:0.78rem;">Participação na meta R$ 5M</small>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Participação na meta definida</small>
+                        </div>
+                    </div>
+
+                    <!-- Bloco de Análise de Impacto de Lucratividade, Desvios e Ofensores -->
+                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:12px; padding:18px; margin-bottom:20px;">
+                        <h4 style="margin:0 0 12px 0; color:#fff; font-size:0.95rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Análise de Impacto na Meta &amp; Lucratividade (Real vs Planejado)
+                        </h4>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                            <div style="background:#0b131d; border:1px solid #162433; border-radius:8px; padding:12px;">
+                                <div style="font-size:0.75rem; color:#2AD07A; font-weight:700; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-arrow-trend-up"></i> Produtos Mais Lucrativos (Campeões)
+                                </div>
+                                <div id="com-analise-lucro-box" style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:#fff;">
+                                    <span style="color:#aaa;">Nenhuma meta ou transação ativa para análise.</span>
+                                </div>
+                            </div>
+                            <div style="background:#0b131d; border:1px solid #162433; border-radius:8px; padding:12px;">
+                                <div style="font-size:0.75rem; color:#ff4d4d; font-weight:700; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Ofensores de Margem / Compras Caras (Perdas)
+                                </div>
+                                <div id="com-analise-ofensores-box" style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:#fff;">
+                                    <span style="color:#aaa;">Nenhum desvio detectado nas movimentações.</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
