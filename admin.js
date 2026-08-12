@@ -9742,153 +9742,745 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiCusto) kpiCusto.textContent = 'R$ ' + totCusto.toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
 
+    // ─── Estado do simulador de produção ───────────────────────────────────
+    let _simLinhas = []; 
+    let _simLinhaIdx = 0;
+
     window.abrirModalPlanejamentoProducao = async function() {
-        try {
-            // Garantir que o modal está visível imediatamente (sem aguardar fetches)
-            const modalEl = document.getElementById('modal-planejamento-producao');
-            if (modalEl) {
-                modalEl.style.display = 'flex';
-                modalEl.style.position = 'fixed';
-                modalEl.style.top = '0';
-                modalEl.style.left = '0';
-                modalEl.style.width = '100vw';
-                modalEl.style.height = '100vh';
-                modalEl.style.zIndex = '999999';
-                modalEl.style.background = 'rgba(0,0,0,0.88)';
-                modalEl.style.alignItems = 'center';
-                modalEl.style.justifyContent = 'center';
-                modalEl.style.overflowY = 'auto';
-            }
+        const modalEl = document.getElementById('modal-planejamento-producao');
+        if (!modalEl) return;
+        document.body.appendChild(modalEl);
+        modalEl.style.display = 'block';
 
-            let _mats = window.localMateriais || [];
-            if (!Array.isArray(_mats) || _mats.length === 0) {
-                try {
-                    const res = await fetch('/api/materiais-catalogo');
-                    if (res.ok) {
-                        const data = await res.json();
-                        _mats = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
-                        window.localMateriais = _mats;
-                    }
-                } catch(e) { console.error('Erro ao buscar materiais para modal:', e); }
-            }
-            if (!Array.isArray(_mats)) _mats = [];
+        // Reset estado
+        _simLinhas = [];
+        _simLinhaIdx = 0;
+        simIrParaStep(1);
 
-            let _forns = window.localFornecedores || [];
-            if (!Array.isArray(_forns) || _forns.length === 0) {
-                try {
-                    const res = await fetch('/api/fornecedores?limit=200');
-                    if (res.ok) {
-                        const data = await res.json();
-                        _forns = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
-                        window.localFornecedores = _forns;
-                    }
-                } catch(e) { console.error('Erro ao buscar fornecedores para modal:', e); }
-            }
-            if (!Array.isArray(_forns)) _forns = [];
-
-            const selProd = document.getElementById('plprod-produto-id');
-            const selIns = document.getElementById('plprod-insumo-id');
-            const selForn = document.getElementById('plprod-fornecedor-id');
-
-            if (selProd) selProd.innerHTML = '<option value="">Selecione o Produto Acabado...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
-            if (selIns) selIns.innerHTML = '<option value="">Selecione o Insumo Necessário...</option>' + _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
-            if (selForn) selForn.innerHTML = '<option value="">Selecione o Fornecedor...</option>' + _forns.map(f => `<option value="${f.id}">${f.apelido || f.nome}</option>`).join('');
-
-            const form = document.getElementById('form-planejamento-producao');
-            if (form) form.reset();
-
-            const perEl = document.getElementById('plprod-periodo');
-            if (perEl) perEl.value = new Date().toISOString().slice(0, 7);
-
-            // Garantir modal visível também após os fetches (podem demorar)
-            if (modalEl) {
-                modalEl.style.display = 'flex';
-                modalEl.style.zIndex = '999999';
-            }
-        } catch(err) {
-            console.error("Erro ao abrir modal de Planejamento de Produção:", err);
+        // Popular select de produto final
+        let _mats = window.localMateriais || [];
+        if (!Array.isArray(_mats) || _mats.length === 0) {
+            try {
+                const res = await fetch('/api/materiais-catalogo');
+                if (res.ok) {
+                    const data = await res.json();
+                    _mats = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+                    window.localMateriais = _mats;
+                }
+            } catch(e) {}
         }
+
+        const selProd = document.getElementById('sim-produto-id');
+        if (selProd) selProd.innerHTML = '<option value="">Selecione o Produto Final...</option>' +
+            (_mats || []).map(m => `<option value="${m.id}" data-preco-venda="${m.preco_venda||m.preco_tabela_venda||0}" data-preco-compra="${m.preco_compra||m.preco_tabela||0}">${m.nome}</option>`).join('');
+
+        // Defaults
+        const perEl = document.getElementById('sim-periodo');
+        if (perEl) perEl.value = new Date().toISOString().slice(0, 7);
+        document.getElementById('sim-meta-fat').value = '';
+        document.getElementById('sim-preco-venda').value = '';
+        document.getElementById('sim-qtd-produto').value = '—';
+        document.getElementById('sim-prazo-compra').value = '';
+        document.getElementById('sim-prazo-venda').value = '';
+        document.getElementById('sim-linhas-rows').innerHTML = '';
+        simAdicionarLinhaInsumo(); // começa com 1 linha
     };
 
     window.fecharModalPlanejamentoProducao = function() {
-        document.getElementById('modal-planejamento-producao').style.display = 'none';
+        const m = document.getElementById('modal-planejamento-producao');
+        if (m) m.style.display = 'none';
     };
 
-    window.calcularExplosaoInsumoForm = function() {
-        const qProd = parseFloat(document.getElementById('plprod-qtd-prod').value) || 0;
-        const insumoId = document.getElementById('plprod-insumo-id').value;
-        const qIns = parseFloat(document.getElementById('plprod-qtd-insumo').value) || 0;
+    window.simIrParaStep = function(step) {
+        [1,2,3].forEach(s => {
+            const el = document.getElementById('sim-step-' + s);
+            const tab = document.getElementById('sim-step-tab-' + s);
+            if (el) el.style.display = (s === step) ? 'block' : 'none';
+            if (tab) {
+                tab.style.color = (s === step) ? '#2AD07A' : '#8eaabf';
+                tab.style.borderBottom = (s === step) ? '2px solid #2AD07A' : '2px solid transparent';
+                tab.style.fontWeight = (s === step) ? '700' : '600';
+            }
+        });
+        if (step === 2) {
+            // atualizar header info
+            const meta = parseFloat(document.getElementById('sim-meta-fat').value) || 0;
+            const qtd = document.getElementById('sim-qtd-produto').value;
+            const info = document.getElementById('sim-header-info');
+            if (info) info.textContent = meta > 0 ? `Meta: R$ ${meta.toLocaleString('pt-BR', {minimumFractionDigits:0})} | Qtd Produto: ${qtd}` : '';
+            simRecalcularLinhas();
+        }
+        if (step === 3) simGerarPreview();
+    };
 
-        let qEst = 0, qMin = 0;
-        if (insumoId) {
-            const stk = (window.localEstoque || []).find(e => e.material_id == insumoId);
-            if (stk) qEst = parseFloat(stk.saldo || 0);
-            const par = (localParametrosPrazos || []).find(p => p.material_id == insumoId);
-            if (par) qMin = parseFloat(par.estoque_minimo_kg || 0);
+    window.simAutoFillProduto = function() {
+        const sel = document.getElementById('sim-produto-id');
+        if (!sel || !sel.value) return;
+        const opt = sel.options[sel.selectedIndex];
+        const pv = parseFloat(opt.dataset.precoVenda) || 0;
+        if (pv > 0) {
+            document.getElementById('sim-preco-venda').value = pv.toFixed(4);
+            simRecalcular();
+        }
+    };
+
+    window.simRecalcular = function() {
+        const meta = parseFloat(document.getElementById('sim-meta-fat').value) || 0;
+        const pv   = parseFloat(document.getElementById('sim-preco-venda').value) || 0;
+        const qtdEl = document.getElementById('sim-qtd-produto');
+        if (meta > 0 && pv > 0) {
+            const qtd = meta / pv;
+            qtdEl.value = qtd.toLocaleString('pt-BR', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' kg';
+            simRecalcularLinhas();
+        } else {
+            qtdEl.value = '—';
+        }
+    };
+
+    window.simAdicionarLinhaInsumo = function() {
+        const idx = _simLinhaIdx++;
+        _simLinhas.push({ idx, insumo_produto_id: '', insumo_nome: '', coef_pct: 100,
+            preco_compra_tabela: 0, preco_compra_simulado: 0, preco_venda_tabela: 0, qtd_necessaria: 0, custo_total: 0 });
+
+        const _mats = window.localMateriais || [];
+        const container = document.getElementById('sim-linhas-rows');
+        if (!container) return;
+
+        const div = document.createElement('div');
+        div.id = 'sim-linha-row-' + idx;
+        div.style.cssText = 'display:grid; grid-template-columns:2fr 80px 80px 90px 90px 90px 32px; gap:8px; align-items:center; background:#0d1826; border:1px solid #1a2e3f; border-radius:8px; padding:8px;';
+        div.innerHTML = `
+            <select id="sim-ins-sel-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px;" onchange="simLinhaOnChange(${idx})">
+                <option value="">Selecione o insumo...</option>
+                ${_mats.map(m => `<option value="${m.id}" data-nome="${m.nome}" data-pc="${m.preco_compra||m.preco_tabela||0}" data-pv="${m.preco_venda||m.preco_tabela_venda||0}">${m.nome}</option>`).join('')}
+            </select>
+            <input type="number" id="sim-ins-coef-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:center;" value="100" min="0.01" step="0.01" title="% do produto final" oninput="simRecalcularLinhas()">
+            <input type="text" id="sim-ins-qtd-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#2AD07A;" readonly value="—">
+            <input type="text" id="sim-ins-pct-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#aaa;" readonly value="—">
+            <input type="number" id="sim-ins-pcs-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right;" step="0.0001" placeholder="Simular" oninput="simRecalcularLinhas()">
+            <input type="text" id="sim-ins-cust-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#f0b800; font-weight:700;" readonly value="—">
+            <button type="button" onclick="simRemoverLinha(${idx})" style="background:transparent; border:1px solid #3d1a1a; color:#ff6b6b; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">
+                <i class="fa-solid fa-trash" style="font-size:0.75rem;"></i>
+            </button>`;
+        container.appendChild(div);
+    };
+
+    window.simLinhaOnChange = function(idx) {
+        const sel = document.getElementById('sim-ins-sel-' + idx);
+        if (!sel || !sel.value) return;
+        const opt = sel.options[sel.selectedIndex];
+        const linha = _simLinhas.find(l => l.idx === idx);
+        if (!linha) return;
+        linha.insumo_produto_id = parseInt(sel.value);
+        linha.insumo_nome = opt.dataset.nome || '';
+        linha.preco_compra_tabela = parseFloat(opt.dataset.pc) || 0;
+        linha.preco_venda_tabela = parseFloat(opt.dataset.pv) || 0;
+        linha.preco_compra_simulado = linha.preco_compra_tabela;
+        document.getElementById('sim-ins-pct-' + idx).value = linha.preco_compra_tabela > 0
+            ? 'R$ ' + linha.preco_compra_tabela.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:4})
+            : '—';
+        const psEl = document.getElementById('sim-ins-pcs-' + idx);
+        if (psEl && !psEl.value) psEl.value = linha.preco_compra_tabela > 0 ? linha.preco_compra_tabela.toFixed(4) : '';
+        simRecalcularLinhas();
+    };
+
+    window.simRemoverLinha = function(idx) {
+        _simLinhas = _simLinhas.filter(l => l.idx !== idx);
+        const el = document.getElementById('sim-linha-row-' + idx);
+        if (el) el.remove();
+        simRecalcularLinhas();
+    };
+
+    window.simRecalcularLinhas = function() {
+        const meta = parseFloat(document.getElementById('sim-meta-fat').value) || 0;
+        const pv   = parseFloat(document.getElementById('sim-preco-venda').value) || 0;
+        const qtdProd = (meta > 0 && pv > 0) ? meta / pv : 0;
+
+        _simLinhas.forEach(l => {
+            const coef = parseFloat(document.getElementById('sim-ins-coef-' + l.idx)?.value) || 100;
+            const pcs  = parseFloat(document.getElementById('sim-ins-pcs-' + l.idx)?.value) || l.preco_compra_tabela;
+            l.coef_pct = coef;
+            l.preco_compra_simulado = pcs || l.preco_compra_tabela;
+            l.qtd_necessaria = qtdProd * (coef / 100);
+            l.custo_total = l.qtd_necessaria * (l.preco_compra_simulado || l.preco_compra_tabela);
+
+            const qtdEl = document.getElementById('sim-ins-qtd-' + l.idx);
+            const custEl = document.getElementById('sim-ins-cust-' + l.idx);
+            if (qtdEl) qtdEl.value = l.qtd_necessaria > 0 ? l.qtd_necessaria.toLocaleString('pt-BR', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' kg' : '—';
+            if (custEl) custEl.value = l.custo_total > 0 ? 'R$ ' + l.custo_total.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+        });
+    };
+
+    window.simGerarPreview = function() {
+        const meta    = parseFloat(document.getElementById('sim-meta-fat').value) || 0;
+        const pv      = parseFloat(document.getElementById('sim-preco-venda').value) || 0;
+        const qtdProd = (meta > 0 && pv > 0) ? meta / pv : 0;
+        const periodo = document.getElementById('sim-periodo').value;
+        const selProd = document.getElementById('sim-produto-id');
+        const nomeProd = selProd?.options[selProd.selectedIndex]?.text || '—';
+
+        simRecalcularLinhas();
+
+        const custoTotal = _simLinhas.reduce((s, l) => s + l.custo_total, 0);
+        const markup = custoTotal > 0 ? ((meta - custoTotal) / custoTotal) * 100 : 0;
+
+        const cards = [
+            { label: '🎯 Meta de Faturamento', val: 'R$ ' + meta.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1' },
+            { label: '📦 Produto Final', val: nomeProd, cor: '#2AD07A', small: periodo },
+            { label: '⚖️ Qtd Necessária', val: qtdProd.toLocaleString('pt-BR', {minimumFractionDigits:3}) + ' kg', cor: '#2AD07A' },
+            { label: '💰 Custo Total Insumos', val: 'R$ ' + custoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800' },
+            { label: '📈 Margem Projetada', val: markup.toFixed(1) + '%', cor: markup >= 0 ? '#2AD07A' : '#ff4d4d' },
+            { label: '🧮 Nº de Insumos', val: _simLinhas.length + ' insumo(s)', cor: '#9b59b6' },
+        ];
+
+        document.getElementById('sim-preview-cards').innerHTML = cards.map(c => `
+            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; border-left:3px solid ${c.cor};">
+                <div style="font-size:0.75rem; color:#8eaabf; font-weight:600; text-transform:uppercase; margin-bottom:6px;">${c.label}</div>
+                <div style="font-size:1.1rem; color:${c.cor}; font-weight:800;">${c.val}</div>
+                ${c.small ? `<div style="font-size:0.75rem; color:#8eaabf; margin-top:2px;">${c.small}</div>` : ''}
+            </div>`).join('');
+
+        // Tabela resumo
+        document.getElementById('sim-preview-tabela').innerHTML = _simLinhas.map(l => {
+            const eficiencia = l.preco_compra_simulado > 0 && l.preco_compra_tabela > 0
+                ? (l.preco_compra_simulado < l.preco_compra_tabela
+                    ? '<span style="color:#2AD07A; font-weight:700;">✅ BEM</span>'
+                    : l.preco_compra_simulado > l.preco_compra_tabela
+                    ? '<span style="color:#ff4d4d; font-weight:700;">⚠️ ACIMA TAB.</span>'
+                    : '<span style="color:#aaa;">— TAB.</span>')
+                : '—';
+            return `<tr style="border-top:1px solid #1a2e3f; color:#fff;">
+                <td style="padding:6px; text-align:left;">${l.insumo_nome || '(sem nome)'}</td>
+                <td style="padding:6px; text-align:right; color:#8eaabf;">${l.coef_pct.toFixed(1)}%</td>
+                <td style="padding:6px; text-align:right;">${l.qtd_necessaria.toLocaleString('pt-BR',{minimumFractionDigits:2})} kg</td>
+                <td style="padding:6px; text-align:right; color:#aaa;">R$ ${l.preco_compra_tabela.toLocaleString('pt-BR',{minimumFractionDigits:4})}</td>
+                <td style="padding:6px; text-align:right; color:#fff;">R$ ${(l.preco_compra_simulado||l.preco_compra_tabela).toLocaleString('pt-BR',{minimumFractionDigits:4})}</td>
+                <td style="padding:6px; text-align:right; color:#f0b800; font-weight:700;">R$ ${l.custo_total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                <td style="padding:6px; text-align:right;">${eficiencia}</td>
+            </tr>`;
+        }).join('') + `<tr style="background:#0a1a2a; font-weight:700; border-top:2px solid #2AD07A;">
+            <td colspan="5" style="padding:6px; color:#fff;">TOTAL</td>
+            <td style="padding:6px; text-align:right; color:#f0b800;">R$ ${custoTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+            <td style="padding:6px; text-align:right; color:${markup >= 0 ? '#2AD07A' : '#ff4d4d'};">Markup: ${markup.toFixed(1)}%</td>
+        </tr>`;
+    };
+
+    window.simSalvar = async function() {
+        const selProd = document.getElementById('sim-produto-id');
+        const meta    = parseFloat(document.getElementById('sim-meta-fat').value) || 0;
+        const pv      = parseFloat(document.getElementById('sim-preco-venda').value) || 0;
+        if (!meta || !pv || !selProd?.value) {
+            _apexNotify('Atenção', 'Preencha a meta de faturamento, produto final e preço de venda.', 'warning');
+            return;
+        }
+        if (_simLinhas.length === 0 || !_simLinhas.some(l => l.insumo_nome)) {
+            _apexNotify('Atenção', 'Adicione ao menos um insumo no Step 2.', 'warning');
+            return;
         }
 
-        const qDisp = Math.max(0, qEst - qMin);
-        const qLiq = Math.max(0, qIns - qDisp);
-
-        document.getElementById('plprod-est-atual').value = qEst.toLocaleString('pt-BR') + ' kg';
-        document.getElementById('plprod-est-minimo').value = qMin.toLocaleString('pt-BR') + ' kg';
-        document.getElementById('plprod-est-disp').value = qDisp.toLocaleString('pt-BR') + ' kg';
-        document.getElementById('plprod-compra-liquida').value = qLiq.toLocaleString('pt-BR') + ' kg';
-    };
-
-    window.salvarPlanejamentoProducaoForm = async function(e) {
-        e.preventDefault();
-        const prodId = document.getElementById('plprod-produto-id').value;
-        const insId = document.getElementById('plprod-insumo-id').value;
-        const prodObj = (window.localMateriais || []).find(m => m.id == prodId);
-        const insObj = (window.localMateriais || []).find(m => m.id == insId);
-
-        const qProd = parseFloat(document.getElementById('plprod-qtd-prod').value) || 0;
-        const qIns = parseFloat(document.getElementById('plprod-qtd-insumo').value) || 0;
-        const qEstText = document.getElementById('plprod-est-atual').value.replace(' kg', '').replace(/\./g, '').replace(',', '.');
-        const qEst = parseFloat(qEstText) || 0;
-        const qLiqText = document.getElementById('plprod-compra-liquida').value.replace(' kg', '').replace(/\./g, '').replace(',', '.');
-        const qLiq = parseFloat(qLiqText) || Math.max(0, qIns - qEst);
-        const cUnit = parseFloat(document.getElementById('plprod-custo-unit').value) || 0;
+        const qtdProd = meta / pv;
+        const custoTotal = _simLinhas.reduce((s, l) => s + l.custo_total, 0);
+        const margem = custoTotal > 0 ? ((meta - custoTotal) / custoTotal) * 100 : 0;
 
         const payload = {
-            periodo: document.getElementById('plprod-periodo').value,
-            produto_id: prodId,
-            produto_nome: prodObj ? prodObj.nome : 'Produto Acabado',
-            quantidade_planejada_prod_kg: qProd,
-            insumo_material_id: insId,
-            insumo_nome: insObj ? insObj.nome : 'Insumo',
-            quantidade_insumo_nec_kg: qIns,
-            estoque_atual_kg: qEst,
-            quantidade_necessaria_compra_kg: qLiq,
-            custo_estimado_rs: qLiq * cUnit,
-            fornecedor_id: document.getElementById('plprod-fornecedor-id').value,
-            data_prevista_necessidade: document.getElementById('plprod-data-prevista').value,
-            status: qLiq > 0 ? 'Compra Necessária' : 'Estoque Suficiente'
+            periodo: document.getElementById('sim-periodo').value,
+            produto_id: parseInt(selProd.value),
+            produto_nome: selProd.options[selProd.selectedIndex].text,
+            meta_faturamento_rs: meta,
+            preco_venda_produto_rs: pv,
+            qtd_produto_necessaria: qtdProd,
+            custo_total_projetado_rs: custoTotal,
+            margem_projetada_pct: margem,
+            prazo_compra_ate: document.getElementById('sim-prazo-compra').value || null,
+            prazo_venda_ate: document.getElementById('sim-prazo-venda').value || null,
+            status: 'Ativo',
+            linhas: _simLinhas.filter(l => l.insumo_nome).map(l => ({
+                insumo_produto_id: l.insumo_produto_id || null,
+                insumo_nome: l.insumo_nome,
+                coeficiente_pct: l.coef_pct,
+                qtd_necessaria: l.qtd_necessaria,
+                preco_compra_tabela: l.preco_compra_tabela,
+                preco_compra_simulado: l.preco_compra_simulado || l.preco_compra_tabela,
+                preco_venda_tabela: l.preco_venda_tabela,
+                custo_total_insumo: l.custo_total
+            }))
         };
 
+        const btn = document.getElementById('btn-salvar-simulador');
+        if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
         try {
             const res = await fetch('/api/planejamento/producao-insumos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao salvar planejamento de produção');
-            _apexNotify('Sucesso', 'Planejamento de produção e explosão de insumos salvo!', 'success');
+            if (!res.ok) throw new Error('Erro ao salvar');
+            _apexNotify('Sucesso', 'Planejamento de produção salvo com sucesso!', 'success');
             fecharModalPlanejamentoProducao();
             await carregarPlanejamentoProducaoInsumos();
         } catch (err) {
-            _apexNotify('Atenção', err.message, 'error');
+            _apexNotify('Erro', err.message, 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Planejamento'; }
         }
     };
 
     window.excluirPlanejamentoProducaoInsumo = async function(id) {
-        if (!confirm('Excluir este planejamento de produção?')) return;
+        if (!confirm('Excluir este planejamento de produção (linhas e movimentações incluídas)?')) return;
         try {
             await fetch(`/api/planejamento/producao-insumos/${id}`, { method: 'DELETE' });
             await carregarPlanejamentoProducaoInsumos();
-        } catch(e){}
+        } catch(e) { console.error(e); }
     };
+
+    // ─── Extrato de Produção & Movimentações ──────────────────────────────────
+    let _activePlanProducao = null; // objeto do planejamento ativo no extrato
+    let _chartExtProdInsumos = null;
+    let _chartExtProdMeta = null;
+
+    window.abrirExtratoProducao = async function(id) {
+        try {
+            const res = await fetch('/api/planejamento/producao-insumos');
+            const data = await res.json();
+            const list = Array.isArray(data) ? data : [];
+            const plan = list.find(p => p.id === id);
+            if (!plan) {
+                _apexNotify('Atenção', 'Planejamento não encontrado.', 'error');
+                return;
+            }
+            _activePlanProducao = plan;
+
+            const modal = document.getElementById('modal-extrato-producao');
+            if (modal) {
+                document.body.appendChild(modal);
+                modal.style.display = 'block';
+            }
+
+            document.getElementById('extrato-prod-titulo').textContent = `Extrato & Análise Produção — ${plan.produto_nome} (${plan.periodo})`;
+
+            renderExtratoProducaoConteudo();
+        } catch(e) {
+            console.error(e);
+            _apexNotify('Erro', 'Não foi possível carregar o extrato.', 'error');
+        }
+    };
+
+    window.fecharModalExtratoProducao = function() {
+        const m = document.getElementById('modal-extrato-producao');
+        if (m) m.style.display = 'none';
+        _activePlanProducao = null;
+        if (_chartExtProdInsumos) { _chartExtProdInsumos.destroy(); _chartExtProdInsumos = null; }
+        if (_chartExtProdMeta) { _chartExtProdMeta.destroy(); _chartExtProdMeta = null; }
+    };
+
+    function renderExtratoProducaoConteudo() {
+        if (!_activePlanProducao) return;
+        const plan = _activePlanProducao;
+        const linhas = Array.isArray(plan.linhas) ? plan.linhas : [];
+
+        // Agrupar todas as movimentações reais
+        let todasMovs = [];
+        linhas.forEach(l => {
+            const movs = Array.isArray(l.movimentacoes) ? l.movimentacoes : [];
+            movs.forEach(m => {
+                todasMovs.push({
+                    ...m,
+                    insumo_nome: l.insumo_nome,
+                    preco_compra_tabela: l.preco_compra_tabela,
+                    preco_compra_simulado: l.preco_compra_simulado
+                });
+            });
+        });
+
+        // Ordenar movimentações por data decrescente
+        todasMovs.sort((a,b) => new Date(b.data_movimentacao) - new Date(a.data_movimentacao));
+
+        // Calcular KPIs reais vs previstos
+        const metaFaturamento = parseFloat(plan.meta_faturamento_rs || 0);
+        const custoPrevisto = parseFloat(plan.custo_total_projetado_rs || 0);
+
+        // Somar compras de insumos (Real)
+        const comprasInsumosReal = todasMovs.filter(m => m.tipo === 'COMPRA').reduce((sum, m) => sum + parseFloat(m.valor_total || 0), 0);
+        // Somar vendas do produto (Real)
+        const vendasReal = todasMovs.filter(m => m.tipo === 'VENDA').reduce((sum, m) => sum + parseFloat(m.valor_total || 0), 0);
+
+        // Eficiência de compras (Preço pago vs Preço Planejado/Simulado)
+        let comprasAcima = 0;
+        let comprasAbaixo = 0;
+        todasMovs.filter(m => m.tipo === 'COMPRA').forEach(m => {
+            const ref = parseFloat(m.preco_compra_simulado || m.preco_compra_tabela || 0);
+            if (ref > 0) {
+                if (m.preco_unitario > ref) comprasAcima += parseFloat(m.valor_total || 0);
+                else if (m.preco_unitario < ref) comprasAbaixo += parseFloat(m.valor_total || 0);
+            }
+        });
+
+        // Markup Realizado
+        const markupReal = comprasInsumosReal > 0 ? ((vendasReal - comprasInsumosReal) / comprasInsumosReal) * 100 : 0;
+        const metaProgressoPct = metaFaturamento > 0 ? Math.min((vendasReal / metaFaturamento) * 100, 100) : 0;
+
+        // Renderizar banner de prazos
+        const hoje = new Date().toISOString().slice(0, 10);
+        const prazoC = plan.prazo_compra_ate;
+        const prazoV = plan.prazo_venda_ate;
+        const bannerEl = document.getElementById('extrato-prod-prazos-banner');
+        if (bannerEl) {
+            let bannerHtml = '';
+            if (prazoC) {
+                const atrasoC = prazoC < hoje && comprasInsumosReal < custoPrevisto;
+                bannerHtml += `
+                    <div style="flex:1; background:${atrasoC ? '#3b1818' : '#162432'}; border:1px solid ${atrasoC ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.1rem;">${atrasoC ? '⚠️' : '📅'}</span>
+                        <div style="font-size:0.8rem;">
+                            <span style="color:#aaa;">Prazo Limite Compra Insumos:</span>
+                            <strong style="color:#fff; margin-left:5px;">${prazoC}</strong>
+                            ${atrasoC ? `<span style="color:#ff4d4d; font-weight:700; margin-left:8px;">(ATRASADO!)</span>` : ''}
+                        </div>
+                    </div>`;
+            }
+            if (prazoV) {
+                const atrasoV = prazoV < hoje && vendasReal < metaFaturamento;
+                bannerHtml += `
+                    <div style="flex:1; background:${atrasoV ? '#3b1818' : '#162432'}; border:1px solid ${atrasoV ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.1rem;">${atrasoV ? '⚠️' : '📅'}</span>
+                        <div style="font-size:0.8rem;">
+                            <span style="color:#aaa;">Prazo Limite Faturamento/Venda:</span>
+                            <strong style="color:#fff; margin-left:5px;">${prazoV}</strong>
+                            ${atrasoV ? `<span style="color:#ff4d4d; font-weight:700; margin-left:8px;">(ATRASADO!)</span>` : ''}
+                        </div>
+                    </div>`;
+            }
+            if (bannerHtml) {
+                bannerEl.style.display = 'flex';
+                bannerEl.style.gap = '10px';
+                bannerEl.innerHTML = bannerHtml;
+            } else {
+                bannerEl.style.display = 'none';
+            }
+        }
+
+        // Renderizar KPI Cards
+        const kpis = [
+            { label: '🎯 Meta Faturamento', val: 'R$ ' + metaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1', desc: 'Planejado' },
+            { label: '💰 Realizado (Vendas)', val: 'R$ ' + vendasReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#2AD07A', desc: `${metaProgressoPct.toFixed(1)}% da Meta` },
+            { label: '🛒 Custo Previsto Insumos', val: 'R$ ' + custoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800', desc: 'Simulado' },
+            { label: '💸 Investido Real Insumos', val: 'R$ ' + comprasInsumosReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff9f43', desc: `${custoPrevisto > 0 ? ((comprasInsumosReal/custoPrevisto)*100).toFixed(1) : 0}% do orçado` },
+            { label: '📈 Markup Realizado', val: markupReal.toFixed(1) + '%', cor: markupReal >= 0 ? '#2AD07A' : '#ff4d4d', desc: 'Vendas vs Compras Reais' },
+            { label: '⚠️ Compras Fora do Planejado', val: 'R$ ' + comprasAcima.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff4d4d', desc: 'Preço Real > Preço Simulado' }
+        ];
+
+        const kpisContainer = document.getElementById('extrato-prod-kpi-container');
+        if (kpisContainer) {
+            kpisContainer.innerHTML = kpis.map(k => `
+                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; border-left:3px solid ${k.cor};">
+                    <div style="font-size:0.75rem; color:#8eaabf; font-weight:600; text-transform:uppercase; margin-bottom:5px;">${k.label}</div>
+                    <div style="font-size:1.1rem; color:#fff; font-weight:800; margin-bottom:3px;">${k.val}</div>
+                    <div style="font-size:0.75rem; color:${k.cor}; font-weight:600;">${k.desc}</div>
+                </div>`).join('');
+        }
+
+        // Gráfico 1: Insumos (Progresso Compra)
+        const insumoLabels = linhas.map(l => l.insumo_nome);
+        const insumoQtdPlanejada = linhas.map(l => parseFloat(l.qtd_necessaria || 0));
+        const insumoQtdComprada = linhas.map(l => {
+            const movs = todasMovs.filter(m => m.linha_id === l.id && m.tipo === 'COMPRA');
+            return movs.reduce((sum, m) => sum + parseFloat(m.quantidade || 0), 0);
+        });
+
+        if (_chartExtProdInsumos) _chartExtProdInsumos.destroy();
+        const ctxInsumos = document.getElementById('extrato-prod-chart-insumos');
+        if (ctxInsumos) {
+            _chartExtProdInsumos = new Chart(ctxInsumos, {
+                type: 'bar',
+                data: {
+                    labels: insumoLabels,
+                    datasets: [
+                        { label: 'Planejado (kg)', data: insumoQtdPlanejada, backgroundColor: 'rgba(240, 184, 0, 0.4)', borderColor: '#f0b800', borderWidth: 1 },
+                        { label: 'Comprado Real (kg)', data: insumoQtdComprada, backgroundColor: 'rgba(42, 208, 122, 0.6)', borderColor: '#2AD07A', borderWidth: 1 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } },
+                    plugins: { legend: { labels: { color: '#fff', font: { size: 9 } } } }
+                }
+            });
+        }
+
+        // Gráfico 2: Faturamento Real vs Meta (Vendas)
+        if (_chartExtProdMeta) _chartExtProdMeta.destroy();
+        const ctxMeta = document.getElementById('extrato-prod-chart-meta');
+        if (ctxMeta) {
+            _chartExtProdMeta = new Chart(ctxMeta, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Realizado (Vendas)', 'Restante para Meta'],
+                    datasets: [{
+                        data: [vendasReal, Math.max(0, metaFaturamento - vendasReal)],
+                        backgroundColor: ['#2AD07A', '#1a2e3f'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 9 } } } }
+                }
+            });
+        }
+
+        // Renderizar Histórico de Movimentações
+        const tableContainer = document.getElementById('extrato-prod-tabela-container');
+        if (tableContainer) {
+            if (todasMovs.length === 0) {
+                tableContainer.innerHTML = `<div style="text-align:center; padding:30px; color:#aaa; font-size:0.85rem;">Nenhuma movimentação real lançada para este planejamento.</div>`;
+            } else {
+                tableContainer.innerHTML = `
+                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                        <thead>
+                            <tr style="background:#223547; text-align:left; color:#8eaabf; font-size:0.75rem;">
+                                <th style="padding:8px;">Data</th>
+                                <th style="padding:8px; text-align:center;">Tipo</th>
+                                <th style="padding:8px;">Item</th>
+                                <th style="padding:8px; text-align:right;">Qtd (kg)</th>
+                                <th style="padding:8px; text-align:right;">P.Unitário</th>
+                                <th style="padding:8px; text-align:right;">Total</th>
+                                <th style="padding:8px; text-align:center;">Eficiência</th>
+                                <th style="padding:8px;">Obs</th>
+                                <th style="padding:8px; text-align:center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${todasMovs.map(m => {
+                                const isCompra = m.tipo === 'COMPRA';
+                                const refPrice = parseFloat(m.preco_compra_simulado || m.preco_compra_tabela || 0);
+                                let ef = '—';
+                                if (isCompra && refPrice > 0) {
+                                    const diff = ((m.preco_unitario - refPrice) / refPrice) * 100;
+                                    if (diff > 0) ef = `<span style="color:#ff4d4d; font-weight:700;">⚠️ +${diff.toFixed(1)}% (Caro)</span>`;
+                                    else if (diff < 0) ef = `<span style="color:#2AD07A; font-weight:700;">✅ ${diff.toFixed(1)}% (Economia)</span>`;
+                                    else ef = `<span style="color:#aaa;">= Tabela</span>`;
+                                } else if (!isCompra) {
+                                    const refVenda = parseFloat(plan.preco_venda_produto_rs || 0);
+                                    if (refVenda > 0) {
+                                        const diff = ((m.preco_unitario - refVenda) / refVenda) * 100;
+                                        if (diff > 0) ef = `<span style="color:#2AD07A; font-weight:700;">📈 +${diff.toFixed(1)}% (Alta)</span>`;
+                                        else if (diff < 0) ef = `<span style="color:#ff4d4d; font-weight:700;">📉 ${diff.toFixed(1)}% (Baixa)</span>`;
+                                        else ef = `<span style="color:#aaa;">= Tabela</span>`;
+                                    }
+                                }
+
+                                return `
+                                    <tr style="border-top:1px solid #1a2e3f; color:#fff;">
+                                        <td style="padding:8px;">${m.data_movimentacao}</td>
+                                        <td style="padding:8px; text-align:center;">
+                                            <span style="background:${isCompra ? '#1b382b' : '#3e7cb1'}; color:#fff; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700;">${m.tipo}</span>
+                                        </td>
+                                        <td style="padding:8px;"><strong>${isCompra ? m.insumo_nome : plan.produto_nome}</strong></td>
+                                        <td style="padding:8px; text-align:right;">${parseFloat(m.quantidade||0).toLocaleString('pt-BR', {minimumFractionDigits:2})} kg</td>
+                                        <td style="padding:8px; text-align:right; color:#aaa;">R$ ${parseFloat(m.preco_unitario||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                                        <td style="padding:8px; text-align:right; color:#2AD07A; font-weight:700;">R$ ${parseFloat(m.valor_total||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                                        <td style="padding:8px; text-align:center; font-size:0.75rem;">${ef}</td>
+                                        <td style="padding:8px; color:#8eaabf; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${m.obs||''}">${m.obs || ''}</td>
+                                        <td style="padding:8px; text-align:center;">
+                                            <button type="button" onclick="excluirTransacaoProducao(${m.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>`;
+            }
+        }
+    }
+
+    // Modal lançamento de transações/movimentações de produção
+    window.abrirModalTransacaoProducao = function() {
+        if (!_activePlanProducao) return;
+        const plan = _activePlanProducao;
+        const modal = document.getElementById('modal-transacao-producao');
+        if (modal) modal.style.display = 'block';
+
+        document.getElementById('transprod-planejamento-id').value = plan.id;
+        document.getElementById('transprod-tipo-compra').checked = true;
+        document.getElementById('transprod-qtd-kg').value = '';
+        document.getElementById('transprod-preco-unit').value = '';
+        document.getElementById('transprod-valor-total').value = 'R$ 0,00';
+        document.getElementById('transprod-obs').value = '';
+        document.getElementById('transprod-data').value = new Date().toISOString().slice(0, 10);
+
+        // Popular select de linhas de insumos do planejamento
+        const selLinha = document.getElementById('transprod-linha-id');
+        const linhas = Array.isArray(plan.linhas) ? plan.linhas : [];
+        if (selLinha) {
+            selLinha.innerHTML = linhas.map(l =>
+                `<option value="${l.id}" data-tabela="${l.preco_compra_simulado || l.preco_compra_tabela || 0}">${l.insumo_nome}</option>`
+            ).join('');
+        }
+
+        atualizarInterfaceTransacaoProducao();
+    };
+
+    window.fecharModalTransacaoProducao = function() {
+        const modal = document.getElementById('modal-transacao-producao');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.atualizarInterfaceTransacaoProducao = function() {
+        const isCompra = document.getElementById('transprod-tipo-compra').checked;
+        const lBox = document.getElementById('transprod-linha-box');
+        const bCompra = document.getElementById('badge-prod-tipo-compra');
+        const bVenda = document.getElementById('badge-prod-tipo-venda');
+
+        if (isCompra) {
+            if (lBox) lBox.style.display = 'block';
+            if (bCompra) { bCompra.style.borderColor = '#2AD07A'; bCompra.style.color = '#2AD07A'; }
+            if (bVenda) { bVenda.style.borderColor = '#444'; bVenda.style.color = '#aaa'; }
+        } else {
+            if (lBox) lBox.style.display = 'none';
+            if (bCompra) { bCompra.style.borderColor = '#444'; bCompra.style.color = '#aaa'; }
+            if (bVenda) { bVenda.style.borderColor = '#3e7cb1'; bVenda.style.color = '#3e7cb1'; }
+        }
+        calcularComparativoInsumoProducao();
+    };
+
+    window.calcularTotalTransacaoProducao = function() {
+        const q = parseFloat(document.getElementById('transprod-qtd-kg').value) || 0;
+        const p = parseFloat(document.getElementById('transprod-preco-unit').value) || 0;
+        const tot = q * p;
+        document.getElementById('transprod-valor-total').value = 'R$ ' + tot.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    };
+
+    window.calcularComparativoInsumoProducao = function() {
+        const isCompra = document.getElementById('transprod-tipo-compra').checked;
+        const price = parseFloat(document.getElementById('transprod-preco-unit').value) || 0;
+        const box = document.getElementById('transprod-comparativo-box');
+        const labelTab = document.getElementById('transprod-preco-tabela');
+        const labelDesvio = document.getElementById('transprod-desvio-tabela');
+
+        if (!box) return;
+
+        let refPrice = 0;
+        if (isCompra) {
+            const sel = document.getElementById('transprod-linha-id');
+            if (sel && sel.selectedIndex >= 0) {
+                refPrice = parseFloat(sel.options[sel.selectedIndex].dataset.tabela) || 0;
+            }
+        } else if (_activePlanProducao) {
+            refPrice = parseFloat(_activePlanProducao.preco_venda_produto_rs) || 0;
+        }
+
+        if (refPrice > 0 && price > 0) {
+            box.style.display = 'block';
+            labelTab.textContent = 'R$ ' + refPrice.toLocaleString('pt-BR', {minimumFractionDigits:2});
+            const diff = ((price - refPrice) / refPrice) * 100;
+            if (isCompra) {
+                if (diff > 0) {
+                    labelDesvio.textContent = `⚠️ +${diff.toFixed(1)}% (Compra mais CARA)`;
+                    labelDesvio.style.color = '#ff4d4d';
+                } else if (diff < 0) {
+                    labelDesvio.textContent = `✅ ${diff.toFixed(1)}% (Compra mais BARATA)`;
+                    labelDesvio.style.color = '#2AD07A';
+                } else {
+                    labelDesvio.textContent = 'Preço de Tabela Planejado';
+                    labelDesvio.style.color = '#aaa';
+                }
+            } else {
+                if (diff > 0) {
+                    labelDesvio.textContent = `✅ +${diff.toFixed(1)}% (Venda ACIMA do Planejado)`;
+                    labelDesvio.style.color = '#2AD07A';
+                } else if (diff < 0) {
+                    labelDesvio.textContent = `⚠️ ${diff.toFixed(1)}% (Venda ABAIXO do Planejado)`;
+                    labelDesvio.style.color = '#ff4d4d';
+                } else {
+                    labelDesvio.textContent = 'Preço de Tabela Planejado';
+                    labelDesvio.style.color = '#aaa';
+                }
+            }
+        } else {
+            box.style.display = 'none';
+        }
+    };
+
+    window.salvarTransacaoProducaoForm = async function(e) {
+        e.preventDefault();
+        if (!_activePlanProducao) return;
+        const planId = _activePlanProducao.id;
+        const isCompra = document.getElementById('transprod-tipo-compra').checked;
+        const type = isCompra ? 'COMPRA' : 'VENDA';
+        const linhaId = isCompra ? parseInt(document.getElementById('transprod-linha-id').value) : 0;
+
+        const payload = {
+            tipo: type,
+            quantidade: parseFloat(document.getElementById('transprod-qtd-kg').value) || 0,
+            preco_unitario: parseFloat(document.getElementById('transprod-preco-unit').value) || 0,
+            data_movimentacao: document.getElementById('transprod-data').value,
+            obs: document.getElementById('transprod-obs').value
+        };
+
+        const btn = document.getElementById('btn-salvar-trans-prod');
+        if (btn) btn.disabled = true;
+
+        try {
+            const targetLinhaId = isCompra ? linhaId : (_activePlanProducao.linhas[0]?.id || 0);
+
+            const res = await fetch(`/api/planejamento/producao-insumos/${planId}/linhas/${targetLinhaId}/movimentacao`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Falha ao salvar movimentação de produção');
+            _apexNotify('Sucesso', 'Movimentação real salva!', 'success');
+            fecharModalTransacaoProducao();
+
+            const resReload = await fetch('/api/planejamento/producao-insumos');
+            const dataReload = await resReload.json();
+            const reloadedList = Array.isArray(dataReload) ? dataReload : [];
+            const planReloaded = reloadedList.find(p => p.id === planId);
+            if (planReloaded) {
+                _activePlanProducao = planReloaded;
+                renderExtratoProducaoConteudo();
+            }
+            await carregarPlanejamentoProducaoInsumos();
+        } catch(err) {
+            _apexNotify('Erro', err.message, 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    };
+
+    window.excluirTransacaoProducao = async function(movId) {
+        if (!confirm('Excluir este lançamento real?')) return;
+        if (!_activePlanProducao) return;
+        const planId = _activePlanProducao.id;
+        try {
+            let targetLinhaId = 0;
+            _activePlanProducao.linhas.forEach(l => {
+                if (Array.isArray(l.movimentacoes) && l.movimentacoes.some(m => m.id === movId)) {
+                    targetLinhaId = l.id;
+                }
+            });
+            if (targetLinhaId === 0) targetLinhaId = _activePlanProducao.linhas[0]?.id || 0;
+
+            const res = await fetch(`/api/planejamento/producao-insumos/${planId}/linhas/${targetLinhaId}/movimentacao/${movId}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) throw new Error('Erro ao excluir');
+
+            const resReload = await fetch('/api/planejamento/producao-insumos');
+            const dataReload = await resReload.json();
+            const reloadedList = Array.isArray(dataReload) ? dataReload : [];
+            const planReloaded = reloadedList.find(p => p.id === planId);
+            if (planReloaded) {
+                _activePlanProducao = planReloaded;
+                renderExtratoProducaoConteudo();
+            }
+            await carregarPlanejamentoProducaoInsumos();
+        } catch(e) {
+            _apexNotify('Erro', e.message, 'error');
+        }
+    };
+
+
 
     // ── 2. Planejamento Comercial (Compra e Venda / Revenda) ────────────────────
     window.carregarPlanejamentoComercialRevenda = async function() {
