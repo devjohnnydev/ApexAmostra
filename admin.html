@@ -43,9 +43,8 @@
             // Calcula a altura do body disponível para o scroll area
             modal.style.display = 'flex';
             modal.style.flexDirection = 'column';
-                body.style.height = (window.innerHeight - headerH) + 'px';
-            }
             modal.style.position = 'fixed';
+
             modal.style.top = '0';
             modal.style.left = '0';
             modal.style.width = '100vw';
@@ -2390,16 +2389,14 @@
                             <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                                 <thead>
                                     <tr style="background:#223547; text-align:left;">
-                                        <th style="padding:10px 8px;">Produto Acabado</th>
-                                        <th style="padding:10px 8px; text-align:right;">Prod. Planejada</th>
-                                        <th style="padding:10px 8px;">Insumo Necessário</th>
-                                        <th style="padding:10px 8px; text-align:right;">Qtd Insumo</th>
-                                        <th style="padding:10px 8px; text-align:right;">Estoque Atual</th>
-                                        <th style="padding:10px 8px; text-align:right;">Estoque Mínimo</th>
-                                        <th style="padding:10px 8px; text-align:right;">Compra Necessária</th>
-                                        <th style="padding:10px 8px; text-align:right;">Custo Est. (R$)</th>
-                                        <th style="padding:10px 8px; text-align:center;">Data Limite Pedido</th>
-                                        <th style="padding:10px 8px; text-align:center;">Status</th>
+                                        <th style="padding:10px 8px;">Produto Final</th>
+                                        <th style="padding:10px 8px; text-align:right;">Meta Fat. / Qtd</th>
+                                        <th style="padding:10px 8px; text-align:right;">Custo Insumos</th>
+                                        <th style="padding:10px 8px; text-align:center;">Markup</th>
+                                        <th style="padding:10px 8px;">Insumos</th>
+                                        <th style="padding:10px 8px; text-align:center;">Prazo Compra</th>
+                                        <th style="padding:10px 8px; text-align:center;">Prazo Venda</th>
+                                        <th style="padding:10px 8px; text-align:center;">Extrato</th>
                                         <th style="padding:10px 8px; text-align:center;">Ações</th>
                                     </tr>
                                 </thead>
@@ -2407,6 +2404,7 @@
                             </table>
                         </div>
                     </div>
+
                 </div>
 
                 <!-- ════ GUI 2: COMPRA E VENDA (REVENDA COMERCIAL) ════ -->
@@ -4956,99 +4954,289 @@
         </div>
     </div>
 
-    <!-- Modal: Novo Planejamento de Produção (Explosão de Insumos) -->
-    <div id="modal-planejamento-producao" class="modal-producao-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:999999; overflow-y:auto; padding:20px; box-sizing:border-box;">
-        <div style="width:860px; max-width:95vw; background:#101a24; border:1px solid #2AD07A; border-radius:14px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
-            <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:18px 60px 16px; border-bottom:1px solid #1a3328;">
+    <!-- Modal: Simulador de Produção & Insumos -->
+    <div id="modal-planejamento-producao" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:999999; overflow-y:auto; box-sizing:border-box; padding:30px 16px;">
+        <div style="max-width:900px; margin:0 auto; background:#101a24; border:1px solid #2AD07A; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+
+            <!-- Header -->
+            <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:16px 60px; border-bottom:1px solid #1a3328; background:#0d1f17;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <i class="fa-solid fa-industry" style="color:#2AD07A; font-size:1.2rem;"></i>
-                    <h3 style="margin:0; color:#fff; font-size:1.05rem; font-weight:700;">Novo Planejamento de Produção &amp; Explosão de Insumos</h3>
+                    <h3 style="margin:0; color:#fff; font-size:1rem; font-weight:700;">Simulador de Produção &amp; Insumos</h3>
                 </div>
                 <button type="button" onclick="fecharModalPlanejamentoProducao()" title="Fechar"
-                    style="position:absolute; right:14px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; padding:0;"
+                    style="position:absolute; right:16px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;"
                     onmouseover="this.style.background='#1a3328';this.style.color='#2AD07A';"
                     onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <form id="form-planejamento-producao" onsubmit="salvarPlanejamentoProducaoForm(event)" style="padding:22px 26px;">
+            <!-- Steps indicator -->
+            <div style="display:flex; border-bottom:1px solid #1a3328; background:#0a1810;">
+                <div id="sim-step-tab-1" style="flex:1; padding:10px; text-align:center; font-size:0.8rem; font-weight:700; color:#2AD07A; border-bottom:2px solid #2AD07A; cursor:pointer;" onclick="simIrParaStep(1)">
+                    <i class="fa-solid fa-bullseye"></i> 1. Meta &amp; Produto
+                </div>
+                <div id="sim-step-tab-2" style="flex:1; padding:10px; text-align:center; font-size:0.8rem; font-weight:600; color:#8eaabf; border-bottom:2px solid transparent; cursor:pointer;" onclick="simIrParaStep(2)">
+                    <i class="fa-solid fa-boxes-stacked"></i> 2. Insumos
+                </div>
+                <div id="sim-step-tab-3" style="flex:1; padding:10px; text-align:center; font-size:0.8rem; font-weight:600; color:#8eaabf; border-bottom:2px solid transparent; cursor:pointer;" onclick="simIrParaStep(3)">
+                    <i class="fa-solid fa-chart-bar"></i> 3. Projeção &amp; Salvar
+                </div>
+            </div>
+
+            <div style="padding:22px 24px;">
+
+                <!-- STEP 1: Meta & Produto Final -->
+                <div id="sim-step-1">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+                        <div>
+                            <label style="color:#aaa; font-size:0.82rem; display:block; margin-bottom:4px;">Mês / Período *</label>
+                            <input type="month" id="sim-periodo" class="noble-input" required>
+                        </div>
+                        <div>
+                            <label style="color:#aaa; font-size:0.82rem; display:block; margin-bottom:4px;">Produto Acabado (a fabricar) *</label>
+                            <select id="sim-produto-id" class="noble-input" required onchange="simAutoFillProduto()">
+                                <option value="">Selecione o Produto Final...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px;">
+                        <div>
+                            <label style="color:#aaa; font-size:0.82rem; display:block; margin-bottom:4px;">🎯 Meta de Faturamento (R$) *</label>
+                            <input type="number" step="0.01" id="sim-meta-fat" class="noble-input" placeholder="Ex: 500000" oninput="simRecalcular()" required>
+                        </div>
+                        <div>
+                            <label style="color:#aaa; font-size:0.82rem; display:block; margin-bottom:4px;">Preço de Venda do Produto (R$/kg)</label>
+                            <input type="number" step="0.0001" id="sim-preco-venda" class="noble-input" placeholder="Auto-fill da tabela" oninput="simRecalcular()">
+                        </div>
+                        <div>
+                            <label style="color:#aaa; font-size:0.82rem; display:block; margin-bottom:4px;">Qtd Necessária Produto Final</label>
+                            <input type="text" id="sim-qtd-produto" class="noble-input" readonly style="background:#0a1810; color:#2AD07A; font-weight:700;" value="—" title="Calculado automaticamente: Meta / Preço Venda">
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
+                        <div>
+                            <label style="color:#aaa; font-size:0.82rem; display:block; margin-bottom:4px;">📅 Prazo Limite de Compra</label>
+                            <input type="date" id="sim-prazo-compra" class="noble-input">
+                        </div>
+                        <div>
+                            <label style="color:#aaa; font-size:0.82rem; display:block; margin-bottom:4px;">📅 Prazo Limite de Venda</label>
+                            <input type="date" id="sim-prazo-venda" class="noble-input">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end;">
+                        <button type="button" onclick="simIrParaStep(2)" style="background:#2AD07A; color:#0d1826; border:none; padding:10px 28px; border-radius:8px; font-weight:800; cursor:pointer; font-size:0.9rem;">
+                            Próximo: Insumos <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Insumos -->
+                <div id="sim-step-2" style="display:none;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                        <div>
+                            <span style="color:#fff; font-weight:700;">Linha de Insumos</span>
+                            <span id="sim-header-info" style="color:#8eaabf; font-size:0.82rem; margin-left:10px;"></span>
+                        </div>
+                        <button type="button" onclick="simAdicionarLinhaInsumo()" style="background:#1a3328; border:1px solid #2AD07A; color:#2AD07A; padding:7px 14px; border-radius:6px; cursor:pointer; font-size:0.82rem; font-weight:700;">
+                            <i class="fa-solid fa-plus"></i> Adicionar Insumo
+                        </button>
+                    </div>
+
+                    <!-- Linhas de insumos (dinâmico) -->
+                    <div id="sim-linhas-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;"></div>
+
+                    <!-- Template cabeçalho da tabela -->
+                    <div style="display:grid; grid-template-columns:2fr 80px 80px 90px 90px 90px 32px; gap:8px; margin-bottom:4px; padding:0 4px;">
+                        <span style="font-size:0.72rem; color:#8eaabf; font-weight:600; text-transform:uppercase;">Insumo</span>
+                        <span style="font-size:0.72rem; color:#8eaabf; font-weight:600; text-transform:uppercase; text-align:center;">Coef. (%)</span>
+                        <span style="font-size:0.72rem; color:#8eaabf; font-weight:600; text-transform:uppercase; text-align:right;">Qtd Nec.</span>
+                        <span style="font-size:0.72rem; color:#8eaabf; font-weight:600; text-transform:uppercase; text-align:right;">P.Compra Tab.</span>
+                        <span style="font-size:0.72rem; color:#8eaabf; font-weight:600; text-transform:uppercase; text-align:right;">P.Compra Sim.</span>
+                        <span style="font-size:0.72rem; color:#8eaabf; font-weight:600; text-transform:uppercase; text-align:right;">Custo Total</span>
+                        <span></span>
+                    </div>
+                    <div id="sim-linhas-rows" style="display:flex; flex-direction:column; gap:6px; margin-bottom:18px;"></div>
+
+                    <div style="display:flex; justify-content:space-between;">
+                        <button type="button" onclick="simIrParaStep(1)" style="background:transparent; border:1px solid #2a3f50; color:#8eaabf; padding:10px 22px; border-radius:8px; cursor:pointer; font-size:0.9rem;">
+                            <i class="fa-solid fa-arrow-left"></i> Voltar
+                        </button>
+                        <button type="button" onclick="simIrParaStep(3)" style="background:#2AD07A; color:#0d1826; border:none; padding:10px 28px; border-radius:8px; font-weight:800; cursor:pointer; font-size:0.9rem;">
+                            Próximo: Projeção <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Projeção & Salvar -->
+                <div id="sim-step-3" style="display:none;">
+                    <div id="sim-preview-cards" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:12px; margin-bottom:18px;"></div>
+
+                    <!-- Tabela resumo dos insumos -->
+                    <div style="background:#0d1826; border:1px solid #1a3328; border-radius:10px; padding:14px; margin-bottom:18px; overflow-x:auto;">
+                        <div style="font-size:0.78rem; color:#8eaabf; margin-bottom:10px; font-weight:600; text-transform:uppercase;">Resumo dos Insumos</div>
+                        <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                            <thead>
+                                <tr style="color:#8eaabf; text-align:right; font-size:0.75rem; text-transform:uppercase;">
+                                    <th style="text-align:left; padding:4px 6px;">Insumo</th>
+                                    <th style="padding:4px 6px;">Coef.%</th>
+                                    <th style="padding:4px 6px;">Qtd Nec.</th>
+                                    <th style="padding:4px 6px;">P.Compra Tab.</th>
+                                    <th style="padding:4px 6px;">P.Compra Sim.</th>
+                                    <th style="padding:4px 6px;">Custo Total</th>
+                                    <th style="padding:4px 6px;">Eficiência</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sim-preview-tabela"></tbody>
+                        </table>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between;">
+                        <button type="button" onclick="simIrParaStep(2)" style="background:transparent; border:1px solid #2a3f50; color:#8eaabf; padding:10px 22px; border-radius:8px; cursor:pointer; font-size:0.9rem;">
+                            <i class="fa-solid fa-arrow-left"></i> Voltar
+                        </button>
+                        <button type="button" id="btn-salvar-simulador" onclick="simSalvar()" style="background:#2AD07A; color:#0d1826; border:none; padding:12px 32px; border-radius:8px; font-weight:800; cursor:pointer; font-size:0.95rem; box-shadow:0 4px 14px rgba(42,208,122,0.4);">
+                            <i class="fa-solid fa-save"></i> Salvar Planejamento
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal: Lançar Movimentação de Produção (Compras de Insumos ou Vendas de Produto Acabado) -->
+    <div id="modal-transacao-producao" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:9999999; overflow-y:auto; box-sizing:border-box; padding:30px 16px;">
+        <div style="max-width:550px; margin:0 auto; background:#101a24; border:1px solid #2AD07A; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+            <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:16px 60px; border-bottom:1px solid #1a3328; background:#0d1f17;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-plus-minus" style="color:#2AD07A; font-size:1.2rem;"></i>
+                    <h3 style="margin:0; color:#fff; font-size:1rem; font-weight:700;">Lançar Movimento de Produção</h3>
+                </div>
+                <button type="button" onclick="fecharModalTransacaoProducao()" title="Fechar"
+                    style="position:absolute; right:16px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;"
+                    onmouseover="this.style.background='#1a3328';this.style.color='#2AD07A';"
+                    onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="form-transacao-producao" onsubmit="salvarTransacaoProducaoForm(event)" style="padding:22px 24px;">
+                <input type="hidden" id="transprod-planejamento-id">
+
+                <!-- Tipo -->
+                <div style="display:flex; gap:10px; margin-bottom:18px;">
+                    <label style="flex:1; cursor:pointer;">
+                        <input type="radio" name="transprod-tipo" value="COMPRA" id="transprod-tipo-compra" checked onchange="atualizarInterfaceTransacaoProducao()">
+                        <span id="badge-prod-tipo-compra" style="display:block; text-align:center; padding:10px; border-radius:8px; border:2px solid #2AD07A; color:#2AD07A; font-weight:700; font-size:0.95rem;">🛒 COMPRA INSUMO</span>
+                    </label>
+                    <label style="flex:1; cursor:pointer;">
+                        <input type="radio" name="transprod-tipo" value="VENDA" id="transprod-tipo-venda" onchange="atualizarInterfaceTransacaoProducao()">
+                        <span id="badge-prod-tipo-venda" style="display:block; text-align:center; padding:10px; border-radius:8px; border:2px solid #444; color:#aaa; font-weight:700; font-size:0.95rem;">💰 VENDA PRODUTO</span>
+                    </label>
+                </div>
+
+                <!-- Select de Linha de Insumo (só aparece para compra) -->
+                <div id="transprod-linha-box" class="form-group" style="margin-bottom:15px;">
+                    <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Insumo Correspondente *</label>
+                    <select id="transprod-linha-id" class="noble-input" onchange="calcularComparativoInsumoProducao()"></select>
+                </div>
+
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
                     <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Mês / Período *</label>
-                        <input type="month" id="plprod-periodo" class="noble-input" required>
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Quantidade (kg) *</label>
+                        <input type="number" step="0.001" min="0.001" id="transprod-qtd-kg" class="noble-input" required placeholder="Ex: 5000" oninput="calcularTotalTransacaoProducao()">
                     </div>
                     <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Produto Acabado a Produzir *</label>
-                        <select id="plprod-produto-id" class="noble-input" required>
-                            <option value="">Selecione o Produto...</option>
-                        </select>
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Preço Unitário (R$/kg) *</label>
+                        <input type="number" step="0.0001" min="0.0001" id="transprod-preco-unit" class="noble-input" required placeholder="Ex: 5.80" oninput="calcularTotalTransacaoProducao(); calcularComparativoInsumoProducao()">
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
                     <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Produção Planejada (kg) *</label>
-                        <input type="number" step="0.001" id="plprod-qtd-prod" class="noble-input" required placeholder="Ex: 100000" oninput="calcularExplosaoInsumoForm()">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Data *</label>
+                        <input type="date" id="transprod-data" class="noble-input" required>
                     </div>
                     <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Insumo Necessário *</label>
-                        <select id="plprod-insumo-id" class="noble-input" required onchange="calcularExplosaoInsumoForm()">
-                            <option value="">Selecione o Insumo...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Qtd Insumo Necessário (kg) *</label>
-                        <input type="number" step="0.001" id="plprod-qtd-insumo" class="noble-input" required placeholder="Ex: 35000" oninput="calcularExplosaoInsumoForm()">
+                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Valor Total (R$)</label>
+                        <input type="text" id="transprod-valor-total" class="noble-input" readonly style="background:#0d1826; color:#2AD07A; font-weight:bold;" placeholder="R$ 0,00">
                     </div>
                 </div>
 
-                <!-- Bloco de Dedução Automática do Estoque -->
-                <div style="background:#162432; border:1px solid #1e4e8c; border-radius:8px; padding:15px; margin-bottom:15px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px;">
-                    <div>
-                        <label style="font-size:0.75rem; color:#aaa;">Estoque Atual</label>
-                        <input type="text" id="plprod-est-atual" class="noble-input" readonly style="background:#0d1826; color:#fff;" value="0 kg">
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#aaa;">Estoque Mínimo</label>
-                        <input type="text" id="plprod-est-minimo" class="noble-input" readonly style="background:#0d1826; color:#aaa;" value="0 kg">
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#aaa;">Estoque Disponível</label>
-                        <input type="text" id="plprod-est-disp" class="noble-input" readonly style="background:#0d1826; color:#3e7cb1; font-weight:bold;" value="0 kg">
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#aaa;">Necessidade de Compra</label>
-                        <input type="text" id="plprod-compra-liquida" class="noble-input" readonly style="background:#0d1826; color:#ff4d4d; font-weight:bold;" value="0 kg">
+                <!-- Comparativo vs Tabela -->
+                <div id="transprod-comparativo-box" style="background:#0d1826; border:1px solid #1a2e3f; border-radius:8px; padding:12px; margin-bottom:15px; display:none;">
+                    <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:6px; font-weight:600; text-transform:uppercase;">Eficiência da Operação</div>
+                    <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                        <div><span style="color:#aaa; font-size:0.8rem;">Ref. Tabela: </span><span id="transprod-preco-tabela" style="color:#fff; font-weight:bold;">—</span></div>
+                        <div><span style="color:#aaa; font-size:0.8rem;">Resultado: </span><span id="transprod-desvio-tabela" style="font-weight:bold;">—</span></div>
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; margin-bottom:15px;">
-                    <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Fornecedor Homologado</label>
-                        <select id="plprod-fornecedor-id" class="noble-input">
-                            <option value="">Selecione o Fornecedor...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Custo Estimado (R$/kg)</label>
-                        <input type="number" step="0.01" id="plprod-custo-unit" class="noble-input" placeholder="Ex: 100.00" oninput="calcularExplosaoInsumoForm()">
-                    </div>
-                    <div class="form-group">
-                        <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Data Necessária na Fábrica</label>
-                        <input type="date" id="plprod-data-prevista" class="noble-input" required>
-                    </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="color:#aaa; font-size:0.82rem; margin-bottom:4px; display:block;">Observações</label>
+                    <input type="text" id="transprod-obs" class="noble-input" placeholder="Ex: NF 1234, Lote A...">
                 </div>
 
                 <div style="display:flex; gap:10px;">
-                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar Planejamento de Produção</button>
-                    <button type="button" class="btn-secondary" onclick="fecharModalPlanejamentoProducao()" style="flex:1;">Cancelar</button>
+                    <button type="submit" id="btn-salvar-trans-prod" class="btn-primary" style="flex:1; background:#2AD07A; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-save"></i> Salvar Movimento</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalTransacaoProducao()" style="flex:1;">Cancelar</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal: Extrato & Análise de Produção -->
+    <div id="modal-extrato-producao" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#101a24; z-index:9999999; overflow-y:auto; overflow-x:hidden; box-sizing:border-box;">
+        <div style="position:sticky; top:0; z-index:10; background:#101a24; border-bottom:1px solid #1a2e3f; display:flex; align-items:center; justify-content:center; padding:14px 60px; box-sizing:border-box;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-chart-pie" style="color:#2AD07A; font-size:1.1rem;"></i>
+                <h3 id="extrato-prod-titulo" style="margin:0; color:#fff; font-size:1rem; font-weight:700;">Extrato &amp; Análise — Produção</h3>
+            </div>
+            <button type="button" onclick="fecharModalExtratoProducao()" title="Fechar"
+                style="position:absolute; right:20px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:34px; height:34px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.95rem; padding:0;"
+                onmouseover="this.style.background='#1a3328';this.style.color='#2AD07A';"
+                onmouseout="this.style.background='transparent';this.style.color='#8eaabf';">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div style="padding:20px 24px 50px; box-sizing:border-box;">
+            <!-- Prazos banner -->
+            <div id="extrato-prod-prazos-banner" style="display:none; margin-bottom:14px;"></div>
+
+            <!-- KPI Cards -->
+            <div id="extrato-prod-kpi-container" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; margin-bottom:20px;"></div>
+
+            <!-- Gráficos -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px;">
+                <div style="background:#0d1826; border:1px solid #1a3328; border-radius:10px; padding:14px;">
+                    <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:8px; font-weight:600; text-transform:uppercase; text-align:center;">Progresso de Compra de Insumos</div>
+                    <canvas id="extrato-prod-chart-insumos" height="140"></canvas>
+                </div>
+                <div style="background:#0d1826; border:1px solid #1a3328; border-radius:10px; padding:14px;">
+                    <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:8px; font-weight:600; text-transform:uppercase; text-align:center;">Faturamento Realizado vs Meta (Vendas)</div>
+                    <canvas id="extrato-prod-chart-meta" height="140"></canvas>
+                </div>
+            </div>
+
+            <!-- Histórico -->
+            <div style="border-top:1px solid #1a2e3f; padding-top:14px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                    <span style="font-weight:700; color:#fff; font-size:0.92rem;">📋 Histórico de Movimentações (Real)</span>
+                    <button onclick="abrirModalTransacaoProducao()" class="btn-primary" style="font-size:0.8rem; padding:6px 14px; border-radius:6px; background:#2AD07A; color:#0d1826;">
+                        <i class="fa-solid fa-plus"></i> Novo Lançamento
+                    </button>
+                </div>
+                <div id="extrato-prod-tabela-container" style="overflow-x:auto;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Novo Planejamento Comercial (Revenda & Meta R$ 5M) -->
+
     <div id="modal-planejamento-comercial-meta" class="modal-comercial-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:999999; overflow-y:auto; padding:20px; box-sizing:border-box;">
         <div style="width:780px; max-width:95vw; background:#101a24; border:1px solid #3e7cb1; border-radius:14px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
             <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:18px 60px 16px; border-bottom:1px solid #1a2e3f;">
