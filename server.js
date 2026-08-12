@@ -2196,149 +2196,163 @@ app.delete('/api/planejamento/compras/:id', async (req, res) => {
 
 // GET - listar todos os planejamentos com linhas e métricas agregadas
 app.get('/api/planejamento/producao-insumos', async (req, res) => {
+    let useDb = dbAvailable && pool;
     try {
-        if (!dbAvailable) {
-            const pl = memStore.planejamento_producao_insumos || [];
-            const linhas = memStore.planejamento_producao_linhas || [];
-            const movs = memStore.planejamento_producao_movimentacoes || [];
-            return res.json(pl.map(p => ({
-                ...p,
-                linhas: linhas.filter(l => l.planejamento_id === p.id).map(l => ({
-                    ...l,
-                    movimentacoes: movs.filter(m => m.linha_id === l.id)
-                }))
-            })));
-        }
-        const pl = await pool.query('SELECT * FROM planejamento_producao_insumos ORDER BY id DESC');
-        const result = await Promise.all(pl.rows.map(async p => {
-            const linhas = await pool.query(
-                'SELECT * FROM planejamento_producao_linhas WHERE planejamento_id=$1 ORDER BY id', [p.id]);
-            const lWithMovs = await Promise.all(linhas.rows.map(async l => {
-                const movs = await pool.query(
-                    'SELECT * FROM planejamento_producao_movimentacoes WHERE linha_id=$1 ORDER BY data_movimentacao', [l.id]);
-                return { ...l, movimentacoes: movs.rows };
+        if (useDb) {
+            const pl = await pool.query('SELECT * FROM planejamento_producao_insumos ORDER BY id DESC');
+            const result = await Promise.all(pl.rows.map(async p => {
+                const linhas = await pool.query(
+                    'SELECT * FROM planejamento_producao_linhas WHERE planejamento_id=$1 ORDER BY id', [p.id]);
+                const lWithMovs = await Promise.all(linhas.rows.map(async l => {
+                    const movs = await pool.query(
+                        'SELECT * FROM planejamento_producao_movimentacoes WHERE linha_id=$1 ORDER BY data_movimentacao', [l.id]);
+                    return { ...l, movimentacoes: movs.rows };
+                }));
+                return { ...p, linhas: lWithMovs };
             }));
-            return { ...p, linhas: lWithMovs };
-        }));
-        res.json(result);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+            return res.json(result);
+        }
+    } catch (err) {
+        console.warn('⚠️ Erro de banco no GET producao-insumos. Acionando fallback local:', err.message);
+        dbAvailable = false;
+    }
+
+    const pl = memStore.planejamento_producao_insumos || [];
+    const linhas = memStore.planejamento_producao_linhas || [];
+    const movs = memStore.planejamento_producao_movimentacoes || [];
+    res.json(pl.map(p => ({
+        ...p,
+        linhas: linhas.filter(l => l.planejamento_id === p.id).map(l => ({
+            ...l,
+            movimentacoes: movs.filter(m => m.linha_id === l.id)
+        }))
+    })));
 });
 
 // POST - criar novo planejamento com N linhas de insumos
 app.post('/api/planejamento/producao-insumos', async (req, res) => {
+    const {
+        periodo, produto_id, produto_nome,
+        meta_faturamento_rs, preco_venda_produto_rs,
+        qtd_produto_necessaria, custo_total_projetado_rs, margem_projetada_pct,
+        prazo_compra_ate, prazo_venda_ate, status,
+        linhas
+    } = req.body;
+
+    let useDb = dbAvailable && pool;
     try {
-        const {
-            periodo, produto_id, produto_nome,
-            meta_faturamento_rs, preco_venda_produto_rs,
-            qtd_produto_necessaria, custo_total_projetado_rs, margem_projetada_pct,
-            prazo_compra_ate, prazo_venda_ate, status,
-            linhas // array de insumos
-        } = req.body;
+        if (useDb) {
+            const r = await pool.query(`
+                INSERT INTO planejamento_producao_insumos
+                (periodo, produto_id, produto_nome, meta_faturamento_rs, preco_venda_produto_rs,
+                 qtd_produto_necessaria, custo_total_projetado_rs, margem_projetada_pct,
+                 prazo_compra_ate, prazo_venda_ate, status)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *
+            `, [
+                periodo||new Date().toISOString().slice(0,7),
+                produto_id ? parseInt(produto_id) : null, produto_nome||'',
+                parseFloat(meta_faturamento_rs||0), parseFloat(preco_venda_produto_rs||0),
+                parseFloat(qtd_produto_necessaria||0), parseFloat(custo_total_projetado_rs||0),
+                parseFloat(margem_projetada_pct||0),
+                prazo_compra_ate||null, prazo_venda_ate||null, status||'Ativo'
+            ]);
+            const planejamento = r.rows[0];
 
-        if (!dbAvailable) {
-            if (!memStore.planejamento_producao_insumos) memStore.planejamento_producao_insumos = [];
-            if (!memStore.planejamento_producao_linhas) memStore.planejamento_producao_linhas = [];
-            const pid = nextId++;
-            const item = {
-                id: pid, periodo: periodo || new Date().toISOString().slice(0,7),
-                produto_id: produto_id ? parseInt(produto_id) : null, produto_nome: produto_nome || '',
-                meta_faturamento_rs: parseFloat(meta_faturamento_rs||0),
-                preco_venda_produto_rs: parseFloat(preco_venda_produto_rs||0),
-                qtd_produto_necessaria: parseFloat(qtd_produto_necessaria||0),
-                custo_total_projetado_rs: parseFloat(custo_total_projetado_rs||0),
-                margem_projetada_pct: parseFloat(margem_projetada_pct||0),
-                prazo_compra_ate: prazo_compra_ate||null, prazo_venda_ate: prazo_venda_ate||null,
-                status: status||'Ativo', criado_em: new Date().toISOString(), linhas: []
-            };
-            memStore.planejamento_producao_insumos.push(item);
+            const linhasResult = [];
             if (Array.isArray(linhas)) {
-                linhas.forEach(l => {
-                    const lid = nextId++;
-                    const linha = {
-                        id: lid, planejamento_id: pid,
-                        insumo_produto_id: l.insumo_produto_id ? parseInt(l.insumo_produto_id) : null,
-                        insumo_nome: l.insumo_nome||'', coeficiente_pct: parseFloat(l.coeficiente_pct||100),
-                        qtd_necessaria: parseFloat(l.qtd_necessaria||0),
-                        preco_compra_tabela: parseFloat(l.preco_compra_tabela||0),
-                        preco_compra_simulado: parseFloat(l.preco_compra_simulado||0),
-                        preco_venda_tabela: parseFloat(l.preco_venda_tabela||0),
-                        custo_total_insumo: parseFloat(l.custo_total_insumo||0),
-                        movimentacoes: []
-                    };
-                    memStore.planejamento_producao_linhas.push(linha);
-                    item.linhas.push(linha);
-                });
+                for (const l of linhas) {
+                    const lr = await pool.query(`
+                        INSERT INTO planejamento_producao_linhas
+                        (planejamento_id, insumo_produto_id, insumo_nome, coeficiente_pct,
+                         qtd_necessaria, preco_compra_tabela, preco_compra_simulado, preco_venda_tabela, custo_total_insumo)
+                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
+                    `, [
+                        planejamento.id,
+                        l.insumo_produto_id ? parseInt(l.insumo_produto_id) : null,
+                        l.insumo_nome||'', parseFloat(l.coeficiente_pct||100),
+                        parseFloat(l.qtd_necessaria||0), parseFloat(l.preco_compra_tabela||0),
+                        parseFloat(l.preco_compra_simulado||0), parseFloat(l.preco_venda_tabela||0),
+                        parseFloat(l.custo_total_insumo||0)
+                    ]);
+                    linhasResult.push({ ...lr.rows[0], movimentacoes: [] });
+                }
             }
-            return res.json(item);
+            return res.json({ ...planejamento, linhas: linhasResult });
         }
+    } catch (err) {
+        console.warn('⚠️ Erro de banco no POST producao-insumos. Acionando fallback local:', err.message);
+        dbAvailable = false;
+    }
 
-        const r = await pool.query(`
-            INSERT INTO planejamento_producao_insumos
-            (periodo, produto_id, produto_nome, meta_faturamento_rs, preco_venda_produto_rs,
-             qtd_produto_necessaria, custo_total_projetado_rs, margem_projetada_pct,
-             prazo_compra_ate, prazo_venda_ate, status)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *
-        `, [
-            periodo||new Date().toISOString().slice(0,7),
-            produto_id ? parseInt(produto_id) : null, produto_nome||'',
-            parseFloat(meta_faturamento_rs||0), parseFloat(preco_venda_produto_rs||0),
-            parseFloat(qtd_produto_necessaria||0), parseFloat(custo_total_projetado_rs||0),
-            parseFloat(margem_projetada_pct||0),
-            prazo_compra_ate||null, prazo_venda_ate||null, status||'Ativo'
-        ]);
-        const planejamento = r.rows[0];
-
-        const linhasResult = [];
-        if (Array.isArray(linhas)) {
-            for (const l of linhas) {
-                const lr = await pool.query(`
-                    INSERT INTO planejamento_producao_linhas
-                    (planejamento_id, insumo_produto_id, insumo_nome, coeficiente_pct,
-                     qtd_necessaria, preco_compra_tabela, preco_compra_simulado, preco_venda_tabela, custo_total_insumo)
-                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
-                `, [
-                    planejamento.id,
-                    l.insumo_produto_id ? parseInt(l.insumo_produto_id) : null,
-                    l.insumo_nome||'', parseFloat(l.coeficiente_pct||100),
-                    parseFloat(l.qtd_necessaria||0), parseFloat(l.preco_compra_tabela||0),
-                    parseFloat(l.preco_compra_simulado||0), parseFloat(l.preco_venda_tabela||0),
-                    parseFloat(l.custo_total_insumo||0)
-                ]);
-                linhasResult.push({ ...lr.rows[0], movimentacoes: [] });
-            }
-        }
-        res.json({ ...planejamento, linhas: linhasResult });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    if (!memStore.planejamento_producao_insumos) memStore.planejamento_producao_insumos = [];
+    if (!memStore.planejamento_producao_linhas) memStore.planejamento_producao_linhas = [];
+    const pid = nextId++;
+    const item = {
+        id: pid, periodo: periodo || new Date().toISOString().slice(0,7),
+        produto_id: produto_id ? parseInt(produto_id) : null, produto_nome: produto_nome || '',
+        meta_faturamento_rs: parseFloat(meta_faturamento_rs||0),
+        preco_venda_produto_rs: parseFloat(preco_venda_produto_rs||0),
+        qtd_produto_necessaria: parseFloat(qtd_produto_necessaria||0),
+        custo_total_projetado_rs: parseFloat(custo_total_projetado_rs||0),
+        margem_projetada_pct: parseFloat(margem_projetada_pct||0),
+        prazo_compra_ate: prazo_compra_ate||null, prazo_venda_ate: prazo_venda_ate||null,
+        status: status||'Ativo', criado_em: new Date().toISOString(), linhas: []
+    };
+    memStore.planejamento_producao_insumos.push(item);
+    if (Array.isArray(linhas)) {
+        linhas.forEach(l => {
+            const lid = nextId++;
+            const linha = {
+                id: lid, planejamento_id: pid,
+                insumo_produto_id: l.insumo_produto_id ? parseInt(l.insumo_produto_id) : null,
+                insumo_nome: l.insumo_nome||'', coeficiente_pct: parseFloat(l.coeficiente_pct||100),
+                qtd_necessaria: parseFloat(l.qtd_necessaria||0),
+                preco_compra_tabela: parseFloat(l.preco_compra_tabela||0),
+                preco_compra_simulado: parseFloat(l.preco_compra_simulado||0),
+                preco_venda_tabela: parseFloat(l.preco_venda_tabela||0),
+                custo_total_insumo: parseFloat(l.custo_total_insumo||0),
+                movimentacoes: []
+            };
+            memStore.planejamento_producao_linhas.push(linha);
+            item.linhas.push(linha);
+        });
+    }
+    res.json(item);
 });
 
 // POST - registrar movimentação (compra ou venda) em uma linha de insumo
 app.post('/api/planejamento/producao-insumos/:planId/linhas/:linhaId/movimentacao', async (req, res) => {
-    try {
-        const planId = parseInt(req.params.planId);
-        const linhaId = parseInt(req.params.linhaId);
-        const { tipo, quantidade, preco_unitario, data_movimentacao, obs } = req.body;
-        const valorTotal = parseFloat(quantidade||0) * parseFloat(preco_unitario||0);
-        const datamov = data_movimentacao || new Date().toISOString().slice(0,10);
+    const planId = parseInt(req.params.planId);
+    const linhaId = parseInt(req.params.linhaId);
+    const { tipo, quantidade, preco_unitario, data_movimentacao, obs } = req.body;
+    const valorTotal = parseFloat(quantidade||0) * parseFloat(preco_unitario||0);
+    const datamov = data_movimentacao || new Date().toISOString().slice(0,10);
 
-        if (!dbAvailable) {
-            if (!memStore.planejamento_producao_movimentacoes) memStore.planejamento_producao_movimentacoes = [];
-            const mov = {
-                id: nextId++, linha_id: linhaId, planejamento_id: planId,
-                tipo: tipo.toUpperCase(), quantidade: parseFloat(quantidade||0),
-                preco_unitario: parseFloat(preco_unitario||0), valor_total: valorTotal,
-                data_movimentacao: datamov, obs: obs||'', criado_em: new Date().toISOString()
-            };
-            memStore.planejamento_producao_movimentacoes.push(mov);
-            return res.json(mov);
+    let useDb = dbAvailable && pool;
+    try {
+        if (useDb) {
+            const r = await pool.query(`
+                INSERT INTO planejamento_producao_movimentacoes
+                (linha_id, planejamento_id, tipo, quantidade, preco_unitario, valor_total, data_movimentacao, obs)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *
+            `, [linhaId, planId, tipo.toUpperCase(), parseFloat(quantidade||0),
+                parseFloat(preco_unitario||0), valorTotal, datamov, obs||'']);
+            return res.json(r.rows[0]);
         }
-        const r = await pool.query(`
-            INSERT INTO planejamento_producao_movimentacoes
-            (linha_id, planejamento_id, tipo, quantidade, preco_unitario, valor_total, data_movimentacao, obs)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *
-        `, [linhaId, planId, tipo.toUpperCase(), parseFloat(quantidade||0),
-            parseFloat(preco_unitario||0), valorTotal, datamod, obs||'']);
-        res.json(r.rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        console.warn('⚠️ Erro de banco no POST movimentacao. Acionando fallback local:', err.message);
+        dbAvailable = false;
+    }
+
+    if (!memStore.planejamento_producao_movimentacoes) memStore.planejamento_producao_movimentacoes = [];
+    const mov = {
+        id: nextId++, linha_id: linhaId, planejamento_id: planId,
+        tipo: tipo.toUpperCase(), quantidade: parseFloat(quantidade||0),
+        preco_unitario: parseFloat(preco_unitario||0), valor_total: valorTotal,
+        data_movimentacao: datamov, obs: obs||'', criado_em: new Date().toISOString()
+    };
+    memStore.planejamento_producao_movimentacoes.push(mov);
+    res.json(mov);
 });
 
 // DELETE movimentação
