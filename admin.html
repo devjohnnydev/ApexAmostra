@@ -230,6 +230,10 @@
                     <i class="fa-solid fa-calculator"></i>
                     <span>Planejamento Mensal</span>
                 </a>
+                <a href="#" class="nav-item" data-target="planejamento-estrategicov3-view" id="nav-planejamento-estrategicov3" data-tooltip="Planejamento Estratégico">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i>
+                    <span>Planejamento Estratégico</span>
+                </a>
                 <a href="#" class="nav-item" data-target="estoque-view" id="nav-estoque" data-tooltip="Estoque Inteligente">
                     <i class="fa-solid fa-warehouse"></i>
                     <span>Estoque Inteligente</span>
@@ -2349,9 +2353,6 @@
                     <button type="button" class="btn-subtab" id="tab-btn-pl-estrategico" onclick="alternarSubAbaPlanejamento('estrategico')" style="background:#101a24; color:#aaa; border:1px solid #1e4e8c; border-bottom:none; padding:9px 15px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:700; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
                         <i class="fa-solid fa-compass" style="color:#00e5ff;"></i> 7. Planejamento Estratégico
                     </button>
-                    <button type="button" class="btn-subtab" id="tab-btn-pl-estrategicov3" onclick="alternarSubAbaPlanejamento('estrategicov3')" style="background:#101a24; color:#aaa; border:1px solid #00e5ff; border-bottom:none; padding:9px 15px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:700; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i> 8. Planejamento Estratégico V3
-                    </button>
                 </div>
 
                 <!-- ════ GUI 1: PLANEJAMENTO DE PRODUÇÃO & INSUMOS ════ -->
@@ -3185,191 +3186,252 @@
                     </div>
                 </div>
 
+
+                <!-- ════ GUI 4: PRODUÇÃO & PCP (TEMPOS OPERACIONAIS) ════ -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div>
+                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-stopwatch" style="color:#ffb74d;"></i> Ordens de Produção & PCP (Com Tempos Operacionais)</h3>
+                            <span style="font-size:0.8rem; color:#aaa;">Roteiro de etapas da fábrica, apontamento de tempo real vs. estimado e lead time por lote.</span>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-secondary" onclick="imprimirRelatorioOPsPdf()" style="background:#3b2d18; border-color:#ffb74d; color:#ffb74d; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> Imprimir OPs (PDF)</button>
+                            <button class="btn-primary" onclick="abrirModalOrdemProducao()"><i class="fa-solid fa-plus"></i> Nova Ordem de Produção (OP)</button>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #ffb74d; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📋 OPs em Execução</span>
+                            <h2 id="pcp-kpi-ops" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Ordens ativas na fábrica</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚖️ Volume em Processamento</span>
+                            <h2 id="pcp-kpi-volume" style="margin:5px 0 0 0; color:#3e7cb1; font-size:1.4rem;">0 kg</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Matéria-prima em linha</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏱️ Horas Estimadas Totais</span>
+                            <h2 id="pcp-kpi-tempo-est" style="margin:5px 0 0 0; color:#2AD07A; font-size:1.4rem;">0.0 h</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Tempo previsto roteiro</small>
+                        </div>
+                        <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
+                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏱️ Horas Reais Apontadas</span>
+                            <h2 id="pcp-kpi-tempo-real" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0.0 h</h2>
+                            <small style="color:#7a9cb8; font-size:0.78rem;">Acumulado real fábrica</small>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="background:#223547; text-align:left;">
+                                        <th style="padding:10px 8px;">Nº OP</th>
+                                        <th style="padding:10px 8px;">Material Entrada</th>
+                                        <th style="padding:10px 8px; text-align:right;">Peso Entrada</th>
+                                        <th style="padding:10px 8px;">Saída Prevista</th>
+                                        <th style="padding:10px 8px; text-align:center;">Cronograma</th>
+                                        <th style="padding:10px 8px; text-align:center;">Etapas & Tempos (Est vs Real)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Status OP</th>
+                                        <th style="padding:10px 8px; text-align:center;">Ações PCP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pcp-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 8. PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO)
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="planejamento-estrategicov3-view" class="view-section" style="display:none;">
+                <header class="section-header">
+                    <h1><i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i> Planejamento Estratégico V3</h1>
+                    <p>Modelo de metas baseado em Meta de Faturamento comercial ➔ Teto de custo de aquisição ➔ Explosão de Insumos.</p>
+                </header>
+
+                <!-- TELA 1: VISÃO DE 12 MESES CONSOLIDADA (V3) -->
+                <div id="plestv3-view-12meses">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Projeção de 12 Meses Consolidados</h3>
+                            <span style="font-size:0.8rem; color:#aaa;">Ciclo anual de metas faturamento vs realizado.</span>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalMetaEstrategicav3()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Configurar Meta do Mês</button>
+                    </div>
+
+                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="background:#162433; text-align:left; color:#fff;">
+                                        <th style="padding:10px 8px;">Mês Referência</th>
+                                        <th style="padding:10px 8px; text-align:right;">Meta Faturamento (R$)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Margem Desejada</th>
+                                        <th style="padding:10px 8px; text-align:right;">Teto Custo Insumo (R$)</th>
+                                        <th style="padding:10px 8px; text-align:right;">Meta Compra (kg)</th>
+                                        <th style="padding:10px 8px; text-align:right;">Realizado Consolidado (kg)</th>
+                                        <th style="padding:10px 8px; text-align:center;">Atingimento</th>
+                                        <th style="padding:10px 8px; text-align:center;">Status</th>
+                                        <th style="padding:10px 8px; text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plestv3-12meses-tbody">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- ════ GUI 8: PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ════ -->
-                <div id="pl-subview-estrategicov3" class="pl-subview" style="display:none;">
-                    
-                    <!-- TELA 1: VISÃO DE 12 MESES CONSOLIDADA (V3) -->
-                    <div id="plestv3-view-12meses">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                <!-- TELA 2: DETALHES DO MÊS SELECIONADO (V3) -->
+                <div id="plestv3-view-detalhes-mes" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <button onclick="voltarPara12MesesEstrategicov3()" class="btn-secondary" style="font-size:0.8rem; padding:6px 12px; background:#1b382b; border-color:#2AD07A; color:#2AD07A;">
+                                <i class="fa-solid fa-arrow-left"></i> Voltar aos 12 Meses
+                            </button>
                             <div>
-                                <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i> Planejamento Estratégico V3 — 12 Meses</h3>
-                                <span style="font-size:0.8rem; color:#aaa;">Modelo de metas baseado em Meta de Faturamento ➔ Teto de Custo ➔ Quantidade de Insumos.</span>
+                                <h3 style="margin:0; color:#fff;" id="plestv3-txt-mes-ativo">Planejamento Estratégico V3 — Mês</h3>
+                                <span style="font-size:0.8rem; color:#aaa;">Simulação baseada na Tabela de Preços e modalidade operacional selecionada.</span>
                             </div>
-                            <button class="btn-primary" onclick="abrirModalMetaEstrategicav3()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Configurar Meta do Mês</button>
+                        </div>
+                        <button class="btn-primary" onclick="abrirModalMetaEstrategicav3()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Configurar Meta do Mês</button>
+                    </div>
+
+                    <!-- Cards/Métricas Simplificados do Dashboard V3 -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:20px;">
+                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #00e5ff; background:#12212f;">
+                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Faturamento Projetado</span>
+                            <h3 id="estv3-kpi-fat-projetado" style="margin:4px 0 0 0; color:#00e5ff; font-size:1.2rem;">R$ 0,00</h3>
+                        </div>
+                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #2AD07A; background:#12212f;">
+                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">💵 Faturamento Real</span>
+                            <h3 id="estv3-kpi-fat-real" style="margin:4px 0 0 0; color:#2AD07A; font-size:1.2rem;">R$ 0,00</h3>
+                        </div>
+                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #ffb74d; background:#12212f;">
+                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛡️ Reserva para Compra (Teto)</span>
+                            <h3 id="estv3-kpi-reserva" style="margin:4px 0 0 0; color:#ffb74d; font-size:1.2rem;">R$ 0,00</h3>
+                        </div>
+                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #3e7cb1; background:#12212f;">
+                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📊 Margem Bruta Ponderada</span>
+                            <h3 id="estv3-kpi-margem-bruta" style="margin:4px 0 0 0; color:#3e7cb1; font-size:1.2rem;">0.0%</h3>
+                        </div>
+                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #e74c3c; background:#12212f;">
+                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛒 Meta de Compra (Volume)</span>
+                            <h3 id="estv3-kpi-meta-compra" style="margin:4px 0 0 0; color:#e74c3c; font-size:1.2rem;">0 kg</h3>
+                        </div>
+                        <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #9b59b6; background:#12212f;">
+                            <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🎯 Eficiência de Vendas</span>
+                            <h3 id="estv3-kpi-eficiencia" style="margin:4px 0 0 0; color:#9b59b6; font-size:1.2rem;">0.0%</h3>
+                        </div>
+                    </div>
+
+                    <!-- Bloco Principal de Avaliação por Produto e Cenários -->
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:20px; align-items:start;">
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <!-- Seleção do Produto & Modalidade -->
+                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-filter" style="color:#00e5ff;"></i> Avaliar Produto no Mês</span>
+                                    <div style="display:flex; gap:10px;">
+                                        <select id="plestv3-select-produto" onchange="onSelectProdutoEstrategicov3()" class="noble-input" style="max-width:240px; margin:0;"></select>
+                                    </div>
+                                </div>
+                                <div id="plestv3-produto-detalhes-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:12px;">
+                                    <!-- Preenchido via JS -->
+                                </div>
+                            </div>
+
+                            <!-- Cenários do Produto (Conservador / Moderado / Agressivo) -->
+                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-layer-group" style="color:#9b59b6;"></i> Cenários de Projeção Comparados</span>
+                                <div style="overflow-x:auto;">
+                                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                        <thead>
+                                            <tr style="background:#162433; text-align:left; color:#fff;">
+                                                <th style="padding:8px;">Cenário</th>
+                                                <th style="padding:8px; text-align:right;">Meta Faturamento (R$)</th>
+                                                <th style="padding:8px; text-align:center;">Margem Desejada</th>
+                                                <th style="padding:8px; text-align:right;">Teto Custo Insumos (R$)</th>
+                                                <th style="padding:8px; text-align:right;">Volume de Compra (kg)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="plestv3-cenarios-tbody">
+                                            <!-- Preenchido via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Comparativo de Metas Planejado × Realizado -->
+                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-code-compare" style="color:#2AD07A;"></i> Comparação Geral de Planejado × Realizado</span>
+                                <div style="overflow-x:auto;">
+                                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                        <thead>
+                                            <tr style="background:#162433; text-align:left; color:#fff;">
+                                                <th style="padding:8px;">Métrica</th>
+                                                <th style="padding:8px; text-align:right;">Planejado</th>
+                                                <th style="padding:8px; text-align:right;">Realizado</th>
+                                                <th style="padding:8px; text-align:right;">Diferença / Saldo</th>
+                                                <th style="padding:8px; text-align:center;">Atingimento (%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="plestv3-planejado-realizado-tbody">
+                                            <!-- Preenchido via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
 
-                        <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                            <div style="overflow-x:auto;">
-                                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                                    <thead>
-                                        <tr style="background:#162433; text-align:left; color:#fff;">
-                                            <th style="padding:10px 8px;">Mês Referência</th>
-                                            <th style="padding:10px 8px; text-align:right;">Meta Faturamento (R$)</th>
-                                            <th style="padding:10px 8px; text-align:center;">Margem Desejada</th>
-                                            <th style="padding:10px 8px; text-align:right;">Teto Custo Insumo (R$)</th>
-                                            <th style="padding:10px 8px; text-align:right;">Meta Compra (kg)</th>
-                                            <th style="padding:10px 8px; text-align:right;">Realizado Consolidado (kg)</th>
-                                            <th style="padding:10px 8px; text-align:center;">Atingimento</th>
-                                            <th style="padding:10px 8px; text-align:center;">Status</th>
-                                            <th style="padding:10px 8px; text-align:center;">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="plestv3-12meses-tbody">
-                                        <!-- Preenchido via JS -->
-                                    </tbody>
-                                </table>
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <!-- Recomendações Estratégicas de Foco e Margem -->
+                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:10px;"><i class="fa-solid fa-brain" style="color:#00e5ff;"></i> Insights de IA &amp; Recomendações V3</span>
+                                <div id="plestv3-ia-insights" style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px; font-size:0.82rem; line-height:1.4; color:#fff;">
+                                    Formulando conselho estratégico de carteira...
+                                </div>
+                            </div>
+
+                            <!-- Gráfico de Atingimento -->
+                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-chart-line" style="color:#ffb74d;"></i> Projeção de Cenários vs Realizado (kg)</span>
+                                <div style="height:170px; position:relative;">
+                                    <canvas id="plestv3-chart-cenarios"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- TELA 2: DETALHES DO MÊS SELECIONADO (V3) -->
-                    <div id="plestv3-view-detalhes-mes" style="display:none;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <button onclick="voltarPara12MesesEstrategicov3()" class="btn-secondary" style="font-size:0.8rem; padding:6px 12px; background:#1b382b; border-color:#2AD07A; color:#2AD07A;">
-                                    <i class="fa-solid fa-arrow-left"></i> Voltar aos 12 Meses
-                                </button>
-                                <div>
-                                    <h3 style="margin:0; color:#fff;" id="plestv3-txt-mes-ativo">Planejamento Estratégico V3 — Mês</h3>
-                                    <span style="font-size:0.8rem; color:#aaa;">Simulação baseada na Tabela de Preços e modalidade operacional selecionada.</span>
-                                </div>
-                            </div>
-                            <button class="btn-primary" onclick="abrirModalMetaEstrategicav3()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Configurar Meta do Mês</button>
-                        </div>
-
-                        <!-- Cards/Métricas Simplificados do Dashboard V3 -->
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:20px;">
-                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #00e5ff; background:#12212f;">
-                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Faturamento Projetado</span>
-                                <h3 id="estv3-kpi-fat-projetado" style="margin:4px 0 0 0; color:#00e5ff; font-size:1.2rem;">R$ 0,00</h3>
-                            </div>
-                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #2AD07A; background:#12212f;">
-                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">💵 Faturamento Real</span>
-                                <h3 id="estv3-kpi-fat-real" style="margin:4px 0 0 0; color:#2AD07A; font-size:1.2rem;">R$ 0,00</h3>
-                            </div>
-                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #ffb74d; background:#12212f;">
-                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛡️ Reserva para Compra (Teto)</span>
-                                <h3 id="estv3-kpi-reserva" style="margin:4px 0 0 0; color:#ffb74d; font-size:1.2rem;">R$ 0,00</h3>
-                            </div>
-                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #3e7cb1; background:#12212f;">
-                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📊 Margem Bruta Ponderada</span>
-                                <h3 id="estv3-kpi-margem-bruta" style="margin:4px 0 0 0; color:#3e7cb1; font-size:1.2rem;">0.0%</h3>
-                            </div>
-                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #e74c3c; background:#12212f;">
-                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛒 Meta de Compra (Volume)</span>
-                                <h3 id="estv3-kpi-meta-compra" style="margin:4px 0 0 0; color:#e74c3c; font-size:1.2rem;">0 kg</h3>
-                            </div>
-                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #9b59b6; background:#12212f;">
-                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🎯 Eficiência de Vendas</span>
-                                <h3 id="estv3-kpi-eficiencia" style="margin:4px 0 0 0; color:#9b59b6; font-size:1.2rem;">0.0%</h3>
-                            </div>
-                        </div>
-
-                        <!-- Bloco Principal de Avaliação por Produto e Cenários -->
-                        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:20px; align-items:start;">
-                            <div style="display:flex; flex-direction:column; gap:16px;">
-                                <!-- Seleção do Produto & Modalidade -->
-                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                                        <span style="font-weight:700; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-filter" style="color:#00e5ff;"></i> Avaliar Produto no Mês</span>
-                                        <div style="display:flex; gap:10px;">
-                                            <select id="plestv3-select-produto" onchange="onSelectProdutoEstrategicov3()" class="noble-input" style="max-width:240px; margin:0;"></select>
-                                        </div>
-                                    </div>
-                                    <div id="plestv3-produto-detalhes-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:12px;">
-                                        <!-- Preenchido via JS -->
-                                    </div>
-                                </div>
-
-                                <!-- Cenários do Produto (Conservador / Moderado / Agressivo) -->
-                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-layer-group" style="color:#9b59b6;"></i> Cenários de Projeção Comparados</span>
-                                    <div style="overflow-x:auto;">
-                                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                                            <thead>
-                                                <tr style="background:#162433; text-align:left; color:#fff;">
-                                                    <th style="padding:8px;">Cenário</th>
-                                                    <th style="padding:8px; text-align:right;">Meta Faturamento (R$)</th>
-                                                    <th style="padding:8px; text-align:center;">Margem Desejada</th>
-                                                    <th style="padding:8px; text-align:right;">Teto Custo Insumos (R$)</th>
-                                                    <th style="padding:8px; text-align:right;">Volume de Compra (kg)</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="plestv3-cenarios-tbody">
-                                                <!-- Preenchido via JS -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <!-- Comparativo de Metas Planejado × Realizado -->
-                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-code-compare" style="color:#2AD07A;"></i> Comparação Geral de Planejado × Realizado</span>
-                                    <div style="overflow-x:auto;">
-                                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                                            <thead>
-                                                <tr style="background:#162433; text-align:left; color:#fff;">
-                                                    <th style="padding:8px;">Métrica</th>
-                                                    <th style="padding:8px; text-align:right;">Planejado</th>
-                                                    <th style="padding:8px; text-align:right;">Realizado</th>
-                                                    <th style="padding:8px; text-align:right;">Diferença / Saldo</th>
-                                                    <th style="padding:8px; text-align:center;">Atingimento (%)</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="plestv3-planejado-realizado-tbody">
-                                                <!-- Preenchido via JS -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div style="display:flex; flex-direction:column; gap:16px;">
-                                <!-- Recomendações Estratégicas de Foco e Margem -->
-                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:10px;"><i class="fa-solid fa-brain" style="color:#00e5ff;"></i> Insights de IA &amp; Recomendações V3</span>
-                                    <div id="plestv3-ia-insights" style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px; font-size:0.82rem; line-height:1.4; color:#fff;">
-                                        Formulando conselho estratégico de carteira...
-                                    </div>
-                                </div>
-
-                                <!-- Gráfico de Atingimento -->
-                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-chart-line" style="color:#ffb74d;"></i> Projeção de Cenários vs Realizado (kg)</span>
-                                    <div style="height:170px; position:relative;">
-                                        <canvas id="plestv3-chart-cenarios"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tabela Planilha de Produtos Configurados no Mês -->
-                        <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                            <span style="font-weight:700; color:#fff; font-size:0.95rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-list" style="color:#3e7cb1;"></i> Planilha de Metas Consolidadas do Período</span>
-                            <div style="overflow-x:auto;">
-                                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                                    <thead>
-                                        <tr style="background:#162433; text-align:left; color:#fff;">
-                                            <th style="padding:8px;">Produto</th>
-                                            <th style="padding:8px; text-align:center;">Operação</th>
-                                            <th style="padding:8px; text-align:right;">Meta Faturamento</th>
-                                            <th style="padding:8px; text-align:center;">Margem Alvo</th>
-                                            <th style="padding:8px; text-align:right;">Teto de Custo</th>
-                                            <th style="padding:8px; text-align:right;">P. Insumo (Tabela)</th>
-                                            <th style="padding:8px; text-align:right;">Qtd a Comprar (Moderado)</th>
-                                            <th style="padding:8px; text-align:right;">Realizado Consolidado</th>
-                                            <th style="padding:8px; text-align:center;">Atingimento (%)</th>
-                                            <th style="padding:8px; text-align:center;">Status</th>
-                                            <th style="padding:8px; text-align:center;">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="plestv3-geral-table-body">
-                                        <!-- Preenchido via JS -->
-                                    </tbody>
-                                </table>
-                            </div>
+                    <!-- Tabela Planilha de Produtos Configurados no Mês -->
+                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                        <span style="font-weight:700; color:#fff; font-size:0.95rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-list" style="color:#3e7cb1;"></i> Planilha de Metas Consolidadas do Período</span>
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                <thead>
+                                    <tr style="background:#162433; text-align:left; color:#fff;">
+                                        <th style="padding:8px;">Produto</th>
+                                        <th style="padding:8px; text-align:center;">Operação</th>
+                                        <th style="padding:8px; text-align:right;">Meta Faturamento</th>
+                                        <th style="padding:8px; text-align:center;">Margem Alvo</th>
+                                        <th style="padding:8px; text-align:right;">Teto de Custo</th>
+                                        <th style="padding:8px; text-align:right;">P. Insumo (Tabela)</th>
+                                        <th style="padding:8px; text-align:right;">Qtd a Comprar (Moderado)</th>
+                                        <th style="padding:8px; text-align:right;">Realizado Consolidado</th>
+                                        <th style="padding:8px; text-align:center;">Atingimento (%)</th>
+                                        <th style="padding:8px; text-align:center;">Status</th>
+                                        <th style="padding:8px; text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plestv3-geral-table-body">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -3436,63 +3498,6 @@
                                 <button type="button" class="btn-secondary" onclick="fecharModalMetaEstrategicav3()" style="flex:1;">Cancelar</button>
                             </div>
                         </form>
-                    </div>
-                </div>
-
-                <!-- ════ GUI 4: PRODUÇÃO & PCP (TEMPOS OPERACIONAIS) ════ -->
-                <div id="pl-subview-producao" class="pl-subview" style="display:none;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <div>
-                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-stopwatch" style="color:#ffb74d;"></i> Ordens de Produção & PCP (Com Tempos Operacionais)</h3>
-                            <span style="font-size:0.8rem; color:#aaa;">Roteiro de etapas da fábrica, apontamento de tempo real vs. estimado e lead time por lote.</span>
-                        </div>
-                        <div style="display:flex; gap:10px;">
-                            <button class="btn-secondary" onclick="imprimirRelatorioOPsPdf()" style="background:#3b2d18; border-color:#ffb74d; color:#ffb74d; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> Imprimir OPs (PDF)</button>
-                            <button class="btn-primary" onclick="abrirModalOrdemProducao()"><i class="fa-solid fa-plus"></i> Nova Ordem de Produção (OP)</button>
-                        </div>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom:20px;">
-                        <div class="kpi-card" style="padding:15px; border-left:4px solid #ffb74d; background:#12212f;">
-                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">📋 OPs em Execução</span>
-                            <h2 id="pcp-kpi-ops" style="margin:5px 0 0 0; color:#fff; font-size:1.4rem;">0</h2>
-                            <small style="color:#7a9cb8; font-size:0.78rem;">Ordens ativas na fábrica</small>
-                        </div>
-                        <div class="kpi-card" style="padding:15px; border-left:4px solid #3e7cb1; background:#12212f;">
-                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⚖️ Volume em Processamento</span>
-                            <h2 id="pcp-kpi-volume" style="margin:5px 0 0 0; color:#3e7cb1; font-size:1.4rem;">0 kg</h2>
-                            <small style="color:#7a9cb8; font-size:0.78rem;">Matéria-prima em linha</small>
-                        </div>
-                        <div class="kpi-card" style="padding:15px; border-left:4px solid #2AD07A; background:#12212f;">
-                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏱️ Horas Estimadas Totais</span>
-                            <h2 id="pcp-kpi-tempo-est" style="margin:5px 0 0 0; color:#2AD07A; font-size:1.4rem;">0.0 h</h2>
-                            <small style="color:#7a9cb8; font-size:0.78rem;">Tempo previsto roteiro</small>
-                        </div>
-                        <div class="kpi-card" style="padding:15px; border-left:4px solid #9b59b6; background:#12212f;">
-                            <span style="font-size:0.8rem; color:#aaa; font-weight:600; text-transform:uppercase;">⏱️ Horas Reais Apontadas</span>
-                            <h2 id="pcp-kpi-tempo-real" style="margin:5px 0 0 0; color:#9b59b6; font-size:1.4rem;">0.0 h</h2>
-                            <small style="color:#7a9cb8; font-size:0.78rem;">Acumulado real fábrica</small>
-                        </div>
-                    </div>
-
-                    <div class="kpi-card" style="padding:20px; border-radius:8px;">
-                        <div style="overflow-x:auto;">
-                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                                <thead>
-                                    <tr style="background:#223547; text-align:left;">
-                                        <th style="padding:10px 8px;">Nº OP</th>
-                                        <th style="padding:10px 8px;">Material Entrada</th>
-                                        <th style="padding:10px 8px; text-align:right;">Peso Entrada</th>
-                                        <th style="padding:10px 8px;">Saída Prevista</th>
-                                        <th style="padding:10px 8px; text-align:center;">Cronograma</th>
-                                        <th style="padding:10px 8px; text-align:center;">Etapas & Tempos (Est vs Real)</th>
-                                        <th style="padding:10px 8px; text-align:center;">Status OP</th>
-                                        <th style="padding:10px 8px; text-align:center;">Ações PCP</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="pcp-table-body"></tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
             </section>

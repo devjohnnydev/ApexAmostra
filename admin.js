@@ -193,6 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (item.dataset.target === 'pedidos-venda-view' && window.initApexPedidos) {
                     window.initApexPedidos();
                 }
+                if (item.dataset.target === 'planejamento-estrategicov3-view' && window.carregarPlanejamentoEstrategicov3) {
+                    window.carregarPlanejamentoEstrategicov3();
+                }
                 setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
             }
         });
