@@ -16326,4 +16326,14 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
+    function formatarMesAnoLabel(mesStr) {
+        if (!mesStr) return '';
+        const parts = mesStr.split('-');
+        if (parts.length !== 2) return mesStr;
+        const ano = parts[0];
+        const mesIdx = parseInt(parts[1], 10);
+        const nomes = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return (nomes[mesIdx] || '') + ' / ' + ano;
+    }
+
 })();
