@@ -2349,6 +2349,9 @@
                     <button type="button" class="btn-subtab" id="tab-btn-pl-estrategico" onclick="alternarSubAbaPlanejamento('estrategico')" style="background:#101a24; color:#aaa; border:1px solid #1e4e8c; border-bottom:none; padding:9px 15px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:700; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
                         <i class="fa-solid fa-compass" style="color:#00e5ff;"></i> 7. Planejamento Estratégico
                     </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-pl-estrategicov3" onclick="alternarSubAbaPlanejamento('estrategicov3')" style="background:#101a24; color:#aaa; border:1px solid #00e5ff; border-bottom:none; padding:9px 15px; border-radius:6px 6px 0 0; cursor:pointer; font-weight:700; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i> 8. Planejamento Estratégico V3
+                    </button>
                 </div>
 
                 <!-- ════ GUI 1: PLANEJAMENTO DE PRODUÇÃO & INSUMOS ════ -->
@@ -3177,6 +3180,260 @@
                             <div style="display:flex; gap:10px;">
                                 <button type="submit" class="btn-primary" style="flex:1; background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-save"></i> Salvar Meta</button>
                                 <button type="button" class="btn-secondary" onclick="fecharModalMetaEstrategica()" style="flex:1;">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                </div>
+
+                <!-- ════ GUI 8: PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ════ -->
+                <div id="pl-subview-estrategicov3" class="pl-subview" style="display:none;">
+                    
+                    <!-- TELA 1: VISÃO DE 12 MESES CONSOLIDADA (V3) -->
+                    <div id="plestv3-view-12meses">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i> Planejamento Estratégico V3 — 12 Meses</h3>
+                                <span style="font-size:0.8rem; color:#aaa;">Modelo de metas baseado em Meta de Faturamento ➔ Teto de Custo ➔ Quantidade de Insumos.</span>
+                            </div>
+                            <button class="btn-primary" onclick="abrirModalMetaEstrategicav3()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Configurar Meta do Mês</button>
+                        </div>
+
+                        <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                    <thead>
+                                        <tr style="background:#162433; text-align:left; color:#fff;">
+                                            <th style="padding:10px 8px;">Mês Referência</th>
+                                            <th style="padding:10px 8px; text-align:right;">Meta Faturamento (R$)</th>
+                                            <th style="padding:10px 8px; text-align:center;">Margem Desejada</th>
+                                            <th style="padding:10px 8px; text-align:right;">Teto Custo Insumo (R$)</th>
+                                            <th style="padding:10px 8px; text-align:right;">Meta Compra (kg)</th>
+                                            <th style="padding:10px 8px; text-align:right;">Realizado Consolidado (kg)</th>
+                                            <th style="padding:10px 8px; text-align:center;">Atingimento</th>
+                                            <th style="padding:10px 8px; text-align:center;">Status</th>
+                                            <th style="padding:10px 8px; text-align:center;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plestv3-12meses-tbody">
+                                        <!-- Preenchido via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TELA 2: DETALHES DO MÊS SELECIONADO (V3) -->
+                    <div id="plestv3-view-detalhes-mes" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <button onclick="voltarPara12MesesEstrategicov3()" class="btn-secondary" style="font-size:0.8rem; padding:6px 12px; background:#1b382b; border-color:#2AD07A; color:#2AD07A;">
+                                    <i class="fa-solid fa-arrow-left"></i> Voltar aos 12 Meses
+                                </button>
+                                <div>
+                                    <h3 style="margin:0; color:#fff;" id="plestv3-txt-mes-ativo">Planejamento Estratégico V3 — Mês</h3>
+                                    <span style="font-size:0.8rem; color:#aaa;">Simulação baseada na Tabela de Preços e modalidade operacional selecionada.</span>
+                                </div>
+                            </div>
+                            <button class="btn-primary" onclick="abrirModalMetaEstrategicav3()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Configurar Meta do Mês</button>
+                        </div>
+
+                        <!-- Cards/Métricas Simplificados do Dashboard V3 -->
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:20px;">
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #00e5ff; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📈 Faturamento Projetado</span>
+                                <h3 id="estv3-kpi-fat-projetado" style="margin:4px 0 0 0; color:#00e5ff; font-size:1.2rem;">R$ 0,00</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #2AD07A; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">💵 Faturamento Real</span>
+                                <h3 id="estv3-kpi-fat-real" style="margin:4px 0 0 0; color:#2AD07A; font-size:1.2rem;">R$ 0,00</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #ffb74d; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛡️ Reserva para Compra (Teto)</span>
+                                <h3 id="estv3-kpi-reserva" style="margin:4px 0 0 0; color:#ffb74d; font-size:1.2rem;">R$ 0,00</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #3e7cb1; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">📊 Margem Bruta Ponderada</span>
+                                <h3 id="estv3-kpi-margem-bruta" style="margin:4px 0 0 0; color:#3e7cb1; font-size:1.2rem;">0.0%</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #e74c3c; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🛒 Meta de Compra (Volume)</span>
+                                <h3 id="estv3-kpi-meta-compra" style="margin:4px 0 0 0; color:#e74c3c; font-size:1.2rem;">0 kg</h3>
+                            </div>
+                            <div class="kpi-card" style="padding:12px 16px; border-left:4px solid #9b59b6; background:#12212f;">
+                                <span style="font-size:0.75rem; color:#aaa; font-weight:600; text-transform:uppercase;">🎯 Eficiência de Vendas</span>
+                                <h3 id="estv3-kpi-eficiencia" style="margin:4px 0 0 0; color:#9b59b6; font-size:1.2rem;">0.0%</h3>
+                            </div>
+                        </div>
+
+                        <!-- Bloco Principal de Avaliação por Produto e Cenários -->
+                        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:20px; align-items:start;">
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <!-- Seleção do Produto & Modalidade -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                        <span style="font-weight:700; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-filter" style="color:#00e5ff;"></i> Avaliar Produto no Mês</span>
+                                        <div style="display:flex; gap:10px;">
+                                            <select id="plestv3-select-produto" onchange="onSelectProdutoEstrategicov3()" class="noble-input" style="max-width:240px; margin:0;"></select>
+                                        </div>
+                                    </div>
+                                    <div id="plestv3-produto-detalhes-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:12px;">
+                                        <!-- Preenchido via JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Cenários do Produto (Conservador / Moderado / Agressivo) -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-layer-group" style="color:#9b59b6;"></i> Cenários de Projeção Comparados</span>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                            <thead>
+                                                <tr style="background:#162433; text-align:left; color:#fff;">
+                                                    <th style="padding:8px;">Cenário</th>
+                                                    <th style="padding:8px; text-align:right;">Meta Faturamento (R$)</th>
+                                                    <th style="padding:8px; text-align:center;">Margem Desejada</th>
+                                                    <th style="padding:8px; text-align:right;">Teto Custo Insumos (R$)</th>
+                                                    <th style="padding:8px; text-align:right;">Volume de Compra (kg)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="plestv3-cenarios-tbody">
+                                                <!-- Preenchido via JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Comparativo de Metas Planejado × Realizado -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-code-compare" style="color:#2AD07A;"></i> Comparação Geral de Planejado × Realizado</span>
+                                    <div style="overflow-x:auto;">
+                                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                            <thead>
+                                                <tr style="background:#162433; text-align:left; color:#fff;">
+                                                    <th style="padding:8px;">Métrica</th>
+                                                    <th style="padding:8px; text-align:right;">Planejado</th>
+                                                    <th style="padding:8px; text-align:right;">Realizado</th>
+                                                    <th style="padding:8px; text-align:right;">Diferença / Saldo</th>
+                                                    <th style="padding:8px; text-align:center;">Atingimento (%)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="plestv3-planejado-realizado-tbody">
+                                                <!-- Preenchido via JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <!-- Recomendações Estratégicas de Foco e Margem -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:10px;"><i class="fa-solid fa-brain" style="color:#00e5ff;"></i> Insights de IA &amp; Recomendações V3</span>
+                                    <div id="plestv3-ia-insights" style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px; font-size:0.82rem; line-height:1.4; color:#fff;">
+                                        Formulando conselho estratégico de carteira...
+                                    </div>
+                                </div>
+
+                                <!-- Gráfico de Atingimento -->
+                                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                                    <span style="font-weight:700; color:#fff; font-size:0.9rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-chart-line" style="color:#ffb74d;"></i> Projeção de Cenários vs Realizado (kg)</span>
+                                    <div style="height:170px; position:relative;">
+                                        <canvas id="plestv3-chart-cenarios"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabela Planilha de Produtos Configurados no Mês -->
+                        <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                            <span style="font-weight:700; color:#fff; font-size:0.95rem; display:block; margin-bottom:12px;"><i class="fa-solid fa-list" style="color:#3e7cb1;"></i> Planilha de Metas Consolidadas do Período</span>
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                                    <thead>
+                                        <tr style="background:#162433; text-align:left; color:#fff;">
+                                            <th style="padding:8px;">Produto</th>
+                                            <th style="padding:8px; text-align:center;">Operação</th>
+                                            <th style="padding:8px; text-align:right;">Meta Faturamento</th>
+                                            <th style="padding:8px; text-align:center;">Margem Alvo</th>
+                                            <th style="padding:8px; text-align:right;">Teto de Custo</th>
+                                            <th style="padding:8px; text-align:right;">P. Insumo (Tabela)</th>
+                                            <th style="padding:8px; text-align:right;">Qtd a Comprar (Moderado)</th>
+                                            <th style="padding:8px; text-align:right;">Realizado Consolidado</th>
+                                            <th style="padding:8px; text-align:center;">Atingimento (%)</th>
+                                            <th style="padding:8px; text-align:center;">Status</th>
+                                            <th style="padding:8px; text-align:center;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plestv3-geral-table-body">
+                                        <!-- Preenchido via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal para Lançar/Alterar Meta Estratégica V3 -->
+                <div id="modal-meta-estrategicav3" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:9999999; padding:20px; box-sizing:border-box;">
+                    <div style="width:500px; max-width:95vw; background:#101a24; border:1px solid #00e5ff; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+                        <div style="position:relative; display:flex; align-items:center; justify-content:center; padding:16px; border-bottom:1px solid #1a2e3f; background:#0c1926;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff; font-size:1.15rem;"></i>
+                                <h3 style="margin:0; color:#fff; font-size:1rem; font-weight:700;">Planejamento Estratégico V3</h3>
+                            </div>
+                            <button type="button" onclick="fecharModalMetaEstrategicav3()" title="Fechar"
+                                style="position:absolute; right:16px; top:50%; transform:translateY(-50%); background:transparent; border:1px solid #2a3f50; color:#8eaabf; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <form id="form-meta-estrategicav3" onsubmit="salvarMetaEstrategicav3Form(event)" style="padding:20px;">
+                            <div class="form-group" style="margin-bottom:12px;">
+                                <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Produto *</label>
+                                <select id="metaestv3-material-id" class="noble-input" required onchange="onSelectModalMaterialv3()"></select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:12px;">
+                                <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Mês de Referência *</label>
+                                <input type="month" id="metaestv3-mes" class="noble-input" required>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                                <div class="form-group">
+                                    <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Meta de Faturamento (R$) *</label>
+                                    <input type="number" step="0.01" min="0" id="metaestv3-meta-faturamento" class="noble-input" required placeholder="Ex: 5000000.00" oninput="calcularInsumoModalv3()">
+                                </div>
+                                <div class="form-group">
+                                    <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Margem Desejada (%) *</label>
+                                    <input type="number" step="0.1" min="0" max="100" id="metaestv3-margem-desejada" class="noble-input" required placeholder="Ex: 40.0" oninput="calcularInsumoModalv3()">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom:12px;">
+                                <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Modalidade Operacional *</label>
+                                <select id="metaestv3-operacao" class="noble-input" required onchange="calcularInsumoModalv3()">
+                                    <option value="entrega">Entrega (Preço Entregar)</option>
+                                    <option value="retirada">Retirada (Preço Coletar)</option>
+                                </select>
+                            </div>
+                            <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:8px; padding:10px; margin-bottom:12px;">
+                                <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:4px; font-weight:600; text-transform:uppercase;">Valores da Tabela de Preços &amp; Simulação</div>
+                                <div style="display:flex; flex-direction:column; gap:4px; font-size:0.8rem; color:#fff;">
+                                    <div>Preço Insumo Unitário: <span id="metaestv3-lbl-preco-insumo" style="font-weight:bold; color:#ffb74d;">R$ 0,00</span></div>
+                                    <div>Teto Máximo Custo Insumo: <span id="metaestv3-lbl-teto-custo" style="font-weight:bold; color:#2AD07A;">R$ 0,00</span></div>
+                                    <div>Qtd a Comprar Calculada: <span id="metaestv3-lbl-qtd-calculada" style="font-weight:bold; color:#00e5ff;">0 kg</span></div>
+                                </div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                                <div class="form-group">
+                                    <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Realizado Consolidado (kg) <span style="color:#aaa; font-size:0.7rem;">(Lançamento do Time)</span></label>
+                                    <input type="number" step="0.001" min="0" id="metaestv3-qtd-realizado" class="noble-input" placeholder="Ex: 3233">
+                                </div>
+                                <div class="form-group">
+                                    <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Realizado Faturamento (R$) <span style="color:#aaa; font-size:0.7rem;">(Opcional)</span></label>
+                                    <input type="number" step="0.01" min="0" id="metaestv3-valor-venda-realizado" class="noble-input" placeholder="Ex: 150000.00">
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <button type="submit" class="btn-primary" style="flex:1; background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-save"></i> Salvar Planejamento</button>
+                                <button type="button" class="btn-secondary" onclick="fecharModalMetaEstrategicav3()" style="flex:1;">Cancelar</button>
                             </div>
                         </form>
                     </div>
