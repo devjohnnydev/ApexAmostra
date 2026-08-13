@@ -15853,19 +15853,19 @@ window.carregarFinanceiroView = async function() {
 
         tbody.innerHTML = `
             <tr style="background:#101a24; color:#fff;">
-                <td style="padding:10px; font-weight:bold; color:#00e5ff;">R$ ${(parseFloat(tp.preco_entregar) || 0).toFixed(2)}</td>
-                <td style="padding:10px; font-weight:bold; color:#ffb74d;">R$ ${(parseFloat(tp.preco_coletar) || 0).toFixed(2)}</td>
-                <td style="padding:10px; font-weight:bold; color:#ffeb3b;">R$ ${(parseFloat(tp.preco_venda || tp.venda_ref || 0)).toFixed(2)}</td>
-                <td style="padding:10px; text-align:right; color:#ccc;">${comissao.toFixed(2)}%</td>
-                <td style="padding:10px; text-align:right; color:#ccc;">${pisCofins.toFixed(2)}%</td>
-                <td style="padding:10px; text-align:right; color:#ccc;">${fidc.toFixed(2)}%</td>
-                <td style="padding:10px; text-align:right; color:#ccc;">${icms.toFixed(2)}%</td>
-                <td style="padding:10px; text-align:right; color:#ccc;">R$ ${freteColeta.toFixed(2)}</td>
-                <td style="padding:10px; font-weight:bold; color:#4fc3f7;">R$ ${vendaLiquida.toFixed(2)}</td>
-                <td style="padding:10px; color:${lucroEnt >= 0 ? '#2AD07A' : '#ff4d4d'};">R$ ${lucroEnt.toFixed(2)}</td>
-                <td style="padding:10px; font-weight:bold; color:${margemEnt >= 0 ? '#2AD07A' : '#ff4d4d'};">${margemEnt.toFixed(1)}%</td>
-                <td style="padding:10px; color:${lucroCol >= 0 ? '#3e7cb1' : '#ff4d4d'};">R$ ${lucroCol.toFixed(2)}</td>
-                <td style="padding:10px; font-weight:bold; color:${margemCol >= 0 ? '#3e7cb1' : '#ff4d4d'};">${margemCol.toFixed(1)}%</td>
+                <td style="padding:10px; font-weight:bold; color:#00e5ff;">R$ ${window.fmtBRL(tp.preco_entregar)}</td>
+                <td style="padding:10px; font-weight:bold; color:#ffb74d;">R$ ${window.fmtBRL(tp.preco_coletar)}</td>
+                <td style="padding:10px; font-weight:bold; color:#ffeb3b;">R$ ${window.fmtBRL(tp.preco_venda || tp.venda_ref)}</td>
+                <td style="padding:10px; text-align:right; color:#ccc;">${window.fmtBRL(comissao)}%</td>
+                <td style="padding:10px; text-align:right; color:#ccc;">${window.fmtBRL(pisCofins)}%</td>
+                <td style="padding:10px; text-align:right; color:#ccc;">${window.fmtBRL(fidc)}%</td>
+                <td style="padding:10px; text-align:right; color:#ccc;">${window.fmtBRL(icms)}%</td>
+                <td style="padding:10px; text-align:right; color:#ccc;">R$ ${window.fmtBRL(freteColeta)}</td>
+                <td style="padding:10px; font-weight:bold; color:#4fc3f7;">R$ ${window.fmtBRL(vendaLiquida)}</td>
+                <td style="padding:10px; color:${lucroEnt >= 0 ? '#2AD07A' : '#ff4d4d'};">R$ ${window.fmtBRL(lucroEnt)}</td>
+                <td style="padding:10px; font-weight:bold; color:${margemEnt >= 0 ? '#2AD07A' : '#ff4d4d'};">${(margemEnt).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%</td>
+                <td style="padding:10px; color:${lucroCol >= 0 ? '#3e7cb1' : '#ff4d4d'};">R$ ${window.fmtBRL(lucroCol)}</td>
+                <td style="padding:10px; font-weight:bold; color:${margemCol >= 0 ? '#3e7cb1' : '#ff4d4d'};">${(margemCol).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%</td>
                 <td style="padding:10px; font-weight:bold;">${tp.material_ncm || '-'}</td>
             </tr>
         `;
@@ -15966,8 +15966,8 @@ window.carregarFinanceiroView = async function() {
         rankingTbody.innerHTML = listPrecosSorted.slice(0, 10).map((x, idx) => `
             <tr style="border-bottom:1px solid #1a2e3f;">
                 <td style="padding:6px 4px; color:#fff;"><strong>#${idx+1}</strong> ${x.nome}</td>
-                <td style="padding:6px 4px; text-align:right; color:#2AD07A; font-weight:bold;">${x.margemEnt.toFixed(1)}%</td>
-                <td style="padding:6px 4px; text-align:right; color:#3e7cb1; font-weight:bold;">${x.margemCol.toFixed(1)}%</td>
+                <td style="padding:6px 4px; text-align:right; color:#2AD07A; font-weight:bold;">${x.margemEnt.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
+                <td style="padding:6px 4px; text-align:right; color:#3e7cb1; font-weight:bold;">${x.margemCol.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
             </tr>
         `).join('');
 
@@ -16004,7 +16004,7 @@ window.carregarFinanceiroView = async function() {
                         <input type="number" class="noble-input" value="${mixItem.fracaoPct}" style="width:70px; text-align:center; padding:3px; font-size:0.75rem; margin:0;" oninput="window.onChangeFracaoSimulacaoV3(${mixItem.material_id}, this.value)">
                     </td>
                     <td style="padding:6px 4px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${faturamentoAlvoProduto.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                    <td style="padding:6px 4px; text-align:right; color:#ccc;">R$ ${pRef.toFixed(2)}</td>
+                    <td style="padding:6px 4px; text-align:right; color:#ccc;">R$ ${window.fmtBRL(pRef)}</td>
                     <td style="padding:6px 4px; text-align:right; font-weight:bold; color:#2AD07A;" id="plestv3-mix-kg-${mixItem.material_id}">
                         ${volumeKg.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg
                     </td>
@@ -16030,7 +16030,7 @@ window.carregarFinanceiroView = async function() {
         const lblPct = document.getElementById('plestv3-mix-total-pct');
         const lblKg = document.getElementById('plestv3-mix-total-kg');
         if (lblPct) {
-            lblPct.textContent = `${totalPctAlocado.toFixed(1)}%`;
+            lblPct.textContent = `${totalPctAlocado.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
             lblPct.style.color = Math.abs(totalPctAlocado - 100) < 0.1 ? '#2AD07A' : '#ff4d4d';
         }
         if (lblKg) {
@@ -16135,11 +16135,11 @@ window.carregarFinanceiroView = async function() {
             tr.innerHTML = `
                 <td style="padding:10px 8px;"><strong>${formatarMesAnoLabel(mesKey)}</strong></td>
                 <td style="padding:10px 8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${totalFaturamentoMeta.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:#3e7cb1;">${margemMedia.toFixed(1)}%</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:#3e7cb1;">${margemMedia.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
                 <td style="padding:10px 8px; text-align:right; color:#ffb74d;">R$ ${totalTetoCusto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                 <td style="padding:10px 8px; text-align:right;">${totalMetaCompra.toLocaleString('pt-BR', {minimumFractionDigits: 1})} kg</td>
                 <td style="padding:10px 8px; text-align:right; color:#fff;">${totalRealizado.toLocaleString('pt-BR', {minimumFractionDigits: 1})} kg</td>
-                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct.toFixed(1)}%</td>
+                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${statusCor};">${statusStr}</td>
                 <td style="padding:10px 8px; text-align:center;">
                     <button onclick="detalharMesEstrategicov3('${mesKey}')" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826; font-weight:bold;">
@@ -16223,12 +16223,12 @@ window.carregarFinanceiroView = async function() {
                         </td>
                         <td style="padding:8px; text-align:center; text-transform:capitalize; color:#aaa;">${op}</td>
                         <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${mFat.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-                        <td style="padding:8px; text-align:center; font-weight:bold; color:#3e7cb1;">${mMargem.toFixed(1)}%</td>
+                        <td style="padding:8px; text-align:center; font-weight:bold; color:#3e7cb1;">${mMargem.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}%</td>
                         <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${tetoCusto.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-                        <td style="padding:8px; text-align:right; color:#aaa;">R$ ${pInsumo.toFixed(2)}</td>
+                        <td style="padding:8px; text-align:right; color:#aaa;">R$ ${window.fmtBRL(pInsumo)}</td>
                         <td style="padding:8px; text-align:right; font-weight:bold;">${qPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</td>
                         <td style="padding:8px; text-align:right; color:#fff;">${qReal.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</td>
-                        <td style="padding:8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct.toFixed(1)}%</td>
+                        <td style="padding:8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}%</td>
                         <td style="padding:8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct >= 100 ? 'CONCLUÍDO' : 'PENDENTE'}</td>
                         <td style="padding:8px; text-align:center;">
                             <button onclick="editarMetaEstrategicav3Rapido(${tp.material_id}, '${mes}', ${mFat}, ${mMargem}, '${op}', ${qReal}, ${valVendaReal})" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826;" title="Editar"><i class="fa-solid fa-edit"></i></button>
@@ -16254,9 +16254,9 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('estv3-kpi-fat-projetado').textContent = 'R$ ' + totalFaturamentoProjetado.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('estv3-kpi-fat-real').textContent = 'R$ ' + totalFaturamentoReal.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('estv3-kpi-reserva').textContent = 'R$ ' + totalReservaCompra.toLocaleString('pt-BR', {minimumFractionDigits:2});
-        document.getElementById('estv3-kpi-margem-bruta').textContent = margemBrutaPonderada.toFixed(1) + '%';
+        document.getElementById('estv3-kpi-margem-bruta').textContent = margemBrutaPonderada.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
         document.getElementById('estv3-kpi-meta-compra').textContent = totalMetaCompra.toLocaleString('pt-BR', {minimumFractionDigits:1}) + ' kg';
-        document.getElementById('estv3-kpi-eficiencia').textContent = eficienciaVendas.toFixed(1) + '%';
+        document.getElementById('estv3-kpi-eficiencia').textContent = eficienciaVendas.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
 
         // Detalhes do produto reativo ativo
         renderDetalhesProdutoSelecionadov3(targetMatId, mes);
@@ -16303,7 +16303,7 @@ window.carregarFinanceiroView = async function() {
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
                 <small style="color:#aaa; font-size:0.75rem;">Preço Insumo</small>
-                <div style="font-weight:bold; color:#ffb74d; margin-top:2px;">R$ ${pInsumo.toFixed(2)}</div>
+                <div style="font-weight:bold; color:#ffb74d; margin-top:2px;">R$ ${window.fmtBRL(pInsumo)}</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
                 <small style="color:#aaa; font-size:0.75rem;">Faturamento Alvo</small>
@@ -16324,7 +16324,7 @@ window.carregarFinanceiroView = async function() {
                 <tr>
                     <td style="padding:8px; font-weight:bold; color:${cor};">${nome} (${pct}%)</td>
                     <td style="padding:8px; text-align:right; color:#fff;">R$ ${fat.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-                    <td style="padding:8px; text-align:center; color:#3e7cb1;">${margemDesejadaVal.toFixed(1)}%</td>
+                    <td style="padding:8px; text-align:center; color:#3e7cb1;">${margemDesejadaVal.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
                     <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${custo.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
                     <td style="padding:8px; text-align:right; font-weight:bold; color:#fff;">${volume.toLocaleString('pt-BR',{maximumFractionDigits:1})} kg</td>
                 </tr>
@@ -16354,7 +16354,7 @@ window.carregarFinanceiroView = async function() {
                     <td style="padding:8px; text-align:right; color:#aaa;">${fmt(planVal)}</td>
                     <td style="padding:8px; text-align:right; font-weight:bold; color:#fff;">${fmt(realVal)}</td>
                     <td style="padding:8px; text-align:right; color:${diff <= 0 ? '#2AD07A' : '#ff4d4d'};">${diff <= 0 ? 'Meta Atingida' : fmt(diff) + ' restante'}</td>
-                    <td style="padding:8px; text-align:center; font-weight:bold; color:${pct >= 100 ? '#2AD07A' : (pct >= 80 ? '#ffb74d' : '#ff4d4d')};">${pct.toFixed(1)}%</td>
+                    <td style="padding:8px; text-align:center; font-weight:bold; color:${pct >= 100 ? '#2AD07A' : (pct >= 80 ? '#ffb74d' : '#ff4d4d')};">${pct.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
                 </tr>
             `;
         };
