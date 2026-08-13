@@ -95,7 +95,8 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
 /* ─── LAYOUT ───────────────────────────────────────────────────────────────── */
 .admin-container {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* ─── SIDEBAR ──────────────────────────────────────────────────────────────── */
@@ -106,8 +107,7 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
     border-right: 1px solid var(--borda);
     display: flex;
     flex-direction: column;
-    position: sticky;
-    top: 0;
+    flex-shrink: 0;
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -240,6 +240,7 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
     overflow-y: auto;
     overflow-x: hidden;
     min-width: 0;
+    height: 100vh;
     transition: padding 0.3s ease;
 }
 

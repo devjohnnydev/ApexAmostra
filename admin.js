@@ -178,6 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 target.classList.add('active');
                 target.style.display = 'block';
+                // Sempre volta ao topo ao trocar de seção
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) mainContent.scrollTop = 0;
                 if (item.dataset.target === 'permissoes-view' && window.carregarPermissoesView) {
                     window.carregarPermissoesView();
                 }
