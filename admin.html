@@ -3253,6 +3253,124 @@
                     <p>Modelo de metas baseado em Meta de Faturamento comercial ➔ Teto de custo de aquisição ➔ Explosão de Insumos.</p>
                 </header>
 
+                <!-- CONSULTA RÁPIDA DE PREÇOS & TAXAS -->
+                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px; margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-tags" style="color:#00e5ff;"></i> Consulta Rápida de Preços &amp; Impostos</h3>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label style="color:#aaa; font-size:0.85rem;">Selecionar Material:</label>
+                            <select id="plestv3-consulta-material" onchange="window.onChangeConsultaMaterialV3()" class="noble-input" style="width:280px; margin:0;"></select>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+                            <thead>
+                                <tr style="background:#162433; text-align:left; color:#fff;">
+                                    <th style="padding:8px;">P. Entregar (R$/kg)</th>
+                                    <th style="padding:8px;">P. Coletar (R$/kg)</th>
+                                    <th style="padding:8px;">Venda Ref (R$/kg)</th>
+                                    <th style="padding:8px;">Comissão (%)</th>
+                                    <th style="padding:8px;">PIS/COFINS (%)</th>
+                                    <th style="padding:8px;">FIDC (%)</th>
+                                    <th style="padding:8px;">ICMS (%)</th>
+                                    <th style="padding:8px;">Frete Coleta (R$/kg)</th>
+                                    <th style="padding:8px;">Venda Líq. (R$/kg)</th>
+                                    <th style="padding:8px;">Lucro Ent. (R$/kg)</th>
+                                    <th style="padding:8px;">Margem Ent (%)</th>
+                                    <th style="padding:8px;">Lucro Col. (R$/kg)</th>
+                                    <th style="padding:8px;">Margem Col (%)</th>
+                                    <th style="padding:8px;">NCM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="plestv3-consulta-tbody">
+                                <tr id="plestv3-consulta-row" style="background:#101a24; color:#fff;">
+                                    <td colspan="14" style="text-align:center; padding:12px; color:#aaa;">Selecione um material no seletor acima para ver as taxas e margens.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SIMULADOR DE ESTRATÉGIA DE CRESCIMENTO & METAS -->
+                <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px; margin-bottom:20px;">
+                    <h3 style="margin:0 0 12px 0; color:#fff;"><i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Estratégia de Crescimento &amp; Simulação de Metas</h3>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-bottom:16px;">
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Tempo Estipulado (Período)</label>
+                            <select id="plestv3-sim-tempo" class="noble-input" onchange="window.recalcularSimulacaoV3()">
+                                <option value="1">1 Mês</option>
+                                <option value="3">3 Meses</option>
+                                <option value="6">6 Meses</option>
+                                <option value="12">12 Meses</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Frente de Ataque (Estratégia)</label>
+                            <select id="plestv3-sim-frente" class="noble-input" onchange="window.recalcularSimulacaoV3()">
+                                <option value="venda">Venda do Produto (Foco no Faturamento de Saída)</option>
+                                <option value="compra">Compra do Produto (Foco no Custo de Aquisição)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Meta de Faturamento (R$)</label>
+                            <input type="number" id="plestv3-sim-meta-faturamento" class="noble-input" value="1000000" min="0" step="10000" oninput="window.recalcularSimulacaoV3()">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:16px; align-items:start;">
+                        <!-- Melhores Produtos (Ranking por Margem) -->
+                        <div style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px;">
+                            <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.85rem;"><i class="fa-solid fa-trophy" style="color:#ffb74d;"></i> Ranking de Melhores Margens</h4>
+                            <div style="max-height:220px; overflow-y:auto;">
+                                <table style="width:100%; border-collapse:collapse; font-size:0.75rem;">
+                                    <thead>
+                                        <tr style="color:#aaa; border-bottom:1px solid #223547; text-align:left;">
+                                            <th style="padding:4px;">Material</th>
+                                            <th style="padding:4px; text-align:right;">Margem Ent.</th>
+                                            <th style="padding:4px; text-align:right;">Margem Col.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plestv3-ranking-tbody">
+                                        <!-- Preenchido via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Configuração de Mix e Cálculo de kg de Compra -->
+                        <div style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <h4 style="margin:0; color:#fff; font-size:0.85rem;"><i class="fa-solid fa-list-check" style="color:#00e5ff;"></i> Mix de Produtos &amp; Simulação (Explosão de Volume)</h4>
+                                <button type="button" class="btn-primary" onclick="window.adicionarMaterialSimulacaoV3()" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826;">
+                                    <i class="fa-solid fa-plus"></i> Adicionar ao Mix
+                                </button>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table style="width:100%; border-collapse:collapse; font-size:0.78rem; text-align:left;">
+                                    <thead>
+                                        <tr style="color:#aaa; border-bottom:1px solid #223547;">
+                                            <th style="padding:6px 4px;">Material</th>
+                                            <th style="padding:6px 4px; text-align:center; width:90px;">Fração Faturamento (%)</th>
+                                            <th style="padding:6px 4px; text-align:right;">Faturamento Alvo</th>
+                                            <th style="padding:6px 4px; text-align:right;">Preço Ref (R$/kg)</th>
+                                            <th style="padding:6px 4px; text-align:right;">Volume Necessário</th>
+                                            <th style="padding:6px 4px; width:40px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plestv3-mix-tbody">
+                                        <!-- Preenchido via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="plestv3-mix-total-container" style="display:flex; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid #223547; font-weight:bold; font-size:0.82rem; color:#fff;">
+                                <span>Total Alocado: <span id="plestv3-mix-total-pct" style="color:#00e5ff;">0%</span></span>
+                                <span>Volume Total: <span id="plestv3-mix-total-kg" style="color:#2AD07A;">0.0 kg</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- TELA 1: VISÃO DE 12 MESES CONSOLIDADA (V3) -->
                 <div id="plestv3-view-12meses">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
@@ -3260,7 +3378,6 @@
                             <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Projeção de 12 Meses Consolidados</h3>
                             <span style="font-size:0.8rem; color:#aaa;">Ciclo anual de metas faturamento vs realizado.</span>
                         </div>
-                        <button class="btn-primary" onclick="abrirModalMetaEstrategicav3()" style="background:#00e5ff; color:#0d1826; font-weight:bold;"><i class="fa-solid fa-plus"></i> Configurar Meta do Mês</button>
                     </div>
 
                     <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
