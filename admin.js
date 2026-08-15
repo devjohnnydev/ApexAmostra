@@ -8629,76 +8629,86 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function renderChartDashPlComparativo(produtosMap) {
-        const ctx = document.getElementById('chart-dash-pl-comparativo');
-        if (!ctx) return;
+        try {
+            const ctx = document.getElementById('chart-dash-pl-comparativo');
+            if (!ctx) return;
 
-        if (chartDashPlComparativo) {
-            chartDashPlComparativo.destroy();
-        }
+            if (chartDashPlComparativo) {
+                chartDashPlComparativo.destroy();
+            }
 
-        const labels = [];
-        const dataAlvo = [];
-        const dataReal = [];
+            const labels = [];
+            const dataAlvo = [];
+            const dataReal = [];
 
-        produtosMap.forEach((val) => {
-            labels.push(val.nome);
-            dataAlvo.push(val.alvo);
-            dataReal.push(val.real);
-        });
+            produtosMap.forEach((val) => {
+                labels.push(val.nome);
+                dataAlvo.push(val.alvo);
+                dataReal.push(val.real);
+            });
 
-        chartDashPlComparativo = new Chart(ctx, {
-            type: 'bar',
-            plugins: [ChartDataLabels],
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Planejado (Alvo)',
-                        data: dataAlvo,
-                        backgroundColor: 'rgba(42, 208, 122, 0.7)',
-                        borderColor: '#2AD07A',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Realizado',
-                        data: dataReal,
-                        backgroundColor: 'rgba(62, 124, 177, 0.7)',
-                        borderColor: '#3e7cb1',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#8eaabf' },
-                        grid: { color: '#1a2e3f' },
-                        // Dá uma margem no topo para caber os labels
-                        suggestedMax: (dataAlvo.length > 0 ? Math.max(...dataAlvo, ...dataReal) : 100) * 1.15
-                    },
-                    x: {
-                        ticks: { color: '#8eaabf' },
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: { labels: { color: '#fff' } },
-                    datalabels: {
-                        color: '#fff',
-                        anchor: 'end',
-                        align: 'top',
-                        formatter: function(value) {
-                            if (value === 0) return '';
-                            return value.toLocaleString('pt-BR', { notation: "compact", maximumFractionDigits: 1 });
+            let pluginList = [];
+            if (typeof ChartDataLabels !== 'undefined') {
+                pluginList.push(ChartDataLabels);
+            }
+
+            chartDashPlComparativo = new Chart(ctx, {
+                type: 'bar',
+                plugins: pluginList,
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Planejado (Alvo)',
+                            data: dataAlvo,
+                            backgroundColor: 'rgba(42, 208, 122, 0.7)',
+                            borderColor: '#2AD07A',
+                            borderWidth: 1
                         },
-                        font: { weight: 'bold', size: 10 }
+                        {
+                            label: 'Realizado',
+                            data: dataReal,
+                            backgroundColor: 'rgba(62, 124, 177, 0.7)',
+                            borderColor: '#3e7cb1',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#8eaabf' },
+                            grid: { color: '#1a2e3f' },
+                            // Dá uma margem no topo para caber os labels
+                            suggestedMax: (dataAlvo.length > 0 ? Math.max(...dataAlvo, ...dataReal) : 100) * 1.15
+                        },
+                        x: {
+                            ticks: { color: '#8eaabf' },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#fff' } },
+                        datalabels: {
+                            color: '#fff',
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                if (value === 0) return '';
+                                return value.toLocaleString('pt-BR', { notation: "compact", maximumFractionDigits: 1 });
+                            },
+                            font: { weight: 'bold', size: 10 }
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (e) {
+            console.error('Erro ao renderizar grafico dash pl:', e);
+            alert('Erro ao desenhar grafico: ' + e.message);
+        }
     }
 
     window.alterarMesPlanejamento = function(mes) {
