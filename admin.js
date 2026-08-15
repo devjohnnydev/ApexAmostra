@@ -16984,8 +16984,11 @@ window.carregarFinanceiroView = async function() {
             window._planosV3Cache = planos;
 
         } catch(e) {
-            console.error(e);
-            lista.innerHTML = '<div style="color:#ff4d4d; text-align:center;">Erro ao carregar planejamentos salvos.</div>';
+            console.error('ERRO ABRIR MODAL:', e);
+            lista.innerHTML = `<div style="color:#ff4d4d; text-align:center; padding: 20px;">
+                <b>Erro ao carregar planejamentos salvos.</b><br><br>
+                ${e.message}<br>${e.stack}
+            </div>`;
         }
     };
 
