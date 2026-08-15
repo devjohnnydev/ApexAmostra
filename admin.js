@@ -16958,6 +16958,7 @@ window.carregarFinanceiroView = async function() {
     window.fmtD = function(d) {
         if (!d) return '-'; 
         try { 
+            if (typeof d === 'string' && d.includes('T')) d = d.split('T')[0];
             const parts = d.split('-');
             if(parts.length === 3) {
                 return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -17078,22 +17079,49 @@ window.carregarFinanceiroView = async function() {
         doc.setFont('helvetica', 'bold');
         doc.text('Detalhes do Planejamento', 15, 35);
         
+        let totalAlvo = 0;
+        let totalReal = 0;
+        let totalInvest = 0;
+        plano.itens.forEach(it => {
+            totalAlvo += parseFloat(it.faturamento_alvo) || 0;
+            totalReal += parseFloat(it.faturamento_realizado) || 0;
+            totalInvest += parseFloat(it.investimento_necessario) || 0;
+        });
+        const totalFalta = Math.max(0, totalAlvo - totalReal);
+        const totalPct = totalAlvo > 0 ? ((totalReal / totalAlvo) * 100).toFixed(1) : '0.0';
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text(`Titulo: ${plano.titulo}`, 15, 42);
         doc.text(`Periodo: ${window.fmtD(plano.data_inicial)} a ${window.fmtD(plano.data_final)}`, 15, 48);
-        doc.text(`Meta Global (R$): R$ ${window.fmtBRL(plano.meta_faturamento)}`, 15, 54);
-        doc.text(`Estrategia: ${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}`, 15, 60);
+        doc.text(`Estrategia: ${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}`, 15, 54);
 
-        const headers = [['Produto', 'Mix (%)', 'Meta Alvo (R$)', 'Realizado (R$)', '% Atingido']];
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Métricas de Acompanhamento:`, 110, 35);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Investimento Previsto: R$ ${window.fmtBRL(totalInvest)}`, 110, 42);
+        doc.text(`Meta Global (Alvo): R$ ${window.fmtBRL(totalAlvo)}`, 110, 48);
+        doc.text(`Total Realizado: R$ ${window.fmtBRL(totalReal)} (${totalPct}%)`, 110, 54);
+        doc.text(`Falta para a Meta: R$ ${window.fmtBRL(totalFalta)}`, 110, 60);
+
+        const headers = [['Produto', 'Mix (%)', 'Vol (kg)', 'Investimento', 'Meta Alvo', 'Realizado', 'Falta', '%']];
         const body = plano.itens.map(it => {
             const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
-            const pct = it.faturamento_alvo > 0 ? ((it.faturamento_realizado / it.faturamento_alvo) * 100).toFixed(1) + '%' : '0%';
+            const vol = parseFloat(it.volume_necessario) || 0;
+            const invest = parseFloat(it.investimento_necessario) || 0;
+            const alvo = parseFloat(it.faturamento_alvo) || 0;
+            const real = parseFloat(it.faturamento_realizado) || 0;
+            const falta = Math.max(0, alvo - real);
+            const pct = alvo > 0 ? ((real / alvo) * 100).toFixed(1) + '%' : '0%';
+            
             return [
                 mNome, 
                 it.fracao_pct + '%', 
-                'R$ ' + window.fmtBRL(it.faturamento_alvo), 
-                'R$ ' + window.fmtBRL(it.faturamento_realizado), 
+                vol.toLocaleString('pt-BR', {maximumFractionDigits:1}),
+                'R$ ' + window.fmtBRL(invest),
+                'R$ ' + window.fmtBRL(alvo), 
+                'R$ ' + window.fmtBRL(real), 
+                'R$ ' + window.fmtBRL(falta),
                 pct
             ];
         });
