@@ -14043,14 +14043,14 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.exportarPedidoPdfPorId = async function(id) {
-        let p = localPedidos.find(x => x.id == id);
-        if (!p) {
-            try {
-                const r = await fetch(`/api/pedidos-venda/${id}`);
-                p = await r.json();
-            } catch(e){}
+        let p = null;
+        try {
+            const r = await fetch(`/api/pedidos-venda/${id}`);
+            p = await r.json();
+        } catch(e) {
+            console.error('Erro ao buscar itens do pedido:', e);
         }
-        if (!p) { _apexNotify('Sistema', 'Pedido não encontrado.', 'info'); return; }
+        if (!p || p.error) { _apexNotify('Sistema', 'Pedido não encontrado.', 'info'); return; }
         await gerarPdfPedidoVenda(p);
     };
 
@@ -14102,7 +14102,7 @@ window.carregarFinanceiroView = async function() {
         }
 
         // Cabeçalho da Empresa
-        doc.setFillColor(30, 78, 140);
+        doc.setFillColor(13, 36, 22);
         doc.rect(0, 0, 210, 28, 'F');
 
         doc.setTextColor(255, 255, 255);
@@ -14127,7 +14127,7 @@ window.carregarFinanceiroView = async function() {
         doc.roundedRect(14, 33, 182, 38, 2, 2, 'FD');
 
         const cliStatusText = p.cliente_id ? 'CLIENTE CADASTRADO NO SISTEMA' : 'NOVO CLIENTE / PENDENTE';
-        doc.setTextColor(30, 78, 140);
+        doc.setTextColor(13, 36, 22);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.text('DADOS DO CLIENTE (DESTINATÁRIO)', 18, 40);
@@ -14168,7 +14168,7 @@ window.carregarFinanceiroView = async function() {
         doc.setFillColor(248, 249, 250);
         doc.roundedRect(14, 74, 182, 24, 2, 2, 'FD');
 
-        doc.setTextColor(30, 78, 140);
+        doc.setTextColor(13, 36, 22);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8.5);
         
@@ -14178,28 +14178,28 @@ window.carregarFinanceiroView = async function() {
         doc.text(`${p.criado_por || 'Admin'} (${p.criado_por_perfil || 'Administrador'})`, 38, 80);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 78, 140);
+        doc.setTextColor(13, 36, 22);
         doc.text('Status / Aprovação: ', 115, 80);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(p.status === 'Aprovado' || p.status === 'Faturado' || p.status === 'Entregue' ? 42 : 200, p.status === 'Aprovado' ? 150 : 100, 40);
         doc.text(String(p.status || 'Rascunho'), 147, 80);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 78, 140);
+        doc.setTextColor(13, 36, 22);
         doc.text('Endereço de Entrega: ', 18, 86);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
         doc.text(String(p.endereco_entrega || endStr || 'Mesmo do cadastro'), 52, 86);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 78, 140);
+        doc.setTextColor(13, 36, 22);
         doc.text('Recebedor Destino: ', 18, 92);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
         doc.text(String(p.responsavel_recebimento || 'Almoxarifado Cliente'), 48, 92);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(30, 78, 140);
+        doc.setTextColor(13, 36, 22);
         doc.text('Frete / Logística: ', 115, 92);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
@@ -14221,7 +14221,7 @@ window.carregarFinanceiroView = async function() {
             head: [['Item', 'Descrição do Produto/Material', 'Und', 'Qtd', 'Preço Unit.', 'Desc%', 'Total (R$)']],
             body: tableItens.length > 0 ? tableItens : [['1', 'Nenhum item adicionado', '-', '0', 'R$ 0,00', '0%', 'R$ 0,00']],
             theme: 'grid',
-            headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+            headStyles: { fillColor: [13, 36, 22], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
             bodyStyles: { fontSize: 8.5, textColor: [30, 30, 30] },
             alternateRowStyles: { fillColor: [240, 245, 250] },
             columnStyles: {
@@ -14262,7 +14262,7 @@ window.carregarFinanceiroView = async function() {
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.setTextColor(30, 78, 140);
+        doc.setTextColor(13, 36, 22);
         doc.text('TOTAL DO PEDIDO:', 124, finalY + 27);
         doc.text(fmtR(p.total_geral || totalGeral), 192, finalY + 27, { align: 'right' });
 
@@ -14270,7 +14270,7 @@ window.carregarFinanceiroView = async function() {
         if (p.observacoes) {
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
-            doc.setTextColor(30, 78, 140);
+            doc.setTextColor(13, 36, 22);
             doc.text('OBSERVAÇÕES / INSTRUÇÕES DE ENTREGA:', 14, finalY + 7);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8.5);
@@ -15978,22 +15978,33 @@ window.carregarFinanceiroView = async function() {
 
         let totalKgCalculado = 0;
         let totalPctAlocado = 0;
+        let totalInvestimentoNecessario = 0;
 
-        _mixSimulacaoV3.forEach((mixItem, idx) => {
+        _mixSimulacaoV3.forEach((mixItem) => {
             const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === mixItem.material_id);
             if (!tp) return;
 
             const faturamentoAlvoProduto = fatTotalAlvo * (mixItem.fracaoPct / 100);
-            
-            // Preço de referência conforme a frente de ataque
+
+            // Preço de venda (referência para calcular volume)
             const pRef = frente === 'venda'
                 ? parseFloat(tp.preco_venda || tp.venda_ref || 0)
                 : parseFloat(tp.preco_entregar || tp.preco_compra || 0);
 
-            // Volume necessário em kg
+            // Preço de compra (quanto investe para adquirir o material)
+            const pCompra = frente === 'venda'
+                ? parseFloat(tp.preco_entregar || tp.preco_compra || 0)
+                : parseFloat(tp.preco_coletar || tp.preco_compra || 0);
+
+            // Volume necessário em kg (baseado no preço de venda)
             const volumeKg = pRef > 0 ? (faturamentoAlvoProduto / pRef) : 0;
+
+            // Investimento necessário para comprar essa quantidade
+            const investimentoProduto = volumeKg * pCompra;
+
             totalKgCalculado += volumeKg;
             totalPctAlocado += mixItem.fracaoPct;
+            totalInvestimentoNecessario += investimentoProduto;
 
             if (redesenharTabela) {
                 const tr = document.createElement('tr');
@@ -16008,27 +16019,34 @@ window.carregarFinanceiroView = async function() {
                     <td style="padding:6px 4px; text-align:right; font-weight:bold; color:#2AD07A;" id="plestv3-mix-kg-${mixItem.material_id}">
                         ${volumeKg.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg
                     </td>
+                    <td style="padding:6px 4px; text-align:right; color:#ffb74d;" id="plestv3-mix-pcompra-${mixItem.material_id}">R$ ${window.fmtBRL(pCompra)}</td>
+                    <td style="padding:6px 4px; text-align:right; font-weight:bold; color:#ff9800;" id="plestv3-mix-invest-${mixItem.material_id}">
+                        R$ ${investimentoProduto.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    </td>
                     <td style="padding:6px 4px; text-align:center;">
                         <button onclick="window.removerMaterialSimulacaoV3(${mixItem.material_id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;" title="Remover"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
                 mixTbody.appendChild(tr);
             } else {
-                // Se não estamos redesenhando toda a tabela (apenas alterando frações em tempo real), atualizamos apenas os labels dinâmicos
+                // Atualização dinâmica sem redesenhar toda a tabela
                 const lblKg = document.getElementById(`plestv3-mix-kg-${mixItem.material_id}`);
-                if (lblKg) {
-                    lblKg.textContent = `${volumeKg.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg`;
-                }
+                if (lblKg) lblKg.textContent = `${volumeKg.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg`;
+                const lblInvest = document.getElementById(`plestv3-mix-invest-${mixItem.material_id}`);
+                if (lblInvest) lblInvest.textContent = `R$ ${investimentoProduto.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             }
         });
 
         if (_mixSimulacaoV3.length === 0) {
-            mixTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:15px; color:#aaa;">Nenhum produto adicionado ao mix. Selecione acima e clique em "Adicionar ao Mix".</td></tr>`;
+            mixTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:15px; color:#aaa;">Nenhum produto adicionado ao mix. Selecione acima e clique em "Adicionar ao Mix".</td></tr>`;
         }
 
         // 3. Atualizar rodapés e totais
-        const lblPct = document.getElementById('plestv3-mix-total-pct');
-        const lblKg = document.getElementById('plestv3-mix-total-kg');
+        const lblPct    = document.getElementById('plestv3-mix-total-pct');
+        const lblKg     = document.getElementById('plestv3-mix-total-kg');
+        const lblInvest = document.getElementById('plestv3-mix-total-investimento');
+        const lblFeed   = document.getElementById('plestv3-mix-feedback');
+
         if (lblPct) {
             lblPct.textContent = `${totalPctAlocado.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
             lblPct.style.color = Math.abs(totalPctAlocado - 100) < 0.1 ? '#2AD07A' : '#ff4d4d';
@@ -16036,9 +16054,257 @@ window.carregarFinanceiroView = async function() {
         if (lblKg) {
             lblKg.textContent = `${totalKgCalculado.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg`;
         }
+        if (lblInvest) {
+            lblInvest.textContent = `R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Feedback visual de alocação
+        if (lblFeed && _mixSimulacaoV3.length > 0) {
+            lblFeed.style.display = 'block';
+            const diff = totalPctAlocado - 100;
+            if (Math.abs(diff) < 0.1) {
+                lblFeed.style.background = 'rgba(42, 208, 122, 0.12)';
+                lblFeed.style.border = '1px solid rgba(42, 208, 122, 0.4)';
+                lblFeed.style.color = '#2AD07A';
+                lblFeed.innerHTML = `✅ Mix 100% alocado! Para atingir sua meta de <strong>R$ ${fatTotalAlvo.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>, você precisa investir <strong>R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> em compras e adquirir <strong>${totalKgCalculado.toLocaleString('pt-BR', {minimumFractionDigits:1})} kg</strong> de material.`;
+            } else if (diff < 0) {
+                lblFeed.style.background = 'rgba(255, 184, 0, 0.1)';
+                lblFeed.style.border = '1px solid rgba(255, 184, 0, 0.4)';
+                lblFeed.style.color = '#ffb74d';
+                const faltando = fatTotalAlvo * (Math.abs(diff) / 100);
+                lblFeed.innerHTML = `⚠️ Ainda faltam <strong>${Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong> para atingir 100% do mix — equivale a <strong>R$ ${faltando.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> de faturamento não coberto. Adicione mais produtos.`;
+            } else {
+                lblFeed.style.background = 'rgba(255, 77, 77, 0.1)';
+                lblFeed.style.border = '1px solid rgba(255, 77, 77, 0.4)';
+                lblFeed.style.color = '#ff4d4d';
+                lblFeed.innerHTML = `❌ Mix ultrapassou 100% em <strong>${diff.toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong>. Reduza as frações para não exceder a meta.`;
+            }
+        } else if (lblFeed) {
+            lblFeed.style.display = 'none';
+        }
     };
 
+    // ═══════════════════════════════════════════════════════════════
+    //  CICLOS DE SIMULAÇÃO V3 — Salvar / Lançar Resultado Real
+    // ═══════════════════════════════════════════════════════════════
+
+    // Storage key específico para ciclos desta empresa/usuário
+    const _CICLOS_KEY = 'apextech_ciclos_simulacao_v3';
+
+    function _getCiclos() {
+        try { return JSON.parse(localStorage.getItem(_CICLOS_KEY) || '[]'); } catch { return []; }
+    }
+    function _saveCiclos(arr) {
+        localStorage.setItem(_CICLOS_KEY, JSON.stringify(arr));
+    }
+
+    // Sincroniza o campo "Investimento Simulado" com o valor calculado no mix
+    function _syncInvestimentoSimuladoCiclo() {
+        const el = document.getElementById('plestv3-ciclo-investimento-sim');
+        const lblInvest = document.getElementById('plestv3-mix-total-investimento');
+        if (el && lblInvest) {
+            // Pega o valor numérico do span de total investimento
+            const raw = lblInvest.textContent.replace('R$', '').trim().replace(/\./g, '').replace(',', '.');
+            const val = parseFloat(raw) || 0;
+            el.value = val > 0 ? val : '';
+        }
+    }
+
+    window.salvarCicloSimulacaoV3 = function() {
+        const dataInicio = document.getElementById('plestv3-ciclo-data-inicio')?.value;
+        const dataFim    = document.getElementById('plestv3-ciclo-data-fim')?.value;
+        const metaFatEl  = document.getElementById('plestv3-ciclo-meta-fat');
+        let   metaFat    = parseFloat(metaFatEl?.value) || 0;
+
+        // Se não informou meta manual, usa o faturamento alvo configurado na simulação
+        if (!metaFat) {
+            const elFat = document.getElementById('plestv3-fat-alvo');
+            metaFat = parseFloat(elFat?.value) || 0;
+        }
+
+        if (!dataInicio || !dataFim) {
+            alert('Informe a Data de Início e a Data de Fim do ciclo.');
+            return;
+        }
+        if (new Date(dataFim) < new Date(dataInicio)) {
+            alert('A Data de Fim deve ser posterior à Data de Início.');
+            return;
+        }
+        if (!metaFat || metaFat <= 0) {
+            alert('Informe a Meta de Faturamento do ciclo.');
+            return;
+        }
+
+        _syncInvestimentoSimuladoCiclo();
+        const investSimulado = parseFloat(document.getElementById('plestv3-ciclo-investimento-sim')?.value) || 0;
+
+        // Capturar snapshot do mix atual
+        const mixSnapshot = _mixSimulacaoV3.map(item => {
+            const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === item.material_id);
+            return { material_id: item.material_id, nome: tp?.material_nome || `ID ${item.material_id}`, fracaoPct: item.fracaoPct };
+        });
+
+        const ciclo = {
+            id: Date.now(),
+            dataInicio,
+            dataFim,
+            metaFaturamento: metaFat,
+            investimentoSimulado: investSimulado,
+            mixSnapshot,
+            frente: document.getElementById('plestv3-frente')?.value || 'venda',
+            // Resultado real (preenchido posteriormente)
+            fatReal: null,
+            investReal: null,
+            volumeReal: null,
+            obs: '',
+            status: 'simulado' // 'simulado' | 'realizado'
+        };
+
+        const ciclos = _getCiclos();
+        ciclos.unshift(ciclo); // mais recente primeiro
+        _saveCiclos(ciclos);
+
+        // Feedback visual
+        const nota = document.getElementById('plestv3-ciclo-nota-salvo');
+        if (nota) nota.style.display = 'block';
+
+        _renderizarCiclosV3();
+        alert(`✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+    };
+
+    window.abrirModalResultadoRealV3 = function(cicloId) {
+        const modal = document.getElementById('modal-resultado-real-v3');
+        if (!modal) return;
+
+        // Se veio com ID específico, usa ele; senão pega o primeiro ciclo simulado
+        let id = cicloId;
+        if (!id) {
+            const ciclos = _getCiclos();
+            const pendente = ciclos.find(c => c.status === 'simulado');
+            if (!pendente) { alert('Nenhum ciclo simulado pendente. Salve primeiro uma simulação.'); return; }
+            id = pendente.id;
+        }
+
+        document.getElementById('modal-rr-ciclo-id').value = id;
+        document.getElementById('modal-rr-fat-real').value = '';
+        document.getElementById('modal-rr-invest-real').value = '';
+        document.getElementById('modal-rr-volume-real').value = '';
+        document.getElementById('modal-rr-obs').value = '';
+        modal.style.display = 'flex';
+    };
+
+    window.fecharModalResultadoRealV3 = function() {
+        const modal = document.getElementById('modal-resultado-real-v3');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.confirmarResultadoRealV3 = function() {
+        const cicloId  = parseInt(document.getElementById('modal-rr-ciclo-id')?.value);
+        const fatReal  = parseFloat(document.getElementById('modal-rr-fat-real')?.value);
+        const invReal  = parseFloat(document.getElementById('modal-rr-invest-real')?.value);
+        const volReal  = parseFloat(document.getElementById('modal-rr-volume-real')?.value) || null;
+        const obs      = document.getElementById('modal-rr-obs')?.value?.trim() || '';
+
+        if (!fatReal || fatReal <= 0) { alert('Informe o Faturamento Real alcançado.'); return; }
+        if (!invReal || invReal <= 0) { alert('Informe o Investimento Real realizado em compras.'); return; }
+
+        const ciclos = _getCiclos();
+        const idx = ciclos.findIndex(c => c.id === cicloId);
+        if (idx < 0) { alert('Ciclo não encontrado.'); return; }
+
+        ciclos[idx].fatReal      = fatReal;
+        ciclos[idx].investReal   = invReal;
+        ciclos[idx].volumeReal   = volReal;
+        ciclos[idx].obs          = obs;
+        ciclos[idx].status       = 'realizado';
+        _saveCiclos(ciclos);
+
+        window.fecharModalResultadoRealV3();
+        _renderizarCiclosV3();
+    };
+
+    window.excluirCicloV3 = function(cicloId) {
+        if (!confirm('Excluir este ciclo? Esta ação não pode ser desfeita.')) return;
+        const ciclos = _getCiclos().filter(c => c.id !== cicloId);
+        _saveCiclos(ciclos);
+        _renderizarCiclosV3();
+    };
+
+    function _renderizarCiclosV3() {
+        const tbody = document.getElementById('plestv3-ciclos-tbody');
+        if (!tbody) return;
+
+        const ciclos = _getCiclos();
+        if (ciclos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:18px; color:#aaa;">Nenhum ciclo salvo ainda. Configure o período e salve sua simulação.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = '';
+        ciclos.forEach(c => {
+            const fmtData = d => {
+                try { return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR'); } catch { return d; }
+            };
+            const periodo = `${fmtData(c.dataInicio)} → ${fmtData(c.dataFim)}`;
+            const mixNomes = (c.mixSnapshot || []).map(m => `${m.nome} (${m.fracaoPct.toLocaleString('pt-BR', {maximumFractionDigits:1})}%)`).join(', ') || '—';
+
+            let atingimentoHTML = '—';
+            let statusHTML = `<span style="color:#ffb74d; font-weight:bold;"><i class="fa-solid fa-clock"></i> Pendente</span>`;
+
+            if (c.status === 'realizado' && c.fatReal != null) {
+                const pct = c.metaFaturamento > 0 ? (c.fatReal / c.metaFaturamento) * 100 : 0;
+                const cor = pct >= 100 ? '#2AD07A' : pct >= 80 ? '#ffb74d' : '#ff4d4d';
+                const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️' : '❌';
+                atingimentoHTML = `<span style="color:${cor}; font-weight:bold;">${icone} ${pct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%</span>`;
+                statusHTML = `<span style="color:${cor}; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Realizado</span>`;
+            }
+
+            const fatRealStr  = c.fatReal   != null ? `R$ ${c.fatReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '—';
+            const invRealStr  = c.investReal != null ? `R$ ${c.investReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '—';
+
+            const acaoReal = c.status === 'simulado'
+                ? `<button onclick="window.abrirModalResultadoRealV3(${c.id})" title="Lançar Resultado Real" style="background:rgba(42,208,122,0.12); border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; cursor:pointer; font-size:0.78rem; margin-right:4px;"><i class="fa-solid fa-flag-checkered"></i> Real</button>`
+                : '';
+
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid #223547';
+            tr.innerHTML = `
+                <td style="padding:7px 10px; color:#ccc; white-space:nowrap; font-size:0.8rem;">${periodo}</td>
+                <td style="padding:7px 10px; color:#aaa; font-size:0.76rem; max-width:180px; overflow:hidden; text-overflow:ellipsis;" title="${mixNomes}">${mixNomes}</td>
+                <td style="padding:7px 10px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${(c.metaFaturamento||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:7px 10px; text-align:right; color:#ff9800;">R$ ${(c.investimentoSimulado||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:7px 10px; text-align:right; color:#2AD07A;">${fatRealStr}</td>
+                <td style="padding:7px 10px; text-align:right; color:#aaa;">${invRealStr}</td>
+                <td style="padding:7px 10px; text-align:center;">${atingimentoHTML}</td>
+                <td style="padding:7px 10px; text-align:center;">${statusHTML}</td>
+                <td style="padding:7px 10px; text-align:center; white-space:nowrap;">
+                    ${acaoReal}
+                    <button onclick="window.excluirCicloV3(${c.id})" title="Excluir" style="background:none; border:none; color:#ff6b6b; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Inicializar ciclos ao carregar a seção
+    function _initCiclosV3() {
+        _syncInvestimentoSimuladoCiclo();
+        _renderizarCiclosV3();
+        // Pré-preenche datas com mês corrente
+        const hoje = new Date();
+        const dInicio = document.getElementById('plestv3-ciclo-data-inicio');
+        const dFim    = document.getElementById('plestv3-ciclo-data-fim');
+        if (dInicio && !dInicio.value) {
+            dInicio.value = hoje.toISOString().slice(0, 7) + '-01';
+        }
+        if (dFim && !dFim.value) {
+            const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+            dFim.value = ultimoDia.toISOString().slice(0, 10);
+        }
+    }
+
     window.voltarPara12MesesEstrategicov3 = function() {
+
         _mesV3Ativo = null;
         document.getElementById('plestv3-view-12meses').style.display = 'block';
         document.getElementById('plestv3-view-detalhes-mes').style.display = 'none';

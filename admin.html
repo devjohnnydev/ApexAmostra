@@ -3352,8 +3352,10 @@
                                             <th style="padding:6px 4px;">Material</th>
                                             <th style="padding:6px 4px; text-align:center; width:90px;">Fração Faturamento (%)</th>
                                             <th style="padding:6px 4px; text-align:right;">Faturamento Alvo</th>
-                                            <th style="padding:6px 4px; text-align:right;">Preço Ref (R$/kg)</th>
+                                            <th style="padding:6px 4px; text-align:right;">Preço Venda (Ref)</th>
                                             <th style="padding:6px 4px; text-align:right;">Volume Necessário</th>
+                                            <th style="padding:6px 4px; text-align:right;">Preço Compra</th>
+                                            <th style="padding:6px 4px; text-align:right;">Investimento Necessário</th>
                                             <th style="padding:6px 4px; width:40px;"></th>
                                         </tr>
                                     </thead>
@@ -3362,15 +3364,111 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div id="plestv3-mix-total-container" style="display:flex; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid #223547; font-weight:bold; font-size:0.82rem; color:#fff;">
+                            <div id="plestv3-mix-total-container" style="display:flex; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid #223547; font-weight:bold; font-size:0.82rem; color:#fff; flex-wrap:wrap; gap:10px;">
                                 <span>Total Alocado: <span id="plestv3-mix-total-pct" style="color:#00e5ff;">0%</span></span>
-                                <span>Volume Total: <span id="plestv3-mix-total-kg" style="color:#2AD07A;">0.0 kg</span></span>
+                                <span>Volume Total: <span id="plestv3-mix-total-kg" style="color:#2AD07A;">0,0 kg</span></span>
+                                <span>Investimento Compra Total: <span id="plestv3-mix-total-investimento" style="color:#ffb74d;">R$ 0,00</span></span>
                             </div>
+                            <div id="plestv3-mix-feedback" style="margin-top:10px; padding:10px; border-radius:6px; font-size:0.8rem; font-weight:bold; display:none;"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TELA 1: VISÃO DE 12 MESES CONSOLIDADA (V3) -->
+                <!-- ═══════ CICLO DE SIMULAÇÃO COM DATAS & RESULTADO REAL ═══════ -->
+                <div style="background:#0d1826; border:1px solid #1a3a5c; border-radius:12px; padding:20px; margin-top:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <h3 style="margin:0; color:#fff; font-size:1rem;"><i class="fa-solid fa-rocket" style="color:#00e5ff;"></i> Ciclo de Crescimento — Simulação vs. Realizado</h3>
+                            <span style="font-size:0.78rem; color:#aaa;">Defina o período, salve sua simulação e ao final do ciclo informe o que foi realmente alcançado.</span>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn-primary" onclick="window.salvarCicloSimulacaoV3()" style="background:#00e5ff; color:#0d1826; font-size:0.82rem; padding:6px 14px;">
+                                <i class="fa-solid fa-floppy-disk"></i> Salvar Simulação do Ciclo
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="window.abrirModalResultadoRealV3()" style="font-size:0.82rem; padding:6px 14px; border-color:#2AD07A; color:#2AD07A; background:rgba(42,208,122,0.08);">
+                                <i class="fa-solid fa-flag-checkered"></i> Lançar Resultado Real
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:14px; margin-bottom:16px;">
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-calendar-plus" style="color:#00e5ff;"></i> Data de Início</label>
+                            <input type="date" id="plestv3-ciclo-data-inicio" class="noble-input" style="font-size:0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-calendar-check" style="color:#ff4d4d;"></i> Data de Fim</label>
+                            <input type="date" id="plestv3-ciclo-data-fim" class="noble-input" style="font-size:0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Meta Faturamento Simulada (R$)</label>
+                            <input type="number" id="plestv3-ciclo-meta-fat" class="noble-input" placeholder="Ex: 1000000" style="font-size:0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-cart-shopping" style="color:#ff9800;"></i> Investimento Simulado (R$)</label>
+                            <input type="number" id="plestv3-ciclo-investimento-sim" class="noble-input" placeholder="Calculado automaticamente" style="font-size:0.85rem;" readonly>
+                        </div>
+                    </div>
+
+                    <div id="plestv3-ciclo-nota-salvo" style="display:none; padding:10px; border-radius:8px; background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.3); color:#00e5ff; font-size:0.8rem; margin-bottom:14px;">
+                        <i class="fa-solid fa-circle-info"></i> <strong>Simulação salva no ciclo.</strong> Quando o período terminar, clique em "Lançar Resultado Real" para comparar.
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                            <thead>
+                                <tr style="background:#162433; color:#fff; text-align:left;">
+                                    <th style="padding:8px 10px;">Período</th>
+                                    <th style="padding:8px 10px;">Mix Simulado</th>
+                                    <th style="padding:8px 10px; text-align:right;">Meta Faturamento</th>
+                                    <th style="padding:8px 10px; text-align:right;">Invest. Simulado</th>
+                                    <th style="padding:8px 10px; text-align:right;">Faturamento Real</th>
+                                    <th style="padding:8px 10px; text-align:right;">Invest. Real</th>
+                                    <th style="padding:8px 10px; text-align:center;">Atingimento</th>
+                                    <th style="padding:8px 10px; text-align:center;">Status</th>
+                                    <th style="padding:8px 10px; text-align:center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="plestv3-ciclos-tbody">
+                                <tr><td colspan="9" style="text-align:center; padding:18px; color:#aaa;">Nenhum ciclo salvo ainda. Configure o período e salve sua simulação.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modal: Lançar Resultado Real do Ciclo -->
+                <div id="modal-resultado-real-v3" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:99999; align-items:center; justify-content:center;">
+                    <div style="background:#0d1826; border:1px solid #1a3a5c; border-radius:12px; padding:28px; width:480px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+                        <h3 style="margin:0 0 18px 0; color:#fff; font-size:1rem;"><i class="fa-solid fa-flag-checkered" style="color:#2AD07A;"></i> Lançar Resultado Real</h3>
+                        <input type="hidden" id="modal-rr-ciclo-id">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Faturamento Real (R$) *</label>
+                                <input type="number" id="modal-rr-fat-real" class="noble-input" placeholder="Ex: 850000" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Investimento Real em Compras (R$) *</label>
+                                <input type="number" id="modal-rr-invest-real" class="noble-input" placeholder="Ex: 620000" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Volume Total Comprado (kg)</label>
+                                <input type="number" id="modal-rr-volume-real" class="noble-input" placeholder="Ex: 145000" step="0.001" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Observações</label>
+                                <input type="text" id="modal-rr-obs" class="noble-input" placeholder="Ex: Mês atípico, mercado caiu">
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button type="button" class="btn-primary" onclick="window.confirmarResultadoRealV3()" style="flex:1; background:#2AD07A; color:#0d1826; font-weight:bold;">
+                                <i class="fa-solid fa-check"></i> Confirmar Resultado
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="window.fecharModalResultadoRealV3()" style="flex:1;">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div id="plestv3-view-12meses">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                         <div>
