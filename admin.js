@@ -199,6 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (item.dataset.target === 'planejamento-estrategicov3-view' && window.carregarPlanejamentoEstrategicov3) {
                     window.carregarPlanejamentoEstrategicov3();
                 }
+                if (item.dataset.target === 'planejamento-view' && window.carregarPlanejamentoDashboard) {
+                    window.carregarPlanejamentoDashboard();
+                }
                 setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
             }
         });
@@ -8553,20 +8556,124 @@ document.addEventListener('DOMContentLoaded', () => {
     let historicoCenarioPorMes = {}; // Guarda o cenário ativo por mês
 
     window.initApexPlanejamento = function() {
-        carregarPlanejamento();
+        if (window.carregarPlanejamentoDashboard) {
+            window.carregarPlanejamentoDashboard();
+        }
     };
 
-    async function carregarPlanejamento() {
+    let chartDashPlComparativo = null;
+
+    window.carregarPlanejamentoDashboard = async function() {
         try {
-            const res = await fetch('/api/planejamento-compras');
+            const res = await fetch('/api/estrategiav3_planos');
             const data = await res.json();
-            localPlanejamento = Array.isArray(data) ? data : [];
-            renderPlanejamento();
-        } catch (err) {
-            console.error('Erro ao carregar planejamento:', err);
-            localPlanejamento = [];
-            renderPlanejamento();
+            if (!data.success) throw new Error('Falha ao buscar planos ativos');
+            
+            let planos = data.planos || [];
+            // Filtrar planos não finalizados
+            planos = planos.filter(p => p.status !== 'FINALIZADO');
+
+            let totalPlanejadoAlvo = 0;
+            let totalRealizado = 0;
+            let totalPlanosAtivos = planos.length;
+            let produtosMap = new Map(); // material_id -> { alvo: 0, real: 0, nome: '' }
+
+            planos.forEach(p => {
+                if (p.itens && Array.isArray(p.itens)) {
+                    p.itens.forEach(item => {
+                        let fatAlvo = parseFloat(item.faturamento_alvo) || 0;
+                        let fatReal = parseFloat(item.faturamento_realizado) || 0;
+                        totalPlanejadoAlvo += fatAlvo;
+                        totalRealizado += fatReal;
+
+                        let prodNome = item.material_nome || `Produto #${item.material_id}`;
+                        if (!produtosMap.has(item.material_id)) {
+                            produtosMap.set(item.material_id, { alvo: 0, real: 0, nome: prodNome });
+                        }
+                        let pData = produtosMap.get(item.material_id);
+                        pData.alvo += fatAlvo;
+                        pData.real += fatReal;
+                    });
+                }
+            });
+
+            // Atualiza KPIs
+            const elAlvo = document.getElementById('dash-pl-total-alvo');
+            const elReal = document.getElementById('dash-pl-total-real');
+            const elQtdPlanos = document.getElementById('dash-pl-qtd-planos');
+            const elQtdProds = document.getElementById('dash-pl-qtd-produtos');
+
+            if (elAlvo) elAlvo.textContent = totalPlanejadoAlvo.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+            if (elReal) elReal.textContent = totalRealizado.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+            if (elQtdPlanos) elQtdPlanos.textContent = totalPlanosAtivos;
+            if (elQtdProds) elQtdProds.textContent = produtosMap.size;
+
+            // Renderiza Gráfico
+            renderChartDashPlComparativo(produtosMap);
+
+        } catch (e) {
+            console.error('Erro ao carregar Dashboard de Planejamento:', e);
         }
+    };
+
+    function renderChartDashPlComparativo(produtosMap) {
+        const ctx = document.getElementById('chart-dash-pl-comparativo');
+        if (!ctx) return;
+
+        if (chartDashPlComparativo) {
+            chartDashPlComparativo.destroy();
+        }
+
+        const labels = [];
+        const dataAlvo = [];
+        const dataReal = [];
+
+        produtosMap.forEach((val) => {
+            labels.push(val.nome);
+            dataAlvo.push(val.alvo);
+            dataReal.push(val.real);
+        });
+
+        chartDashPlComparativo = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Planejado (Alvo)',
+                        data: dataAlvo,
+                        backgroundColor: 'rgba(42, 208, 122, 0.7)',
+                        borderColor: '#2AD07A',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Realizado',
+                        data: dataReal,
+                        backgroundColor: 'rgba(62, 124, 177, 0.7)',
+                        borderColor: '#3e7cb1',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#8eaabf' },
+                        grid: { color: '#1a2e3f' }
+                    },
+                    x: {
+                        ticks: { color: '#8eaabf' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                }
+            }
+        });
     }
 
     window.alterarMesPlanejamento = function(mes) {
@@ -15872,32 +15979,41 @@ window.carregarFinanceiroView = async function() {
     function popularSelectsProdutoEstrategicov3() {
         const selectProd = document.getElementById('plestv3-select-produto');
         const selectConsulta = document.getElementById('plestv3-consulta-material');
-        if (!selectProd) return;
+        const selectModal = document.getElementById('metaestv3-material-id');
 
-        const currentValProd = selectProd.value;
+        const currentValProd = selectProd ? selectProd.value : '';
         const currentValConsulta = selectConsulta ? selectConsulta.value : '';
+        const currentValModal = selectModal ? selectModal.value : '';
 
-        selectProd.innerHTML = '<option value="">-- Selecione um Produto --</option>';
-        if (selectConsulta) {
-            selectConsulta.innerHTML = '<option value="">-- Selecione um Material --</option>';
-        }
+        if (selectProd) selectProd.innerHTML = '<option value="">-- Selecione um Produto --</option>';
+        if (selectConsulta) selectConsulta.innerHTML = '<option value="">-- Selecione um Material --</option>';
+        if (selectModal) selectModal.innerHTML = '<option value="">-- Selecione um Produto --</option>';
 
         _listTabelaPrecosEstrategica.forEach(tp => {
-            const opt1 = document.createElement('option');
-            opt1.value = tp.material_id;
-            opt1.textContent = tp.material_nome + ' (' + tp.material_categoria + ')';
-            selectProd.appendChild(opt1);
-
+            const label = tp.material_nome + ' (' + tp.material_categoria + ')';
+            if (selectProd) {
+                const opt = document.createElement('option');
+                opt.value = tp.material_id;
+                opt.textContent = label;
+                selectProd.appendChild(opt);
+            }
             if (selectConsulta) {
-                const optC = document.createElement('option');
-                optC.value = tp.material_id;
-                optC.textContent = tp.material_nome + ' (' + tp.material_categoria + ')';
-                selectConsulta.appendChild(optC);
+                const opt = document.createElement('option');
+                opt.value = tp.material_id;
+                opt.textContent = label;
+                selectConsulta.appendChild(opt);
+            }
+            if (selectModal) {
+                const opt = document.createElement('option');
+                opt.value = tp.material_id;
+                opt.textContent = label;
+                selectModal.appendChild(opt);
             }
         });
 
-        if (currentValProd) selectProd.value = currentValProd;
+        if (selectProd && currentValProd) selectProd.value = currentValProd;
         if (selectConsulta && currentValConsulta) selectConsulta.value = currentValConsulta;
+        if (selectModal && currentValModal) selectModal.value = currentValModal;
     }
 
     window.onChangeConsultaMaterialV3 = function() {
