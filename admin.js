@@ -16713,6 +16713,122 @@ window.carregarFinanceiroView = async function() {
         insightsContainer.innerHTML = html;
     }
 
+    window.abrirModalPlanejamentosSalvosV3 = async function() {
+        // Remove any existing modal to ensure clean state
+        let existing = document.getElementById('modal-estrategiav3-planos');
+        if (existing) {
+            existing.remove();
+        }
+        
+        let modal = document.createElement('div');
+        modal.id = 'modal-estrategiav3-planos';
+        // Completely inline CSS to avoid any stylesheet interference
+        modal.style.cssText = 'display:flex; align-items:center; justify-content:center; z-index:9999999; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); font-family:sans-serif; backdrop-filter:blur(5px);';
+        modal.innerHTML = `
+            <div style="width:90%; max-width:900px; max-height:90vh; overflow-y:auto; position:relative; background:#0d1826; border:1px solid #2AD07A; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,1); padding:20px;">
+                <button onclick="document.getElementById('modal-estrategiav3-planos').remove()" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:#ff4d4d; font-size:1.5rem; cursor:pointer; font-weight:bold;">X</button>
+                <h2 style="margin:0 0 20px 0; color:#fff; border-bottom:1px solid #1a2e3f; padding-bottom:10px;">Planejamentos Salvos</h2>
+                <div id="lista-estrategiav3-planos">
+                    <div style="color:#00e5ff; text-align:center; padding:30px; font-size:1.2rem; font-weight:bold;">Sincronizando com o banco de dados...</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const lista = document.getElementById('lista-estrategiav3-planos');
+
+        try {
+            const res = await fetch('/api/estrategiav3_planos');
+            if (!res.ok) throw new Error('Erro do servidor: ' + res.status);
+            const planos = await res.json();
+            
+            if (!Array.isArray(planos)) throw new Error('A resposta da API não é um array válido.');
+
+            if (planos.length === 0) {
+                lista.innerHTML = '<div style="color:#aaa; text-align:center; padding:30px; font-size:1.2rem;">Nenhum planejamento salvo ainda. Você precisa salvar um planejamento primeiro!</div>';
+                return;
+            }
+
+            lista.innerHTML = planos.map(p => {
+                const itensArray = Array.isArray(p.itens) ? p.itens : [];
+                return `
+                    <div style="background:#162433; border:1px solid #1c2e3d; border-radius:8px; padding:15px; margin-bottom:15px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <h3 style="margin:0; color:#2AD07A; font-size:1.1rem;">${p.titulo || 'Sem Título'}</h3>
+                                <small style="color:#aaa;">Período: ${window.fmtD(p.data_inicial)} até ${window.fmtD(p.data_final)}</small>
+                            </div>
+                            <button onclick="window.gerarPdfEstrategiaV3(${p.id})" style="background:#2AD07A; color:#0d1826; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.8rem;">GERAR PDF</button>
+                        </div>
+                        <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:10px;">
+                            <div style="background:#0d1826; padding:10px; border-radius:6px; flex:1; min-width:180px;">
+                                <span style="display:block; color:#aaa; font-size:0.8rem; margin-bottom:4px;">Estratégia Principal</span>
+                                <span style="display:block; color:#fff; font-weight:bold;">${p.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}</span>
+                            </div>
+                            <div style="background:#0d1826; padding:10px; border-radius:6px; flex:1; min-width:180px;">
+                                <span style="display:block; color:#aaa; font-size:0.8rem; margin-bottom:4px;">Objetivo (R$)</span>
+                                <span style="display:block; color:#00e5ff; font-weight:bold; font-size:1.1rem;">Meta Total: R$ ${window.fmtBRL(p.meta_faturamento)}</span>
+                            </div>
+                        </div>
+                        <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.9rem; border-bottom:1px solid #1c2e3d; padding-bottom:5px;">Composição do Mix</h4>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:collapse; font-size:0.8rem; min-width:500px;">
+                                <thead>
+                                    <tr style="background:#0d1826; color:#aaa; text-align:left;">
+                                        <th style="padding:6px;">Produto</th>
+                                        <th style="padding:6px; text-align:right;">Fração</th>
+                                        <th style="padding:6px; text-align:right;">Meta (R$)</th>
+                                        <th style="padding:6px; text-align:right;">Realizado (R$)</th>
+                                        <th style="padding:6px; text-align:center;">Progresso</th>
+                                        <th style="padding:6px; text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                ${itensArray.map(it => {
+                                    const tp = window._listTabelaPrecosEstrategica && window._listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id);
+                                    const mNome = tp ? tp.material_nome : 'Material ' + it.material_id;
+                                    const atingidoPct = it.faturamento_alvo > 0 ? ((it.faturamento_realizado / it.faturamento_alvo) * 100) : 0;
+                                    return `
+                                        <tr style="border-bottom:1px solid #1c2e3d;">
+                                            <td style="padding:6px; color:#fff;">${mNome}</td>
+                                            <td style="padding:6px; color:#fff; text-align:right;">${it.fracao_pct}%</td>
+                                            <td style="padding:6px; color:#2AD07A; text-align:right;">R$ ${window.fmtBRL(it.faturamento_alvo)}</td>
+                                            <td style="padding:6px; color:#00e5ff; text-align:right;">
+                                                <input type="text" id="plestv3-realizado-${it.id}" value="${window.fmtBRL(it.faturamento_realizado)}" style="width:90px; text-align:right; padding:4px; margin:0; background:#0d1826; color:#fff; border:1px solid #1c2e3d; border-radius:4px;" oninput="window.maskCurrencyV3(this)">
+                                            </td>
+                                            <td style="padding:6px; text-align:center;">
+                                                <div style="background:#162433; border-radius:10px; width:100%; height:8px; position:relative; overflow:hidden;">
+                                                    <div style="position:absolute; top:0; left:0; height:100%; width:${Math.min(atingidoPct, 100)}%; background:${atingidoPct >= 100 ? '#2AD07A' : '#00e5ff'};"></div>
+                                                </div>
+                                                <small style="color:#aaa;">${atingidoPct.toFixed(1)}%</small>
+                                            </td>
+                                            <td style="padding:6px; text-align:center;">
+                                                <button type="button" onclick="window.salvarRealizadoV3(${it.id})" style="background:#00e5ff; color:#0d1826; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.7rem;">Salvar Realizado</button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            window._planosV3Cache = planos;
+
+        } catch(e) {
+            console.error('ERRO ABRIR MODAL:', e);
+            alert('Aviso: ' + e.message);
+            if (lista) {
+                lista.innerHTML = `<div style="color:#ff4d4d; text-align:center; padding: 20px;">
+                    <b>Erro ao carregar dados do servidor.</b><br><br>
+                    ${e.message}
+                </div>`;
+            }
+        }
+    };
+
     // Modal Handlers V3
     window.abrirModalMetaEstrategicav3 = function() {
         const modal = document.getElementById('modal-meta-estrategicav3');
