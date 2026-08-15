@@ -8676,7 +8676,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ticks: { color: '#8eaabf' },
                         grid: { color: '#1a2e3f' },
                         // Dá uma margem no topo para caber os labels
-                        suggestedMax: Math.max(...dataAlvo, ...dataReal) * 1.15
+                        suggestedMax: (dataAlvo.length > 0 ? Math.max(...dataAlvo, ...dataReal) : 100) * 1.15
                     },
                     x: {
                         ticks: { color: '#8eaabf' },
@@ -17535,6 +17535,7 @@ window.carregarFinanceiroView = async function() {
         } else if (aba === 'ativos') {
             document.getElementById('tab-btn-estr-ativos').classList.add('active');
             document.getElementById('subaba-estr-ativos').style.display = 'block';
+            if (window.carregarPlanejamentoDashboard) window.carregarPlanejamentoDashboard();
             window.renderPlanejamentosAtivosV3();
         }
     };
