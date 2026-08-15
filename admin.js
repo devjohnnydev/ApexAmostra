@@ -16888,14 +16888,16 @@ window.carregarFinanceiroView = async function() {
     window.salvarMetaEstrategicav3Form = async function(event) {
         event.preventDefault();
         const material_id = document.getElementById('metaestv3-material-id').value;
-        const mes = document.getElementById('metaestv3-mes').value;
+        const mes = document.getElementById('metaestv3-mes').value; // YYYY-MM
         const meta_faturamento = document.getElementById('metaestv3-meta-faturamento').value;
         const margem_desejada = document.getElementById('metaestv3-margem-desejada').value;
         const operacao = document.getElementById('metaestv3-operacao').value;
         const qtd_realizado = document.getElementById('metaestv3-qtd-realizado').value;
         const valor_venda_realizado = document.getElementById('metaestv3-valor-venda-realizado').value;
+        const criarAtivo = document.getElementById('metaestv3-criar-ativo') ? document.getElementById('metaestv3-criar-ativo').checked : false;
 
         try {
+            // Salvar a meta base
             const res = await fetch('/api/planejamento-estrategicov3', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -16905,9 +16907,57 @@ window.carregarFinanceiroView = async function() {
             });
 
             if (res.ok) {
-                _apexNotify('Sucesso', 'Planejamento estratégico V3 salvo com sucesso!', 'success');
+                let msgSucesso = 'Planejamento base salvo com sucesso!';
+                
+                // Se marcou para criar como ativo
+                if (criarAtivo) {
+                    const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id == material_id)?.material_nome || 'Produto';
+                    const fatAlvo = parseFloat(meta_faturamento) || 0;
+                    const mg = parseFloat(margem_desejada) || 0;
+                    const teto = fatAlvo * (1 - (mg/100));
+                    
+                    const dataInicio = `${mes}-01`;
+                    const [y, m] = mes.split('-');
+                    const dataFim = new Date(y, m, 0).toISOString().split('T')[0];
+
+                    const payloadPlano = {
+                        nome: `Plano Personalizado - ${mNome}`,
+                        data_inicio: dataInicio,
+                        data_fim: dataFim,
+                        itens: [{
+                            material_id: parseInt(material_id),
+                            fracao_pct: 100,
+                            faturamento_alvo: fatAlvo,
+                            faturamento_realizado: parseFloat(valor_venda_realizado) || 0
+                        }],
+                        cenarios: [{
+                            nome: 'PERSONALIZADO (100%)',
+                            valor_meta_faturamento: fatAlvo,
+                            valor_teto_custo: teto
+                        }]
+                    };
+
+                    const resAtivo = await fetch('/api/estrategiav3_planos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payloadPlano)
+                    });
+
+                    if (resAtivo.ok) {
+                        msgSucesso = 'Plano Personalizado salvo e ativado com sucesso!';
+                    }
+                }
+
+                _apexNotify('Sucesso', msgSucesso, 'success');
                 fecharModalMetaEstrategicav3();
-                await carregarPlanejamentoEstrategicov3();
+                
+                // Recarregar conforme a aba visível
+                const secAtivos = document.getElementById('section-planejamentos-ativos-view');
+                if (secAtivos && secAtivos.style.display === 'block' && window.renderPlanejamentosAtivosV3) {
+                    await window.renderPlanejamentosAtivosV3();
+                } else if (window.carregarPlanejamentoEstrategicov3) {
+                    await window.carregarPlanejamentoEstrategicov3();
+                }
             } else {
                 throw new Error('Falha ao salvar meta');
             }
