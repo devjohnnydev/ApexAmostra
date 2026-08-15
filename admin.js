@@ -16916,7 +16916,23 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.abrirModalPlanejamentosSalvosV3 = async function() {
-        document.getElementById('modal-estrategiav3-planos').style.display = 'flex';
+        let modal = document.getElementById('modal-estrategiav3-planos');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'modal-estrategiav3-planos';
+            modal.className = 'fullscreen-overlay';
+            modal.style.cssText = 'display:none; align-items:center; justify-content:center; z-index:9999999; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85);';
+            modal.innerHTML = `
+                <div class="noble-card" style="width:90%; max-width:900px; max-height:90vh; overflow-y:auto; position:relative; background:#0d1826; border:1px solid #1a2e3f; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.8); padding:20px;">
+                    <button class="btn-close" onclick="document.getElementById('modal-estrategiav3-planos').style.display='none'" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:#ff4d4d; font-size:1.5rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                    <h2 style="margin:0 0 20px 0; color:#fff; border-bottom:1px solid #1a2e3f; padding-bottom:10px;"><i class="fa-solid fa-folder-open" style="color:#00e5ff;"></i> Planejamentos Salvos (Estratégico V3)</h2>
+                    <div id="lista-estrategiav3-planos"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        modal.style.display = 'flex';
         const lista = document.getElementById('lista-estrategiav3-planos');
         lista.innerHTML = '<div style="color:#aaa; text-align:center;">Carregando...</div>';
         try {
@@ -16985,10 +17001,13 @@ window.carregarFinanceiroView = async function() {
 
         } catch(e) {
             console.error('ERRO ABRIR MODAL:', e);
-            lista.innerHTML = `<div style="color:#ff4d4d; text-align:center; padding: 20px;">
-                <b>Erro ao carregar planejamentos salvos.</b><br><br>
-                ${e.message}<br>${e.stack}
-            </div>`;
+            alert('Erro interno ao abrir modal: ' + e.message);
+            if (lista) {
+                lista.innerHTML = `<div style="color:#ff4d4d; text-align:center; padding: 20px;">
+                    <b>Erro ao carregar planejamentos salvos.</b><br><br>
+                    ${e.message}<br>${e.stack}
+                </div>`;
+            }
         }
     };
 
