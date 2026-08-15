@@ -17068,7 +17068,7 @@ window.carregarFinanceiroView = async function() {
                 fecharModalMetaEstrategicav3();
                 
                 // Recarregar conforme a aba visível
-                const secAtivos = document.getElementById('section-planejamentos-ativos-view');
+                const secAtivos = document.getElementById('subaba-estr-ativos');
                 if (secAtivos && secAtivos.style.display === 'block' && window.renderPlanejamentosAtivosV3) {
                     await window.renderPlanejamentosAtivosV3();
                 } else if (window.carregarPlanejamentoEstrategicov3) {
@@ -17098,16 +17098,9 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.abrirModalPlanejamentosSalvosV3 = async function() {
-        // Redireciona chamadas legadas para a nova interface
-        document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        
-        const sView = document.getElementById('section-planejamentos-ativos-view');
-        if(sView) sView.style.display = 'block';
-        const sNav = document.getElementById('nav-planejamentos-ativos');
-        if(sNav) sNav.classList.add('active');
-
-        window.renderPlanejamentosAtivosV3();
+        const navEstrategico = document.getElementById('nav-planejamento-estrategicov3');
+        if (navEstrategico) navEstrategico.click();
+        if (window.alternarSubAbaEstrategico) window.alternarSubAbaEstrategico('ativos');
     };
 
     function formatarMesAnoLabel(mesStr) {
@@ -17192,16 +17185,9 @@ window.carregarFinanceiroView = async function() {
             });
             if (res.ok) {
                 _apexNotify('Sucesso', 'Estratégia salva com sucesso!', 'success');
-                // Switch to the Active Plans view
-                document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                
-                const sView = document.getElementById('section-planejamentos-ativos-view');
-                if(sView) sView.style.display = 'block';
-                const sNav = document.getElementById('nav-planejamentos-ativos');
-                if(sNav) sNav.classList.add('active');
-
-                window.renderPlanejamentosAtivosV3();
+                const navEstrategico = document.getElementById('nav-planejamento-estrategicov3');
+                if (navEstrategico) navEstrategico.click();
+                if (window.alternarSubAbaEstrategico) window.alternarSubAbaEstrategico('ativos');
             } else {
                 throw new Error('Falha ao salvar');
             }
@@ -17487,27 +17473,22 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
-    // Attach click listener for sidebar
-    document.addEventListener('DOMContentLoaded', () => {
-        const navAtivos = document.getElementById('nav-planejamentos-ativos');
-        if (navAtivos) {
-            navAtivos.addEventListener('click', (e) => {
-                e.preventDefault();
-                // Hide all sections
-                document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
-                // Remove active from navs
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                
-                // Show this section
-                const section = document.getElementById('section-planejamentos-ativos-view');
-                if(section) section.style.display = 'block';
-                navAtivos.classList.add('active');
+    window.alternarSubAbaEstrategico = function(aba) {
+        document.getElementById('tab-btn-estr-margens').classList.remove('active');
+        document.getElementById('tab-btn-estr-ativos').classList.remove('active');
 
-                // Render data
-                window.renderPlanejamentosAtivosV3();
-            });
+        document.getElementById('subaba-estr-margens').style.display = 'none';
+        document.getElementById('subaba-estr-ativos').style.display = 'none';
+
+        if (aba === 'margens') {
+            document.getElementById('tab-btn-estr-margens').classList.add('active');
+            document.getElementById('subaba-estr-margens').style.display = 'block';
+        } else if (aba === 'ativos') {
+            document.getElementById('tab-btn-estr-ativos').classList.add('active');
+            document.getElementById('subaba-estr-ativos').style.display = 'block';
+            window.renderPlanejamentosAtivosV3();
         }
-    });
+    };
 
     window.gerarPdfEstrategiaV3 = function(planoId) {
         if (!window._lastPlanosConsultados) return;
