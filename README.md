@@ -1,6 +1,6 @@
-# Apex Tech Metais - Portal Corporativo & Sistema ERP / Painel LME
+# ApexTech Metais - Portal Corporativo & Sistema ERP / Painel LME
 
-Este é o repositório oficial do portal corporativo e sistema ERP de gestão comercial da **Apex Tech Metais**. O projeto evoluiu de uma landing page estática para uma plataforma web completa que inclui servidor backend em Node.js, banco de dados PostgreSQL persistente, controle de estoque inteligente, pedidos de venda, análise de amostras, gestão de fornecedores, web scrapers integrados de cotações de metais e um agendador automatizado de relatórios diários via e-mail (Resend API).
+Este é o repositório oficial do portal corporativo e sistema ERP de gestão comercial da **ApexTech Metais**. O projeto evoluiu de uma landing page estática para uma plataforma web completa que inclui servidor backend em Node.js, banco de dados PostgreSQL persistente, controle de estoque inteligente, pedidos de venda, análise de amostras, gestão de fornecedores, web scrapers integrados de cotações de metais e um agendador automatizado de relatórios diários via e-mail (Resend API).
 
 ---
 
@@ -93,4 +93,4 @@ O portal foi projetado com uma estética visual premium e moderna (Dark Mode), f
 
 ---
 
-> Desenvolvido para a **Apex Tech Metais** com foco em alta performance, usabilidade inteligente e inteligência comercial. 🌿
+> Desenvolvido para a **ApexTech Metais** com foco em alta performance, usabilidade inteligente e inteligência comercial. 🌿

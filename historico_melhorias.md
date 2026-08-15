@@ -1,6 +1,6 @@
-# Histórico de Melhorias Implementadas & Possibilidades Futuras - Apex Tech Metais
+# Histórico de Melhorias Implementadas & Possibilidades Futuras - ApexTech Metais
 
-Este documento apresenta uma visão consolidada de todas as funcionalidades implementadas até o momento no portal corporativo e no painel administrativo da **Apex Tech Metais**, além de mapear as oportunidades de melhorias futuras para evolução tecnológica da plataforma.
+Este documento apresenta uma visão consolidada de todas as funcionalidades implementadas até o momento no portal corporativo e no painel administrativo da **ApexTech Metais**, além de mapear as oportunidades de melhorias futuras para evolução tecnológica da plataforma.
 
 ---
 
@@ -37,7 +37,7 @@ Este documento apresenta uma visão consolidada de todas as funcionalidades impl
 
 ## 🚀 Possibilidades de Melhorias Futuras (Backlog de Evolução)
 
-Para continuar evoluindo a plataforma e adicionando valor ao negócio da Apex Tech Metais, sugerimos as seguintes melhorias técnicas e funcionais:
+Para continuar evoluindo a plataforma e adicionando valor ao negócio da ApexTech Metais, sugerimos as seguintes melhorias técnicas e funcionais:
 
 ### 1. Autenticação e Segurança Avançada
 - **Criptografia e JWT**: Substituir a verificação de login simples de administrador por autenticação JWT (JSON Web Tokens) e senhas armazenadas com hash criptográfico forte (`bcrypt`).

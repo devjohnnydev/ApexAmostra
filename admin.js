@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tsEl.style.cssText = 'font-size:9pt;color:#555;margin-bottom:8px;text-align:right;font-family:Calibri,sans-serif;border-bottom:1px solid #ccc;padding-bottom:6px;';
                     area.insertBefore(tsEl, area.firstChild);
                 }
-                tsEl.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
+                tsEl.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
 
                 window.print();
             });
@@ -2668,7 +2668,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const rodape = document.getElementById('rel-rodape');
             if (rodape) {
-                rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
+                rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
                 rodape.style.display = 'block';
             }
 
@@ -3448,7 +3448,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
+                    rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
                     rodape.style.display = 'block';
                 }
 
@@ -5658,7 +5658,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e4e8c; padding-bottom: 20px; margin-bottom: 25px;">
                         <div>
-                            <img src="assets/img/apexlogo.png" alt="Apex Tech Metais" style="height: 60px;">
+                            <img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height: 60px;">
                         </div>
                         <div style="text-align: right;">
                             <h1 style="margin: 0; color: #1e4e8c; font-size: ${isCompleta ? '1.6rem' : '1.8rem'}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${tituloPdf}</h1>
@@ -5777,7 +5777,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ✅ Aprovado pelo CEO Jose Tiago
                         </div>
                         <div style="text-align: right; color: #888;">
-                            Documento oficial Apex Tech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
+                            Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
                         </div>
                     </div>
                 </div>
@@ -14108,7 +14108,7 @@ window.carregarFinanceiroView = async function() {
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
-        doc.text('APEX TECH METAIS', 14, 14);
+        doc.text('APEXTECH METAIS', 14, 14);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
@@ -14134,7 +14134,7 @@ window.carregarFinanceiroView = async function() {
         
         doc.setFontSize(8);
         doc.setTextColor(p.cliente_id ? 42 : 180, p.cliente_id ? 150 : 120, p.cliente_id ? 80 : 20);
-        doc.text(`[ ${cliStatusText} ]`, 192, 40, { align: 'right' });
+        // Removed status text
 
         doc.setTextColor(40, 40, 40);
         doc.setFontSize(9);
@@ -14288,7 +14288,7 @@ window.carregarFinanceiroView = async function() {
         doc.setFontSize(8);
         doc.setTextColor(80, 80, 80);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Apex Tech Metais — Emissor: ${p.criado_por || 'Admin'}`, 55, sigY + 5, { align: 'center' });
+        doc.text(`ApexTech Metais — Emissor: ${p.criado_por || 'Admin'}`, 55, sigY + 5, { align: 'center' });
         doc.text('Aceito e De Acordo (Cliente)', 155, sigY + 5, { align: 'center' });
 
         // Aplicar Marca d'água oficial em todas as páginas
@@ -14304,7 +14304,7 @@ window.carregarFinanceiroView = async function() {
             doc.setPage(i);
             doc.setFontSize(7.5);
             doc.setTextColor(130, 130, 130);
-            doc.text(`Apex Tech Metais — Documento de Pedido de Venda ${p.numero || ''} | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text(`ApexTech Metais — Documento de Pedido de Venda ${p.numero || ''} | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
         }
 
         doc.save(`Pedido_Venda_${p.numero || 'PV'}.pdf`);
@@ -14474,7 +14474,7 @@ window.carregarFinanceiroView = async function() {
                 pdf.setTextColor(255, 255, 255);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(10);
-                pdf.text('APEX TECH METAIS — RELATÓRIO BI & DESEMPENHO OPERACIONAL', 8, 8.5);
+                pdf.text('APEXTECH METAIS — RELATÓRIO BI & DESEMPENHO OPERACIONAL', 8, 8.5);
                 pdf.setFontSize(8);
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(`Emissão: ${dateStr}`, pdfWidth - 8, 8.5, { align: 'right' });

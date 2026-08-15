@@ -1,5 +1,5 @@
 /**
- * Apex Tech Metais — Partials compartilhados (header + footer)
+ * ApexTech Metais — Partials compartilhados (header + footer)
  * Inclua este script em cada página logo após o <body>.
  * Defina window.CURRENT_PAGE com o nome da página ativa para marcar o menu.
  */
@@ -41,7 +41,7 @@
                 <div class="logo-wrap">
                     <a href="/index.html" class="link_logo">
                         <img src="https://apextechmetais.com.br/wp-content/uploads/2024/07/logo-apextech.svg"
-                             alt="Apex Tech Metais" title="Apex Tech Metais" class="img-logo-desktop">
+                             alt="ApexTech Metais" title="ApexTech Metais" class="img-logo-desktop">
                     </a>
                 </div>
 
@@ -83,7 +83,7 @@
     <!-- Mobile / Full Menu Drawer -->
     <div class="mobile-drawer" id="mobile-drawer">
         <div class="mobile-drawer-header">
-            <img src="https://apextechmetais.com.br/wp-content/uploads/2024/07/logo-apextech.svg" alt="Apex Tech Metais" class="mobile-logo">
+            <img src="https://apextechmetais.com.br/wp-content/uploads/2024/07/logo-apextech.svg" alt="ApexTech Metais" class="mobile-logo">
             <button class="btn-close-menu" id="btn-close-menu" aria-label="Fechar menu">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -116,7 +116,7 @@
             <div class="footer-col footer-col-logo">
                 <div class="footer_column footer_column_1">
                     <img src="https://apextechmetais.com.br/wp-content/uploads/2024/07/logo-apextech.svg"
-                         alt="Apex Tech Metais" class="footer-logo">
+                         alt="ApexTech Metais" class="footer-logo">
                     <ul class="redes-sociais footer-social">
                         <li class="rede-social-facebook-item">
                             <a href="https://www.facebook.com/apextechmetais" target="_blank" class="rede-social-facebook" aria-label="Facebook">
@@ -209,7 +209,7 @@
         </div>
         <div class="chatbot-title">
             <h4>Assistente Virtual</h4>
-            <p>Apex Tech Metais</p>
+            <p>ApexTech Metais</p>
         </div>
         <button id="chatbot-close"><i class="fa-solid fa-xmark"></i></button>
     </div>
@@ -249,7 +249,7 @@
       const bannerData = {
         'sobre': { 
             title: 'Sobre Nós', 
-            desc: 'Apex Tech Metais - Tradição e Inovação na Gestão de Resíduos',
+            desc: 'ApexTech Metais - Tradição e Inovação na Gestão de Resíduos',
             img: 'https://images.unsplash.com/photo-1518557984649-7b161c230cfa?auto=format&fit=crop&w=1920&q=80'
         },
         'servicos': { 

@@ -3493,7 +3493,7 @@ app.post('/api/chat', async (req, res) => {
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
                 messages: [
-                    { role: 'system', content: systemPrompt || 'Você é o assistente virtual da Apex Tech Metais.' },
+                    { role: 'system', content: systemPrompt || 'Você é o assistente virtual da ApexTech Metais.' },
                     { role: 'user', content: message }
                 ],
                 temperature: 0.7,
@@ -6128,7 +6128,7 @@ app.get('/api/admin/run-import-fornecedores', (req, res) => {
 
 initDatabase().then(() => {
     app.listen(PORT, () => {
-        console.log(`🌿 Servidor da Apex Tech Metais rodando em http://localhost:${PORT}`);
+        console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
         console.log(`📦 Modo de dados: ${dbAvailable ? 'PostgreSQL' : 'Memória (local)'}`);
         startEmailScheduler();
     });
