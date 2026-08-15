@@ -16944,28 +16944,28 @@ window.carregarFinanceiroView = async function() {
                                 const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
                                 const atingidoPct = it.faturamento_alvo > 0 ? ((it.faturamento_realizado / it.faturamento_alvo) * 100) : 0;
                                 const barColor = atingidoPct >= 100 ? '#2AD07A' : (atingidoPct > 50 ? '#ffb74d' : '#ff4d4d');
-                                return \`
+                                return `
                                 <tr style="border-bottom:1px solid #1a2e3f;">
-                                    <td style="padding:6px 4px; color:#fff;">\${mNome}</td>
-                                    <td style="padding:6px 4px; text-align:center; color:#2AD07A;">\${it.fracao_pct}%</td>
-                                    <td style="padding:6px 4px; text-align:right; color:#00e5ff;">R$ \${window.fmtBRL(it.faturamento_alvo)}</td>
+                                    <td style="padding:6px 4px; color:#fff;">${mNome}</td>
+                                    <td style="padding:6px 4px; text-align:center; color:#2AD07A;">${it.fracao_pct}%</td>
+                                    <td style="padding:6px 4px; text-align:right; color:#00e5ff;">R$ ${window.fmtBRL(it.faturamento_alvo)}</td>
                                     <td style="padding:6px 4px; text-align:right;">
-                                        <input type="text" id="plestv3-realizado-\${it.id}" value="\${window.fmtBRL(it.faturamento_realizado)}" class="noble-input" style="width:90px; text-align:right; padding:4px; margin:0;" oninput="window.maskCurrencyV3(this)">
+                                        <input type="text" id="plestv3-realizado-${it.id}" value="${window.fmtBRL(it.faturamento_realizado)}" class="noble-input" style="width:90px; text-align:right; padding:4px; margin:0;" oninput="window.maskCurrencyV3(this)">
                                     </td>
                                     <td style="padding:6px 4px; text-align:center;">
                                         <div style="background:#0d1826; border-radius:4px; height:8px; width:60px; display:inline-block; overflow:hidden; border:1px solid #1c2e3d;">
-                                            <div style="background:\${barColor}; height:100%; width:\${Math.min(atingidoPct, 100)}%;"></div>
+                                            <div style="background:${barColor}; height:100%; width:${Math.min(atingidoPct, 100)}%;"></div>
                                         </div>
-                                        <div style="font-size:0.7rem; color:\${barColor};">\${atingidoPct.toFixed(1)}%</div>
+                                        <div style="font-size:0.7rem; color:${barColor};">${atingidoPct.toFixed(1)}%</div>
                                     </td>
                                     <td style="padding:6px 4px; text-align:center;">
-                                        <button onclick="window.atualizarRealizadoV3(\${it.id})" style="background:#1a2e3f; color:#fff; border:1px solid #3e7cb1; padding:4px 8px; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-check"></i> Salvar</button>
+                                        <button onclick="window.atualizarRealizadoV3(${it.id})" style="background:#1a2e3f; color:#fff; border:1px solid #3e7cb1; padding:4px 8px; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-check"></i> Salvar</button>
                                     </td>
-                                </tr>\`;
+                                </tr>`;
                             }).join('')}
                         </tbody>
                     </table>
-                </div>\`;
+                </div>`;
             }).join('');
             
             // Gravar em window para PDF usar depois
@@ -16978,12 +16978,12 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.atualizarRealizadoV3 = async function(mixId) {
-        const inp = document.getElementById(\`plestv3-realizado-\${mixId}\`);
+        const inp = document.getElementById(`plestv3-realizado-${mixId}`);
         if (!inp) return;
-        const valLimpo = inp.value.replace(/\\./g, '').replace(',', '.');
+        const valLimpo = inp.value.replace(/\./g, '').replace(',', '.');
         const fatReal = parseFloat(valLimpo) || 0;
         try {
-            const res = await fetch(\`/api/estrategiav3_mix/\${mixId}/realizado\`, {
+            const res = await fetch(`/api/estrategiav3_mix/${mixId}/realizado`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ faturamento_realizado: fatReal })
             });
@@ -17024,10 +17024,10 @@ window.carregarFinanceiroView = async function() {
         
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(\`Titulo: \${plano.titulo}\`, 15, 42);
-        doc.text(\`Periodo: \${window.fmtD(plano.data_inicial)} a \${window.fmtD(plano.data_final)}\`, 15, 48);
-        doc.text(\`Meta Global (R$): R$ \${window.fmtBRL(plano.meta_faturamento)}\`, 15, 54);
-        doc.text(\`Estrategia: \${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}\`, 15, 60);
+        doc.text(`Titulo: ${plano.titulo}`, 15, 42);
+        doc.text(`Periodo: ${window.fmtD(plano.data_inicial)} a ${window.fmtD(plano.data_final)}`, 15, 48);
+        doc.text(`Meta Global (R$): R$ ${window.fmtBRL(plano.meta_faturamento)}`, 15, 54);
+        doc.text(`Estrategia: ${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}`, 15, 60);
 
         const headers = [['Produto', 'Mix (%)', 'Meta Alvo (R$)', 'Realizado (R$)', '% Atingido']];
         const body = plano.itens.map(it => {
@@ -17053,9 +17053,9 @@ window.carregarFinanceiroView = async function() {
 
         const finalY = doc.lastAutoTable.finalY + 15;
         doc.setFontSize(9);
-        doc.text(\`Relatorio gerado em: \${new Date().toLocaleString('pt-BR')} — ApexTech Metais\`, 15, finalY);
+        doc.text(`Relatorio gerado em: ${new Date().toLocaleString('pt-BR')} — ApexTech Metais`, 15, finalY);
 
-        doc.save(\`Planejamento_\${plano.titulo.replace(/\\s+/g, '_')}.pdf\`);
+        doc.save(`Planejamento_${plano.titulo.replace(/\s+/g, '_')}.pdf`);
     };
 
 })();
