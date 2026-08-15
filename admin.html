@@ -3502,45 +3502,12 @@
                 </div>
 
 
-                <div id="plestv3-view-12meses">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Projeção de 12 Meses Consolidados</h3>
-                            <span style="font-size:0.8rem; color:#aaa;">Ciclo anual de metas faturamento vs realizado.</span>
-                        </div>
-                    </div>
 
-                    <div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
-                        <div style="overflow-x:auto;">
-                            <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                                <thead>
-                                    <tr style="background:#162433; text-align:left; color:#fff;">
-                                        <th style="padding:10px 8px;">Mês Referência</th>
-                                        <th style="padding:10px 8px; text-align:right;">Meta Faturamento (R$)</th>
-                                        <th style="padding:10px 8px; text-align:center;">Margem Desejada</th>
-                                        <th style="padding:10px 8px; text-align:right;">Teto Custo Insumo (R$)</th>
-                                        <th style="padding:10px 8px; text-align:right;">Meta Compra (kg)</th>
-                                        <th style="padding:10px 8px; text-align:right;">Realizado Consolidado (kg)</th>
-                                        <th style="padding:10px 8px; text-align:center;">Atingimento</th>
-                                        <th style="padding:10px 8px; text-align:center;">Status</th>
-                                        <th style="padding:10px 8px; text-align:center;">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="plestv3-12meses-tbody">
-                                    <!-- Preenchido via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- TELA 2: DETALHES DO MÊS SELECIONADO (V3) -->
-                <div id="plestv3-view-detalhes-mes" style="display:none;">
+                <!-- TELA: DETALHES DO MÊS SELECIONADO (V3) -->
+                <div id="plestv3-view-detalhes-mes" style="display:block;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                         <div style="display:flex; align-items:center; gap:12px;">
-                            <button onclick="voltarPara12MesesEstrategicov3()" class="btn-secondary" style="font-size:0.8rem; padding:6px 12px; background:#1b382b; border-color:#2AD07A; color:#2AD07A;">
-                                <i class="fa-solid fa-arrow-left"></i> Voltar aos 12 Meses
-                            </button>
                             <div>
                                 <h3 style="margin:0; color:#fff;" id="plestv3-txt-mes-ativo">Planejamento Estratégico V3 — Mês</h3>
                                 <span style="font-size:0.8rem; color:#aaa;">Simulação baseada na Tabela de Preços e modalidade operacional selecionada.</span>
@@ -5581,7 +5548,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=1824"></script>
+    <script src="admin.js?v=1825"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->

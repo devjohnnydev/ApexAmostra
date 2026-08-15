@@ -15776,11 +15776,11 @@ window.carregarFinanceiroView = async function() {
             window.onChangeConsultaMaterialV3();
             window.recalcularSimulacaoV3();
 
-            if (_mesV3Ativo) {
-                renderDashboardEstrategicov3();
-            } else {
-                renderVisualizacao12Mesesv3();
+            if (!_mesV3Ativo) {
+                const today = new Date();
+                _mesV3Ativo = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
             }
+            window.detalharMesEstrategicov3(_mesV3Ativo);
         } catch (e) {
             console.error('Erro ao carregar planejamento V3:', e);
             _apexNotify('Erro', 'Não foi possível carregar os dados estratégicos V3.', 'error');
@@ -16308,19 +16308,15 @@ window.carregarFinanceiroView = async function() {
         }
     }
 
-    window.voltarPara12MesesEstrategicov3 = function() {
-
-        _mesV3Ativo = null;
-        document.getElementById('plestv3-view-12meses').style.display = 'block';
-        document.getElementById('plestv3-view-detalhes-mes').style.display = 'none';
-        renderVisualizacao12Mesesv3();
-    };
-
     window.detalharMesEstrategicov3 = function(mes) {
         _mesV3Ativo = mes;
-        document.getElementById('plestv3-view-12meses').style.display = 'none';
-        document.getElementById('plestv3-view-detalhes-mes').style.display = 'block';
-        document.getElementById('plestv3-txt-mes-ativo').innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Planejamento Estratégico V3 — ${formatarMesAnoLabel(mes)}`;
+        const divDet = document.getElementById('plestv3-view-detalhes-mes');
+        if (divDet) divDet.style.display = 'block';
+        
+        const textAtivo = document.getElementById('plestv3-txt-mes-ativo');
+        if (textAtivo) {
+            textAtivo.innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Planejamento Estratégico V3 — ${formatarMesAnoLabel(mes)}`;
+        }
         
         const selectProd = document.getElementById('plestv3-select-produto');
         if (selectProd && !selectProd.value && _listTabelaPrecosEstrategica.length > 0) {
@@ -16329,98 +16325,6 @@ window.carregarFinanceiroView = async function() {
 
         renderDashboardEstrategov3();
     };
-
-    function renderVisualizacao12Mesesv3() {
-        const tbody = document.getElementById('plestv3-12meses-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        const listMeses = [];
-        let startYear = 2026;
-        let startMonth = 8; // Agosto
-
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1;
-
-        for (let i = 0; i < 12; i++) {
-            const m = String(startMonth).padStart(2, '0');
-            listMeses.push(`${startYear}-${m}`);
-            startMonth++;
-            if (startMonth > 12) { startMonth = 1; startYear++; }
-        }
-
-        listMeses.forEach(mesKey => {
-            const metasMes = _listMetasV3.filter(m => m.mes === mesKey);
-
-            let totalFaturamentoMeta = 0;
-            let totalTetoCusto = 0;
-            let totalMetaCompra = 0;
-            let totalRealizado = 0;
-            let somaMargem = 0;
-
-            metasMes.forEach(meta => {
-                const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === meta.material_id);
-                if (tp) {
-                    const pInsumo = meta.operacao === 'retirada' 
-                        ? parseFloat(tp.preco_compra_coletar || tp.preco_compra || 0)
-                        : parseFloat(tp.preco_compra_entregar || tp.preco_compra_coletar || 0);
-
-                    const metaFat = parseFloat(meta.meta_faturamento || 0);
-                    const margem = parseFloat(meta.margem_desejada || 0);
-                    const tetoCusto = metaFat * (1 - margem/100);
-                    const metaCompra = pInsumo > 0 ? (tetoCusto / pInsumo) : 0;
-
-                    totalFaturamentoMeta += metaFat;
-                    totalTetoCusto += tetoCusto;
-                    totalMetaCompra += metaCompra;
-                    totalRealizado += parseFloat(meta.qtd_realizado || 0);
-                    somaMargem += margem;
-                }
-            });
-
-            const margemMedia = metasMes.length > 0 ? (somaMargem / metasMes.length) : 0;
-            const atingimentoPct = totalMetaCompra > 0 ? (totalRealizado / totalMetaCompra) * 100 : 0;
-
-            let statusStr = '';
-            let statusCor = '';
-            const [y, m] = mesKey.split('-').map(Number);
-            const isFuturo = (y > currentYear) || (y === currentYear && m > currentMonth);
-            const isAtual = (y === currentYear && m === currentMonth);
-
-            if (totalRealizado === 0 && isFuturo) {
-                statusStr = 'NÃO INICIADO';
-                statusCor = '#aaa';
-            } else if (isAtual) {
-                statusStr = 'EM ANDAMENTO';
-                statusCor = '#00e5ff';
-            } else if (atingimentoPct >= 100) {
-                statusStr = atingimentoPct > 100 ? 'META SUPERADA' : 'META ATINGIDA';
-                statusCor = '#2AD07A';
-            } else {
-                statusStr = 'ABAIXO DA META';
-                statusCor = '#ff4d4d';
-            }
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding:10px 8px;"><strong>${formatarMesAnoLabel(mesKey)}</strong></td>
-                <td style="padding:10px 8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${totalFaturamentoMeta.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:#3e7cb1;">${margemMedia.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
-                <td style="padding:10px 8px; text-align:right; color:#ffb74d;">R$ ${totalTetoCusto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                <td style="padding:10px 8px; text-align:right;">${totalMetaCompra.toLocaleString('pt-BR', {minimumFractionDigits: 1})} kg</td>
-                <td style="padding:10px 8px; text-align:right; color:#fff;">${totalRealizado.toLocaleString('pt-BR', {minimumFractionDigits: 1})} kg</td>
-                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%</td>
-                <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${statusCor};">${statusStr}</td>
-                <td style="padding:10px 8px; text-align:center;">
-                    <button onclick="detalharMesEstrategicov3('${mesKey}')" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826; font-weight:bold;">
-                        <i class="fa-solid fa-magnifying-glass"></i> Detalhar Mês
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
 
     window.onSelectProdutoEstrategicov3 = function() {
         if (_mesV3Ativo) renderDashboardEstrategov3();
