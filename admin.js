@@ -15759,33 +15759,115 @@ window.carregarFinanceiroView = async function() {
 
     window.carregarPlanejamentoEstrategicov3 = async function() {
         try {
-            // Buscar tabela de preços e metas V3 cadastradas
-            const [resPrecos, resMetas] = await Promise.all([
-                fetch('/api/tabela-precos'),
-                fetch('/api/planejamento-estrategicov3')
-            ]);
-            
+            const resPrecos = await fetch('/api/tabela-precos');
             _listTabelaPrecosEstrategica = await resPrecos.json();
-            const rawMetas = await resMetas.json();
-            _listMetasV3 = Array.isArray(rawMetas) ? rawMetas : [];
-
-            // Popular combos
-            popularSelectsProdutoEstrategicov3();
-
-            // Inicializar simulações
-            window.onChangeConsultaMaterialV3();
-            window.recalcularSimulacaoV3();
-
-            if (!_mesV3Ativo) {
-                const today = new Date();
-                _mesV3Ativo = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
-            }
-            window.detalharMesEstrategicov3(_mesV3Ativo);
+            
+            // Renderiza o Dashboard de Margens
+            window.renderDashboardVisuaisEstrategicoV3();
         } catch (e) {
             console.error('Erro ao carregar planejamento V3:', e);
             _apexNotify('Erro', 'Não foi possível carregar os dados estratégicos V3.', 'error');
         }
     };
+
+    window.renderDashboardVisuaisEstrategicoV3 = function() {
+        if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) return;
+
+        let totalMargem = 0;
+        let produtosValidos = 0;
+        
+        const dadosGrafico = _listTabelaPrecosEstrategica.map(tp => {
+            const pVenda = parseFloat(tp.preco_venda || tp.venda_ref || 0);
+            const pCompra = parseFloat(tp.preco_entregar || tp.preco_compra || tp.preco_compra_coletar || 0);
+            let margem = 0;
+            if (pVenda > 0) {
+                margem = ((pVenda - pCompra) / pVenda) * 100;
+                totalMargem += margem;
+                produtosValidos++;
+            }
+            return {
+                nome: tp.material_nome || 'Produto ' + tp.material_id,
+                margem: margem,
+                pVenda: pVenda,
+                pCompra: pCompra
+            };
+        }).filter(p => p.pVenda > 0);
+
+        dadosGrafico.sort((a, b) => b.margem - a.margem);
+
+        const margemMedia = produtosValidos > 0 ? (totalMargem / produtosValidos) : 0;
+        document.getElementById('dash-margem-media').textContent = margemMedia.toFixed(1) + '%';
+        document.getElementById('dash-margem-total-produtos').textContent = dadosGrafico.length;
+
+        if (dadosGrafico.length > 0) {
+            const melhor = dadosGrafico[0];
+            document.getElementById('dash-margem-maior-val').textContent = melhor.margem.toFixed(1) + '%';
+            document.getElementById('dash-margem-maior-nome').textContent = melhor.nome;
+            
+            const pior = dadosGrafico[dadosGrafico.length - 1];
+            document.getElementById('dash-margem-menor-val').textContent = pior.margem.toFixed(1) + '%';
+            document.getElementById('dash-margem-menor-nome').textContent = pior.nome;
+        }
+
+        const top10 = dadosGrafico.slice(0, 10);
+        const worst10 = [...dadosGrafico].reverse().slice(0, 10);
+
+        renderChartMargem('chart-margin-top10', top10, '#2AD07A', 'Maiores Margens Brutas (%)');
+        renderChartMargem('chart-margin-worst10', worst10, '#ff4d4d', 'Menores Margens Brutas (%)');
+    };
+
+    let chartMarginTop10Instance = null;
+    let chartMarginWorst10Instance = null;
+
+    function renderChartMargem(canvasId, dados, cor, labelStr) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+
+        const labels = dados.map(d => d.nome);
+        const values = dados.map(d => parseFloat(d.margem.toFixed(1)));
+
+        if (canvasId === 'chart-margin-top10' && chartMarginTop10Instance) chartMarginTop10Instance.destroy();
+        if (canvasId === 'chart-margin-worst10' && chartMarginWorst10Instance) chartMarginWorst10Instance.destroy();
+
+        const chartConfig = {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: labelStr,
+                    data: values,
+                    backgroundColor: cor,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#1a2e3f' },
+                        ticks: { color: '#8eaabf', callback: function(value) { return value + '%' } } 
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: '#8eaabf', maxRotation: 45, minRotation: 45 } 
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) { return ctx.raw + '%'; }
+                        }
+                    }
+                }
+            }
+        };
+
+        if (canvasId === 'chart-margin-top10') chartMarginTop10Instance = new Chart(ctx, chartConfig);
+        if (canvasId === 'chart-margin-worst10') chartMarginWorst10Instance = new Chart(ctx, chartConfig);
+    }
 
     function popularSelectsProdutoEstrategicov3() {
         const selectProd = document.getElementById('plestv3-select-produto');
@@ -17027,6 +17109,18 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
+    window.toggleSimuladorPlanejamento = function() {
+        const wrap = document.getElementById('wrapper-simulador-planejamento');
+        const icon = document.getElementById('icon-toggle-simulador');
+        if (wrap.style.display === 'none' || wrap.style.display === '') {
+            wrap.style.display = 'block';
+            if (icon) icon.className = 'fa-solid fa-chevron-up';
+        } else {
+            wrap.style.display = 'none';
+            if (icon) icon.className = 'fa-solid fa-chevron-down';
+        }
+    };
+
     window.renderPlanejamentosAtivosV3 = async function() {
         const container = document.getElementById('container-planejamentos-ativos');
         if (!container) return;
@@ -17034,6 +17128,27 @@ window.carregarFinanceiroView = async function() {
         container.innerHTML = '<p style="color:#aaa;">Carregando planos ativos...</p>';
 
         try {
+            if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) {
+                const resPrecos = await fetch('/api/tabela-precos');
+                _listTabelaPrecosEstrategica = await resPrecos.json();
+            }
+            
+            // Buscar metas V3 também para alimentar o simulador
+            const resMetas = await fetch('/api/planejamento-estrategicov3');
+            const rawMetas = await resMetas.json();
+            _listMetasV3 = Array.isArray(rawMetas) ? rawMetas : [];
+
+            // Preparar o simulador que agora mora aqui
+            popularSelectsProdutoEstrategicov3();
+            window.onChangeConsultaMaterialV3();
+            window.recalcularSimulacaoV3();
+            
+            if (!_mesV3Ativo) {
+                const today = new Date();
+                _mesV3Ativo = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+            }
+            window.detalharMesEstrategicov3(_mesV3Ativo);
+
             const res = await fetch('/api/estrategiav3_planos');
             if(!res.ok) throw new Error('Falha ao buscar planos');
             const data = await res.json();
