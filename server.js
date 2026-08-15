@@ -699,16 +699,18 @@ async function initDatabase() {
                 cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00,
                 criado_em TIMESTAMP DEFAULT NOW()
             );
+        `);
 
-            try {
-                await client.query(`
-                    ALTER TABLE estrategiav3_planos 
-                    ADD COLUMN IF NOT EXISTS cenario_conservador_pct NUMERIC(5,2) DEFAULT 80.00,
-                    ADD COLUMN IF NOT EXISTS cenario_moderado_pct NUMERIC(5,2) DEFAULT 100.00,
-                    ADD COLUMN IF NOT EXISTS cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00;
-                `);
-            } catch(e) {}
+        try {
+            await client.query(`
+                ALTER TABLE estrategiav3_planos 
+                ADD COLUMN IF NOT EXISTS cenario_conservador_pct NUMERIC(5,2) DEFAULT 80.00,
+                ADD COLUMN IF NOT EXISTS cenario_moderado_pct NUMERIC(5,2) DEFAULT 100.00,
+                ADD COLUMN IF NOT EXISTS cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00;
+            `);
+        } catch(e) {}
 
+        await client.query(`
             CREATE TABLE IF NOT EXISTS estrategiav3_mix (
                 id SERIAL PRIMARY KEY,
                 plano_id INTEGER REFERENCES estrategiav3_planos(id) ON DELETE CASCADE,
