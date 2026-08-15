@@ -8567,13 +8567,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.carregarPlanejamentoDashboard = async function() {
         try {
             if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) {
-                const resPrecos = await fetch('/api/tabela-precos');
+                const resPrecos = await fetch('/api/tabela-precos', { cache: 'no-store' });
                 if (resPrecos.ok) {
                     _listTabelaPrecosEstrategica = await resPrecos.json();
                 }
             }
 
-            const res = await fetch('/api/estrategiav3_planos');
+            const res = await fetch('/api/estrategiav3_planos', { cache: 'no-store' });
             const data = await res.json();
             if (!data.success) throw new Error('Falha ao buscar planos ativos');
             
