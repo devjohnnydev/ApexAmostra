@@ -16839,6 +16839,19 @@ window.carregarFinanceiroView = async function() {
         return (nomes[mesIdx] || '') + ' / ' + ano;
     }
 
+    window.fmtD = function(d) {
+        if (!d) return '-'; 
+        try { 
+            const parts = d.split('-');
+            if(parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return new Date(d).toLocaleDateString('pt-BR', {timeZone:'UTC'}); 
+        } catch(e){ 
+            return d; 
+        }
+    };
+
     window.maskCurrencyV3 = function(input) {
         let value = input.value;
         value = value.replace(/\D/g, ""); 
