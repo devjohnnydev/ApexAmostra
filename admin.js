@@ -8625,6 +8625,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (e) {
             console.error('Erro ao carregar Dashboard de Planejamento:', e);
+            const errDiv = document.createElement('div');
+            errDiv.style = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,0,0,0.8); color:white; z-index:999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:24px; padding:20px; white-space:pre-wrap;";
+            errDiv.innerText = "FATAL ERROR DASHBOARD:\n" + (e.stack || e.message || String(e));
+            document.body.appendChild(errDiv);
+            alert("ERRO: " + e.message);
         }
     };
 
