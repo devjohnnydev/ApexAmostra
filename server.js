@@ -2743,7 +2743,7 @@ app.get('/api/estrategiav3_planos', async (req, res) => {
                 itens: mix.filter(m => m.plano_id === p.id)
             };
         });
-        res.json(resultado);
+        res.json({ success: true, planos: resultado });
     } catch (err) {
         console.warn('⚠️ Erro GET estrategiav3_planos', err.message);
         res.status(500).json({ error: 'Erro ao buscar planos' });
