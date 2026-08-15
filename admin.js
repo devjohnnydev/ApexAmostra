@@ -16945,6 +16945,19 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
+    window.abrirModalPlanejamentosSalvosV3 = async function() {
+        // Redireciona chamadas legadas para a nova interface
+        document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        
+        const sView = document.getElementById('section-planejamentos-ativos-view');
+        if(sView) sView.style.display = 'block';
+        const sNav = document.getElementById('nav-planejamentos-ativos');
+        if(sNav) sNav.classList.add('active');
+
+        window.renderPlanejamentosAtivosV3();
+    };
+
     function formatarMesAnoLabel(mesStr) {
         if (!mesStr) return '';
         const parts = mesStr.split('-');
@@ -17052,21 +17065,61 @@ window.carregarFinanceiroView = async function() {
         const inp = document.getElementById(`plestv3-realizado-${mixId}`);
         if (!inp) return;
         const valLimpo = inp.value.replace(/\./g, '').replace(',', '.');
-        const fatReal = parseFloat(valLimpo) || 0;
+        const numVal = parseFloat(valLimpo) || 0;
         try {
             const res = await fetch(`/api/estrategiav3_mix/${mixId}/realizado`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ faturamento_realizado: fatReal })
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ faturamento_realizado: numVal })
             });
             if (res.ok) {
-                _apexNotify('Sucesso', 'Realizado atualizado!', 'success');
-                window.abrirModalPlanejamentosSalvosV3();
+                _apexNotify('Sucesso', 'Realizado salvo!', 'success');
+                
+                // --- SCENARIO VALIDATION LOGIC ---
+                const fetchRes = await fetch('/api/estrategiav3_planos');
+                if (fetchRes.ok) {
+                    const data = await fetchRes.json();
+                    if(data.success && data.planos) {
+                        let currentPlan = null;
+                        for(let p of data.planos) {
+                            if(p.itens.find(i => i.id === mixId)) {
+                                currentPlan = p;
+                                break;
+                            }
+                        }
+                        
+                        if(currentPlan) {
+                            let totalReal = 0;
+                            currentPlan.itens.forEach(it => { totalReal += parseFloat(it.faturamento_realizado) || 0; });
+                            
+                            const metaAlvo = parseFloat(currentPlan.meta_faturamento) || 0;
+                            const consPct = parseFloat(currentPlan.cenario_conservador_pct) || 80;
+                            const modPct = parseFloat(currentPlan.cenario_moderado_pct) || 100;
+                            const agrPct = parseFloat(currentPlan.cenario_agressivo_pct) || 120;
+                            
+                            const tCons = metaAlvo * (consPct / 100);
+                            const tMod = metaAlvo * (modPct / 100);
+                            const tAgr = metaAlvo * (agrPct / 100);
+
+                            if (metaAlvo > 0) {
+                                if (totalReal >= tAgr) {
+                                    _apexNotify('Cenário Atingido!', `Parabéns! O Cenário AGRESSIVO (${agrPct}%) foi alcançado na estratégia: ${currentPlan.titulo}.`, 'error');
+                                } else if (totalReal >= tMod) {
+                                    _apexNotify('Cenário Atingido!', `Ótimo! O Cenário MODERADO (${modPct}%) foi alcançado na estratégia: ${currentPlan.titulo}.`, 'warning');
+                                } else if (totalReal >= tCons) {
+                                    _apexNotify('Cenário Atingido!', `Muito bem! O Cenário CONSERVADOR (${consPct}%) foi alcançado na estratégia: ${currentPlan.titulo}.`, 'info');
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                window.renderPlanejamentosAtivosV3();
             } else {
-                throw new Error('Falha ao atualizar');
+                throw new Error('Erro PUT');
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'Não foi possível salvar o realizado.', 'error');
+            _apexNotify('Erro', 'Não salvou o realizado.', 'error');
         }
     };
 
