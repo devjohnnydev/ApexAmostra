@@ -694,8 +694,20 @@ async function initDatabase() {
                 frente VARCHAR(50),
                 meta_faturamento NUMERIC(14,2) DEFAULT 0.00,
                 status VARCHAR(50) DEFAULT 'EM ANDAMENTO',
+                cenario_conservador_pct NUMERIC(5,2) DEFAULT 80.00,
+                cenario_moderado_pct NUMERIC(5,2) DEFAULT 100.00,
+                cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00,
                 criado_em TIMESTAMP DEFAULT NOW()
             );
+
+            try {
+                await client.query(`
+                    ALTER TABLE estrategiav3_planos 
+                    ADD COLUMN IF NOT EXISTS cenario_conservador_pct NUMERIC(5,2) DEFAULT 80.00,
+                    ADD COLUMN IF NOT EXISTS cenario_moderado_pct NUMERIC(5,2) DEFAULT 100.00,
+                    ADD COLUMN IF NOT EXISTS cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00;
+                `);
+            } catch(e) {}
 
             CREATE TABLE IF NOT EXISTS estrategiav3_mix (
                 id SERIAL PRIMARY KEY,
@@ -2737,16 +2749,16 @@ app.get('/api/estrategiav3_planos', async (req, res) => {
 });
 
 app.post('/api/estrategiav3_planos', async (req, res) => {
-    const { titulo, data_inicial, data_final, frente, meta_faturamento, mix } = req.body;
+    const { titulo, data_inicial, data_final, frente, meta_faturamento, mix, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct } = req.body;
     try {
         if (!dbAvailable || !pool) throw new Error('DB not available');
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
             const planoRes = await client.query(`
-                INSERT INTO estrategiav3_planos (titulo, data_inicial, data_final, frente, meta_faturamento)
-                VALUES ($1, $2, $3, $4, $5) RETURNING id
-            `, [titulo, data_inicial, data_final, frente, meta_faturamento]);
+                INSERT INTO estrategiav3_planos (titulo, data_inicial, data_final, frente, meta_faturamento, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct)
+                VALUES ($1, $2, $3, $4, $5, COALESCE($6, 80), COALESCE($7, 100), COALESCE($8, 120)) RETURNING id
+            `, [titulo, data_inicial, data_final, frente, meta_faturamento, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct]);
             const planoId = planoRes.rows[0].id;
 
             for (let item of mix) {
@@ -2766,6 +2778,31 @@ app.post('/api/estrategiav3_planos', async (req, res) => {
     } catch (err) {
         console.error('⚠️ Erro POST estrategiav3_planos', err);
         res.status(500).json({ error: 'Erro ao salvar plano estratégico' });
+    }
+});
+
+app.delete('/api/estrategiav3_planos/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+        if (!dbAvailable || !pool) throw new Error('DB not available');
+        await pool.query('DELETE FROM estrategiav3_planos WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('⚠️ Erro DELETE estrategiav3_planos', err);
+        res.status(500).json({ error: 'Erro ao excluir plano' });
+    }
+});
+
+app.put('/api/estrategiav3_planos/:id/status', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { status } = req.body;
+    try {
+        if (!dbAvailable || !pool) throw new Error('DB not available');
+        await pool.query('UPDATE estrategiav3_planos SET status = $1 WHERE id = $2', [status, id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('⚠️ Erro PUT STATUS', err);
+        res.status(500).json({ error: 'Erro ao atualizar status' });
     }
 });
 

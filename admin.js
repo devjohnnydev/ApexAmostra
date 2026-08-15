@@ -16986,6 +16986,10 @@ window.carregarFinanceiroView = async function() {
         const frente = document.getElementById('plestv3-sim-frente')?.value || 'venda';
         const metaFat = document.getElementById('plestv3-sim-meta-faturamento')?.value || '0';
         
+        const cenario_conservador_pct = parseFloat(document.getElementById('plestv3-sim-cenario-conservador')?.value) || 80;
+        const cenario_moderado_pct = parseFloat(document.getElementById('plestv3-sim-cenario-moderado')?.value) || 100;
+        const cenario_agressivo_pct = parseFloat(document.getElementById('plestv3-sim-cenario-agressivo')?.value) || 120;
+
         const fatTotalAlvo = parseFloat(metaFat.replace(/\./g, '').replace(',', '.')) || 0;
 
         if (!titulo || !data_inicial || !data_final || _mixSimulacaoV3.length === 0) {
@@ -16995,6 +16999,7 @@ window.carregarFinanceiroView = async function() {
 
         const payload = {
             titulo, data_inicial, data_final, frente, meta_faturamento: fatTotalAlvo,
+            cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct,
             mix: _mixSimulacaoV3.map(m => {
                 const faturamentoAlvo = fatTotalAlvo * (m.fracaoPct / 100);
                 let pRef = 0; let pCompra = 0;
@@ -17022,7 +17027,16 @@ window.carregarFinanceiroView = async function() {
             });
             if (res.ok) {
                 _apexNotify('Sucesso', 'Estratégia salva com sucesso!', 'success');
-                window.abrirModalPlanejamentosSalvosV3();
+                // Switch to the Active Plans view
+                document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                
+                const sView = document.getElementById('section-planejamentos-ativos-view');
+                if(sView) sView.style.display = 'block';
+                const sNav = document.getElementById('nav-planejamentos-ativos');
+                if(sNav) sNav.classList.add('active');
+
+                window.renderPlanejamentosAtivosV3();
             } else {
                 throw new Error('Falha ao salvar');
             }
@@ -17056,9 +17070,210 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
+    window.renderPlanejamentosAtivosV3 = async function() {
+        const container = document.getElementById('container-planejamentos-ativos');
+        if (!container) return;
+        
+        container.innerHTML = '<p style="color:#aaa;">Carregando planos ativos...</p>';
+
+        try {
+            const res = await fetch('/api/estrategiav3_planos');
+            if(!res.ok) throw new Error('Falha ao buscar planos');
+            const data = await res.json();
+            if(!data.success) throw new Error(data.error);
+
+            if(!data.planos || data.planos.length === 0) {
+                container.innerHTML = '<p style="color:#aaa; text-align:center;">Nenhum planejamento ativo encontrado.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            data.planos.forEach(p => {
+                let htmlItens = '';
+                let totalAlvo = 0;
+                let totalReal = 0;
+
+                p.itens.forEach(it => {
+                    const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
+                    const fAlvo = parseFloat(it.faturamento_alvo) || 0;
+                    const fReal = parseFloat(it.faturamento_realizado) || 0;
+                    
+                    totalAlvo += fAlvo;
+                    totalReal += fReal;
+
+                    const progPct = fAlvo > 0 ? ((fReal / fAlvo) * 100).toFixed(1) : 0;
+                    
+                    htmlItens += `
+                        <tr style="border-bottom:1px solid #1a2e3f;">
+                            <td style="padding:10px;">${mNome}</td>
+                            <td style="padding:10px;">${it.fracao_pct}%</td>
+                            <td style="padding:10px; color:#2AD07A;">R$ ${window.fmtBRL(fAlvo)}</td>
+                            <td style="padding:10px;">
+                                <input type="text" id="plestv3-realizado-${it.id}" class="noble-input" value="${window.fmtBRL(fReal)}" style="width:100px; padding:4px;" oninput="window.maskCurrencyV3(this)" ${p.status === 'FINALIZADO' ? 'disabled' : ''}>
+                            </td>
+                            <td style="padding:10px;">
+                                <div style="width:100%; background:#0d1826; height:6px; border-radius:3px; margin-top:6px;">
+                                    <div style="width:${Math.min(progPct, 100)}%; background:${progPct >= 100 ? '#2AD07A' : '#00e5ff'}; height:100%; border-radius:3px;"></div>
+                                </div>
+                                <small style="color:#aaa; font-size:10px;">${progPct}%</small>
+                            </td>
+                            <td style="padding:10px;">
+                                ${p.status !== 'FINALIZADO' ? `<button onclick="window.atualizarRealizadoV3(${it.id})" style="background:#00e5ff; color:#0d1826; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Salvar Realizado</button>` : '<span style="color:#aaa; font-size:11px;">Finalizado</span>'}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                // Scenario Math
+                const metaAlvo = parseFloat(p.meta_faturamento) || totalAlvo;
+                const consPct = parseFloat(p.cenario_conservador_pct) || 80;
+                const modPct = parseFloat(p.cenario_moderado_pct) || 100;
+                const agrPct = parseFloat(p.cenario_agressivo_pct) || 120;
+                
+                const tCons = metaAlvo * (consPct / 100);
+                const tMod = metaAlvo * (modPct / 100);
+                const tAgr = metaAlvo * (agrPct / 100);
+                
+                const progressToMod = metaAlvo > 0 ? ((totalReal / tMod) * 100).toFixed(1) : 0;
+
+                const cardHTML = `
+                    <div style="background:#162433; border:1px solid #1c2e3d; border-radius:10px; padding:16px; position:relative; opacity: ${p.status === 'FINALIZADO' ? '0.7' : '1'};">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                            <div>
+                                <h3 style="margin:0 0 5px 0; color:#2AD07A; display:flex; align-items:center; gap:8px;">
+                                    ${p.titulo} 
+                                    ${p.status === 'FINALIZADO' ? '<span style="background:#4a4a4a; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">FINALIZADO</span>' : ''}
+                                </h3>
+                                <small style="color:#aaa;">Período: ${window.fmtD(p.data_inicial)} até ${window.fmtD(p.data_final)}</small>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                ${p.status !== 'FINALIZADO' ? `<button onclick="window.finalizarPlanejamentoV3(${p.id})" style="background:#ffb74d; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Finalizar</button>` : ''}
+                                <button onclick="window.gerarPdfEstrategiaV3(${p.id})" style="background:#2AD07A; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                                <button onclick="window.excluirPlanejamentoV3(${p.id})" style="background:#ff4d4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Scenarios Row -->
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:20px;">
+                            <div style="background:#0d1826; border:1px solid #00e5ff; padding:12px; border-radius:8px;">
+                                <h4 style="margin:0 0 8px 0; color:#00e5ff; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
+                                <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tCons)}</div>
+                                ${totalReal >= tCons ? '<div style="margin-top:5px; background:#00e5ff; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            </div>
+                            <div style="background:#0d1826; border:1px solid #ffb74d; padding:12px; border-radius:8px;">
+                                <h4 style="margin:0 0 8px 0; color:#ffb74d; font-size:12px;">MODERADO (${modPct}%)</h4>
+                                <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tMod)}</div>
+                                ${totalReal >= tMod ? '<div style="margin-top:5px; background:#ffb74d; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            </div>
+                            <div style="background:#0d1826; border:1px solid #ff4d4d; padding:12px; border-radius:8px;">
+                                <h4 style="margin:0 0 8px 0; color:#ff4d4d; font-size:12px;">AGRESSIVO (${agrPct}%)</h4>
+                                <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tAgr)}</div>
+                                ${totalReal >= tAgr ? '<div style="margin-top:5px; background:#ff4d4d; color:#fff; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div style="background:#0d1826; border:1px solid #1a2e3f; padding:12px; border-radius:8px; margin-bottom:16px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <span style="color:#aaa; font-size:12px;">Progresso Total (Base Moderado)</span>
+                                <span style="color:#2AD07A; font-weight:bold; font-size:12px;">R$ ${window.fmtBRL(totalReal)} / R$ ${window.fmtBRL(tMod)} (${progressToMod}%)</span>
+                            </div>
+                            <div style="width:100%; background:#162433; height:10px; border-radius:5px; position:relative; overflow:hidden;">
+                                <div style="width:${Math.min(progressToMod, 100)}%; background:linear-gradient(90deg, #00e5ff, #2AD07A); height:100%; border-radius:5px; transition:width 0.5s;"></div>
+                            </div>
+                        </div>
+
+                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px; color:#fff;">
+                            <thead>
+                                <tr style="background:#0d1826; border-bottom:1px solid #2a4158;">
+                                    <th style="padding:10px; color:#aaa;">Produto</th>
+                                    <th style="padding:10px; color:#aaa;">Fração</th>
+                                    <th style="padding:10px; color:#aaa;">Meta (R$)</th>
+                                    <th style="padding:10px; color:#aaa;">Realizado (R$)</th>
+                                    <th style="padding:10px; color:#aaa;">Progresso</th>
+                                    <th style="padding:10px; color:#aaa;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${htmlItens}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+
+            // Store global for PDF generation
+            window._lastPlanosConsultados = data.planos;
+
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = '<p style="color:#ff4d4d;">Erro ao carregar planos.</p>';
+        }
+    };
+
+    window.excluirPlanejamentoV3 = async function(id) {
+        if(!confirm('Tem certeza que deseja excluir este planejamento definitivamente?')) return;
+        try {
+            const res = await fetch(`/api/estrategiav3_planos/${id}`, { method: 'DELETE' });
+            if(res.ok) {
+                _apexNotify('Sucesso', 'Planejamento excluído.', 'success');
+                window.renderPlanejamentosAtivosV3();
+            } else {
+                _apexNotify('Erro', 'Não foi possível excluir.', 'error');
+            }
+        } catch(e) {
+            console.error(e);
+            _apexNotify('Erro', 'Falha na exclusão.', 'error');
+        }
+    };
+
+    window.finalizarPlanejamentoV3 = async function(id) {
+        if(!confirm('Deseja finalizar este planejamento? Você não poderá mais editar os valores realizados.')) return;
+        try {
+            const res = await fetch(`/api/estrategiav3_planos/${id}/status`, { 
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'FINALIZADO' })
+            });
+            if(res.ok) {
+                _apexNotify('Sucesso', 'Planejamento finalizado.', 'success');
+                window.renderPlanejamentosAtivosV3();
+            } else {
+                _apexNotify('Erro', 'Não foi possível finalizar.', 'error');
+            }
+        } catch(e) {
+            console.error(e);
+            _apexNotify('Erro', 'Falha na finalização.', 'error');
+        }
+    };
+
+    // Attach click listener for sidebar
+    document.addEventListener('DOMContentLoaded', () => {
+        const navAtivos = document.getElementById('nav-planejamentos-ativos');
+        if (navAtivos) {
+            navAtivos.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+                // Remove active from navs
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                
+                // Show this section
+                const section = document.getElementById('section-planejamentos-ativos-view');
+                if(section) section.style.display = 'block';
+                navAtivos.classList.add('active');
+
+                // Render data
+                window.renderPlanejamentosAtivosV3();
+            });
+        }
+    });
+
     window.gerarPdfEstrategiaV3 = function(planoId) {
-        if (!window._planosV3Cache) return;
-        const plano = window._planosV3Cache.find(p => p.id === planoId);
+        if (!window._lastPlanosConsultados) return;
+        const plano = window._lastPlanosConsultados.find(p => p.id === planoId);
         if (!plano) return;
 
         const { jsPDF } = window.jspdf;

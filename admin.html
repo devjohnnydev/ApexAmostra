@@ -231,8 +231,10 @@
                     <span>Planejamento Mensal</span>
                 </a>
                 <a href="#" class="nav-item" data-target="planejamento-estrategicov3-view" id="nav-planejamento-estrategicov3" data-tooltip="Planejamento Estratégico">
-                    <i class="fa-solid fa-wand-magic-sparkles" style="color:#00e5ff;"></i>
-                    <span>Planejamento Estratégico</span>
+                    <i class="fa-solid fa-chess-knight"></i><span class="nav-text">Estratégico V3</span>
+                </a>
+                <a href="#" class="nav-item" data-target="planejamentos-ativos-view" id="nav-planejamentos-ativos" data-tooltip="Planejamentos Ativos">
+                    <i class="fa-solid fa-list-check"></i><span class="nav-text">Planos Ativos</span>
                 </a>
                 <a href="#" class="nav-item" data-target="estoque-view" id="nav-estoque" data-tooltip="Estoque Inteligente">
                     <i class="fa-solid fa-warehouse"></i>
@@ -3295,7 +3297,6 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
                         <h3 style="margin:0; color:#fff;"><i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Estratégia de Crescimento &amp; Simulação de Metas</h3>
                         <div style="display:flex; gap:10px;">
-                            <button type="button" onclick="window.abrirModalPlanejamentosSalvosV3()" style="background:#162433; color:#fff; border:1px solid #1c2e3d; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem;"><i class="fa-solid fa-folder-open"></i> Planos Salvos</button>
                             <button type="button" onclick="window.salvarPlanejamentoV3()" style="background:#2AD07A; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:0.8rem;"><i class="fa-solid fa-save"></i> Salvar Planejamento</button>
                         </div>
                     </div>
@@ -3326,6 +3327,24 @@
                         <div class="form-group">
                             <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Meta de Faturamento (R$)</label>
                             <input type="text" id="plestv3-sim-meta-faturamento" class="noble-input" value="1.000.000,00" oninput="window.maskCurrencyV3(this); window.recalcularSimulacaoV3()">
+                        </div>
+                    </div>
+
+                    <div style="background:#162433; padding:12px; border-radius:8px; border:1px dashed #2a4158; margin-bottom:16px;">
+                        <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Cenários de Planejamento Ativos</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+                            <div class="form-group">
+                                <label style="color:#00e5ff; font-size:0.8rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-shield-halved"></i> Conservador (% da Meta)</label>
+                                <input type="number" id="plestv3-sim-cenario-conservador" class="noble-input" value="80" style="border-color:#00e5ff;">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#ffb74d; font-size:0.8rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-balance-scale"></i> Moderado (% da Meta)</label>
+                                <input type="number" id="plestv3-sim-cenario-moderado" class="noble-input" value="100" style="border-color:#ffb74d;">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#ff4d4d; font-size:0.8rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-fire"></i> Agressivo (% da Meta)</label>
+                                <input type="number" id="plestv3-sim-cenario-agressivo" class="noble-input" value="120" style="border-color:#ff4d4d;">
+                            </div>
                         </div>
                     </div>
 
@@ -4164,6 +4183,21 @@
         </div>
     </section>
 
+            <!-- ========================================== -->
+            <!-- TELA: PLANEJAMENTOS ATIVOS                 -->
+            <!-- ========================================== -->
+            <section id="section-planejamentos-ativos-view" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <div>
+                        <h2><i class="fa-solid fa-list-check" style="color: #00e5ff;"></i> Planejamentos Ativos</h2>
+                        <p>Acompanhe, finalize e gerencie seus planejamentos estratégicos e cenários.</p>
+                    </div>
+                </div>
+                
+                <div id="container-planejamentos-ativos" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Carregado via JS -->
+                </div>
+            </section>
         </main>
     </div>
 
@@ -5547,7 +5581,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=1823"></script>
+    <script src="admin.js?v=1824"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->
