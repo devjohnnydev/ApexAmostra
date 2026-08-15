@@ -15071,9 +15071,8 @@ window.carregarFinanceiroView = async function() {
     };
 
 
-    // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO COMERCIAL & FINANCEIRO ─────────
-    let _listMetasEstrategicas = [];
-    let _listTabelaPrecosEstrategica = [];
+    var _listMetasEstrategicas = [];
+    var _listTabelaPrecosEstrategica = [];
     let _chartEstrategicoCenarios = null;
     let _mesEstrategicoAtivo = null; // null significa visualizando tela de 12 meses
 
