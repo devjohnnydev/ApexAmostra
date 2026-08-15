@@ -158,17 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
 
-            if (item.dataset.target === 'shortcut-ativos') {
-                const estv3Btn = document.getElementById('nav-planejamento-estrategicov3');
-                if (estv3Btn) {
-                    estv3Btn.click();
-                    setTimeout(() => {
-                        if (window.alternarSubAbaEstrategico) window.alternarSubAbaEstrategico('ativos');
-                    }, 50);
-                }
-                return;
-            }
-
             navItems.forEach(nav => nav.classList.remove('active'));
             // Esconde todas as seções EXCETO o histórico (que é gerenciado internamente pelo botão)
             sections.forEach(sec => {
