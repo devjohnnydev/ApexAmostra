@@ -8566,7 +8566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.carregarPlanejamentoDashboard = async function() {
         try {
             if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) {
-                const resPrecos = await fetch('/api/tabela-precos-estrategica');
+                const resPrecos = await fetch('/api/tabela-precos');
                 if (resPrecos.ok) {
                     _listTabelaPrecosEstrategica = await resPrecos.json();
                 }
@@ -16582,8 +16582,8 @@ window.carregarFinanceiroView = async function() {
                 const valVendaReal = meta ? parseFloat(meta.valor_venda_realizado || 0) : 0;
 
                 const pInsumo = op === 'retirada' 
-                    ? parseFloat(tp.preco_compra_coletar || tp.preco_compra || 0)
-                    : parseFloat(tp.preco_compra_entregar || tp.preco_compra_coletar || 0);
+                    ? parseFloat(tp.preco_coletar || tp.preco_compra || 0)
+                    : parseFloat(tp.preco_entregar || tp.preco_coletar || 0);
                 const pVenda = parseFloat(tp.preco_venda || tp.venda_ref || 0);
 
                 const tetoCusto = mFat * (1 - mMargem/100);
@@ -16681,8 +16681,8 @@ window.carregarFinanceiroView = async function() {
 
         const op = meta ? meta.operacao : 'entrega';
         const pInsumo = op === 'retirada' 
-            ? parseFloat(preco.preco_compra_coletar || preco.preco_compra || 0)
-            : parseFloat(preco.preco_compra_entregar || preco.preco_compra_coletar || 0);
+            ? parseFloat(preco.preco_coletar || preco.preco_compra || 0)
+            : parseFloat(preco.preco_entregar || preco.preco_coletar || 0);
         const pVenda = parseFloat(preco.preco_venda || preco.venda_ref || 0);
 
         const metaFatVal = meta ? parseFloat(meta.meta_faturamento || 0) : 100000; // default para simular se vazio
@@ -17021,8 +17021,8 @@ window.carregarFinanceiroView = async function() {
         const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
         if (tp) {
             const pInsumo = op === 'retirada'
-                ? parseFloat(tp.preco_compra_coletar || tp.preco_compra || 0)
-                : parseFloat(tp.preco_compra_entregar || tp.preco_compra_coletar || 0);
+                ? parseFloat(tp.preco_coletar || tp.preco_compra || 0)
+                : parseFloat(tp.preco_entregar || tp.preco_coletar || 0);
 
             const tetoCusto = metaFat * (1 - margem/100);
             const qtdCalculada = pInsumo > 0 ? (tetoCusto / pInsumo) : 0;
