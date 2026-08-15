@@ -8586,7 +8586,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         totalPlanejadoAlvo += fatAlvo;
                         totalRealizado += fatReal;
 
-                        let prodNome = item.material_nome || `Produto #${item.material_id}`;
+                        let prodNome = item.material_nome;
+                        if (!prodNome || prodNome.startsWith('Produto #')) {
+                            const found = (window._listTabelaPrecosEstrategica || []).find(x => x.material_id == item.material_id);
+                            prodNome = found && found.material_nome ? found.material_nome : `Produto #${item.material_id}`;
+                        }
                         if (!produtosMap.has(item.material_id)) {
                             produtosMap.set(item.material_id, { alvo: 0, real: 0, nome: prodNome });
                         }
@@ -8636,6 +8640,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chartDashPlComparativo = new Chart(ctx, {
             type: 'bar',
+            plugins: [ChartDataLabels],
             data: {
                 labels: labels,
                 datasets: [
@@ -8662,7 +8667,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     y: {
                         beginAtZero: true,
                         ticks: { color: '#8eaabf' },
-                        grid: { color: '#1a2e3f' }
+                        grid: { color: '#1a2e3f' },
+                        // Dá uma margem no topo para caber os labels
+                        suggestedMax: Math.max(...dataAlvo, ...dataReal) * 1.15
                     },
                     x: {
                         ticks: { color: '#8eaabf' },
@@ -8670,7 +8677,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 },
                 plugins: {
-                    legend: { labels: { color: '#fff' } }
+                    legend: { labels: { color: '#fff' } },
+                    datalabels: {
+                        color: '#fff',
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: function(value) {
+                            if (value === 0) return '';
+                            return value.toLocaleString('pt-BR', { notation: "compact", maximumFractionDigits: 1 });
+                        },
+                        font: { weight: 'bold', size: 10 }
+                    }
                 }
             }
         });
