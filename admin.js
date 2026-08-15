@@ -8565,6 +8565,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.carregarPlanejamentoDashboard = async function() {
         try {
+            if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) {
+                const resPrecos = await fetch('/api/tabela-precos-estrategica');
+                if (resPrecos.ok) {
+                    _listTabelaPrecosEstrategica = await resPrecos.json();
+                }
+            }
+
             const res = await fetch('/api/estrategiav3_planos');
             const data = await res.json();
             if (!data.success) throw new Error('Falha ao buscar planos ativos');
@@ -8588,7 +8595,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         let prodNome = item.material_nome;
                         if (!prodNome || prodNome.startsWith('Produto #')) {
-                            const found = (window._listTabelaPrecosEstrategica || []).find(x => x.material_id == item.material_id);
+                            const found = (_listTabelaPrecosEstrategica || []).find(x => x.material_id == item.material_id);
                             prodNome = found && found.material_nome ? found.material_nome : `Produto #${item.material_id}`;
                         }
                         if (!produtosMap.has(item.material_id)) {
