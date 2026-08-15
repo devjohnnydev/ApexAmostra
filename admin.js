@@ -16916,6 +16916,7 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.abrirModalPlanejamentosSalvosV3 = async function() {
+        alert("O botão Planos Salvos foi clicado! Verificando cache...");
         let modal = document.getElementById('modal-estrategiav3-planos');
         if (!modal) {
             modal = document.createElement('div');
