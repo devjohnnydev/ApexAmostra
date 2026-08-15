@@ -16973,6 +16973,31 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.onSelectModalMaterialv3 = function() {
+        const matId = parseInt(document.getElementById('metaestv3-material-id').value);
+        const op = document.getElementById('metaestv3-operacao').value;
+        const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
+        if (tp) {
+            const comissao = parseFloat(tp.comissao || 0);
+            const pisCofins = parseFloat(tp.pis_cofins || 0);
+            const fidc = parseFloat(tp.fidc || 0);
+            const icms = parseFloat(tp.icms || 0);
+            const freteColeta = parseFloat(tp.frete_coleta || 0);
+
+            const totalDedPct = comissao + pisCofins + fidc + icms;
+            const vendaRef = parseFloat(tp.preco_venda || tp.venda_ref || 0);
+            const valDeducoes = vendaRef * (totalDedPct / 100);
+            const vendaLiquida = vendaRef - valDeducoes;
+
+            let margem = 0;
+            if (op === 'retirada') {
+                const lucroCol = vendaLiquida - (parseFloat(tp.preco_coletar || tp.preco_compra || 0)) - freteColeta;
+                margem = vendaRef > 0 ? (lucroCol / vendaRef) * 100 : 0;
+            } else {
+                const lucroEnt = vendaLiquida - (parseFloat(tp.preco_entregar || tp.preco_compra || 0));
+                margem = vendaRef > 0 ? (lucroEnt / vendaRef) * 100 : 0;
+            }
+            document.getElementById('metaestv3-margem-desejada').value = margem.toFixed(2);
+        }
         calcularInsumoModalv3();
     };
 
