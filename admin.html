@@ -3329,26 +3329,8 @@
                         </div>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:16px; align-items:start;">
-                        <!-- Melhores Produtos (Ranking por Margem) -->
-                        <div style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px;">
-                            <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.85rem;"><i class="fa-solid fa-trophy" style="color:#ffb74d;"></i> Ranking de Melhores Margens</h4>
-                            <div style="max-height:220px; overflow-y:auto;">
-                                <table style="width:100%; border-collapse:collapse; font-size:0.75rem;">
-                                    <thead>
-                                        <tr style="color:#aaa; border-bottom:1px solid #223547; text-align:left;">
-                                            <th style="padding:4px;">Material</th>
-                                            <th style="padding:4px; text-align:right;">Margem Ent.</th>
-                                            <th style="padding:4px; text-align:right;">Margem Col.</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="plestv3-ranking-tbody">
-                                        <!-- Preenchido via JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
+                    <div style="display:flex; flex-direction:column; gap:20px;">
+                        
                         <!-- Configuração de Mix e Cálculo de kg de Compra -->
                         <div style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -3383,6 +3365,26 @@
                             </div>
                             <div id="plestv3-mix-feedback" style="margin-top:10px; padding:10px; border-radius:6px; font-size:0.8rem; font-weight:bold; display:none;"></div>
                         </div>
+
+                        <!-- Melhores Produtos (Ranking por Margem) -->
+                        <div style="background:#101a24; border:1px solid #1c2e3d; border-radius:8px; padding:12px;">
+                            <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.85rem;"><i class="fa-solid fa-trophy" style="color:#ffb74d;"></i> Ranking de Melhores Margens</h4>
+                            <div style="max-height:220px; overflow-y:auto;">
+                                <table style="width:100%; border-collapse:collapse; font-size:0.75rem;">
+                                    <thead>
+                                        <tr style="color:#aaa; border-bottom:1px solid #223547; text-align:left;">
+                                            <th style="padding:4px;">Material</th>
+                                            <th style="padding:4px; text-align:right;">Margem Ent.</th>
+                                            <th style="padding:4px; text-align:right;">Margem Col.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plestv3-ranking-tbody">
+                                        <!-- Preenchido via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -5545,7 +5547,7 @@
     <!-- Modal Webcam criado dinamicamente pelo admin.js -->
 
     <script src="lib/calculationEngine.js?v=2"></script>
-    <script src="admin.js?v=1815"></script>
+    <script src="admin.js?v=1816"></script>
     <script src="assets/js/theme-toggle.js"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->

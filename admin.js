@@ -15932,11 +15932,10 @@ window.carregarFinanceiroView = async function() {
     window.recalcularSimulacaoV3 = function(redesenharTabela = true) {
         const inputFat = document.getElementById('plestv3-sim-meta-faturamento');
         const selectFrente = document.getElementById('plestv3-sim-frente');
-        const selectTempo = document.getElementById('plestv3-sim-tempo');
         const mixTbody = document.getElementById('plestv3-mix-tbody');
         const rankingTbody = document.getElementById('plestv3-ranking-tbody');
 
-        if (!inputFat || !selectFrente || !selectTempo || !mixTbody || !rankingTbody) return;
+        if (!inputFat || !selectFrente || !mixTbody || !rankingTbody) return;
 
         let valLimpo = inputFat.value.replace(/\./g, '').replace(',', '.');
         const fatTotalAlvo = parseFloat(valLimpo) || 0;
