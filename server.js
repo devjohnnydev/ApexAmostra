@@ -686,6 +686,27 @@ async function initDatabase() {
                 criado_em                  TIMESTAMP DEFAULT NOW(),
                 CONSTRAINT uq_mes_material_v3 UNIQUE (mes, material_id)
             );
+            CREATE TABLE IF NOT EXISTS estrategiav3_planos (
+                id SERIAL PRIMARY KEY,
+                titulo VARCHAR(150),
+                data_inicial DATE,
+                data_final DATE,
+                frente VARCHAR(50),
+                meta_faturamento NUMERIC(14,2) DEFAULT 0.00,
+                status VARCHAR(50) DEFAULT 'EM ANDAMENTO',
+                criado_em TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS estrategiav3_mix (
+                id SERIAL PRIMARY KEY,
+                plano_id INTEGER REFERENCES estrategiav3_planos(id) ON DELETE CASCADE,
+                material_id INTEGER NOT NULL,
+                fracao_pct NUMERIC(5,2) DEFAULT 0.00,
+                volume_necessario NUMERIC(12,3) DEFAULT 0.00,
+                faturamento_alvo NUMERIC(14,2) DEFAULT 0.00,
+                investimento_necessario NUMERIC(14,2) DEFAULT 0.00,
+                faturamento_realizado NUMERIC(14,2) DEFAULT 0.00
+            );
         `);
 
         // Migrações adicionais para Planejamento Comercial
@@ -2691,6 +2712,76 @@ app.delete('/api/planejamento-estrategicov3/:id', async (req, res) => {
 
     memStore.planejamento_estrategicov3 = (memStore.planejamento_estrategicov3 || []).filter(x => x.id !== id);
     res.json({ success: true });
+});
+
+// ─── API: Planejamento Estratégico V3 (Planos e Mix) ─────────────────
+app.get('/api/estrategiav3_planos', async (req, res) => {
+    try {
+        if (!dbAvailable || !pool) throw new Error('DB not available');
+        const planosRes = await pool.query('SELECT * FROM estrategiav3_planos ORDER BY id DESC');
+        const planos = planosRes.rows;
+        const mixRes = await pool.query('SELECT * FROM estrategiav3_mix');
+        const mix = mixRes.rows;
+
+        const resultado = planos.map(p => {
+            return {
+                ...p,
+                itens: mix.filter(m => m.plano_id === p.id)
+            };
+        });
+        res.json(resultado);
+    } catch (err) {
+        console.warn('⚠️ Erro GET estrategiav3_planos', err.message);
+        res.status(500).json({ error: 'Erro ao buscar planos' });
+    }
+});
+
+app.post('/api/estrategiav3_planos', async (req, res) => {
+    const { titulo, data_inicial, data_final, frente, meta_faturamento, mix } = req.body;
+    try {
+        if (!dbAvailable || !pool) throw new Error('DB not available');
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const planoRes = await client.query(`
+                INSERT INTO estrategiav3_planos (titulo, data_inicial, data_final, frente, meta_faturamento)
+                VALUES ($1, $2, $3, $4, $5) RETURNING id
+            `, [titulo, data_inicial, data_final, frente, meta_faturamento]);
+            const planoId = planoRes.rows[0].id;
+
+            for (let item of mix) {
+                await client.query(`
+                    INSERT INTO estrategiav3_mix (plano_id, material_id, fracao_pct, volume_necessario, faturamento_alvo, investimento_necessario)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                `, [planoId, item.material_id, item.fracao_pct, item.volume_necessario, item.faturamento_alvo, item.investimento_necessario]);
+            }
+            await client.query('COMMIT');
+            res.json({ success: true, plano_id: planoId });
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
+    } catch (err) {
+        console.error('⚠️ Erro POST estrategiav3_planos', err);
+        res.status(500).json({ error: 'Erro ao salvar plano estratégico' });
+    }
+});
+
+app.put('/api/estrategiav3_mix/:id/realizado', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { faturamento_realizado } = req.body;
+    try {
+        if (!dbAvailable || !pool) throw new Error('DB not available');
+        await pool.query(`
+            UPDATE estrategiav3_mix SET faturamento_realizado = $1 WHERE id = $2
+        `, [faturamento_realizado, id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('⚠️ Erro PUT estrategiav3_mix', err);
+        res.status(500).json({ error: 'Erro ao atualizar realizado' });
+    }
 });
 
 

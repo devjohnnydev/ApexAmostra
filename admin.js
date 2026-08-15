@@ -15880,8 +15880,11 @@ window.carregarFinanceiroView = async function() {
             return;
         }
 
-        const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
-        if (!tp) return;
+        let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
+        if (!tp) {
+            const materialNome = document.querySelector(`#plestv3-consulta-material option[value="${matId}"]`)?.textContent || 'Produto sem preço';
+            tp = { material_id: matId, material_nome: materialNome, preco_venda: 0, preco_compra: 0 };
+        }
 
         if (_mixSimulacaoV3.some(x => x.material_id === matId)) {
             _apexNotify('Aviso', 'Este produto já está incluído no mix de simulação.', 'warning');
@@ -15935,9 +15938,9 @@ window.carregarFinanceiroView = async function() {
 
         if (!inputFat || !selectFrente || !selectTempo || !mixTbody || !rankingTbody) return;
 
-        const fatTotalAlvo = parseFloat(inputFat.value) || 0;
+        let valLimpo = inputFat.value.replace(/\./g, '').replace(',', '.');
+        const fatTotalAlvo = parseFloat(valLimpo) || 0;
         const frente = selectFrente.value; // 'venda' ou 'compra'
-        const tempoMeses = parseInt(selectTempo.value) || 1;
 
         // 1. Renderizar o ranking de melhores margens
         const listPrecosSorted = [..._listTabelaPrecosEstrategica].map(tp => {
@@ -15981,8 +15984,11 @@ window.carregarFinanceiroView = async function() {
         let totalInvestimentoNecessario = 0;
 
         _mixSimulacaoV3.forEach((mixItem) => {
-            const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === mixItem.material_id);
-            if (!tp) return;
+            let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === mixItem.material_id);
+            if (!tp) {
+                const materialNome = document.querySelector(`#plestv3-consulta-material option[value="${mixItem.material_id}"]`)?.textContent || 'Produto Indefinido';
+                tp = { material_id: mixItem.material_id, material_nome: materialNome, preco_venda: 0, preco_compra: 0 };
+            }
 
             const faturamentoAlvoProduto = fatTotalAlvo * (mixItem.fracaoPct / 100);
 
@@ -16833,5 +16839,223 @@ window.carregarFinanceiroView = async function() {
         const nomes = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         return (nomes[mesIdx] || '') + ' / ' + ano;
     }
+
+    window.maskCurrencyV3 = function(input) {
+        let value = input.value;
+        value = value.replace(/\D/g, ""); 
+        if (!value) { input.value = ""; return; }
+        value = (parseInt(value, 10) / 100).toFixed(2) + "";
+        value = value.replace(".", ",");
+        value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        input.value = value;
+    };
+
+    window.salvarPlanejamentoV3 = async function() {
+        const titulo = document.getElementById('plestv3-sim-titulo')?.value || '';
+        const data_inicial = document.getElementById('plestv3-sim-dt-ini')?.value || '';
+        const data_final = document.getElementById('plestv3-sim-dt-fim')?.value || '';
+        const frente = document.getElementById('plestv3-sim-frente')?.value || 'venda';
+        const metaFat = document.getElementById('plestv3-sim-meta-faturamento')?.value || '0';
+        
+        const fatTotalAlvo = parseFloat(metaFat.replace(/\./g, '').replace(',', '.')) || 0;
+
+        if (!titulo || !data_inicial || !data_final || _mixSimulacaoV3.length === 0) {
+            _apexNotify('Aviso', 'Preencha o Título, Datas e adicione pelo menos um item ao Mix.', 'warning');
+            return;
+        }
+
+        const payload = {
+            titulo, data_inicial, data_final, frente, meta_faturamento: fatTotalAlvo,
+            mix: _mixSimulacaoV3.map(m => {
+                const faturamentoAlvo = fatTotalAlvo * (m.fracaoPct / 100);
+                let pRef = 0; let pCompra = 0;
+                const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === m.material_id);
+                if (tp) {
+                    pRef = frente === 'venda' ? parseFloat(tp.preco_venda || tp.venda_ref || 0) : parseFloat(tp.preco_entregar || tp.preco_compra || 0);
+                    pCompra = frente === 'venda' ? parseFloat(tp.preco_entregar || tp.preco_compra || 0) : parseFloat(tp.preco_coletar || tp.preco_compra || 0);
+                }
+                const vol = pRef > 0 ? (faturamentoAlvo / pRef) : 0;
+                const invest = vol * pCompra;
+                return {
+                    material_id: m.material_id,
+                    fracao_pct: m.fracaoPct,
+                    volume_necessario: vol,
+                    faturamento_alvo: faturamentoAlvo,
+                    investimento_necessario: invest
+                };
+            })
+        };
+
+        try {
+            const res = await fetch('/api/estrategiav3_planos', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                _apexNotify('Sucesso', 'Estratégia salva com sucesso!', 'success');
+                window.abrirModalPlanejamentosSalvosV3();
+            } else {
+                throw new Error('Falha ao salvar');
+            }
+        } catch(e) {
+            console.error(e);
+            _apexNotify('Erro', 'Não foi possível salvar a estratégia.', 'error');
+        }
+    };
+
+    window.abrirModalPlanejamentosSalvosV3 = async function() {
+        document.getElementById('modal-estrategiav3-planos').style.display = 'flex';
+        const lista = document.getElementById('lista-estrategiav3-planos');
+        lista.innerHTML = '<div style="color:#aaa; text-align:center;">Carregando...</div>';
+        try {
+            const res = await fetch('/api/estrategiav3_planos');
+            const planos = await res.json();
+            if (planos.length === 0) {
+                lista.innerHTML = '<div style="color:#aaa; text-align:center;">Nenhum planejamento salvo ainda.</div>';
+                return;
+            }
+            
+            lista.innerHTML = planos.map(p => {
+                return `
+                <div style="background:#162433; border:1px solid #1c2e3d; border-radius:8px; padding:12px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1c2e3d; padding-bottom:8px; margin-bottom:10px;">
+                        <div>
+                            <h4 style="margin:0; color:#fff; font-size:1rem;">${p.titulo}</h4>
+                            <small style="color:#aaa;">Período: ${window.fmtD(p.data_inicial)} até ${window.fmtD(p.data_final)}</small>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="display:block; color:#00e5ff; font-weight:bold; font-size:1.1rem;">Meta Total: R$ ${window.fmtBRL(p.meta_faturamento)}</span>
+                            <button onclick="window.gerarPdfEstrategiaV3(${p.id})" style="background:#2AD07A; color:#0d1826; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.75rem; margin-top:5px;"><i class="fa-solid fa-file-pdf"></i> Gerar PDF</button>
+                        </div>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:0.8rem; text-align:left;">
+                        <thead>
+                            <tr style="color:#aaa; border-bottom:1px solid #223547;">
+                                <th style="padding:4px;">Material</th>
+                                <th style="padding:4px; text-align:center;">Mix (%)</th>
+                                <th style="padding:4px; text-align:right;">Alvo (R$)</th>
+                                <th style="padding:4px; text-align:right;">Realizado (R$)</th>
+                                <th style="padding:4px; text-align:center;">Atingido</th>
+                                <th style="padding:4px; text-align:center;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${p.itens.map(it => {
+                                const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
+                                const atingidoPct = it.faturamento_alvo > 0 ? ((it.faturamento_realizado / it.faturamento_alvo) * 100) : 0;
+                                const barColor = atingidoPct >= 100 ? '#2AD07A' : (atingidoPct > 50 ? '#ffb74d' : '#ff4d4d');
+                                return \`
+                                <tr style="border-bottom:1px solid #1a2e3f;">
+                                    <td style="padding:6px 4px; color:#fff;">\${mNome}</td>
+                                    <td style="padding:6px 4px; text-align:center; color:#2AD07A;">\${it.fracao_pct}%</td>
+                                    <td style="padding:6px 4px; text-align:right; color:#00e5ff;">R$ \${window.fmtBRL(it.faturamento_alvo)}</td>
+                                    <td style="padding:6px 4px; text-align:right;">
+                                        <input type="text" id="plestv3-realizado-\${it.id}" value="\${window.fmtBRL(it.faturamento_realizado)}" class="noble-input" style="width:90px; text-align:right; padding:4px; margin:0;" oninput="window.maskCurrencyV3(this)">
+                                    </td>
+                                    <td style="padding:6px 4px; text-align:center;">
+                                        <div style="background:#0d1826; border-radius:4px; height:8px; width:60px; display:inline-block; overflow:hidden; border:1px solid #1c2e3d;">
+                                            <div style="background:\${barColor}; height:100%; width:\${Math.min(atingidoPct, 100)}%;"></div>
+                                        </div>
+                                        <div style="font-size:0.7rem; color:\${barColor};">\${atingidoPct.toFixed(1)}%</div>
+                                    </td>
+                                    <td style="padding:6px 4px; text-align:center;">
+                                        <button onclick="window.atualizarRealizadoV3(\${it.id})" style="background:#1a2e3f; color:#fff; border:1px solid #3e7cb1; padding:4px 8px; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-check"></i> Salvar</button>
+                                    </td>
+                                </tr>\`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>\`;
+            }).join('');
+            
+            // Gravar em window para PDF usar depois
+            window._planosV3Cache = planos;
+
+        } catch(e) {
+            console.error(e);
+            lista.innerHTML = '<div style="color:#ff4d4d; text-align:center;">Erro ao carregar planejamentos salvos.</div>';
+        }
+    };
+
+    window.atualizarRealizadoV3 = async function(mixId) {
+        const inp = document.getElementById(\`plestv3-realizado-\${mixId}\`);
+        if (!inp) return;
+        const valLimpo = inp.value.replace(/\\./g, '').replace(',', '.');
+        const fatReal = parseFloat(valLimpo) || 0;
+        try {
+            const res = await fetch(\`/api/estrategiav3_mix/\${mixId}/realizado\`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ faturamento_realizado: fatReal })
+            });
+            if (res.ok) {
+                _apexNotify('Sucesso', 'Realizado atualizado!', 'success');
+                window.abrirModalPlanejamentosSalvosV3();
+            } else {
+                throw new Error('Falha ao atualizar');
+            }
+        } catch(e) {
+            console.error(e);
+            _apexNotify('Erro', 'Não foi possível salvar o realizado.', 'error');
+        }
+    };
+
+    window.gerarPdfEstrategiaV3 = function(planoId) {
+        if (!window._planosV3Cache) return;
+        const plano = window._planosV3Cache.find(p => p.id === planoId);
+        if (!plano) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        doc.setFillColor(13, 36, 22);
+        doc.rect(0, 0, 210, 25, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text('APEXTECH METAIS', 15, 12);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('ESTRATEGIA DE CRESCIMENTO E METAS (V3)', 15, 18);
+
+        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Detalhes do Planejamento', 15, 35);
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(\`Titulo: \${plano.titulo}\`, 15, 42);
+        doc.text(\`Periodo: \${window.fmtD(plano.data_inicial)} a \${window.fmtD(plano.data_final)}\`, 15, 48);
+        doc.text(\`Meta Global (R$): R$ \${window.fmtBRL(plano.meta_faturamento)}\`, 15, 54);
+        doc.text(\`Estrategia: \${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}\`, 15, 60);
+
+        const headers = [['Produto', 'Mix (%)', 'Meta Alvo (R$)', 'Realizado (R$)', '% Atingido']];
+        const body = plano.itens.map(it => {
+            const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
+            const pct = it.faturamento_alvo > 0 ? ((it.faturamento_realizado / it.faturamento_alvo) * 100).toFixed(1) + '%' : '0%';
+            return [
+                mNome, 
+                it.fracao_pct + '%', 
+                'R$ ' + window.fmtBRL(it.faturamento_alvo), 
+                'R$ ' + window.fmtBRL(it.faturamento_realizado), 
+                pct
+            ];
+        });
+
+        doc.autoTable({
+            startY: 68,
+            head: headers,
+            body: body,
+            theme: 'grid',
+            headStyles: { fillColor: [22, 36, 51] },
+            styles: { fontSize: 8 }
+        });
+
+        const finalY = doc.lastAutoTable.finalY + 15;
+        doc.setFontSize(9);
+        doc.text(\`Relatorio gerado em: \${new Date().toLocaleString('pt-BR')} — ApexTech Metais\`, 15, finalY);
+
+        doc.save(\`Planejamento_\${plano.titulo.replace(/\\s+/g, '_')}.pdf\`);
+    };
 
 })();
