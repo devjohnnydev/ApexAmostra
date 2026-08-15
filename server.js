@@ -5951,7 +5951,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
                 criado_por_perfil: criado_por_perfil || 'Administrador',
                 endereco_entrega: endereco_entrega || '',
                 responsavel_recebimento: responsavel_recebimento || '',
-                tipo_frete: tipo_frete || 'CIF - Entrega ApexTech',
+                tipo_frete: tipo_frete || 'CIF - Entrega APEXTECH',
                 itens: itens.map((it, idx) => ({ id: idx + 1, ...it })),
                 criado_em: new Date().toISOString()
             };

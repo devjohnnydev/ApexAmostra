@@ -13578,7 +13578,7 @@ window.carregarFinanceiroView = async function() {
                 </td>
                 <td style="padding:12px 10px; color:#aaa;">
                     <div><i class="fa-solid fa-calendar-day" style="color:#2AD07A;"></i> Delivery: <strong>${fmtD(p.data_entrega)}</strong></div>
-                    <small style="color:#7fa8c8;">${p.tipo_frete || 'CIF - Entrega ApexTech'}</small>
+                    <small style="color:#7fa8c8;">${p.tipo_frete || 'CIF - Entrega APEXTECH'}</small>
                     ${p.responsavel_recebimento ? `<br><small style="color:#e07b39;">Rec: ${p.responsavel_recebimento}</small>` : ''}
                 </td>
                 <td style="padding:12px 10px;">
@@ -13959,7 +13959,7 @@ window.carregarFinanceiroView = async function() {
             criado_por_perfil:       document.getElementById('pedido-perfil')?.value || sessionStorage.getItem('apex_logged_user_role') || 'Administrador',
             endereco_entrega:        document.getElementById('pedido-endereco-entrega')?.value || '',
             responsavel_recebimento: document.getElementById('pedido-responsavel-recebimento')?.value || '',
-            tipo_frete:              document.getElementById('pedido-tipo-frete')?.value || 'CIF - Entrega ApexTech',
+            tipo_frete:              document.getElementById('pedido-tipo-frete')?.value || 'CIF - Entrega APEXTECH',
             itens:                   itensPedido
         };
 
@@ -14079,7 +14079,7 @@ window.carregarFinanceiroView = async function() {
             criado_por_perfil: document.getElementById('pedido-perfil')?.value || sessionStorage.getItem('apex_logged_user_role') || 'Administrador',
             endereco_entrega: document.getElementById('pedido-endereco-entrega')?.value || '',
             responsavel_recebimento: document.getElementById('pedido-responsavel-recebimento')?.value || '',
-            tipo_frete: document.getElementById('pedido-tipo-frete')?.value || 'CIF - Entrega ApexTech',
+            tipo_frete: document.getElementById('pedido-tipo-frete')?.value || 'CIF - Entrega APEXTECH',
             itens: itensPedido
         };
         await gerarPdfPedidoVenda(p);
@@ -14203,7 +14203,7 @@ window.carregarFinanceiroView = async function() {
         doc.text('Frete / Logística: ', 115, 92);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
-        doc.text(String(p.tipo_frete || 'CIF - Entrega ApexTech'), 142, 92);
+        doc.text(String(p.tipo_frete || 'CIF - Entrega APEXTECH').replace(/Apex ?Tech/ig, 'APEXTECH'), 142, 92);
 
         // Tabela de Itens
         const tableItens = (p.itens || []).map((it, idx) => [
