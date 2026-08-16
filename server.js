@@ -4111,19 +4111,7 @@ function getPreviousMonthStr(mesStr) {
     return `${m}-${y}`;
 }
 
-function getPreviousMonthStr(mesStr) {
-    const parts = mesStr.split('-');
-    if (parts.length !== 2) return null;
-    let m = parseInt(parts[0], 10);
-    let y = parseInt(parts[1], 10);
-    if (m === 1) {
-        m = 12;
-        y = y - 1;
-    } else {
-        m = m - 1;
-    }
-    return `${m}-${y}`;
-}
+
 
 async function generateRelatorioSemanas(mes) {
     // 1. Busca dados do mês atual
@@ -6312,11 +6300,15 @@ app.get('/api/admin/run-import-fornecedores', (req, res) => {
     }
 });
 
-initDatabase().then(() => {
-    app.listen(PORT, () => {
-        console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
-        console.log(`📦 Modo de dados: ${dbAvailable ? 'PostgreSQL' : 'Memória (local)'}`);
-        startEmailScheduler();
+if (require.main === module) {
+    initDatabase().then(() => {
+        app.listen(PORT, () => {
+            console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
+            console.log(`📦 Modo de dados: ${dbAvailable ? 'PostgreSQL' : 'Memória (local)'}`);
+            startEmailScheduler();
+        });
     });
-});
+}
+
+module.exports = { app, initDatabase, pool };
 
