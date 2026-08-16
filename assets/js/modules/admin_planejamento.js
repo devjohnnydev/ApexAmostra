@@ -4957,10 +4957,15 @@
     const loginForm          = document.getElementById('admin-login-form');
     const loginError         = document.getElementById('login-error');
 
-    if (sessionStorage.getItem('apex_admin_logged_in') === 'true') {
+    const hasSession = sessionStorage.getItem('apex_admin_logged_in') === 'true';
+    const hasToken = !!localStorage.getItem('apex_token');
+
+    if (hasSession && hasToken) {
         loginOverlay.style.display      = 'none';
         dashboardContainer.style.display = 'flex';
         initAdmin();
+    } else {
+        sessionStorage.removeItem('apex_admin_logged_in');
     }
 
     if (loginForm) {
