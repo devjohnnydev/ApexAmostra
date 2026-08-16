@@ -975,8 +975,14 @@ const authMiddleware = (req, res, next) => {
 const requireRole = (allowedRoles) => {
     return (req, res, next) => {
         if (!req.user) return res.status(401).json({ error: 'Não autenticado' });
-        if (req.user.perfil === 'Administrador') return next(); // Admin tem acesso irrestrito
-        if (allowedRoles.includes(req.user.perfil)) return next();
+        
+        const userRole = (req.user.perfil || '').trim().toLowerCase();
+        const isAdmin = userRole === 'administrador';
+        if (isAdmin) return next();
+
+        const rolesLower = allowedRoles.map(r => r.toLowerCase().trim());
+        if (rolesLower.includes(userRole)) return next();
+        
         return res.status(403).json({ error: 'Acesso negado para o seu perfil: ' + req.user.perfil });
     };
 };
