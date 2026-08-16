@@ -946,7 +946,8 @@ app.use(express.static(__dirname, {
 // ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
     // Pula autenticação para login e rotas públicas
-    if (req.path === '/login' || req.path.startsWith('/public')) return next();
+    const publicRoutes = ['/login', '/solucoes', '/materiais-catalogo', '/cotacoes-hoje', '/settings', '/debug-logs'];
+    if (publicRoutes.includes(req.path) || req.path.startsWith('/public')) return next();
 
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Token não fornecido. Acesso Negado.' });
