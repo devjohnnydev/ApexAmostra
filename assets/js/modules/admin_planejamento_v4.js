@@ -10,6 +10,7 @@
     };
 
     let chartDashPlComparativo = null;
+    let chartDashPlTendencia = null;
 
     window.carregarPlanejamentoDashboard = async function() {
         try {
@@ -73,6 +74,7 @@
 
             // Renderiza Gráfico
             renderChartDashPlComparativo(produtosMap);
+            renderChartDashPlTendencia(planos);
 
         } catch (e) {
             console.error('Erro ao carregar Dashboard de Planejamento:', e);
@@ -7348,7 +7350,112 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
+    function renderChartDashPlTendencia(planos) {
+        try {
+            const ctx = document.getElementById('chart-dash-pl-tendencia');
+            if (!ctx) return;
 
-    
+            if (chartDashPlTendencia) {
+                chartDashPlTendencia.destroy();
+            }
+
+            // Precisamos dos meses (títulos) ordenados cronologicamente se possível
+            // Como planos é um array do banco, vamos reverter se vier DESC, ou ordenar por data_inicial
+            const planosOrdenados = [...planos].sort((a, b) => new Date(a.data_inicial) - new Date(b.data_inicial));
+
+            const labels = planosOrdenados.map(p => p.titulo || p.mes || 'Plano');
+            const dataConservador = [];
+            const dataModerado = [];
+            const dataAgressivo = [];
+            const dataAlvo = [];
+
+            planosOrdenados.forEach(p => {
+                let totalAlvo = 0;
+                if (p.itens && Array.isArray(p.itens)) {
+                    p.itens.forEach(item => {
+                        totalAlvo += parseFloat(item.faturamento_alvo) || 0;
+                    });
+                } else {
+                    totalAlvo = parseFloat(p.meta_faturamento) || 0;
+                }
+                
+                let pctC = parseFloat(p.cenario_conservador_pct) || 80;
+                let pctM = parseFloat(p.cenario_moderado_pct) || 100;
+                let pctA = parseFloat(p.cenario_agressivo_pct) || 120;
+
+                dataConservador.push(totalAlvo * (pctC / 100));
+                dataModerado.push(totalAlvo * (pctM / 100));
+                dataAgressivo.push(totalAlvo * (pctA / 100));
+                dataAlvo.push(totalAlvo); // Apenas como referência
+            });
+
+            chartDashPlTendencia = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Cenário Conservador',
+                            data: dataConservador,
+                            borderColor: '#ff4d4d',
+                            backgroundColor: 'rgba(255, 77, 77, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Planejado Alvo (Moderado)',
+                            data: dataModerado,
+                            borderColor: '#2AD07A',
+                            backgroundColor: 'rgba(42, 208, 122, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Cenário Agressivo',
+                            data: dataAgressivo,
+                            borderColor: '#3e7cb1',
+                            backgroundColor: 'rgba(62, 124, 177, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#aaa' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#ccc' }, grid: { color: '#1a2e3f' } },
+                        y: {
+                            ticks: {
+                                color: '#ccc',
+                                callback: function(value) {
+                                    if(value >= 1000000) return 'R$ ' + (value / 1000000).toFixed(1) + 'M';
+                                    if(value >= 1000) return 'R$ ' + (value / 1000).toFixed(1) + 'k';
+                                    return 'R$ ' + value;
+                                }
+                            },
+                            grid: { color: '#1a2e3f' }
+                        }
+                    }
+                }
+            });
+
+        } catch(e) {
+            console.error('Erro no gráfico de tendência:', e);
+        }
+    }
 
 })();
