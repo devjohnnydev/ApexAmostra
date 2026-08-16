@@ -7750,10 +7750,12 @@ var _listTabelaPrecosEstrategica = [];
     async function carregarDadosBI() {
         try {
             const resAmo = await fetch('/api/amostras');
-            const amostras = await resAmo.json();
+            const amostrasRaw = await resAmo.json();
+            const amostras = Array.isArray(amostrasRaw) ? amostrasRaw : [];
             
             const resPlan = await fetch('/api/planejamento-compras');
-            const planejamento = await resPlan.json();
+            const planRaw = await resPlan.json();
+            const planejamento = Array.isArray(planRaw) ? planRaw : [];
 
             const resEst = await fetch('/api/estoque');
             const { estoque } = await resEst.json();
@@ -7764,7 +7766,8 @@ var _listTabelaPrecosEstrategica = [];
             let faturamento = 0;
             let lucroConsolidado = 0;
 
-            planejamento.forEach(p => {
+            const _planArray = Array.isArray(planejamento) ? planejamento : [];
+            _planArray.forEach(p => {
                 pesoTotal += parseFloat(p.peso_comprado) || 0;
                 const totalC = (parseFloat(p.peso_comprado) || 0) * (parseFloat(p.preco_compra) || 0);
                 const pesoMat = (parseFloat(p.peso_comprado) || 0) * ((parseFloat(p.percentual_rendimento) || 0) / 100);
