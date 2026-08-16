@@ -8576,6 +8576,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            if (window.popularSelectsProdutoEstrategicov3) window.popularSelectsProdutoEstrategicov3();
+            if (window.onChangeConsultaMaterialV3) window.onChangeConsultaMaterialV3();
+            if (window.recalcularSimulacaoV3) window.recalcularSimulacaoV3();
+
             const res = await fetch('/api/estrategiav3_planos', { cache: 'no-store' });
             const data = await res.json();
             if (!data.success) throw new Error('Falha ao buscar planos ativos');
@@ -15106,7 +15110,7 @@ window.carregarFinanceiroView = async function() {
             _listMetasEstrategicas = Array.isArray(rawMetas) ? rawMetas : [];
 
             // Popular comboboxes de seleção de produto
-            popularSelectsProdutoEstrategico();
+            if (window.popularSelectsProdutoEstrategico) window.popularSelectsProdutoEstrategico();
 
             if (_mesEstrategicoAtivo) {
                 // Se um mês está ativo, renderiza os detalhes daquele mês
@@ -15121,7 +15125,7 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
-    function popularSelectsProdutoEstrategico() {
+    window.popularSelectsProdutoEstrategico = function() {
         const selectProd = document.getElementById('plest-select-produto');
         const selectModal = document.getElementById('metaest-material-id');
         if (!selectProd || !selectModal) return;
@@ -16017,7 +16021,7 @@ window.carregarFinanceiroView = async function() {
         if (canvasId === 'chart-margin-worst10') chartMarginWorst10Instance = new Chart(ctx, chartConfig);
     }
 
-    function popularSelectsProdutoEstrategicov3() {
+    window.popularSelectsProdutoEstrategicov3 = function() {
         const selectProd = document.getElementById('plestv3-select-produto');
         const selectConsulta = document.getElementById('plestv3-consulta-material');
         const selectModal = document.getElementById('metaestv3-material-id');
@@ -17357,9 +17361,9 @@ window.carregarFinanceiroView = async function() {
             _listMetasV3 = Array.isArray(rawMetas) ? rawMetas : [];
 
             // Preparar o simulador que agora mora aqui
-            popularSelectsProdutoEstrategicov3();
-            window.onChangeConsultaMaterialV3();
-            window.recalcularSimulacaoV3();
+            if (window.popularSelectsProdutoEstrategicov3) window.popularSelectsProdutoEstrategicov3();
+            if (window.onChangeConsultaMaterialV3) window.onChangeConsultaMaterialV3();
+            if (window.recalcularSimulacaoV3) window.recalcularSimulacaoV3();
             
             if (!_mesV3Ativo) {
                 const today = new Date();
