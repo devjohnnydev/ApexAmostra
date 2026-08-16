@@ -87,31 +87,34 @@
                 // Desduplicação de chamadas simultâneas (Previne múltiplos requests idênticos)
                 if (window.ApexCache.promises.has(cacheKey)) {
                     console.log(`[ApexCache] DEDUP: ${cacheKey}`);
-                    try {
-                        const cachedBody = await window.ApexCache.promises.get(cacheKey);
-                        return new Response(cachedBody.body, { 
-                            status: 200, 
-                            headers: { 'Content-Type': cachedBody.contentType }
-                        });
-                    } catch(e) {
-                        // Se a promise original falhar, segue o jogo
-                    }
+                    const cachedBodyObj = await window.ApexCache.promises.get(cacheKey);
+                    return new Response(cachedBodyObj.body, { 
+                        status: cachedBodyObj.status, 
+                        statusText: cachedBodyObj.statusText,
+                        headers: { 'Content-Type': cachedBodyObj.contentType }
+                    });
                 }
 
                 // Faz o fetch real e guarda a Promise
                 const fetchPromise = originalFetch.apply(this, argsToPass).then(async response => {
+                    const clone = response.clone();
+                    const body = await clone.text();
+                    const contentType = response.headers.get('Content-Type') || 'application/json';
+                    const cacheObj = { 
+                        time: Date.now(), 
+                        body, 
+                        contentType, 
+                        status: response.status, 
+                        statusText: response.statusText 
+                    };
+
                     if (response.ok) {
-                        const clone = response.clone();
-                        const body = await clone.text();
-                        const contentType = response.headers.get('Content-Type') || 'application/json';
-                        
-                        const cacheObj = { time: Date.now(), body, contentType };
                         window.ApexCache.data.set(cacheKey, cacheObj);
-                        window.ApexCache.promises.delete(cacheKey);
-                        return cacheObj;
                     }
-                    window.ApexCache.promises.delete(cacheKey);
-                    throw response;
+                    
+                    // Mantemos o DEDUP apenas enquanto a requisição está pendente
+                    setTimeout(() => window.ApexCache.promises.delete(cacheKey), 50);
+                    return cacheObj;
                 }).catch(err => {
                     window.ApexCache.promises.delete(cacheKey);
                     throw err;
@@ -121,10 +124,15 @@
                 
                 try {
                     const cacheObj = await fetchPromise;
-                    return new Response(cacheObj.body, { 
-                        status: 200, 
+                    const resFinal = new Response(cacheObj.body, { 
+                        status: cacheObj.status, 
+                        statusText: cacheObj.statusText,
                         headers: { 'Content-Type': cacheObj.contentType }
                     });
+                    if (resFinal.status >= 400) {
+                        return handleAuthErrors(resFinal, resource);
+                    }
+                    return resFinal;
                 } catch (responseOrError) {
                     if (responseOrError && responseOrError.status) {
                         return handleAuthErrors(responseOrError, resource);

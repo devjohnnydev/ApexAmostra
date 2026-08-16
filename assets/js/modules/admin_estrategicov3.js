@@ -7,10 +7,17 @@
     window.carregarPlanejamentoEstrategicov3 = async function() {
         try {
             const resPrecos = await fetch('/api/tabela-precos', { cache: 'no-store' });
-            _listTabelaPrecosEstrategica = await resPrecos.json();
+            const raw = await resPrecos.json();
+            _listTabelaPrecosEstrategica = Array.isArray(raw) ? raw : [];
             
-            // Renderiza o Dashboard de Margens
+            // Popula os selects de material (Consulta Rápida + Simulador)
+            if (window.popularSelectsProdutoEstrategicov3) window.popularSelectsProdutoEstrategicov3();
+
+            // Renderiza o Dashboard de Margens (gráficos de top/worst)
             window.renderDashboardVisuaisEstrategicoV3();
+
+            // Carrega os Planos Ativos
+            if (window.renderPlanejamentosAtivosV3) window.renderPlanejamentosAtivosV3();
         } catch (e) {
             console.error('Erro ao carregar planejamento V3:', e);
             _apexNotify('Erro', 'Não foi possível carregar os dados estratégicos V3.', 'error');
