@@ -1,96 +1,86 @@
-# ApexTech Metais - Portal Corporativo & Sistema ERP / Painel LME
+# ApexTech Metais - Enterprise Portal & ERP System
 
-Este é o repositório oficial do portal corporativo e sistema ERP de gestão comercial da **ApexTech Metais**. O projeto evoluiu de uma landing page estática para uma plataforma web completa que inclui servidor backend em Node.js, banco de dados PostgreSQL persistente, controle de estoque inteligente, pedidos de venda, análise de amostras, gestão de fornecedores, web scrapers integrados de cotações de metais e um agendador automatizado de relatórios diários via e-mail (Resend API).
+Este é o repositório oficial do portal corporativo e sistema ERP de gestão comercial da **ApexTech Metais**. O projeto evoluiu de uma landing page estática para uma **Plataforma Enterprise completa**, contando com Banco de Dados em Nuvem (PostgreSQL), Cache em Memória, Pipeline de Integração Contínua (CI/CD), Containerização com Docker, e Segurança Avançada (RBAC e Rate Limiting).
 
 ---
 
 ## 📌 Visão Geral do Sistema
 
-O portal foi projetado com uma estética visual premium e moderna (Dark Mode), focado em fornecer tanto informações corporativas para clientes finais quanto uma ferramenta ERP interna de alta performance.
+O portal foi projetado com uma estética visual premium (Dark Mode) e uma arquitetura robusta voltada a escalabilidade e máxima performance.
 
 ### 🚀 Principais Módulos
 
 1. **Landing Page Institucional (Página Pública)**
-   - Grade responsiva de soluções da empresa com efeito interativo 3D Tilt.
-   - Catálogo dinâmico de materiais comercializados.
-   - Blog / Seção de notícias atualizada dinamicamente.
-   - Tabela de cotações em tempo real mostrando os valores do dia para os principais metais LME e a cotação cambial do dólar.
-
+   - Grade responsiva com efeito 3D Tilt, catálogo dinâmico e tabelas de cotação em tempo real.
 2. **Painel ERP & Administrativo Privado (`/admin.html`)**
-   - **Pedidos de Venda:** Emissão de pedidos com busca inteligente de clientes do banco de dados, acentos normalizados (NFD), preenchimento automático de prazos/condições, cálculo automático de frete/desconto e atalho rápido para **+ Cadastrar Novo Cliente**.
-   - **Geração de PDF de Pedidos:** Exportação com layout corporativo, marca d'água oficial (`logo (2).png`), tabela itemizada e bloco de assinaturas.
-   - **Tabela de Preços & Calendário de Vigência:** Widget interativo de calendário visual por dias do mês para consulta e alteração rápida de vigência de preços.
-   - **Atalho da Tecla ESC (Escape):** Suporte nativo para cancelar operações ou fechar modais e menudropdowns instantaneamente.
-   - **Gestão de Clientes & Fornecedores:** Cadastro completo no PostgreSQL com geração automática de código sequencial e validações.
-   - **Análise de Amostras & Estoque Inteligente:** Acompanhamento de materiais e amostragem técnica.
-   - **Módulo de Relatórios Semanais LME:** Exibe dados históricos estruturados por semanas, calcula automaticamente as médias, variações e estimativas de base de 90% a 110% sobre a cotação do metal.
-   - **Exportação de Dados:** Geração de relatórios em PDF Corporativo e planilhas Excel (.xlsx).
-
-3. **Gerenciador e Agendador de E-mails LME**
-   - **Configurações do Resend**: Integração com a API do Resend para disparo de e-mails robustos.
-   - **CRUD de Destinatários**: Gestão inline de destinatários para relatórios diários de cotação da LME.
-   - **Agendador Diário**: Processo em segundo plano que roda a cada minuto no servidor, verificando o fuso horário local (`America/Sao_Paulo`).
+   - **Performance Extrema:** Motor de Cache em Memória (`window.ApexCache`) que reduz a latência de trânsito de abas para zero milissegundos.
+   - **Gestão de Clientes & Fornecedores:** Validações de unicidade, cadastros eficientes no banco PostgreSQL e busca inteligente em NFD.
+   - **Pedidos e Exportações:** Geração de PDFs com marcas d'água corporativas e exportação de planilhas complexas em Excel.
+   - **Relatórios Automatizados LME:** Web Scrapers que buscam a cotação oficial em Dólar e agendador automático via CRON para disparos de e-mail pela API Resend.
 
 ---
 
-## 🛠️ Tecnologias e Bibliotecas Utilizadas
+## 🏗️ Arquitetura de Software e Infraestrutura
 
-### 📂 Backend (Node.js & Express)
-* **Express (`^4.19.2`)**: Servidor HTTP e APIs REST.
-* **pg (`^8.21.0`)**: Driver do PostgreSQL com conexão por pooling e resiliência em falhas.
-* **Axios & Cheerio**: Requisições externas e web scraping das cotações diárias de metais LME.
-* **Puppeteer (`^25.3.0`)**: Renderização e geração de relatórios em PDF fiéis ao design.
-* **ExcelJS (`^4.4.0`)**: Manipulação e geração de planilhas Excel (.xlsx).
+Esta aplicação foi reconstruída sob os padrões mais altos do mercado, adotando as seguintes premissas arquitetônicas:
 
-### 📂 Frontend (HTML5, Vanilla CSS & Javascript)
-* **Design System / Dark Mode**: Tema escuro com variáveis CSS e `color-scheme: dark` integrado para calendários nativos do navegador.
-* **FontAwesome (`v6.5.0`)**: Ícones vetoriais corporativos.
-* **jsPDF & jsPDF-AutoTable**: Geração cliente-side de PDFs de pedidos de venda com marca d'água.
-* **Chart.js (`^4.4.0`)**: Gráficos dinâmicos de tendências e cotações da LME.
+- **Banco de Dados em Nuvem:** PostgreSQL hospedado no Railway para integridade transacional e acesso seguro a múltiplos nós.
+- **Sistema de Injeção de Dependências:** O backend do `server.js` é modularizado com rotas independentes na pasta `/src/routes`, simplificando a manutenção.
+- **Containerização Total (Docker):** O projeto dispõe de `Dockerfile` e `docker-compose.yml`, permitindo rodar a API, Banco de Dados e Frontend localmente com o comando universal `docker-compose up`.
 
 ---
 
-## 🔒 Auditoria de Segurança & Integridade
+## 🔒 Segurança de Elite, Testes e Monitoramento
 
-- **Validação de Entradas & SQL Injection:** Todas as rotas de banco de dados usam consultas parametrizadas (`$1, $2, ...`), impedindo injeções de SQL.
-- **Resiliência a Código Sequencial:** O backend calcula automaticamente o próximo `codigo` sequencial livre na tabela de clientes caso não seja informado, evitando violações de unicidade (`NOT NULL UNIQUE`).
-- **Tratamento de Timezone:** Datas são formatadas via `formatarDataSemFuso` dividindo a string em componentes `AAAA-MM-DD`, prevenindo o erro comum de deslocamento de 1 dia pelo fuso de Brasília (UTC-3).
-
----
-
-## ⚙️ Como Configurar e Executar o Projeto Localmente
-
-### Pré-requisitos
-- Node.js instalado (Versão 18 ou superior).
-- Banco de dados PostgreSQL configurado (local ou cloud como Railway/Neon).
-
-### Passo a Passo
-
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/devjohnnydev/ApexAmostra.git
-   cd ApexAmostra/apextech
-   ```
-
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure as Variáveis de Ambiente (`.env`):**
-   ```env
-   PORT=3000
-   DATABASE_URL=postgres://usuario:senha@host:5432/banco
-   RESEND_API_KEY=re_...
-   RESEND_FROM=suaempresa@dominio.com
-   ```
-
-4. **Inicie o servidor de desenvolvimento:**
-   ```bash
-   npm run dev
-   ```
-   O sistema estará disponível em: [http://localhost:3000](http://localhost:3000)
+- **Autenticação RBAC e JWT:** Controle severo de acesso por Perfil (Administrador, Produção, Laboratório). Tokens JWT garantem que cada usuário só interage com o que possui permissão criptográfica (ex: Laboratório bloqueado de ver Tabela de Preços).
+- **Proteção Contra Força Bruta e Injeções:** Barreira de `Rate Limiting` implementada na tela de login (5 tentativas por IP a cada 15 min), blindagem de headers HTTP via `Helmet`, e Query Parametrizada nativa.
+- **Testes Automatizados (Jest & Supertest):** O repositório engloba uma suíte rígida de testes BDD que validam as permissões sem intervenção humana, que rodam em zero segundos usando simulações in-memory.
+- **Pipeline de Integração (GitHub Actions):** Robôs autônomos na nuvem validam a integridade da aplicação (`npm test`) a cada novo `git push`.
+- **Auditoria e Logging (Winston):** Tratamento rigoroso de exceções não catalogadas (Uncaught Exceptions). Qualquer anomalia crítica ou queda de DB gera instantaneamente um arquivo rastreável na pasta `/logs/error.log`.
 
 ---
 
-> Desenvolvido para a **ApexTech Metais** com foco em alta performance, usabilidade inteligente e inteligência comercial. 🌿
+## 🛠️ Tecnologias e Bibliotecas
+
+**Backend (API & Infra):**
+- Node.js (Express), pg (PostgreSQL pooling), Jest, Supertest, Helmet, express-rate-limit, Winston, JSONWebToken, bcryptjs, Puppeteer, ExcelJS, Docker.
+
+**Frontend:**
+- Vanilla JavaScript com Modularização Avançada, HTML5, CSS3 Variables, Chart.js, jsPDF.
+
+---
+
+## ⚙️ Como Rodar o Projeto
+
+Você tem duas formas de iniciar o projeto: Nativo ou via Docker.
+
+### Opção 1: Via Docker (Recomendado - 1 Comando)
+Pré-requisitos: Ter o Docker e Docker Compose instalados.
+```bash
+git clone https://github.com/devjohnnydev/ApexAmostra.git
+cd ApexAmostra/apextech
+docker-compose up
+```
+
+### Opção 2: Método Tradicional
+Pré-requisitos: Node.js (18+) e PostgreSQL local/nuvem.
+```bash
+# 1. Clone o repositório
+git clone https://github.com/devjohnnydev/ApexAmostra.git
+cd ApexAmostra/apextech
+
+# 2. Instale os pacotes de produção
+npm install
+
+# 3. Configure as Variáveis no arquivo .env
+# PORT=3000
+# DATABASE_URL=postgres://usuario:senha@host:5432/apextech
+# JWT_SECRET=chave_segura_aqui
+
+# 4. Inicie o sistema e rode a suíte de Testes
+npm test
+npm run dev
+```
+
+---
+> Desenvolvido para a **ApexTech Metais** com foco em estabilidade Enterprise, usabilidade absoluta e engenharia inteligente. 🌿
