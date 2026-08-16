@@ -31,18 +31,31 @@
     window.fetch = async function() {
         let [resource, config] = arguments;
         
+        let argsToPass = arguments;
+
         // Só interceptamos se for string e começar com /api/
         if (typeof resource === 'string' && resource.startsWith('/api/') && resource !== '/api/login') {
             config = config || {};
             const method = (config.method || 'GET').toUpperCase();
             
             // 1. Injeção de JWT
-            config.headers = config.headers || {};
+            let headersObj = {};
+            if (config.headers) {
+                // Clona os headers existentes caso seja Headers ou objeto
+                if (config.headers instanceof Headers) {
+                    config.headers.forEach((value, key) => { headersObj[key] = value; });
+                } else {
+                    headersObj = { ...config.headers };
+                }
+            }
+            
             const token = localStorage.getItem('apex_token');
             if (token) {
-                config.headers['Authorization'] = 'Bearer ' + token;
+                headersObj['Authorization'] = 'Bearer ' + token;
             }
-            arguments[1] = config;
+            config.headers = headersObj;
+            
+            argsToPass = [resource, config];
 
             // 2. Lógica de Invalidação de Cache (POST, PUT, DELETE, PATCH)
             if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
@@ -86,7 +99,7 @@
                 }
 
                 // Faz o fetch real e guarda a Promise
-                const fetchPromise = originalFetch.apply(this, arguments).then(async response => {
+                const fetchPromise = originalFetch.apply(this, argsToPass).then(async response => {
                     if (response.ok) {
                         const clone = response.clone();
                         const body = await clone.text();
@@ -122,7 +135,7 @@
         }
         
         // Comportamento normal para não-cacheados ou origens externas
-        const response = await originalFetch.apply(this, arguments);
+        const response = await originalFetch.apply(this, argsToPass);
         return handleAuthErrors(response, resource);
     };
 
