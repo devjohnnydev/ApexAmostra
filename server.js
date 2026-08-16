@@ -931,6 +931,16 @@ app.get('/api/debug-logs', (req, res) => {
     }
 });
 
+app.get('/api/db-test', async (req, res) => {
+    try {
+        if (!pool) return res.send('No pool');
+        const result = await pool.query('SELECT * FROM estrategiav3_planos');
+        res.json(result.rows);
+    } catch(e) {
+        res.send('SQL Error: ' + e.message);
+    }
+});
+
 // ─── Arquivos Estáticos ───────────────────────────────────────────────────────
 // Desabilita cache agressivo de arquivos estáticos para que atualizações apareçam instantaneamente
 app.use(express.static(__dirname, {
@@ -946,7 +956,7 @@ app.use(express.static(__dirname, {
 // ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
     // Pula autenticação para login e rotas públicas
-    const publicRoutes = ['/login', '/solucoes', '/materiais-catalogo', '/cotacoes-hoje', '/settings', '/debug-logs'];
+    const publicRoutes = ['/login', '/solucoes', '/materiais-catalogo', '/cotacoes-hoje', '/settings', '/debug-logs', '/db-test'];
     if (publicRoutes.includes(req.path) || req.path.startsWith('/public')) return next();
 
     const authHeader = req.headers.authorization;

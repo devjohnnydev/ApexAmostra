@@ -16,11 +16,11 @@ async function test() {
     try {
         const res = await request({
             hostname: 'apexamostra-production.up.railway.app',
-            path: '/api/solucoes',
+            path: '/api/debug-logs',
             method: 'GET'
         });
         console.log('Status:', res.status);
-        console.log('Body:', res.body.substring(0, 200));
+        console.log('Body:', res.body);
     } catch (err) {
         console.error('Test error:', err);
     }
