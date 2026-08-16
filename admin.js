@@ -5173,7 +5173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.carregarPrecos = async function() {
         try {
-            const res = await fetch('/api/tabela-precos');
+            const res = await fetch('/api/tabela-precos', { cache: 'no-store' });
             localPrecos = await res.json();
             
             try {
@@ -5797,7 +5797,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const modoPDF = modo || visualizacaoTabelaPrecos || 'fornecedor';
         let precos = localPrecos;
         if (!precos || precos.length === 0) {
-            const res = await fetch('/api/tabela-precos');
+            const res = await fetch('/api/tabela-precos', { cache: 'no-store' });
             precos = await res.json();
         }
         
@@ -6881,7 +6881,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Buscar tabela de precos se cache vazio
         if (fidcPrecosCache.length === 0) {
             try {
-                const pr = await fetch('/api/tabela-precos');
+                const pr = await fetch('/api/tabela-precos', { cache: 'no-store' });
                 fidcPrecosCache = await pr.json();
             } catch(e) { fidcPrecosCache = []; }
         }
@@ -10906,7 +10906,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Garante localPrecos carregados
         if (!window.localPrecos || window.localPrecos.length === 0) {
             try {
-                const res = await fetch('/api/tabela-precos');
+                const res = await fetch('/api/tabela-precos', { cache: 'no-store' });
                 window.localPrecos = await res.json();
             } catch(e){}
         }
@@ -15097,7 +15097,7 @@ window.carregarFinanceiroView = async function() {
         try {
             // Buscar tabela de preços completa e metas estratégicas cadastradas
             const [resPrecos, resMetas] = await Promise.all([
-                fetch('/api/tabela-precos'),
+                fetch('/api/tabela-precos', { cache: 'no-store' }),
                 fetch('/api/planejamento-estrategico')
             ]);
             
@@ -15907,7 +15907,7 @@ window.carregarFinanceiroView = async function() {
 
     window.carregarPlanejamentoEstrategicov3 = async function() {
         try {
-            const resPrecos = await fetch('/api/tabela-precos');
+            const resPrecos = await fetch('/api/tabela-precos', { cache: 'no-store' });
             _listTabelaPrecosEstrategica = await resPrecos.json();
             
             // Renderiza o Dashboard de Margens
@@ -17347,7 +17347,7 @@ window.carregarFinanceiroView = async function() {
 
         try {
             if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) {
-                const resPrecos = await fetch('/api/tabela-precos');
+                const resPrecos = await fetch('/api/tabela-precos', { cache: 'no-store' });
                 _listTabelaPrecosEstrategica = await resPrecos.json();
             }
             
