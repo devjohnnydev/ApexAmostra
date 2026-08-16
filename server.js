@@ -32,6 +32,7 @@ const uploadMemory = multer({
 dotenv.config();
 
 const app  = express();
+app.set('trust proxy', 1); // Necessário para o express-rate-limit funcionar atrás de um proxy (Railway)
 const PORT = process.env.PORT || 3000;
 
 // ─── SEGURANÇA BÁSICA (HELMET) ───────────────────────────────────────────────
