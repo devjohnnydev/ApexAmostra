@@ -1823,7 +1823,7 @@
                             <strong>Alerta de Mercado (LME / Dólar):</strong> <span id="alerta-cotacao-texto">Variação expressiva nas cotações de hoje. Avalie atualizar os preços da tabela.</span>
                         </div>
                     </div>
-                    <button class="btn-secondary" onclick="carregarCotacoesDolarLME()" style="border-color:#ffb703; color:#ffb703;"><i class="fa-solid fa-sync"></i> Atualizar Cotações</button>
+                    <button class="btn-secondary" onclick="if(window.ApexCache) window.ApexCache.clear('/api/cotacoes'); carregarCotacoesDolarLME()" style="border-color:#ffb703; color:#ffb703;"><i class="fa-solid fa-sync"></i> Atualizar Cotações</button>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:rgba(30,78,140,0.15); padding:15px 20px; border-radius:8px; border:1px solid rgba(30,78,140,0.3);">
