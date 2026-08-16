@@ -4090,7 +4090,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let permissoes = globalRolePermissions[role] || [];
         if (role === 'Administrador') {
             // Admin vê tudo.
-            permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios", "view_permissoes", "view_financeiro", "view_pedidos"];
+            permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios", "view_permissoes", "view_financeiro", "view_pedidos", "view_clientes", "view_estrategico", "view_site"];
         }
 
         const temPermissao = (p) => permissoes.includes(p);
@@ -4103,10 +4103,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Tabs Visibility (Apex Gestão)
         setNav('nav-fornecedores', temPermissao('view_fornecedores'));
+        setNav('nav-clientes', temPermissao('view_clientes'));
         setNav('nav-materiais', temPermissao('view_catalogo'));
         setNav('nav-precos', temPermissao('view_precos'));
         setNav('nav-amostras', temPermissao('view_laboratorio'));
         setNav('nav-planejamento', temPermissao('view_planejamento'));
+        setNav('nav-planejamento-estrategicov3', temPermissao('view_estrategico'));
         setNav('nav-estoque', temPermissao('view_estoque'));
         setNav('nav-bi', temPermissao('view_bi'));
         setNav('nav-usuarios', temPermissao('view_usuarios'));
@@ -4117,7 +4119,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
         setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
         setNav('.nav-item[data-target="relatorio-diario"]', temPermissao('view_lme'));
-        setNav('.nav-item[data-target="lme-email-config"]', temPermissao('view_lme'));
+        
+        // Site Config (Agrupados)
+        setNav('.nav-item[data-target="home-config"]', temPermissao('view_site'));
+        setNav('.nav-item[data-target="galeria-admin"]', temPermissao('view_site'));
+        setNav('.nav-item[data-target="materiais"]', temPermissao('view_site'));
+        setNav('.nav-item[data-target="solucoes"]', temPermissao('view_site'));
+        setNav('.nav-item[data-target="noticias"]', temPermissao('view_site'));
+        setNav('.nav-item[data-target="lme-email-config"]', temPermissao('view_site') || temPermissao('view_lme'));
+        setNav('.nav-item[data-target="tabela-email-config"]', temPermissao('view_site') || temPermissao('view_precos'));
 
         // Oculta a seção ativa se o usuário perdeu acesso a ela e redireciona para a primeira disponível
         const activeNav = document.querySelector('.nav-item.active');
