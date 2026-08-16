@@ -1,4 +1,5 @@
 // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ─────────
+(function() {
     let _listMetasV3 = [];
     let _chartEstrategicoV3 = null;
     let _mesV3Ativo = null; // null = visão de 12 meses
