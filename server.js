@@ -934,7 +934,7 @@ app.get('/api/debug-logs', (req, res) => {
 app.get('/api/db-test', async (req, res) => {
     try {
         if (!pool) return res.send('No pool');
-        const result = await pool.query('SELECT * FROM estrategiav3_planos');
+        const result = await pool.query('SELECT * FROM estrategiav3_mix');
         res.json(result.rows);
     } catch(e) {
         res.send('SQL Error: ' + e.message);

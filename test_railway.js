@@ -1,28 +1,16 @@
 const https = require('https');
-
-function request(options) {
+function request() {
     return new Promise((resolve, reject) => {
-        const req = https.request(options, (res) => {
+        const req = https.request({
+            hostname: 'apexamostra-production.up.railway.app',
+            path: '/api/db-test-query',
+            method: 'GET'
+        }, (res) => {
             let body = '';
             res.on('data', chunk => body += chunk);
             res.on('end', () => resolve({ status: res.statusCode, body }));
         });
-        req.on('error', reject);
         req.end();
     });
 }
-
-async function test() {
-    try {
-        const res = await request({
-            hostname: 'apexamostra-production.up.railway.app',
-            path: '/api/debug-logs',
-            method: 'GET'
-        });
-        console.log('Status:', res.status);
-        console.log('Body:', res.body);
-    } catch (err) {
-        console.error('Test error:', err);
-    }
-}
-test();
+request().then(res => console.log(res.body));
