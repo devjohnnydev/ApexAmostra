@@ -919,6 +919,18 @@ app.use((req, res, next) => {
     next();
 });
 
+// Endpoint temporário de DEBUG
+app.get('/api/debug-logs', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    try {
+        const logContent = fs.readFileSync(path.join(__dirname, 'logs', 'error.log'), 'utf8');
+        res.send(logContent);
+    } catch(e) {
+        res.send('No logs: ' + e.message);
+    }
+});
+
 // ─── Arquivos Estáticos ───────────────────────────────────────────────────────
 // Desabilita cache agressivo de arquivos estáticos para que atualizações apareçam instantaneamente
 app.use(express.static(__dirname, {
