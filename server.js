@@ -35,8 +35,8 @@ const app  = express();
 app.set('trust proxy', 1); // Necessário para o express-rate-limit funcionar atrás de um proxy (Railway)
 const PORT = process.env.PORT || 3000;
 
-// ─── SEGURANÇA BÁSICA (HELMET) ───────────────────────────────────────────────
-app.use(helmet());
+// ─── SEGURANÇA BÁSICA (HELMET REMOVIDO TEMPORARIAMENTE) ──────────────────────
+// app.use(helmet());
 
 // ─── PostgreSQL Pool (opcional) ──────────────────────────────────────────────
 let pool = null;
@@ -957,7 +957,7 @@ app.use(express.static(__dirname, {
 // ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
     // Pula autenticação para login e rotas públicas
-    const publicRoutes = ['/login', '/solucoes', '/materiais-catalogo', '/cotacoes-hoje', '/settings', '/debug-logs', '/db-test'];
+    const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje', '/settings', '/debug-logs', '/db-test'];
     if (publicRoutes.includes(req.path) || req.path.startsWith('/public')) return next();
 
     const authHeader = req.headers.authorization;
