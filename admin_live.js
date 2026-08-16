@@ -13532,12 +13532,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 initAdmin();
             }
 
-            // Verificação local imediata (garante acesso mesmo se o servidor falhar)
-            if (user === 'admin' && pass === 'apex2026') {
-                entrarNoPainel('Administrador Apex', 'Administrador');
-                return;
-            }
-
             // Tentativa via API do servidor
             try {
                 const response = await fetch('/api/login', {
@@ -13547,6 +13541,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await response.json();
                 if (response.ok && data.success) {
+                    if (data.token) {
+                        localStorage.setItem('apex_token', data.token);
+                    }
                     entrarNoPainel(data.user.nome, data.user.perfil);
                 } else {
                     loginError.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (data.error || 'Credenciais incorretas.');
