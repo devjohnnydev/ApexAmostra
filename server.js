@@ -2089,17 +2089,9 @@ app.get('/api/cotacoes/dolar-lme', async (req, res) => {
 });
 
 // ─── API: Audit Logs ─────────────────────────────────────────────────────────
-app.get('/api/audit-logs', async (req, res) => {
-    try {
-        if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM audit_logs ORDER BY criado_em DESC LIMIT 100');
-            return res.json(result.rows);
-        }
-        res.json((memStore.audit_logs || []).slice(-100).reverse());
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// Importando rota modularizada (Início da Fase 9)
+const auditLogsRoute = require('./src/routes/auditLogs');
+app.use('/api/audit-logs', auditLogsRoute(pool, dbAvailable, memStore));
 
 // ─── API: Planejamento Mensal / Lotes Compra (CRUD + Motor Financeiro) ─────────
 app.get('/api/planejamento-compras', async (req, res) => {
