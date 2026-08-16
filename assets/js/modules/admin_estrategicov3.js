@@ -586,29 +586,64 @@ window.excluirCicloV3 = async function(cicloId) {
     } catch(e) { console.error(e); alert('Erro ao excluir ciclo'); }
 };
 
-    async function _renderizarCiclosV3() {
+        async function _renderizarCiclosV3() {
         const tbody = document.getElementById('plestv3-ciclos-tbody');
         if (!tbody) return;
 
+        try {
+            const res = await fetch('/api/estrategiav3_planos');
+            const data = await res.json();
+            const ciclos = data.planos || [];
 
-            const tr = document.createElement('tr');
-            tr.style.borderBottom = '1px solid #223547';
-            tr.innerHTML = `
-                <td style="padding:7px 10px; color:#ccc; white-space:nowrap; font-size:0.8rem;">${periodo}</td>
-                <td style="padding:7px 10px; color:#aaa; font-size:0.76rem; max-width:180px; overflow:hidden; text-overflow:ellipsis;" title="${mixNomes}">${mixNomes}</td>
-                <td style="padding:7px 10px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${(c.metaFaturamento||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:7px 10px; text-align:right; color:#ff9800;">R$ ${(c.investimentoSimulado||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                <td style="padding:7px 10px; text-align:right; color:#2AD07A;">${fatRealStr}</td>
-                <td style="padding:7px 10px; text-align:right; color:#aaa;">${invRealStr}</td>
-                <td style="padding:7px 10px; text-align:center;">${atingimentoHTML}</td>
-                <td style="padding:7px 10px; text-align:center;">${statusHTML}</td>
-                <td style="padding:7px 10px; text-align:center; white-space:nowrap;">
-                    ${acaoReal}
-                    <button onclick="window.excluirCicloV3(${c.id})" title="Excluir" style="background:none; border:none; color:#ff6b6b; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+            if (ciclos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:18px; color:#aaa;">Nenhum ciclo salvo ainda no banco.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            ciclos.forEach(c => {
+                const periodo = new Date(c.data_inicio).toLocaleDateString('pt-BR') + ' → ' + new Date(c.data_fim).toLocaleDateString('pt-BR');
+                const mixNomes = 'Mix salvo no banco';
+                
+                let atingimentoHTML = '—';
+                let statusHTML = '<span style="color:#ffb74d; font-weight:bold;"><i class="fa-solid fa-clock"></i> Pendente</span>';
+
+                if (c.status === 'CONCLUIDO' && c.faturamento_realizado != null) {
+                    const pct = c.meta_faturamento > 0 ? (c.faturamento_realizado / c.meta_faturamento) * 100 : 0;
+                    const cor = pct >= 100 ? '#2AD07A' : pct >= 80 ? '#ffb74d' : '#ff4d4d';
+                    const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️' : '❌';
+                    atingimentoHTML = '<span style="color:' + cor + '; font-weight:bold;">' + icone + ' ' + pct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%</span>';
+                    statusHTML = '<span style="color:' + cor + '; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Realizado</span>';
+                }
+
+                const fatRealStr  = c.faturamento_realizado != null ? 'R$ ' + parseFloat(c.faturamento_realizado).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+                const invRealStr  = c.investimento_realizado != null ? 'R$ ' + parseFloat(c.investimento_realizado).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+
+                const acaoReal = c.status !== 'CONCLUIDO'
+                    ? '<button onclick="window.abrirModalResultadoRealV3(' + c.id + ')" title="Lançar Resultado Real" style="background:rgba(42,208,122,0.12); border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; cursor:pointer; font-size:0.78rem; margin-right:4px;"><i class="fa-solid fa-flag-checkered"></i> Real</button>'
+                    : '';
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #223547';
+                tr.innerHTML = `
+                    <td style="padding:7px 10px; color:#ccc; white-space:nowrap; font-size:0.8rem;">${periodo}</td>
+                    <td style="padding:7px 10px; color:#aaa; font-size:0.76rem; max-width:180px; overflow:hidden; text-overflow:ellipsis;" title="${mixNomes}">${mixNomes}</td>
+                    <td style="padding:7px 10px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${parseFloat(c.meta_faturamento||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:7px 10px; text-align:right; color:#ff9800;">R$ ${parseFloat(c.investimento_simulado||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td style="padding:7px 10px; text-align:right; color:#2AD07A;">${fatRealStr}</td>
+                    <td style="padding:7px 10px; text-align:right; color:#aaa;">${invRealStr}</td>
+                    <td style="padding:7px 10px; text-align:center;">${atingimentoHTML}</td>
+                    <td style="padding:7px 10px; text-align:center;">${statusHTML}</td>
+                    <td style="padding:7px 10px; text-align:center; white-space:nowrap;">
+                        ${acaoReal}
+                        <button onclick="window.excluirCicloV3(${c.id})" title="Excluir" style="background:none; border:none; color:#ff6b6b; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error('Erro ao renderizar ciclos', e);
+        }
     }
 
     // Inicializar ciclos ao carregar a seção
