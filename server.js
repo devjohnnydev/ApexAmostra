@@ -925,28 +925,84 @@ app.use(express.static(__dirname, {
     }
 }));
 
+// ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
+const authMiddleware = (req, res, next) => {
+    // Pula autenticação para login e rotas públicas
+    if (req.path === '/login' || req.path.startsWith('/public')) return next();
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Token não fornecido. Acesso Negado.' });
+    
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (err) {
+        return res.status(401).json({ error: 'Token inválido ou expirado.' });
+    }
+};
+
+const requireRole = (allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user) return res.status(401).json({ error: 'Não autenticado' });
+        if (req.user.perfil === 'Administrador') return next(); // Admin tem acesso irrestrito
+        if (allowedRoles.includes(req.user.perfil)) return next();
+        return res.status(403).json({ error: 'Acesso negado para o seu perfil: ' + req.user.perfil });
+    };
+};
+
+// Aplica autenticação em todas as rotas da API
+app.use('/api', authMiddleware);
+
+// Regras de Autorização por Agrupamento de Rotas (RBAC)
+app.use('/api/usuarios', requireRole(['Diretoria']));
+app.use('/api/tabela-precos', requireRole(['Diretoria', 'Compras', 'Comercial']));
+app.use('/api/tabela-precos-validade-geral', requireRole(['Diretoria', 'Compras', 'Comercial']));
+app.use('/api/amostras', requireRole(['Diretoria', 'Laboratório', 'Produção']));
+app.use('/api/planejamento', requireRole(['Diretoria', 'Compras', 'Produção', 'Comercial']));
+app.use('/api/planejamento-compras', requireRole(['Diretoria', 'Compras']));
+app.use('/api/planejamento-estrategico', requireRole(['Diretoria']));
+app.use('/api/planejamento-estrategicov3', requireRole(['Diretoria']));
+app.use('/api/estrategiav3_planos', requireRole(['Diretoria']));
+app.use('/api/estrategiav3_mix', requireRole(['Diretoria']));
+app.use('/api/lme', requireRole(['Diretoria', 'Compras']));
+app.use('/api/cotacoes', requireRole(['Diretoria', 'Compras']));
+app.use('/api/fornecedores', requireRole(['Diretoria', 'Compras', 'Laboratório', 'Produção']));
+app.use('/api/clientes', requireRole(['Diretoria', 'Comercial']));
+app.use('/api/materiais', requireRole(['Diretoria', 'Laboratório', 'Compras', 'Produção']));
+app.use('/api/materiais-catalogo', requireRole(['Diretoria', 'Laboratório', 'Compras', 'Produção']));
+app.use('/api/pedidos-venda', requireRole(['Diretoria', 'Comercial', 'Financeiro']));
+app.use('/api/estoque', requireRole(['Diretoria', 'Produção', 'Laboratório', 'Compras', 'Comercial']));
+app.use('/api/audit-logs', requireRole(['Diretoria']));
+
 // ─── API: Login ───────────────────────────────────────────────────────────────
 app.post('/api/login', async (req, res) => {
     try {
         const { user, pass } = req.body;
+        let foundUser = null;
         
         // Verificar no banco de dados primeiro
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM usuarios WHERE "user" = $1 AND pass = $2', [user, pass]);
             if (result.rows.length > 0) {
-                const u = result.rows[0];
-                return res.json({ success: true, user: { user: u.user, perfil: (u.user === 'admin' ? 'Administrador' : u.perfil), nome: u.nome } });
+                foundUser = result.rows[0];
             }
         } else {
             const u = memStore.usuarios.find(x => x.user === user && x.pass === pass);
-            if (u) {
-                return res.json({ success: true, user: { user: u.user, perfil: (u.user === 'admin' ? 'Administrador' : u.perfil), nome: u.nome } });
-            }
+            if (u) foundUser = u;
         }
 
         // Fallback admin padrão
-        if ((user === 'admin' && pass === 'apex2026')) {
-            res.json({ success: true, user: { user: 'admin', perfil: 'Administrador', nome: 'Admin Apex' } });
+        if (!foundUser && user === 'admin' && pass === 'apex2026') {
+            foundUser = { user: 'admin', perfil: 'Administrador', nome: 'Admin Apex' };
+        }
+        
+        if (foundUser) {
+            const perfilFinal = (foundUser.user === 'admin' ? 'Administrador' : foundUser.perfil);
+            // Assina o Token JWT
+            const token = jwt.sign({ user: foundUser.user, perfil: perfilFinal, nome: foundUser.nome }, JWT_SECRET, { expiresIn: '12h' });
+            return res.json({ success: true, token, user: { user: foundUser.user, perfil: perfilFinal, nome: foundUser.nome } });
         } else {
             res.status(401).json({ success: false, error: 'Usuário ou senha inválidos.' });
         }
