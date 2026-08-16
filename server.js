@@ -12,6 +12,9 @@ const puppeteer = require('puppeteer');
 const multer    = require('multer');
 const bcrypt    = require('bcryptjs');
 const jwt       = require('jsonwebtoken');
+const helmet    = require('helmet');
+const rateLimit = require('express-rate-limit');
+const logger    = require('./config/logger');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'apextech_secret_key_2026_safe';
 
@@ -30,6 +33,9 @@ dotenv.config();
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── SEGURANÇA BÁSICA (HELMET) ───────────────────────────────────────────────
+app.use(helmet());
 
 // ─── PostgreSQL Pool (opcional) ──────────────────────────────────────────────
 let pool = null;
@@ -51,10 +57,10 @@ if (process.env.DATABASE_URL) {
 
 // ─── Proteção contra Crashes & Desligamento Gracioso (Railway) ─────────
 process.on('uncaughtException', (err) => {
-    console.error('💥 Erro não tratado (uncaughtException):', err);
+    logger.error('💥 Erro não tratado (uncaughtException): ' + err.stack);
 });
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('💥 Promessa rejeitada não tratada (unhandledRejection):', reason);
+    logger.error('💥 Promessa rejeitada não tratada (unhandledRejection): ' + reason);
 });
 process.on('SIGTERM', () => {
     console.log('🛑 Sinal SIGTERM recebido do Railway. Encerrando servidor graciosamente...');
@@ -977,7 +983,13 @@ app.use('/api/estoque', requireRole(['Diretoria', 'Produção', 'Laboratório', 
 app.use('/api/audit-logs', requireRole(['Diretoria']));
 
 // ─── API: Login ───────────────────────────────────────────────────────────────
-app.post('/api/login', async (req, res) => {
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 5, // Limite de 5 tentativas de login por IP
+    message: { success: false, error: 'Muitas tentativas de login. Tente novamente em 15 minutos.' }
+});
+
+app.post('/api/login', loginLimiter, async (req, res) => {
     try {
         const { user, pass } = req.body;
         let foundUser = null;
