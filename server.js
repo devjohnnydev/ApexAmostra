@@ -1322,7 +1322,8 @@ app.get('/api/materiais-catalogo', async (req, res) => {
 
 app.post('/api/materiais-catalogo', async (req, res) => {
     try {
-        const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        let { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        nome = formatarNomeCapitalizado(nome);
         let material;
         const validadeDefault = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
