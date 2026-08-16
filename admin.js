@@ -1,3 +1,6 @@
+var _listMetasEstrategicas = [];
+var _listTabelaPrecosEstrategica = [];
+
 document.addEventListener('DOMContentLoaded', () => {
 
     window.getJsPDFClass = function() {
@@ -15086,8 +15089,7 @@ window.carregarFinanceiroView = async function() {
     };
 
 
-    var _listMetasEstrategicas = [];
-    var _listTabelaPrecosEstrategica = [];
+
     let _chartEstrategicoCenarios = null;
     let _mesEstrategicoAtivo = null; // null significa visualizando tela de 12 meses
 
