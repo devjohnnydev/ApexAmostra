@@ -713,7 +713,11 @@ async function initDatabase() {
                 ALTER TABLE estrategiav3_planos 
                 ADD COLUMN IF NOT EXISTS cenario_conservador_pct NUMERIC(5,2) DEFAULT 80.00,
                 ADD COLUMN IF NOT EXISTS cenario_moderado_pct NUMERIC(5,2) DEFAULT 100.00,
-                ADD COLUMN IF NOT EXISTS cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00;
+                ADD COLUMN IF NOT EXISTS cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00,
+                ADD COLUMN IF NOT EXISTS faturamento_realizado NUMERIC(14,2) DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS investimento_realizado NUMERIC(14,2) DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS volume_realizado NUMERIC(12,3) DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS observacoes TEXT DEFAULT '';
             `);
         } catch(e) {}
 
@@ -1003,6 +1007,7 @@ app.use('/api/planejamento-estrategicov3', requireRole(['Diretoria']));
 app.get('/api/estrategiav3_planos', requireRole(['Diretoria', 'Compras', 'Financeiro', 'Produção', 'Comercial']));
 app.post('/api/estrategiav3_planos', requireRole(['Diretoria']));
 app.put('/api/estrategiav3_planos/:id/status', requireRole(['Diretoria']));
+app.put('/api/estrategiav3_planos/:id/resultado_real', requireRole(['Diretoria']));
 app.delete('/api/estrategiav3_planos/:id', requireRole(['Diretoria']));
 
 app.get('/api/estrategiav3_mix', requireRole(['Diretoria', 'Compras', 'Financeiro', 'Produção', 'Comercial']));
@@ -2902,6 +2907,27 @@ app.put('/api/estrategiav3_planos/:id/status', async (req, res) => {
     } catch (err) {
         console.error('⚠️ Erro PUT STATUS', err);
         res.status(500).json({ error: 'Erro ao atualizar status' });
+    }
+});
+
+app.put('/api/estrategiav3_planos/:id/resultado_real', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { faturamento_realizado, investimento_realizado, volume_realizado, observacoes } = req.body;
+    try {
+        if (!dbAvailable || !pool) throw new Error('DB not available');
+        await pool.query(`
+            UPDATE estrategiav3_planos 
+            SET faturamento_realizado = $1, 
+                investimento_realizado = $2, 
+                volume_realizado = $3, 
+                observacoes = $4,
+                status = 'CONCLUIDO'
+            WHERE id = $5
+        `, [faturamento_realizado, investimento_realizado, volume_realizado, observacoes, id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('⚠️ Erro PUT resultado_real', err);
+        res.status(500).json({ error: 'Erro ao salvar resultado real' });
     }
 });
 

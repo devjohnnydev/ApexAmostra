@@ -439,15 +439,7 @@
     //  CICLOS DE SIMULAÇÃO V3 — Salvar / Lançar Resultado Real
     // ═══════════════════════════════════════════════════════════════
 
-    // Storage key específico para ciclos desta empresa/usuário
-    const _CICLOS_KEY = 'apextech_ciclos_simulacao_v3';
-
-    function _getCiclos() {
-        try { return JSON.parse(localStorage.getItem(_CICLOS_KEY) || '[]'); } catch { return []; }
-    }
-    function _saveCiclos(arr) {
-        localStorage.setItem(_CICLOS_KEY, JSON.stringify(arr));
-    }
+    // Removido _getCiclos e _saveCiclos do localStorage (agora usa DB)
 
     // Sincroniza o campo "Investimento Simulado" com o valor calculado no mix
     function _syncInvestimentoSimuladoCiclo() {
@@ -461,13 +453,12 @@
         }
     }
 
-    window.salvarCicloSimulacaoV3 = function() {
+    window.salvarCicloSimulacaoV3 = async function() {
         const dataInicio = document.getElementById('plestv3-ciclo-data-inicio')?.value;
         const dataFim    = document.getElementById('plestv3-ciclo-data-fim')?.value;
         const metaFatEl  = document.getElementById('plestv3-ciclo-meta-fat');
         let   metaFat    = parseFloat(metaFatEl?.value) || 0;
 
-        // Se não informou meta manual, usa o faturamento alvo configurado na simulação
         if (!metaFat) {
             const elFat = document.getElementById('plestv3-fat-alvo');
             metaFat = parseFloat(elFat?.value) || 0;
@@ -489,51 +480,58 @@
         _syncInvestimentoSimuladoCiclo();
         const investSimulado = parseFloat(document.getElementById('plestv3-ciclo-investimento-sim')?.value) || 0;
 
-        // Capturar snapshot do mix atual
         const mixSnapshot = _mixSimulacaoV3.map(item => {
             const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === item.material_id);
             return { material_id: item.material_id, nome: tp?.material_nome || `ID ${item.material_id}`, fracaoPct: item.fracaoPct };
         });
 
-        const ciclo = {
-            id: Date.now(),
-            dataInicio,
-            dataFim,
-            metaFaturamento: metaFat,
-            investimentoSimulado: investSimulado,
-            mixSnapshot,
+        const titulo = `Simulação ${new Date().toLocaleDateString('pt-BR')}`;
+        const payload = {
+            titulo,
+            data_inicial: dataInicio,
+            data_final: dataFim,
             frente: document.getElementById('plestv3-frente')?.value || 'venda',
-            // Resultado real (preenchido posteriormente)
-            fatReal: null,
-            investReal: null,
-            volumeReal: null,
-            obs: '',
-            status: 'simulado' // 'simulado' | 'realizado'
+            meta_faturamento: metaFat,
+            cenario_conservador_pct: parseFloat(document.getElementById('plestv3-cenario-conservador')?.value) || 80,
+            cenario_moderado_pct: parseFloat(document.getElementById('plestv3-cenario-moderado')?.value) || 100,
+            cenario_agressivo_pct: parseFloat(document.getElementById('plestv3-cenario-agressivo')?.value) || 120,
+            mix: _mixSimulacaoV3.map(m => ({ material_id: m.material_id, fracao_pct: m.fracaoPct }))
         };
 
-        const ciclos = _getCiclos();
-        ciclos.unshift(ciclo); // mais recente primeiro
-        _saveCiclos(ciclos);
+        try {
+            const res = await fetch('/api/estrategiav3_planos', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error('Falha ao salvar ciclo no banco');
+            
+            const nota = document.getElementById('plestv3-ciclo-nota-salvo');
+            if (nota) nota.style.display = 'block';
 
-        // Feedback visual
-        const nota = document.getElementById('plestv3-ciclo-nota-salvo');
-        if (nota) nota.style.display = 'block';
-
-        _renderizarCiclosV3();
-        alert(`✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+            _renderizarCiclosV3();
+            alert(`✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}`);
+        } catch (e) {
+            console.error(e);
+            alert('Erro ao salvar ciclo.');
+        }
     };
 
-    window.abrirModalResultadoRealV3 = function(cicloId) {
+    window.abrirModalResultadoRealV3 = async function(cicloId) {
         const modal = document.getElementById('modal-resultado-real-v3');
         if (!modal) return;
 
-        // Se veio com ID específico, usa ele; senão pega o primeiro ciclo simulado
         let id = cicloId;
         if (!id) {
-            const ciclos = _getCiclos();
-            const pendente = ciclos.find(c => c.status === 'simulado');
-            if (!pendente) { alert('Nenhum ciclo simulado pendente. Salve primeiro uma simulação.'); return; }
-            id = pendente.id;
+            try {
+                const res = await fetch('/api/estrategiav3_planos');
+                const data = await res.json();
+                const planos = data.planos || [];
+                const pendente = planos.find(p => p.status !== 'CONCLUIDO');
+                if (!pendente) { alert('Nenhum ciclo pendente no banco. Salve um novo planejamento.'); return; }
+                id = pendente.id;
+            } catch(e) {
+                alert('Erro ao buscar planos.'); return;
+            }
         }
 
         document.getElementById('modal-rr-ciclo-id').value = id;
@@ -549,73 +547,49 @@
         if (modal) modal.style.display = 'none';
     };
 
-    window.confirmarResultadoRealV3 = function() {
-        const cicloId  = parseInt(document.getElementById('modal-rr-ciclo-id')?.value);
-        const fatReal  = parseFloat(document.getElementById('modal-rr-fat-real')?.value);
-        const invReal  = parseFloat(document.getElementById('modal-rr-invest-real')?.value);
-        const volReal  = parseFloat(document.getElementById('modal-rr-volume-real')?.value) || null;
-        const obs      = document.getElementById('modal-rr-obs')?.value?.trim() || '';
+    window.confirmarResultadoRealV3 = async function() {
+    const cicloId  = parseInt(document.getElementById('modal-rr-ciclo-id')?.value);
+    const fatReal  = parseFloat(document.getElementById('modal-rr-fat-real')?.value);
+    const invReal  = parseFloat(document.getElementById('modal-rr-invest-real')?.value);
+    const volReal  = parseFloat(document.getElementById('modal-rr-volume-real')?.value) || null;
+    const obs      = document.getElementById('modal-rr-obs')?.value?.trim() || '';
 
-        if (!fatReal || fatReal <= 0) { alert('Informe o Faturamento Real alcançado.'); return; }
-        if (!invReal || invReal <= 0) { alert('Informe o Investimento Real realizado em compras.'); return; }
+    if (!fatReal || fatReal <= 0) { alert('Informe o Faturamento Real alcançado.'); return; }
+    if (!invReal || invReal <= 0) { alert('Informe o Investimento Real realizado em compras.'); return; }
 
-        const ciclos = _getCiclos();
-        const idx = ciclos.findIndex(c => c.id === cicloId);
-        if (idx < 0) { alert('Ciclo não encontrado.'); return; }
-
-        ciclos[idx].fatReal      = fatReal;
-        ciclos[idx].investReal   = invReal;
-        ciclos[idx].volumeReal   = volReal;
-        ciclos[idx].obs          = obs;
-        ciclos[idx].status       = 'realizado';
-        _saveCiclos(ciclos);
-
+    try {
+        const res = await fetch('/api/estrategiav3_planos/' + cicloId + '/resultado_real', {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                faturamento_realizado: fatReal,
+                investimento_realizado: invReal,
+                volume_realizado: volReal,
+                observacoes: obs
+            })
+        });
+        if (!res.ok) throw new Error('Erro ao salvar resultado real');
+        
         window.fecharModalResultadoRealV3();
         _renderizarCiclosV3();
-    };
+        _apexNotify('Sucesso', 'Resultado real do ciclo registrado!', 'success');
+    } catch(e) {
+        console.error(e);
+        alert('Erro ao registrar resultado real.');
+    }
+};
 
-    window.excluirCicloV3 = function(cicloId) {
-        if (!confirm('Excluir este ciclo? Esta ação não pode ser desfeita.')) return;
-        const ciclos = _getCiclos().filter(c => c.id !== cicloId);
-        _saveCiclos(ciclos);
+window.excluirCicloV3 = async function(cicloId) {
+    if (!confirm('Excluir este ciclo? Esta ação não pode ser desfeita.')) return;
+    try {
+        await fetch('/api/estrategiav3_planos/' + cicloId, { method: 'DELETE' });
         _renderizarCiclosV3();
-    };
+    } catch(e) { console.error(e); alert('Erro ao excluir ciclo'); }
+};
 
-    function _renderizarCiclosV3() {
+    async function _renderizarCiclosV3() {
         const tbody = document.getElementById('plestv3-ciclos-tbody');
         if (!tbody) return;
 
-        const ciclos = _getCiclos();
-        if (ciclos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:18px; color:#aaa;">Nenhum ciclo salvo ainda. Configure o período e salve sua simulação.</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = '';
-        ciclos.forEach(c => {
-            const fmtData = d => {
-                try { return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR'); } catch { return d; }
-            };
-            const periodo = `${fmtData(c.dataInicio)} → ${fmtData(c.dataFim)}`;
-            const mixNomes = (c.mixSnapshot || []).map(m => `${m.nome} (${m.fracaoPct.toLocaleString('pt-BR', {maximumFractionDigits:1})}%)`).join(', ') || '—';
-
-            let atingimentoHTML = '—';
-            let statusHTML = `<span style="color:#ffb74d; font-weight:bold;"><i class="fa-solid fa-clock"></i> Pendente</span>`;
-
-            if (c.status === 'realizado' && c.fatReal != null) {
-                const pct = c.metaFaturamento > 0 ? (c.fatReal / c.metaFaturamento) * 100 : 0;
-                const cor = pct >= 100 ? '#2AD07A' : pct >= 80 ? '#ffb74d' : '#ff4d4d';
-                const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️' : '❌';
-                atingimentoHTML = `<span style="color:${cor}; font-weight:bold;">${icone} ${pct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%</span>`;
-                statusHTML = `<span style="color:${cor}; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Realizado</span>`;
-            }
-
-            const fatRealStr  = c.fatReal   != null ? `R$ ${c.fatReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '—';
-            const invRealStr  = c.investReal != null ? `R$ ${c.investReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '—';
-
-            const acaoReal = c.status === 'simulado'
-                ? `<button onclick="window.abrirModalResultadoRealV3(${c.id})" title="Lançar Resultado Real" style="background:rgba(42,208,122,0.12); border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; cursor:pointer; font-size:0.78rem; margin-right:4px;"><i class="fa-solid fa-flag-checkered"></i> Real</button>`
-                : '';
 
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #223547';
