@@ -5109,98 +5109,509 @@ var _listTabelaPrecosEstrategica = [];
         selecionarCategoriaBadge(trim);
     };
 
-    
-    window.alternarModoCalculo = function() {
-        const modo = document.getElementById('prc-modo-calculo')?.value;
-        const inputMargem = document.getElementById('prc-margem-desejada');
-        const inputVenda = document.getElementById('prc-venda');
-
-        if (modo === 'direto') {
-            // Modo Formação: Usuário informa margem e o sistema calcula a venda
-            inputMargem.disabled = false;
-            inputVenda.readOnly = true;
-            inputVenda.style.background = '#0a1622';
-            inputVenda.title = 'Calculado automaticamente';
-        } else {
-            // Modo Reverso: Usuário informa venda e o sistema calcula a margem
-            inputMargem.disabled = true;
-            inputVenda.readOnly = false;
-            inputVenda.style.background = '#162432';
-            inputVenda.title = '';
+    window.calcularPorcentagemDeEntregar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const entregar = parseFloat(document.getElementById('prc-entregar').value) || 0;
+        const pctInput = document.getElementById('prc-entregar-pct');
+        if (pctInput) {
+            if (venda > 0) {
+                pctInput.value = ((entregar / venda) * 100).toFixed(1);
+            } else {
+                pctInput.value = '';
+            }
         }
-        window.recalcularFormacaoPreco();
     };
 
-    window.recalcularFormacaoPreco = function() {
-        const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+    window.calcularPorcentagemDeColetar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const coletar = parseFloat(document.getElementById('prc-coletar').value) || 0;
+        const pctInput = document.getElementById('prc-coletar-pct');
+        if (pctInput) {
+            if (venda > 0) {
+                pctInput.value = ((coletar / venda) * 100).toFixed(1);
+            } else {
+                pctInput.value = '';
+            }
+        }
+    };
+
+    window.calcularValorDeEntregar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const pct = parseFloat(document.getElementById('prc-entregar-pct').value) || 0;
+        const valInput = document.getElementById('prc-entregar');
+        if (valInput) {
+            valInput.value = ((venda * pct) / 100).toFixed(2);
+        }
+    };
+
+    window.calcularValorDeColetar = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
+        const pct = parseFloat(document.getElementById('prc-coletar-pct').value) || 0;
+        const valInput = document.getElementById('prc-coletar');
+        if (valInput) {
+            valInput.value = ((venda * pct) / 100).toFixed(2);
+        }
+    };
+
+    window.calcularValoresDeAcordoComPorcentagem = function() {
+        const venda = parseFloat(document.getElementById('prc-venda').value) || 0;
         
-        const modo = document.getElementById('prc-modo-calculo')?.value || 'reverso';
-        const custoEnt = parseVal('prc-entregar');
+        const pctEntregar = parseFloat(document.getElementById('prc-entregar-pct').value) || 0;
+        const valEntregar = document.getElementById('prc-entregar');
+        if (valEntregar && pctEntregar > 0) {
+            valEntregar.value = ((venda * pctEntregar) / 100).toFixed(2);
+        } else if (valEntregar) {
+            window.calcularPorcentagemDeEntregar();
+        }
+
+        const pctColetar = parseFloat(document.getElementById('prc-coletar-pct').value) || 0;
+        const valColetar = document.getElementById('prc-coletar');
+        if (valColetar && pctColetar > 0) {
+            valColetar.value = ((venda * pctColetar) / 100).toFixed(2);
+        } else if (valColetar) {
+            window.calcularPorcentagemDeColetar();
+        }
+    };
+
+    // --- 3. TABELA DE PREÇOS ---
+    let settingsPrecos = {};
+    let visualizacaoTabelaPrecos = 'completa';
+
+    window.initApexPrecos = function() {
+        window.carregarPrecos();
+    };
+
+    window.carregarPrecos = async function() {
+        try {
+            const res = await fetch('/api/tabela-precos', { cache: 'no-store' });
+            localPrecos = await res.json();
+            
+            try {
+                const resSet = await fetch('/api/settings');
+                settingsPrecos = await resSet.json();
+            } catch (e) {
+                console.error('Erro ao carregar settings para precos:', e);
+            }
+
+            renderTabelaPrecos();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.alterarCorCategoria = async function(cat, cor) {
+        try {
+            await fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [`cor_categoria_${cat}`]: cor })
+            });
+            settingsPrecos[`cor_categoria_${cat}`] = cor;
+            renderTabelaPrecos();
+        } catch (err) {
+            console.error('Erro ao atualizar cor da categoria:', err);
+        }
+    };
+
+    window.alterarVisualizacaoTabela = function(tipo) {
+        visualizacaoTabelaPrecos = tipo;
+        renderTabelaPrecos();
+    };
+
+    window.alternarModoApresentacao = function() {
+        const view = document.getElementById('tabela-precos-view');
+        if (!view) return;
+        
+        const ativo = view.classList.toggle('modo-apresentacao-ativo');
+        
+        const btnToggle = document.getElementById('btn-toggle-apresentacao');
+        const btnFechar = document.getElementById('btn-fechar-apresentacao');
+        
+        if (ativo) {
+            if (btnToggle) btnToggle.style.display = 'none';
+            if (btnFechar) btnFechar.style.display = 'inline-flex';
+            window.addEventListener('keydown', escApresentacaoHandler);
+        } else {
+            if (btnToggle) btnToggle.style.display = 'inline-flex';
+            if (btnFechar) btnFechar.style.display = 'none';
+            window.removeEventListener('keydown', escApresentacaoHandler);
+        }
+    };
+
+    function escApresentacaoHandler(e) {
+        if (e.key === 'Escape') {
+            window.alternarModoApresentacao();
+        }
+    }
+
+    function renderTabelaPrecos() {
+        const container = document.getElementById('tabela-precos-categorias-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // Agrupar por categorias
+        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        if (settingsPrecos && settingsPrecos['categorias_materiais']) {
+            try {
+                categorias = JSON.parse(settingsPrecos['categorias_materiais']);
+            } catch(e) {}
+        }
+        localPrecos.forEach(p => {
+            if (p.material_categoria && !categorias.includes(p.material_categoria)) {
+                categorias.push(p.material_categoria);
+            }
+        });
+        const showCompleta = visualizacaoTabelaPrecos === 'completa';
+
+        categorias.forEach(cat => {
+            const precosCat = localPrecos.filter(p => p.material_categoria === cat);
+            if (precosCat.length === 0) return;
+
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
+            const corCategoria = settingsPrecos[`cor_categoria_${cat}`] || '#1e4e8c';
+
+            const box = document.createElement('div');
+            box.className = 'categoria-preco-box';
+            box.style.borderColor = corCategoria;
+            box.innerHTML = `
+                <div class="categoria-preco-header" style="background: ${corCategoria};">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span>${cat.toUpperCase()}</span>
+                        <input type="color" value="${corCategoria}" title="Alterar cor do cabeçalho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
+                    </div>
+                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vigência geral com calendário" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
+                </div>
+                <div class="categoria-preco-observacao">
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                        <thead>
+                            <tr style="background:#172635; text-align:left;">
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                ${showCompleta ? `
+                                <th style="padding:10px; text-align:right; color: #ffeb3b;">Venda Ref (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">PIS/COFINS (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">FIDC (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">ICMS (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">Frete Coleta (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                ` : ''}
+                                <th style="padding:10px;">NCM</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${precosCat.map((p, idx) => {
+                                const comissao = parseFloat(p.comissao || 0);
+                                const pisCofins = parseFloat(p.pis_cofins || 0);
+                                const fidc = parseFloat(p.fidc || 0);
+                                const icms = parseFloat(p.icms || 0);
+                                const freteColeta = parseFloat(p.frete_coleta || 0);
+
+                                const totalDedPct = comissao + pisCofins + fidc + icms;
+                                const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                                const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+
+                                const lucroEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                                const margemEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+
+                                const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
+                                const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+
+                                const bgRow = idx % 2 === 0 ? 'background:#0d1826;' : 'background:#16273b;';
+                                const bgHover = '#1f4068';
+
+                                return `
+                                    <tr style="${bgRow} border-bottom:1px solid #1e3650; transition:background 0.15s;" onmouseover="this.style.background='${bgHover}'" onmouseout="this.style.background='${idx % 2 === 0 ? '#0d1826' : '#16273b'}'">
+                                        <td style="padding:10px; color:#fff;"><strong>${p.material_nome}</strong></td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                                        ${showCompleta ? `
+                                        <td style="padding:10px; text-align:right; color: #ffeb3b; font-weight: bold;">R$ ${fmtBRL(p.venda_ref)}</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(comissao)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(pisCofins)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(fidc)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(icms)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">R$ ${fmtBRL(freteColeta)}</td>
+                                        <td style="padding:10px; text-align:right; color:#4fc3f7; font-weight:bold;">R$ ${fmtBRL(vendaLiquida)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${fmtBRL(lucroEnt)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A; font-weight:bold;">${fmtBRL(margemEnt)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${fmtBRL(lucroCol)}</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
+                                        ` : ''}
+                                        <td style="padding:10px; color:#fff; font-weight:bold;">${p.material_ncm || '-'}</td>
+                                        <td style="padding:6px 8px; text-align:center; position:sticky; right:0; background:${idx % 2 === 0 ? '#0d1826' : '#16273b'}; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">
+                                            <div style="display:flex; gap:6px; justify-content:center; align-items:center;">
+                                                <button class="btn-secondary restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#1e4e8c; color:#fff; border:1px solid #3e7cb1; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:600; white-space:nowrap;" onclick="editarPreco(${p.id})" title="Editar valores deste material">
+                                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                                </button>
+                                                <button class="btn-danger restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#c0392b; color:#fff; border:1px solid #e74c3c; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:600; white-space:nowrap;" onclick="deletarPreco(${p.id})" title="Excluir item da tabela">
+                                                    <i class="fa-solid fa-trash"></i> Excluir
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                            <tr style="background:#131c26;">
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(box);
+        });
+        applyRolePermissions();
+    }
+
+    window.abrirModalPreco = function() {
+        document.getElementById('form-preco-apex').reset();
+        document.getElementById('prc-id').value = '';
+        document.getElementById('prc-entregar-pct').value = '';
+        document.getElementById('prc-coletar-pct').value = '';
+        document.getElementById('modal-preco').style.display = 'flex';
+        window.calcularMargemLiquidaModal();
+    };
+
+    window.fecharModalPreco = function() {
+        document.getElementById('modal-preco').style.display = 'none';
+    };
+
+    window.calcularMargemLiquidaModal = function() {
+        const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+        const vendaRef = parseVal('prc-venda');
+        const precoEnt = parseVal('prc-entregar');
+        const precoCol = parseVal('prc-coletar');
         const comissao = parseVal('prc-comissao');
         const pisCofins = parseVal('prc-piscofins');
         const fidc = parseVal('prc-fidc');
         const icms = parseVal('prc-icms');
-        const despAdm = parseVal('prc-despesas-adm');
-        
-        const totalEncargosPct = comissao + pisCofins + fidc + icms + despAdm;
-        let precoVenda = parseVal('prc-venda');
-        let margemDesejada = parseVal('prc-margem-desejada');
+        const freteColeta = parseVal('prc-frete-coleta');
 
-        if (modo === 'direto') {
-            // Preço Venda = Custo / (1 - (Encargos% + Margem%)/100)
-            const divisor = 1 - ((totalEncargosPct + margemDesejada) / 100);
-            if (divisor > 0 && custoEnt > 0) {
-                precoVenda = custoEnt / divisor;
-            } else {
-                precoVenda = 0;
-            }
-            const elVenda = document.getElementById('prc-venda');
-            if(elVenda && precoVenda > 0) elVenda.value = precoVenda.toFixed(2);
-        }
+        const pctDeducoesTotal = comissao + pisCofins + fidc + icms;
+        const valDeducoes = vendaRef * (pctDeducoesTotal / 100);
+        const vendaLiquida = vendaRef - valDeducoes;
 
-        // --- CÁLCULO DE RESULTADOS (MODO REVERSO E DIAGNÓSTICO) ---
-        const valorEncargos = precoVenda * (totalEncargosPct / 100);
-        const lucroLiquido = precoVenda - valorEncargos - custoEnt;
-        
-        let margemRealizada = 0;
-        if (precoVenda > 0) {
-            margemRealizada = (lucroLiquido / precoVenda) * 100;
-        }
-        
-        if (modo === 'reverso' && document.getElementById('prc-margem-desejada')) {
-             document.getElementById('prc-margem-desejada').value = margemRealizada.toFixed(2);
-        }
+        const lucroEnt = vendaLiquida - precoEnt;
+        const margemEnt = vendaRef > 0 ? (lucroEnt / vendaRef) * 100 : 0;
 
-        let markupPct = 0;
-        let markupFator = 0;
-        if (custoEnt > 0) {
-            markupPct = ((precoVenda - custoEnt) / custoEnt) * 100;
-            markupFator = precoVenda / custoEnt;
-        }
+        const lucroCol = vendaLiquida - precoCol - freteColeta;
+        const margemCol = vendaRef > 0 ? (lucroCol / vendaRef) * 100 : 0;
 
-        // --- ATUALIZAR UI ---
-        const elMargem = document.getElementById('prc-res-margem');
-        const elLucro = document.getElementById('prc-res-lucro');
-        const elMkPct = document.getElementById('prc-res-markup-pct');
-        const elMkFator = document.getElementById('prc-res-markup-fator');
-        const elInfo = document.getElementById('prc-res-info');
+        const elDedPct = document.getElementById('prc-live-deducoes-pct');
+        const elVendaLiq = document.getElementById('prc-live-venda-liquida');
+        const elFreteDisp = document.getElementById('prc-live-frete-display');
+        const elMargEnt = document.getElementById('prc-live-margem-entrega');
+        const elLucrEnt = document.getElementById('prc-live-lucro-entrega');
+        const elMargCol = document.getElementById('prc-live-margem-coleta');
+        const elLucrCol = document.getElementById('prc-live-lucro-coleta');
 
-        if (elMargem) {
-            elMargem.textContent = margemRealizada.toFixed(2) + '%';
-            elMargem.style.color = margemRealizada >= 0 ? '#2AD07A' : '#ff4d4d';
+        if (elDedPct) elDedPct.textContent = `${fmtBRL(pctDeducoesTotal)}% (R$ ${fmtBRL(valDeducoes)}/kg)`;
+        if (elVendaLiq) elVendaLiq.textContent = `R$ ${fmtBRL(vendaLiquida)}/kg`;
+        if (elFreteDisp) elFreteDisp.textContent = `R$ ${fmtBRL(freteColeta)}/kg`;
+
+        if (elMargEnt) {
+            elMargEnt.textContent = `${fmtBRL(margemEnt)}%`;
+            elMargEnt.style.color = margemEnt >= 15 ? '#2AD07A' : (margemEnt >= 5 ? '#f0b800' : '#ff4d4d');
         }
-        if (elLucro) {
-            elLucro.textContent = 'R$ ' + lucroLiquido.toLocaleString('pt-BR', {minimumFractionDigits:2});
-            elLucro.style.color = lucroLiquido >= 0 ? '#2AD07A' : '#ff4d4d';
+        if (elLucrEnt) elLucrEnt.textContent = `Lucro: R$ ${fmtBRL(lucroEnt)}/kg`;
+
+        if (elMargCol) {
+            elMargCol.textContent = `${fmtBRL(margemCol)}%`;
+            elMargCol.style.color = margemCol >= 15 ? '#4fc3f7' : (margemCol >= 5 ? '#f0b800' : '#ff4d4d');
         }
-        if (elMkPct) elMkPct.textContent = markupPct.toFixed(2) + '%';
-        if (elMkFator) elMkFator.textContent = markupFator.toFixed(2);
-        
-        if (elInfo) {
-            elInfo.textContent = `Custo Base: R$ ${custoEnt.toFixed(2)} | Total Encargos: ${totalEncargosPct.toFixed(2)}% | Venda Bruta: R$ ${precoVenda.toFixed(2)}`;
+        if (elLucrCol) elLucrCol.textContent = `Lucro: R$ ${fmtBRL(lucroCol)}/kg`;
+    };
+
+    window.editarPreco = function(id) {
+        const p = localPrecos.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('prc-id').value = p.id;
+        document.getElementById('prc-material').value = p.material_id;
+        document.getElementById('prc-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
+        document.getElementById('prc-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
+        document.getElementById('prc-venda').value = parseFloat(p.venda_ref || 0).toFixed(2);
+        document.getElementById('prc-comissao').value = parseFloat(p.comissao || 0).toFixed(2);
+        document.getElementById('prc-piscofins').value = parseFloat(p.pis_cofins || 0).toFixed(2);
+        document.getElementById('prc-fidc').value = parseFloat(p.fidc || 0).toFixed(2);
+        document.getElementById('prc-icms').value = parseFloat(p.icms || 0).toFixed(2);
+        document.getElementById('prc-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
+        document.getElementById('prc-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
+        document.getElementById('modal-preco').style.display = 'flex';
+        window.calcularPorcentagemDeEntregar();
+        window.calcularPorcentagemDeColetar();
+        window.calcularMargemLiquidaModal();
+    };
+
+    window.salvarPreco = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('prc-id').value;
+        const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
+
+        const data = {
+            material_id: document.getElementById('prc-material').value,
+            preco_entregar: parseVal(document.getElementById('prc-entregar').value),
+            preco_coletar: parseVal(document.getElementById('prc-coletar').value),
+            venda_ref: parseVal(document.getElementById('prc-venda').value),
+            comissao: parseVal(document.getElementById('prc-comissao').value),
+            pis_cofins: parseVal(document.getElementById('prc-piscofins').value),
+            fidc: parseVal(document.getElementById('prc-fidc').value),
+            icms: parseVal(document.getElementById('prc-icms').value),
+            frete_coleta: parseVal(document.getElementById('prc-frete-coleta').value),
+            validade: document.getElementById('prc-validade').value,
+            aplicar_todos: true
+        };
+
+        const btn = e.target.querySelector('[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
+
+        try {
+            const url = id ? `/api/tabela-precos/${id}` : '/api/tabela-precos';
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error(await res.text());
+            fecharModalPreco();
+            carregarPrecos();
+        } catch (err) {
+            _apexNotify('Atenção', 'Erro ao salvar preço: ' + err.message, 'error');
+            console.error(err);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
+    // ─── Calendário Visual Interativo de Vigência ───
+    let calVigenciaAno = 2026;
+    let calVigenciaMes = 6;
+    let calVigenciaDataSelecionada = new Date().toISOString().split('T')[0];
+    const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    window.renderCalendarioVigencia = function() {
+        const titulo = document.getElementById('cal-vigencia-titulo');
+        const grid = document.getElementById('cal-vigencia-grid');
+        const preview = document.getElementById('cal-vigencia-data-formatada');
+        const inputHidden = document.getElementById('input-vigencia-geral-data');
+        if (!grid) return;
+
+        if (titulo) {
+            titulo.textContent = `${mesesNomes[calVigenciaMes]} ${calVigenciaAno}`;
+        }
+
+        const firstDay = new Date(calVigenciaAno, calVigenciaMes, 1).getDay();
+        const totalDays = new Date(calVigenciaAno, calVigenciaMes + 1, 0).getDate();
+        const prevMonthTotalDays = new Date(calVigenciaAno, calVigenciaMes, 0).getDate();
+
+        let html = '';
+
+        for (let i = firstDay - 1; i >= 0; i--) {
+            const diaPrev = prevMonthTotalDays - i;
+            html += `<div style="background:#0d1824; color:#3a526a; padding:11px 0; text-align:center; font-size:0.9rem; user-select:none;">${diaPrev}</div>`;
+        }
+
+        for (let day = 1; day <= totalDays; day++) {
+            const monthStr = String(calVigenciaMes + 1).padStart(2, '0');
+            const dayStr = String(day).padStart(2, '0');
+            const ymd = `${calVigenciaAno}-${monthStr}-${dayStr}`;
+
+            const isSelected = ymd === calVigenciaDataSelecionada;
+            const bgCell = isSelected ? '#2AD07A' : '#132232';
+            const textCell = isSelected ? '#000' : '#fff';
+            const fontWeight = isSelected ? 'bold' : '500';
+
+            html += `
+                <div onclick="selecionarDiaCalendarioVigencia('${ymd}')"
+                     style="background:${bgCell}; color:${textCell}; font-weight:${fontWeight}; padding:11px 0; text-align:center; font-size:0.92rem; cursor:pointer; transition:all 0.15s; border-radius:4px;"
+                     onmouseover="if('${ymd}'!=='${calVigenciaDataSelecionada}') this.style.background='#1e3b56'"
+                     onmouseout="if('${ymd}'!=='${calVigenciaDataSelecionada}') this.style.background='#132232'">
+                    ${day}
+                </div>
+            `;
+        }
+
+        const totalCellsSoFar = firstDay + totalDays;
+        const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
+        for (let nextDay = 1; nextDay <= remainingCells; nextDay++) {
+            html += `<div style="background:#0d1824; color:#3a526a; padding:11px 0; text-align:center; font-size:0.9rem; user-select:none;">${nextDay}</div>`;
+        }
+
+        grid.innerHTML = html;
+
+        if (inputHidden) inputHidden.value = calVigenciaDataSelecionada;
+        if (preview) preview.textContent = window.formatarDataSemFuso(calVigenciaDataSelecionada);
+    };
+
+    window.navCalendarioVigencia = function(dir) {
+        calVigenciaMes += dir;
+        if (calVigenciaMes < 0) {
+            calVigenciaMes = 11;
+            calVigenciaAno--;
+        } else if (calVigenciaMes > 11) {
+            calVigenciaMes = 0;
+            calVigenciaAno++;
+        }
+        renderCalendarioVigencia();
+    };
+
+    window.selecionarDiaCalendarioVigencia = function(ymd) {
+        calVigenciaDataSelecionada = ymd;
+        renderCalendarioVigencia();
+    };
+
+    window.abrirModalVigenciaGeral = function() {
+        const dataAtual = localPrecos[0]?.validade ? localPrecos[0].validade.split('T')[0] : new Date().toISOString().split('T')[0];
+        calVigenciaDataSelecionada = dataAtual;
+        const parts = dataAtual.split('-');
+        if (parts.length === 3) {
+            calVigenciaAno = parseInt(parts[0]);
+            calVigenciaMes = parseInt(parts[1]) - 1;
+        }
+        renderCalendarioVigencia();
+        document.getElementById('modal-vigencia-geral').style.display = 'flex';
+    };
+
+    window.fecharModalVigenciaGeral = function() {
+        document.getElementById('modal-vigencia-geral').style.display = 'none';
+    };
+
+    window.salvarVigenciaGeralModal = async function() {
+        const novaData = calVigenciaDataSelecionada || document.getElementById('input-vigencia-geral-data').value;
+        if (!novaData) {
+            _apexNotify('Sistema', 'Por favor, clique em um dia no calendário.', 'info');
+            return;
+        }
+        const btn = document.getElementById('btn-salvar-vigencia-geral');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spin fa-spinner"></i> Salvando...'; }
+        try {
+            const res = await fetch('/api/tabela-precos-validade-geral', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ validade: novaData })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            fecharModalVigenciaGeral();
+            _apexNotify('Sistema', 'Vigência atualizada para todos os materiais com sucesso!', 'info');
+            await carregarPrecos();
+        } catch (err) {
+            _apexNotify('Atenção', 'Erro ao atualizar vigência geral: ' + err.message, 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência'; }
+        }
+    };
 
     window.alterarValidadeGeralPrompt = function() {
         abrirModalVigenciaGeral();
