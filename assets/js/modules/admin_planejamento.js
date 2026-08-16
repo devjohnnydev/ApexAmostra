@@ -26,7 +26,7 @@
 
             const res = await fetch('/api/estrategiav3_planos', { cache: 'no-store' });
             const data = await res.json();
-            if (!data.success) throw new Error('Falha ao buscar planos ativos');
+            if (!data.success) throw new Error(data.error || 'Falha ao buscar planos ativos');
             
             let planos = data.planos || [];
             // Filtrar planos não finalizados

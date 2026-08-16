@@ -999,12 +999,12 @@ app.use('/api/planejamento', requireRole(['Diretoria', 'Compras', 'Produção', 
 app.use('/api/planejamento-compras', requireRole(['Diretoria', 'Compras']));
 app.use('/api/planejamento-estrategico', requireRole(['Diretoria']));
 app.use('/api/planejamento-estrategicov3', requireRole(['Diretoria']));
-app.get('/api/estrategiav3_planos', requireRole(['Diretoria', 'Compras']));
+app.get('/api/estrategiav3_planos', requireRole(['Diretoria', 'Compras', 'Financeiro', 'Produção', 'Comercial']));
 app.post('/api/estrategiav3_planos', requireRole(['Diretoria']));
 app.put('/api/estrategiav3_planos/:id/status', requireRole(['Diretoria']));
 app.delete('/api/estrategiav3_planos/:id', requireRole(['Diretoria']));
 
-app.get('/api/estrategiav3_mix', requireRole(['Diretoria', 'Compras']));
+app.get('/api/estrategiav3_mix', requireRole(['Diretoria', 'Compras', 'Financeiro', 'Produção', 'Comercial']));
 app.post('/api/estrategiav3_mix', requireRole(['Diretoria']));
 app.put('/api/estrategiav3_mix/:id/realizado', requireRole(['Diretoria']));
 app.delete('/api/estrategiav3_mix/:id', requireRole(['Diretoria']));
