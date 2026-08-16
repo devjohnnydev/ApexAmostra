@@ -237,10 +237,18 @@
             return;
         }
 
-        // Adiciona com fração padrão dividindo igualmente
         const count = _mixSimulacaoV3.length + 1;
         const defaultFracao = parseFloat((100 / count).toFixed(1));
-        _mixSimulacaoV3.push({ material_id: matId, fracaoPct: defaultFracao });
+        const defaultCustoBase = parseFloat(tp.preco_compra || tp.compra_ref || 0);
+
+        _mixSimulacaoV3.push({ 
+            material_id: matId, 
+            fracaoPct: defaultFracao,
+            simCustoBase: defaultCustoBase,
+            simModo: 'margem',
+            simValor: 20.0,
+            simPrecoSugerido: 0
+        });
 
         // Redistribui se for o caso
         let sum = _mixSimulacaoV3.reduce((acc, x) => acc + x.fracaoPct, 0);
@@ -272,6 +280,24 @@
         }
 
         // Recalcula volumes e totais
+        window.recalcularSimulacaoV3(false);
+    };
+
+    window.onChangeSimCustoV3 = function(matId, val) {
+        const item = _mixSimulacaoV3.find(x => x.material_id === matId);
+        if (item) item.simCustoBase = parseFloat(val) || 0;
+        window.recalcularSimulacaoV3(false);
+    };
+
+    window.onChangeSimModoV3 = function(matId, val) {
+        const item = _mixSimulacaoV3.find(x => x.material_id === matId);
+        if (item) item.simModo = val;
+        window.recalcularSimulacaoV3(false);
+    };
+
+    window.onChangeSimValorV3 = function(matId, val) {
+        const item = _mixSimulacaoV3.find(x => x.material_id === matId);
+        if (item) item.simValor = parseFloat(val) || 0;
         window.recalcularSimulacaoV3(false);
     };
 
@@ -337,9 +363,42 @@
 
             const faturamentoAlvoProduto = fatTotalAlvo * (mixItem.fracaoPct / 100);
 
+            // Simulação de Precificação Inteligente
+            let pSugerido = 0;
+            if (frente === 'venda') {
+                const comissao = parseFloat(tp.comissao || 0);
+                const pisCofins = parseFloat(tp.pis_cofins || 0);
+                const fidc = parseFloat(tp.fidc || 0);
+                const icms = parseFloat(tp.icms || 0);
+                const freteColeta = parseFloat(tp.frete_coleta || 0);
+                
+                const custoBase = mixItem.simCustoBase || 0;
+                const modo = mixItem.simModo || 'margem';
+                const valor = mixItem.simValor || 0;
+                
+                const impostosPct = (comissao + pisCofins + fidc + icms) / 100;
+                let pBrutoCalculado = 0;
+                
+                if (modo === 'markup') {
+                    pBrutoCalculado = custoBase * valor;
+                } else {
+                    const margemLiqPct = valor / 100;
+                    const divisor = 1 - impostosPct - margemLiqPct;
+                    if (divisor > 0) {
+                        pBrutoCalculado = (custoBase + freteColeta) / divisor;
+                    } else {
+                        pBrutoCalculado = 0;
+                    }
+                }
+                mixItem.simPrecoSugerido = pBrutoCalculado;
+                pSugerido = pBrutoCalculado;
+            } else {
+                pSugerido = parseFloat(tp.preco_venda || tp.venda_ref || 0);
+            }
+
             // Preço de venda (referência para calcular volume)
             const pRef = frente === 'venda'
-                ? parseFloat(tp.preco_venda || tp.venda_ref || 0)
+                ? pSugerido
                 : parseFloat(tp.preco_entregar || tp.preco_compra || 0);
 
             // Preço de compra (quanto investe para adquirir o material)
@@ -366,8 +425,22 @@
                         <input type="number" class="noble-input" value="${mixItem.fracaoPct}" style="width:70px; text-align:center; padding:3px; font-size:0.75rem; margin:0;" oninput="window.onChangeFracaoSimulacaoV3(${mixItem.material_id}, this.value)">
                     </td>
                     <td style="padding:6px 4px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${faturamentoAlvoProduto.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                    <td style="padding:6px 4px; text-align:right; color:#ccc;">R$ ${window.fmtBRL(pRef)}</td>
-                    <td style="padding:6px 4px; text-align:right; font-weight:bold; color:#2AD07A;" id="plestv3-mix-kg-${mixItem.material_id}">
+                    <td style="padding:6px 4px; text-align:right;">
+                        <input type="number" step="0.01" class="noble-input" value="${mixItem.simCustoBase}" style="width:80px; text-align:right; padding:3px; font-size:0.75rem; margin:0;" oninput="window.onChangeSimCustoV3(${mixItem.material_id}, this.value)">
+                    </td>
+                    <td style="padding:6px 4px; text-align:center;">
+                        <select class="noble-input" style="width:90px; padding:3px; font-size:0.75rem; margin:0;" onchange="window.onChangeSimModoV3(${mixItem.material_id}, this.value)">
+                            <option value="margem" ${mixItem.simModo === 'margem' ? 'selected' : ''}>Margem (%)</option>
+                            <option value="markup" ${mixItem.simModo === 'markup' ? 'selected' : ''}>Markup (x)</option>
+                        </select>
+                    </td>
+                    <td style="padding:6px 4px; text-align:center;">
+                        <input type="number" step="0.1" class="noble-input" value="${mixItem.simValor}" style="width:60px; text-align:center; padding:3px; font-size:0.75rem; margin:0;" oninput="window.onChangeSimValorV3(${mixItem.material_id}, this.value)">
+                    </td>
+                    <td style="padding:6px 4px; text-align:right; color:#2AD07A; font-weight:bold; background:#0f251d; border-radius:4px;">
+                        R$ ${window.fmtBRL(pRef)}
+                    </td>
+                    <td style="padding:6px 4px; text-align:right; font-weight:bold; color:#fff;" id="plestv3-mix-kg-${mixItem.material_id}">
                         ${volumeKg.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg
                     </td>
                     <td style="padding:6px 4px; text-align:right; color:#ffb74d;" id="plestv3-mix-pcompra-${mixItem.material_id}">R$ ${window.fmtBRL(pCompra)}</td>
