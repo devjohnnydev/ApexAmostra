@@ -17421,6 +17421,320 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
+    window.preencherTituloEMesesV3 = function() {
+        const selMes = document.getElementById('plestv3-quick-mes');
+        const selAno = document.getElementById('plestv3-quick-ano');
+        const inputTitulo = document.getElementById('plestv3-sim-titulo');
+        const inputDtIni = document.getElementById('plestv3-sim-dt-ini');
+        const inputDtFim = document.getElementById('plestv3-sim-dt-fim');
+
+        if (!selMes || !selAno || !inputTitulo) return;
+        const valMes = selMes.value;
+        const ano = selAno.value || '2027';
+
+        if (!valMes) return;
+        const [numMes, nomeMes] = valMes.split('|');
+
+        inputTitulo.value = `${nomeMes} ${ano}`;
+
+        if (numMes && ano) {
+            const firstDay = `${ano}-${numMes}-01`;
+            const lastDayObj = new Date(parseInt(ano, 10), parseInt(numMes, 10), 0);
+            const lastDayNum = String(lastDayObj.getDate()).padStart(2, '0');
+            const lastDay = `${ano}-${numMes}-${lastDayNum}`;
+
+            if (inputDtIni) inputDtIni.value = firstDay;
+            if (inputDtFim) inputDtFim.value = lastDay;
+        }
+    };
+
+    window.limparFiltrosPlanejamentosV3 = function() {
+        const selMes = document.getElementById('plestv3-filtro-mes');
+        const selAno = document.getElementById('plestv3-filtro-ano');
+        const selStatus = document.getElementById('plestv3-filtro-status');
+        const inputBusca = document.getElementById('plestv3-filtro-busca');
+
+        if (selMes) selMes.value = '';
+        if (selAno) selAno.value = '';
+        if (selStatus) selStatus.value = '';
+        if (inputBusca) inputBusca.value = '';
+
+        window.filtrarPlanejamentosAtivosV3();
+    };
+
+    function renderCardsPlanosV3(planosArray, container) {
+        if (!container) return;
+        container.innerHTML = '';
+        planosArray.forEach(p => {
+            let htmlItens = '';
+            let totalAlvo = 0;
+            let totalReal = 0;
+            let totalInvest = 0;
+            let totalVol = 0;
+            let totalFracaoPct = 0;
+            let totalVendaLiquida = 0;
+
+            p.itens.forEach(it => {
+                const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
+                const fAlvo = parseFloat(it.faturamento_alvo) || 0;
+                const fReal = parseFloat(it.faturamento_realizado) || 0;
+                const invest = parseFloat(it.investimento_necessario) || 0;
+                const vol = parseFloat(it.volume_necessario) || 0;
+                const fracao = parseFloat(it.fracao_pct) || 0;
+
+                let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id);
+                const pRef = p.frente === 'venda'
+                    ? parseFloat(tp?.preco_venda || tp?.venda_ref || 0)
+                    : parseFloat(tp?.preco_entregar || tp?.preco_compra || 0);
+
+                const comissao = parseFloat(tp?.comissao || 0);
+                const pisCofins = parseFloat(tp?.pis_cofins || 0);
+                const fidc = parseFloat(tp?.fidc || 0);
+                const icms = parseFloat(tp?.icms || 0);
+                const freteColeta = parseFloat(tp?.frete_coleta || 0);
+                const totalDedPct = comissao + pisCofins + fidc + icms;
+                const valDeducoesUnit = pRef * (totalDedPct / 100);
+                const vendaLiquidaUnit = Math.max(0, pRef - valDeducoesUnit - freteColeta);
+
+                totalAlvo += fAlvo;
+                totalReal += fReal;
+                totalInvest += invest;
+                totalVol += vol;
+                totalFracaoPct += fracao;
+                totalVendaLiquida += (vol * vendaLiquidaUnit);
+
+                const progPct = fAlvo > 0 ? ((fReal / fAlvo) * 100).toFixed(1) : 0;
+                
+                htmlItens += `
+                    <tr style="border-bottom:1px solid #1a2e3f;">
+                        <td style="padding:10px;">${mNome}</td>
+                        <td style="padding:10px;">${it.fracao_pct}%</td>
+                        <td style="padding:10px; color:#2AD07A;">R$ ${window.fmtBRL(fAlvo)}</td>
+                        <td style="padding:10px;">
+                            <input type="text" id="plestv3-realizado-${it.id}" class="noble-input" value="${window.fmtBRL(fReal)}" style="width:100px; padding:4px;" oninput="window.maskCurrencyV3(this)" ${p.status === 'FINALIZADO' ? 'disabled' : ''}>
+                        </td>
+                        <td style="padding:10px;">
+                            <div style="width:100%; background:#0d1826; height:6px; border-radius:3px; margin-top:6px;">
+                                <div style="width:${Math.min(progPct, 100)}%; background:${progPct >= 100 ? '#2AD07A' : '#00e5ff'}; height:100%; border-radius:3px;"></div>
+                            </div>
+                            <small style="color:#aaa; font-size:10px;">${progPct}%</small>
+                        </td>
+                        <td style="padding:10px;">
+                            ${p.status !== 'FINALIZADO' ? `<button onclick="window.atualizarRealizadoV3(${it.id})" style="background:#00e5ff; color:#0d1826; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Salvar Realizado</button>` : '<span style="color:#aaa; font-size:11px;">Finalizado</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Cálculos de Totais, Médias e Indicadores Estratégicos do Plano Ativo
+            const countAtivos = p.itens.length || 1;
+            const mediaFracaoAtivo = totalFracaoPct / countAtivos;
+            const mediaAlvoAtivo = totalAlvo / countAtivos;
+            const mediaRealAtivo = totalReal / countAtivos;
+
+            const pVendaMedioAtivo = totalVol > 0 ? (totalAlvo / totalVol) : 0;
+            const lucroBrutoAtivo = totalAlvo - totalInvest;
+            const margemBrutaPctAtivo = totalAlvo > 0 ? (lucroBrutoAtivo / totalAlvo) * 100 : 0;
+
+            const lucroLiquidoAtivo = totalVendaLiquida - totalInvest;
+            const margemLiquidaPctAtivo = totalAlvo > 0 ? (lucroLiquidoAtivo / totalAlvo) * 100 : 0;
+
+            const taxaVendaLiqAtivo = totalAlvo > 0 ? (totalVendaLiquida / totalAlvo) : 1;
+            const pontoEquilibrioFatAtivo = taxaVendaLiqAtivo > 0 ? (totalInvest / taxaVendaLiqAtivo) : totalInvest;
+            const pontoEquilibrioVolAtivo = pVendaMedioAtivo > 0 ? (pontoEquilibrioFatAtivo / pVendaMedioAtivo) : 0;
+
+            // Scenario Math
+            const metaAlvo = parseFloat(p.meta_faturamento) || totalAlvo;
+            const consPct = parseFloat(p.cenario_conservador_pct) || 80;
+            const modPct = parseFloat(p.cenario_moderado_pct) || 100;
+            const agrPct = parseFloat(p.cenario_agressivo_pct) || 120;
+            
+            const tCons = metaAlvo * (consPct / 100);
+            const tMod = metaAlvo * (modPct / 100);
+            const tAgr = metaAlvo * (agrPct / 100);
+            
+            const progressToMod = metaAlvo > 0 ? ((totalReal / tMod) * 100).toFixed(1) : 0;
+
+            const cardHTML = `
+                <div style="background:#162433; border:1px solid #1c2e3d; border-radius:10px; padding:16px; position:relative; opacity: ${p.status === 'FINALIZADO' ? '0.7' : '1'}; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                        <div>
+                            <h3 style="margin:0 0 5px 0; color:#2AD07A; display:flex; align-items:center; gap:8px;">
+                                ${p.titulo} 
+                                ${p.status === 'FINALIZADO' ? '<span style="background:#4a4a4a; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">FINALIZADO</span>' : ''}
+                            </h3>
+                            <small style="color:#aaa;">Período: ${window.fmtD(p.data_inicial)} até ${window.fmtD(p.data_final)}</small>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            ${p.status !== 'FINALIZADO' ? `<button onclick="window.finalizarPlanejamentoV3(${p.id})" style="background:#ffb74d; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Finalizar</button>` : ''}
+                            <button onclick="window.gerarPdfEstrategiaV3(${p.id})" style="background:#2AD07A; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <button onclick="window.excluirPlanejamentoV3(${p.id})" style="background:#ff4d4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Scenarios Row -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
+                        <div style="background:#0d1826; border:1px solid #00e5ff; padding:12px; border-radius:8px;">
+                            <h4 style="margin:0 0 8px 0; color:#00e5ff; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
+                            <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tCons)}</div>
+                            ${totalReal >= tCons ? '<div style="margin-top:5px; background:#00e5ff; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                        </div>
+                        <div style="background:#0d1826; border:1px solid #ffb74d; padding:12px; border-radius:8px;">
+                            <h4 style="margin:0 0 8px 0; color:#ffb74d; font-size:12px;">MODERADO (${modPct}%)</h4>
+                            <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tMod)}</div>
+                            ${totalReal >= tMod ? '<div style="margin-top:5px; background:#ffb74d; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                        </div>
+                        <div style="background:#0d1826; border:1px solid #ff4d4d; padding:12px; border-radius:8px;">
+                            <h4 style="margin:0 0 8px 0; color:#ff4d4d; font-size:12px;">AGRESSIVO (${agrPct}%)</h4>
+                            <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tAgr)}</div>
+                            ${totalReal >= tAgr ? '<div style="margin-top:5px; background:#ff4d4d; color:#fff; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                        </div>
+                    </div>
+
+                    <!-- Card de Indicadores Estratégicos para o Plano Ativo -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:16px; padding:10px; background:#0d1826; border:1px solid #1a3a5c; border-radius:8px;">
+                        <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #2AD07A;">
+                            <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Margem Bruta</span>
+                            <span style="font-size:13px; color:#2AD07A; font-weight:bold;">R$ ${window.fmtBRL(lucroBrutoAtivo)} (${margemBrutaPctAtivo.toFixed(1)}%)</span>
+                        </div>
+                        <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #00e5ff;">
+                            <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-scale-balanced" style="color:#00e5ff;"></i> Margem Líquida Est.</span>
+                            <span style="font-size:13px; color:#00e5ff; font-weight:bold;">R$ ${window.fmtBRL(lucroLiquidoAtivo)} (${margemLiquidaPctAtivo.toFixed(1)}%)</span>
+                        </div>
+                        <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #ffb74d;">
+                            <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Ponto de Equilíbrio</span>
+                            <span style="font-size:13px; color:#ffb74d; font-weight:bold;">R$ ${window.fmtBRL(pontoEquilibrioFatAtivo)} (${pontoEquilibrioVolAtivo.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg)</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div style="background:#0d1826; border:1px solid #1a2e3f; padding:12px; border-radius:8px; margin-bottom:16px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="color:#aaa; font-size:12px;">Progresso Total (Base Moderado)</span>
+                            <span style="color:#2AD07A; font-weight:bold; font-size:12px;">R$ ${window.fmtBRL(totalReal)} / R$ ${window.fmtBRL(tMod)} (${progressToMod}%)</span>
+                        </div>
+                        <div style="width:100%; background:#162433; height:10px; border-radius:5px; position:relative; overflow:hidden;">
+                            <div style="width:${Math.min(progressToMod, 100)}%; background:linear-gradient(90deg, #00e5ff, #2AD07A); height:100%; border-radius:5px; transition:width 0.5s;"></div>
+                        </div>
+                    </div>
+
+                    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px; color:#fff;">
+                        <thead>
+                            <tr style="background:#0d1826; border-bottom:1px solid #2a4158;">
+                                <th style="padding:10px; color:#aaa;">Produto</th>
+                                <th style="padding:10px; color:#aaa;">Fração</th>
+                                <th style="padding:10px; color:#aaa;">Meta (R$)</th>
+                                <th style="padding:10px; color:#aaa;">Realizado (R$)</th>
+                                <th style="padding:10px; color:#aaa;">Progresso</th>
+                                <th style="padding:10px; color:#aaa;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${htmlItens}
+                        </tbody>
+                        <tfoot style="border-top:2px solid #00e5ff; font-weight:bold; background:#0d1826;">
+                            <tr style="color:#00e5ff; border-bottom:1px solid #1a2e3f;">
+                                <td style="padding:10px;">TOTAL</td>
+                                <td style="padding:10px;">${totalFracaoPct.toFixed(1)}%</td>
+                                <td style="padding:10px; color:#2AD07A;">R$ ${window.fmtBRL(totalAlvo)}</td>
+                                <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(totalReal)}</td>
+                                <td style="padding:10px; color:#2AD07A;">${totalAlvo > 0 ? ((totalReal/totalAlvo)*100).toFixed(1) : 0}%</td>
+                                <td style="padding:10px;"></td>
+                            </tr>
+                            <tr style="color:#e0e0e0; background:rgba(0,229,255,0.06);">
+                                <td style="padding:10px; color:#00e5ff;"><i class="fa-solid fa-calculator"></i> MÉDIAS</td>
+                                <td style="padding:10px;">${mediaFracaoAtivo.toFixed(1)}%</td>
+                                <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaAlvoAtivo)}</td>
+                                <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaRealAtivo)}</td>
+                                <td style="padding:10px; color:#00e5ff;">${mediaAlvoAtivo > 0 ? ((mediaRealAtivo/mediaAlvoAtivo)*100).toFixed(1) : 0}%</td>
+                                <td style="padding:10px;"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+            container.innerHTML += cardHTML;
+        });
+    }
+
+    window.filtrarPlanejamentosAtivosV3 = function() {
+        const container = document.getElementById('container-planejamentos-ativos');
+        const lblContador = document.getElementById('plestv3-filtro-contador');
+        if (!container) return;
+
+        const allPlanos = window._allPlanosAtivosV3 || [];
+        if (allPlanos.length === 0) {
+            container.innerHTML = '<p style="color:#aaa; text-align:center;">Nenhum planejamento ativo encontrado.</p>';
+            if (lblContador) lblContador.textContent = '0 encontrados';
+            return;
+        }
+
+        const mes = document.getElementById('plestv3-filtro-mes')?.value || '';
+        const ano = document.getElementById('plestv3-filtro-ano')?.value || '';
+        const status = document.getElementById('plestv3-filtro-status')?.value || '';
+        const busca = (document.getElementById('plestv3-filtro-busca')?.value || '').toLowerCase().trim();
+
+        const monthNamesMap = {
+            '01': 'janeiro', '02': 'fevereiro', '03': 'março', '04': 'abril',
+            '05': 'maio', '06': 'junho', '07': 'julho', '08': 'agosto',
+            '09': 'setembro', '10': 'outubro', '11': 'novembro', '12': 'dezembro'
+        };
+
+        const planosFiltrados = allPlanos.filter(p => {
+            const tituloLower = (p.titulo || '').toLowerCase();
+            const dtIni = (p.data_inicial || '');
+            const dtFim = (p.data_final || '');
+            const targetMonthName = mes ? monthNamesMap[mes] : null;
+
+            if (mes) {
+                const matchDtIni = dtIni.includes(`-${mes}-`) || dtIni.startsWith(`${mes}/`) || dtIni.includes(`/${mes}/`);
+                const matchDtFim = dtFim.includes(`-${mes}-`) || dtFim.startsWith(`${mes}/`) || dtFim.includes(`/${mes}/`);
+                const matchTituloName = targetMonthName && tituloLower.includes(targetMonthName);
+                const matchTituloNum = tituloLower.includes(`/${mes}`) || tituloLower.includes(`-${mes}`);
+                if (!matchDtIni && !matchDtFim && !matchTituloName && !matchTituloNum) return false;
+            }
+
+            if (ano) {
+                const matchDtIni = dtIni.includes(ano);
+                const matchDtFim = dtFim.includes(ano);
+                const matchTitulo = tituloLower.includes(ano);
+                if (!matchDtIni && !matchDtFim && !matchTitulo) return false;
+            }
+
+            if (status) {
+                if (p.status !== status) return false;
+            }
+
+            if (busca) {
+                const matchTitulo = tituloLower.includes(busca);
+                const matchItens = (p.itens || []).some(it => {
+                    const mNome = (_listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || '').toLowerCase();
+                    return mNome.includes(busca);
+                });
+                if (!matchTitulo && !matchItens) return false;
+            }
+
+            return true;
+        });
+
+        if (lblContador) {
+            lblContador.textContent = `${planosFiltrados.length} de ${allPlanos.length} exibidos`;
+        }
+
+        if (planosFiltrados.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px; background:#162433; border-radius:10px; border:1px dashed #2a4158; color:#aaa;">
+                    <i class="fa-solid fa-calendar-xmark" style="font-size:2rem; color:#ffb74d; margin-bottom:10px; display:block;"></i>
+                    Nenhum planejamento encontrado para os filtros selecionados.<br>
+                    <small style="color:#666;">Tente alterar o Mês, Ano ou termo de busca.</small>
+                </div>
+            `;
+            return;
+        }
+
+        renderCardsPlanosV3(planosFiltrados, container);
+    };
+
     window.renderPlanejamentosAtivosV3 = async function() {
         const container = document.getElementById('container-planejamentos-ativos');
         if (!container) return;
@@ -17433,12 +17747,10 @@ window.carregarFinanceiroView = async function() {
                 _listTabelaPrecosEstrategica = await resPrecos.json();
             }
             
-            // Buscar metas V3 também para alimentar o simulador
             const resMetas = await fetch('/api/planejamento-estrategicov3');
             const rawMetas = await resMetas.json();
             _listMetasV3 = Array.isArray(rawMetas) ? rawMetas : [];
 
-            // Preparar o simulador que agora mora aqui
             popularSelectsProdutoEstrategicov3();
             window.onChangeConsultaMaterialV3();
             window.recalcularSimulacaoV3();
@@ -17454,206 +17766,10 @@ window.carregarFinanceiroView = async function() {
             const data = await res.json();
             if(!data.success) throw new Error(data.error);
 
-            if(!data.planos || data.planos.length === 0) {
-                container.innerHTML = '<p style="color:#aaa; text-align:center;">Nenhum planejamento ativo encontrado.</p>';
-                return;
-            }
+            window._allPlanosAtivosV3 = data.planos || [];
+            window._lastPlanosConsultados = data.planos || [];
 
-            container.innerHTML = '';
-
-            data.planos.forEach(p => {
-                let htmlItens = '';
-                let totalAlvo = 0;
-                let totalReal = 0;
-                let totalInvest = 0;
-                let totalVol = 0;
-                let totalFracaoPct = 0;
-                let totalVendaLiquida = 0;
-
-                p.itens.forEach(it => {
-                    const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
-                    const fAlvo = parseFloat(it.faturamento_alvo) || 0;
-                    const fReal = parseFloat(it.faturamento_realizado) || 0;
-                    const invest = parseFloat(it.investimento_necessario) || 0;
-                    const vol = parseFloat(it.volume_necessario) || 0;
-                    const fracao = parseFloat(it.fracao_pct) || 0;
-
-                    let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id);
-                    const pRef = p.frente === 'venda'
-                        ? parseFloat(tp?.preco_venda || tp?.venda_ref || 0)
-                        : parseFloat(tp?.preco_entregar || tp?.preco_compra || 0);
-
-                    const comissao = parseFloat(tp?.comissao || 0);
-                    const pisCofins = parseFloat(tp?.pis_cofins || 0);
-                    const fidc = parseFloat(tp?.fidc || 0);
-                    const icms = parseFloat(tp?.icms || 0);
-                    const freteColeta = parseFloat(tp?.frete_coleta || 0);
-                    const totalDedPct = comissao + pisCofins + fidc + icms;
-                    const valDeducoesUnit = pRef * (totalDedPct / 100);
-                    const vendaLiquidaUnit = Math.max(0, pRef - valDeducoesUnit - freteColeta);
-
-                    totalAlvo += fAlvo;
-                    totalReal += fReal;
-                    totalInvest += invest;
-                    totalVol += vol;
-                    totalFracaoPct += fracao;
-                    totalVendaLiquida += (vol * vendaLiquidaUnit);
-
-                    const progPct = fAlvo > 0 ? ((fReal / fAlvo) * 100).toFixed(1) : 0;
-                    
-                    htmlItens += `
-                        <tr style="border-bottom:1px solid #1a2e3f;">
-                            <td style="padding:10px;">${mNome}</td>
-                            <td style="padding:10px;">${it.fracao_pct}%</td>
-                            <td style="padding:10px; color:#2AD07A;">R$ ${window.fmtBRL(fAlvo)}</td>
-                            <td style="padding:10px;">
-                                <input type="text" id="plestv3-realizado-${it.id}" class="noble-input" value="${window.fmtBRL(fReal)}" style="width:100px; padding:4px;" oninput="window.maskCurrencyV3(this)" ${p.status === 'FINALIZADO' ? 'disabled' : ''}>
-                            </td>
-                            <td style="padding:10px;">
-                                <div style="width:100%; background:#0d1826; height:6px; border-radius:3px; margin-top:6px;">
-                                    <div style="width:${Math.min(progPct, 100)}%; background:${progPct >= 100 ? '#2AD07A' : '#00e5ff'}; height:100%; border-radius:3px;"></div>
-                                </div>
-                                <small style="color:#aaa; font-size:10px;">${progPct}%</small>
-                            </td>
-                            <td style="padding:10px;">
-                                ${p.status !== 'FINALIZADO' ? `<button onclick="window.atualizarRealizadoV3(${it.id})" style="background:#00e5ff; color:#0d1826; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Salvar Realizado</button>` : '<span style="color:#aaa; font-size:11px;">Finalizado</span>'}
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                // Cálculos de Totais, Médias e Indicadores Estratégicos do Plano Ativo
-                const countAtivos = p.itens.length || 1;
-                const mediaFracaoAtivo = totalFracaoPct / countAtivos;
-                const mediaAlvoAtivo = totalAlvo / countAtivos;
-                const mediaRealAtivo = totalReal / countAtivos;
-
-                const pVendaMedioAtivo = totalVol > 0 ? (totalAlvo / totalVol) : 0;
-                const lucroBrutoAtivo = totalAlvo - totalInvest;
-                const margemBrutaPctAtivo = totalAlvo > 0 ? (lucroBrutoAtivo / totalAlvo) * 100 : 0;
-
-                const lucroLiquidoAtivo = totalVendaLiquida - totalInvest;
-                const margemLiquidaPctAtivo = totalAlvo > 0 ? (lucroLiquidoAtivo / totalAlvo) * 100 : 0;
-
-                const taxaVendaLiqAtivo = totalAlvo > 0 ? (totalVendaLiquida / totalAlvo) : 1;
-                const pontoEquilibrioFatAtivo = taxaVendaLiqAtivo > 0 ? (totalInvest / taxaVendaLiqAtivo) : totalInvest;
-                const pontoEquilibrioVolAtivo = pVendaMedioAtivo > 0 ? (pontoEquilibrioFatAtivo / pVendaMedioAtivo) : 0;
-
-                // Scenario Math
-                const metaAlvo = parseFloat(p.meta_faturamento) || totalAlvo;
-                const consPct = parseFloat(p.cenario_conservador_pct) || 80;
-                const modPct = parseFloat(p.cenario_moderado_pct) || 100;
-                const agrPct = parseFloat(p.cenario_agressivo_pct) || 120;
-                
-                const tCons = metaAlvo * (consPct / 100);
-                const tMod = metaAlvo * (modPct / 100);
-                const tAgr = metaAlvo * (agrPct / 100);
-                
-                const progressToMod = metaAlvo > 0 ? ((totalReal / tMod) * 100).toFixed(1) : 0;
-
-                const cardHTML = `
-                    <div style="background:#162433; border:1px solid #1c2e3d; border-radius:10px; padding:16px; position:relative; opacity: ${p.status === 'FINALIZADO' ? '0.7' : '1'}; mb-4;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-                            <div>
-                                <h3 style="margin:0 0 5px 0; color:#2AD07A; display:flex; align-items:center; gap:8px;">
-                                    ${p.titulo} 
-                                    ${p.status === 'FINALIZADO' ? '<span style="background:#4a4a4a; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">FINALIZADO</span>' : ''}
-                                </h3>
-                                <small style="color:#aaa;">Período: ${window.fmtD(p.data_inicial)} até ${window.fmtD(p.data_final)}</small>
-                            </div>
-                            <div style="display:flex; gap:10px;">
-                                ${p.status !== 'FINALIZADO' ? `<button onclick="window.finalizarPlanejamentoV3(${p.id})" style="background:#ffb74d; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Finalizar</button>` : ''}
-                                <button onclick="window.gerarPdfEstrategiaV3(${p.id})" style="background:#2AD07A; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-                                <button onclick="window.excluirPlanejamentoV3(${p.id})" style="background:#ff4d4d; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Scenarios Row -->
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
-                            <div style="background:#0d1826; border:1px solid #00e5ff; padding:12px; border-radius:8px;">
-                                <h4 style="margin:0 0 8px 0; color:#00e5ff; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
-                                <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tCons)}</div>
-                                ${totalReal >= tCons ? '<div style="margin-top:5px; background:#00e5ff; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
-                            </div>
-                            <div style="background:#0d1826; border:1px solid #ffb74d; padding:12px; border-radius:8px;">
-                                <h4 style="margin:0 0 8px 0; color:#ffb74d; font-size:12px;">MODERADO (${modPct}%)</h4>
-                                <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tMod)}</div>
-                                ${totalReal >= tMod ? '<div style="margin-top:5px; background:#ffb74d; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
-                            </div>
-                            <div style="background:#0d1826; border:1px solid #ff4d4d; padding:12px; border-radius:8px;">
-                                <h4 style="margin:0 0 8px 0; color:#ff4d4d; font-size:12px;">AGRESSIVO (${agrPct}%)</h4>
-                                <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tAgr)}</div>
-                                ${totalReal >= tAgr ? '<div style="margin-top:5px; background:#ff4d4d; color:#fff; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
-                            </div>
-                        </div>
-
-                        <!-- Card de Indicadores Estratégicos para o Plano Ativo -->
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:16px; padding:10px; background:#0d1826; border:1px solid #1a3a5c; border-radius:8px;">
-                            <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #2AD07A;">
-                                <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Margem Bruta</span>
-                                <span style="font-size:13px; color:#2AD07A; font-weight:bold;">R$ ${window.fmtBRL(lucroBrutoAtivo)} (${margemBrutaPctAtivo.toFixed(1)}%)</span>
-                            </div>
-                            <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #00e5ff;">
-                                <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-scale-balanced" style="color:#00e5ff;"></i> Margem Líquida Est.</span>
-                                <span style="font-size:13px; color:#00e5ff; font-weight:bold;">R$ ${window.fmtBRL(lucroLiquidoAtivo)} (${margemLiquidaPctAtivo.toFixed(1)}%)</span>
-                            </div>
-                            <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #ffb74d;">
-                                <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Ponto de Equilíbrio</span>
-                                <span style="font-size:13px; color:#ffb74d; font-weight:bold;">R$ ${window.fmtBRL(pontoEquilibrioFatAtivo)} (${pontoEquilibrioVolAtivo.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg)</span>
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        <div style="background:#0d1826; border:1px solid #1a2e3f; padding:12px; border-radius:8px; margin-bottom:16px;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                <span style="color:#aaa; font-size:12px;">Progresso Total (Base Moderado)</span>
-                                <span style="color:#2AD07A; font-weight:bold; font-size:12px;">R$ ${window.fmtBRL(totalReal)} / R$ ${window.fmtBRL(tMod)} (${progressToMod}%)</span>
-                            </div>
-                            <div style="width:100%; background:#162433; height:10px; border-radius:5px; position:relative; overflow:hidden;">
-                                <div style="width:${Math.min(progressToMod, 100)}%; background:linear-gradient(90deg, #00e5ff, #2AD07A); height:100%; border-radius:5px; transition:width 0.5s;"></div>
-                            </div>
-                        </div>
-
-                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px; color:#fff;">
-                            <thead>
-                                <tr style="background:#0d1826; border-bottom:1px solid #2a4158;">
-                                    <th style="padding:10px; color:#aaa;">Produto</th>
-                                    <th style="padding:10px; color:#aaa;">Fração</th>
-                                    <th style="padding:10px; color:#aaa;">Meta (R$)</th>
-                                    <th style="padding:10px; color:#aaa;">Realizado (R$)</th>
-                                    <th style="padding:10px; color:#aaa;">Progresso</th>
-                                    <th style="padding:10px; color:#aaa;">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${htmlItens}
-                            </tbody>
-                            <tfoot style="border-top:2px solid #00e5ff; font-weight:bold; background:#0d1826;">
-                                <tr style="color:#00e5ff; border-bottom:1px solid #1a2e3f;">
-                                    <td style="padding:10px;">TOTAL</td>
-                                    <td style="padding:10px;">${totalFracaoPct.toFixed(1)}%</td>
-                                    <td style="padding:10px; color:#2AD07A;">R$ ${window.fmtBRL(totalAlvo)}</td>
-                                    <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(totalReal)}</td>
-                                    <td style="padding:10px; color:#2AD07A;">${totalAlvo > 0 ? ((totalReal/totalAlvo)*100).toFixed(1) : 0}%</td>
-                                    <td style="padding:10px;"></td>
-                                </tr>
-                                <tr style="color:#e0e0e0; background:rgba(0,229,255,0.06);">
-                                    <td style="padding:10px; color:#00e5ff;"><i class="fa-solid fa-calculator"></i> MÉDIAS</td>
-                                    <td style="padding:10px;">${mediaFracaoAtivo.toFixed(1)}%</td>
-                                    <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaAlvoAtivo)}</td>
-                                    <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaRealAtivo)}</td>
-                                    <td style="padding:10px; color:#00e5ff;">${mediaAlvoAtivo > 0 ? ((mediaRealAtivo/mediaAlvoAtivo)*100).toFixed(1) : 0}%</td>
-                                    <td style="padding:10px;"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                `;
-                container.innerHTML += cardHTML;
-            });
-
-            // Store global for PDF generation
-            window._lastPlanosConsultados = data.planos;
+            window.filtrarPlanejamentosAtivosV3();
 
         } catch(e) {
             console.error(e);

@@ -2441,8 +2441,36 @@
                     
                     <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:16px; margin-bottom:16px;">
                         <div class="form-group">
-                            <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Título do Planejamento</label>
-                            <input type="text" id="plestv3-sim-titulo" class="noble-input" placeholder="Ex: Meta 1º Semestre 2027">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:4px;">
+                                <label style="color:#aaa; font-size:0.8rem; margin:0;">Título do Planejamento</label>
+                                <div style="display:flex; gap:6px; align-items:center;">
+                                    <span style="font-size:0.75rem; color:#00e5ff; font-weight:bold;"><i class="fa-solid fa-magic-wand-sparkles"></i> Mês:</span>
+                                    <select id="plestv3-quick-mes" class="noble-input" style="padding:2px 6px; font-size:0.75rem; width:110px;" onchange="window.preencherTituloEMesesV3()">
+                                        <option value="">Selecione...</option>
+                                        <option value="01|Janeiro">Janeiro</option>
+                                        <option value="02|Fevereiro">Fevereiro</option>
+                                        <option value="03|Março">Março</option>
+                                        <option value="04|Abril">Abril</option>
+                                        <option value="05|Maio">Maio</option>
+                                        <option value="06|Junho">Junho</option>
+                                        <option value="07|Julho">Julho</option>
+                                        <option value="08|Agosto">Agosto</option>
+                                        <option value="09|Setembro">Setembro</option>
+                                        <option value="10|Outubro">Outubro</option>
+                                        <option value="11|Novembro">Novembro</option>
+                                        <option value="12|Dezembro">Dezembro</option>
+                                    </select>
+                                    <select id="plestv3-quick-ano" class="noble-input" style="padding:2px 6px; font-size:0.75rem; width:75px;" onchange="window.preencherTituloEMesesV3()">
+                                        <option value="2025">2025</option>
+                                        <option value="2026">2026</option>
+                                        <option value="2027" selected>2027</option>
+                                        <option value="2028">2028</option>
+                                        <option value="2029">2029</option>
+                                        <option value="2030">2030</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <input type="text" id="plestv3-sim-titulo" class="noble-input" placeholder="Ex: Janeiro 2027">
                         </div>
                         <div class="form-group">
                             <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px; display:block;">Data Inicial</label>
@@ -2973,6 +3001,55 @@
 
                     </div>
                 </div>
+                <!-- Barra de Filtros Mensais e por Ano dos Planejamentos Ativos -->
+                <div style="background:#101a24; border:1px solid #1c2e3d; border-radius:10px; padding:14px; margin-bottom:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <h4 style="margin:0; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-filter" style="color:#00e5ff;"></i> Filtrar Planejamentos</h4>
+                        <span id="plestv3-filtro-contador" style="background:rgba(0,229,255,0.15); color:#00e5ff; font-size:0.75rem; padding:2px 8px; border-radius:12px; font-weight:bold;">0 encontrados</span>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <div>
+                            <select id="plestv3-filtro-mes" class="noble-input" style="padding:6px 10px; font-size:0.8rem;" onchange="window.filtrarPlanejamentosAtivosV3()">
+                                <option value="">Todos os Meses</option>
+                                <option value="01">01 - Janeiro</option>
+                                <option value="02">02 - Fevereiro</option>
+                                <option value="03">03 - Março</option>
+                                <option value="04">04 - Abril</option>
+                                <option value="05">05 - Maio</option>
+                                <option value="06">06 - Junho</option>
+                                <option value="07">07 - Julho</option>
+                                <option value="08">08 - Agosto</option>
+                                <option value="09">09 - Setembro</option>
+                                <option value="10">10 - Outubro</option>
+                                <option value="11">11 - Novembro</option>
+                                <option value="12">12 - Dezembro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="plestv3-filtro-ano" class="noble-input" style="padding:6px 10px; font-size:0.8rem;" onchange="window.filtrarPlanejamentosAtivosV3()">
+                                <option value="">Todos os Anos</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                                <option value="2027">2027</option>
+                                <option value="2028">2028</option>
+                                <option value="2029">2029</option>
+                                <option value="2030">2030</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="plestv3-filtro-status" class="noble-input" style="padding:6px 10px; font-size:0.8rem;" onchange="window.filtrarPlanejamentosAtivosV3()">
+                                <option value="">Todos os Status</option>
+                                <option value="EM_ANDAMENTO">Em Andamento</option>
+                                <option value="FINALIZADO">Finalizado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <input type="text" id="plestv3-filtro-busca" class="noble-input" placeholder="Buscar por título..." style="padding:6px 10px; font-size:0.8rem; width:160px;" oninput="window.filtrarPlanejamentosAtivosV3()">
+                        </div>
+                        <button type="button" onclick="window.limparFiltrosPlanejamentosV3()" style="background:#2a4158; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer;" title="Limpar Filtros"><i class="fa-solid fa-rotate-left"></i> Limpar</button>
+                    </div>
+                </div>
+
                 <div id="container-planejamentos-ativos" style="display: flex; flex-direction: column; gap: 20px;">
                     <!-- Carregado via JS -->
                 </div>
