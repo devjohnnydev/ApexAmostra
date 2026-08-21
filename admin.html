@@ -3001,13 +3001,32 @@
 
                     </div>
                 </div>
-                <!-- Barra de Filtros Mensais e por Ano dos Planejamentos Ativos -->
+                <!-- Barra de Filtros e Seleção Múltipla de Planejamentos Ativos -->
                 <div style="background:#101a24; border:1px solid #1c2e3d; border-radius:10px; padding:14px; margin-bottom:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:space-between;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <h4 style="margin:0; color:#fff; font-size:0.9rem;"><i class="fa-solid fa-filter" style="color:#00e5ff;"></i> Filtrar Planejamentos</h4>
                         <span id="plestv3-filtro-contador" style="background:rgba(0,229,255,0.15); color:#00e5ff; font-size:0.75rem; padding:2px 8px; border-radius:12px; font-weight:bold;">0 encontrados</span>
                     </div>
                     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <!-- Multi-Select Dropdown por Título do Planejamento -->
+                        <div style="position:relative; display:inline-block;" id="plestv3-multiselect-wrapper">
+                            <button type="button" id="plestv3-multiselect-btn" onclick="window.toggleMultiSelectTitulosV3()" class="noble-input" style="padding:6px 12px; font-size:0.8rem; background:#0d1826; border:1px solid #1c2e3d; color:#fff; cursor:pointer; min-width:230px; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+                                <span id="plestv3-multiselect-label"><i class="fa-solid fa-list-check" style="color:#00e5ff;"></i> Todos os Títulos</span>
+                                <i class="fa-solid fa-chevron-down" style="font-size:0.7rem; color:#aaa; margin-left:8px;"></i>
+                            </button>
+                            <div id="plestv3-multiselect-dropdown" style="display:none; position:absolute; top:100%; left:0; min-width:280px; background:#101a24; border:1px solid #00e5ff; border-radius:8px; padding:10px; z-index:9999; max-height:260px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.7); margin-top:4px;">
+                                <div style="padding-bottom:6px; margin-bottom:6px; border-bottom:1px solid #1c2e3d; display:flex; justify-content:space-between; align-items:center;">
+                                    <label style="color:#00e5ff; font-size:0.75rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; margin:0;">
+                                        <input type="checkbox" id="plestv3-chk-all-titulos" onchange="window.toggleAllTitulosV3(this)" checked> Marcar Todos
+                                    </label>
+                                    <span style="font-size:0.7rem; color:#aaa;" id="plestv3-chk-count">0/0</span>
+                                </div>
+                                <div id="plestv3-multiselect-options" style="display:flex; flex-direction:column; gap:6px;">
+                                    <!-- Preenchido via JS -->
+                                </div>
+                            </div>
+                        </div>
+
                         <div>
                             <select id="plestv3-filtro-mes" class="noble-input" style="padding:6px 10px; font-size:0.8rem;" onchange="window.filtrarPlanejamentosAtivosV3()">
                                 <option value="">Todos os Meses</option>
@@ -3044,9 +3063,14 @@
                             </select>
                         </div>
                         <div>
-                            <input type="text" id="plestv3-filtro-busca" class="noble-input" placeholder="Buscar por título..." style="padding:6px 10px; font-size:0.8rem; width:160px;" oninput="window.filtrarPlanejamentosAtivosV3()">
+                            <input type="text" id="plestv3-filtro-busca" class="noble-input" placeholder="Buscar por título..." style="padding:6px 10px; font-size:0.8rem; width:150px;" oninput="window.filtrarPlanejamentosAtivosV3()">
                         </div>
                         <button type="button" onclick="window.limparFiltrosPlanejamentosV3()" style="background:#2a4158; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer;" title="Limpar Filtros"><i class="fa-solid fa-rotate-left"></i> Limpar</button>
+                        
+                        <!-- Botão Baixar PDF dos Selecionados -->
+                        <button type="button" onclick="window.gerarPdfMultiEstrategiaV3()" style="background:#2AD07A; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:0.8rem; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Baixar relatório em PDF dos planejamentos selecionados">
+                            <i class="fa-solid fa-file-pdf"></i> Baixar PDF (Selecionados)
+                        </button>
                     </div>
                 </div>
 
