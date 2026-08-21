@@ -16355,9 +16355,9 @@ window.carregarFinanceiroView = async function() {
 
         if (ftTotPct) ftTotPct.textContent = `${totalPctAlocado.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%`;
         if (ftTotFat) ftTotFat.textContent = `R$ ${fatTotalAlvo.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-        if (ftTotPVenda) ftTotPVenda.textContent = `R$ ${window.fmtBRL(pVendaMedioPonderado)}`;
+        if (ftTotPVenda) ftTotPVenda.textContent = '—';
         if (ftTotVol) ftTotVol.textContent = `${totalKgCalculado.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg`;
-        if (ftTotPCompra) ftTotPCompra.textContent = `R$ ${window.fmtBRL(pCompraMedioPonderado)}`;
+        if (ftTotPCompra) ftTotPCompra.textContent = '—';
         if (ftTotInvest) ftTotInvest.textContent = `R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
         // Atualizar TFOOT - Linha de MÉDIAS
@@ -16380,9 +16380,9 @@ window.carregarFinanceiroView = async function() {
         const indLiquida = document.getElementById('plestv3-ind-margem-liquida');
         const indEquilibrio = document.getElementById('plestv3-ind-ponto-equilibrio');
 
-        if (indBruta) indBruta.textContent = `R$ ${lucroBruto.toLocaleString('pt-BR', {minimumFractionDigits:2})} (${margemBrutaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)`;
-        if (indLiquida) indLiquida.textContent = `R$ ${lucroLiquido.toLocaleString('pt-BR', {minimumFractionDigits:2})} (${margemLiquidaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)`;
-        if (indEquilibrio) indEquilibrio.textContent = `R$ ${pontoEquilibrioFat.toLocaleString('pt-BR', {minimumFractionDigits:2})} (${pontoEquilibrioKg.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg)`;
+        if (indBruta) indBruta.textContent = `R$ ${lucroBruto.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})} (${margemBrutaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)`;
+        if (indLiquida) indLiquida.textContent = `R$ ${lucroLiquido.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})} (${margemLiquidaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)`;
+        if (indEquilibrio) indEquilibrio.textContent = `R$ ${pontoEquilibrioFat.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})} (${pontoEquilibrioKg.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg)`;
 
         // Feedback visual de alocação
         if (lblFeed && _mixSimulacaoV3.length > 0) {
