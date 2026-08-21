@@ -2513,12 +2513,49 @@
                                     <tbody id="plestv3-mix-tbody">
                                         <!-- Preenchido via JS -->
                                     </tbody>
+                                    <tfoot id="plestv3-mix-tfoot">
+                                        <tr style="border-top:2px solid #00e5ff; background:#162433; font-weight:bold; color:#fff;">
+                                            <td style="padding:8px 4px; color:#00e5ff;">TOTAL</td>
+                                            <td style="padding:8px 4px; text-align:center; color:#00e5ff;" id="plestv3-tfoot-tot-pct">0,0%</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#2AD07A;" id="plestv3-tfoot-tot-fat">R$ 0,00</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#ccc;" id="plestv3-tfoot-tot-pvenda">R$ 0,00</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#2AD07A;" id="plestv3-tfoot-tot-vol">0,0 kg</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#ffb74d;" id="plestv3-tfoot-tot-pcompra">R$ 0,00</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#ff9800;" id="plestv3-tfoot-tot-invest">R$ 0,00</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr style="border-top:1px dashed #00e5ff; background:rgba(0, 229, 255, 0.08); font-weight:bold; color:#e0e0e0;">
+                                            <td style="padding:8px 4px; color:#00e5ff;"><i class="fa-solid fa-calculator"></i> MÉDIAS</td>
+                                            <td style="padding:8px 4px; text-align:center; color:#00e5ff;" id="plestv3-tfoot-med-pct">0,0%</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#00e5ff;" id="plestv3-tfoot-med-fat">R$ 0,00</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#ccc;" id="plestv3-tfoot-med-pvenda">R$ 0,00</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#00e5ff;" id="plestv3-tfoot-med-vol">0,0 kg</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#ffb74d;" id="plestv3-tfoot-med-pcompra">R$ 0,00</td>
+                                            <td style="padding:8px 4px; text-align:right; color:#ffb74d;" id="plestv3-tfoot-med-invest">R$ 0,00</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                             <div id="plestv3-mix-total-container" style="display:flex; justify-content:space-between; margin-top:10px; padding-top:8px; border-top:1px solid #223547; font-weight:bold; font-size:0.82rem; color:#fff; flex-wrap:wrap; gap:10px;">
                                 <span>Total Alocado: <span id="plestv3-mix-total-pct" style="color:#00e5ff;">0%</span></span>
                                 <span>Volume Total: <span id="plestv3-mix-total-kg" style="color:#2AD07A;">0,0 kg</span></span>
                                 <span>Investimento Compra Total: <span id="plestv3-mix-total-investimento" style="color:#ffb74d;">R$ 0,00</span></span>
+                            </div>
+                            <!-- Card de Indicadores Financeiros Estratégicos (Margem Bruta, Margem Líquida, Ponto de Equilíbrio) -->
+                            <div id="plestv3-mix-indicadores" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:10px; padding:12px; background:#0d1826; border:1px solid #1a3a5c; border-radius:8px;">
+                                <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:4px solid #2AD07A;">
+                                    <span style="font-size:0.75rem; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Margem Bruta</span>
+                                    <span style="font-size:0.95rem; color:#2AD07A; font-weight:bold;" id="plestv3-ind-margem-bruta">R$ 0,00 (0,0%)</span>
+                                </div>
+                                <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:4px solid #00e5ff;">
+                                    <span style="font-size:0.75rem; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-scale-balanced" style="color:#00e5ff;"></i> Margem Líquida Est.</span>
+                                    <span style="font-size:0.95rem; color:#00e5ff; font-weight:bold;" id="plestv3-ind-margem-liquida">R$ 0,00 (0,0%)</span>
+                                </div>
+                                <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:4px solid #ffb74d;">
+                                    <span style="font-size:0.75rem; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Ponto de Equilíbrio</span>
+                                    <span style="font-size:0.95rem; color:#ffb74d; font-weight:bold;" id="plestv3-ind-ponto-equilibrio">R$ 0,00 (0,0 kg)</span>
+                                </div>
                             </div>
                             <div id="plestv3-mix-feedback" style="margin-top:10px; padding:10px; border-radius:6px; font-size:0.8rem; font-weight:bold; display:none;"></div>
                         </div>

@@ -392,11 +392,53 @@
             mixTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:15px; color:#aaa;">Nenhum produto adicionado ao mix. Selecione acima e clique em "Adicionar ao Mix".</td></tr>`;
         }
 
-        // 3. Atualizar rodapés e totais
+        // 3. Atualizar rodapés (tfoot com Totais e Médias), totais e indicadores estratégicos
         const lblPct    = document.getElementById('plestv3-mix-total-pct');
         const lblKg     = document.getElementById('plestv3-mix-total-kg');
         const lblInvest = document.getElementById('plestv3-mix-total-investimento');
         const lblFeed   = document.getElementById('plestv3-mix-feedback');
+
+        const countItems = _mixSimulacaoV3.length || 1;
+        let totalVendaLiquidaCalculada = 0;
+
+        _mixSimulacaoV3.forEach((mixItem) => {
+            let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === mixItem.material_id);
+            if (!tp) tp = { preco_venda: 0, preco_compra: 0 };
+            const faturamentoAlvoProduto = fatTotalAlvo * (mixItem.fracaoPct / 100);
+            const pRef = frente === 'venda'
+                ? parseFloat(tp.preco_venda || tp.venda_ref || 0)
+                : parseFloat(tp.preco_entregar || tp.preco_compra || 0);
+            const volumeKg = pRef > 0 ? (faturamentoAlvoProduto / pRef) : 0;
+            
+            const comissao = parseFloat(tp.comissao || 0);
+            const pisCofins = parseFloat(tp.pis_cofins || 0);
+            const fidc = parseFloat(tp.fidc || 0);
+            const icms = parseFloat(tp.icms || 0);
+            const freteColeta = parseFloat(tp.frete_coleta || 0);
+            const totalDedPct = comissao + pisCofins + fidc + icms;
+            const valDeducoesUnit = pRef * (totalDedPct / 100);
+            const vendaLiquidaUnit = Math.max(0, pRef - valDeducoesUnit - freteColeta);
+            
+            totalVendaLiquidaCalculada += (volumeKg * vendaLiquidaUnit);
+        });
+
+        const pVendaMedioPonderado = totalKgCalculado > 0 ? (fatTotalAlvo / totalKgCalculado) : 0;
+        const pCompraMedioPonderado = totalKgCalculado > 0 ? (totalInvestimentoNecessario / totalKgCalculado) : 0;
+
+        const medFracaoPct = totalPctAlocado / countItems;
+        const medFatAlvo = fatTotalAlvo / countItems;
+        const medVolKg = totalKgCalculado / countItems;
+        const medInvestimento = totalInvestimentoNecessario / countItems;
+
+        const lucroBruto = fatTotalAlvo - totalInvestimentoNecessario;
+        const margemBrutaPct = fatTotalAlvo > 0 ? (lucroBruto / fatTotalAlvo) * 100 : 0;
+
+        const lucroLiquido = totalVendaLiquidaCalculada - totalInvestimentoNecessario;
+        const margemLiquidaPct = fatTotalAlvo > 0 ? (lucroLiquido / fatTotalAlvo) * 100 : 0;
+
+        const taxaVendaLiquida = fatTotalAlvo > 0 ? (totalVendaLiquidaCalculada / fatTotalAlvo) : 1;
+        const pontoEquilibrioFat = taxaVendaLiquida > 0 ? (totalInvestimentoNecessario / taxaVendaLiquida) : totalInvestimentoNecessario;
+        const pontoEquilibrioKg = pVendaMedioPonderado > 0 ? (pontoEquilibrioFat / pVendaMedioPonderado) : 0;
 
         if (lblPct) {
             lblPct.textContent = `${totalPctAlocado.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
@@ -408,6 +450,45 @@
         if (lblInvest) {
             lblInvest.textContent = `R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
+
+        // Atualizar TFOOT - Linha de TOTAIS
+        const ftTotPct = document.getElementById('plestv3-tfoot-tot-pct');
+        const ftTotFat = document.getElementById('plestv3-tfoot-tot-fat');
+        const ftTotPVenda = document.getElementById('plestv3-tfoot-tot-pvenda');
+        const ftTotVol = document.getElementById('plestv3-tfoot-tot-vol');
+        const ftTotPCompra = document.getElementById('plestv3-tfoot-tot-pcompra');
+        const ftTotInvest = document.getElementById('plestv3-tfoot-tot-invest');
+
+        if (ftTotPct) ftTotPct.textContent = `${totalPctAlocado.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%`;
+        if (ftTotFat) ftTotFat.textContent = `R$ ${fatTotalAlvo.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        if (ftTotPVenda) ftTotPVenda.textContent = `R$ ${window.fmtBRL(pVendaMedioPonderado)}`;
+        if (ftTotVol) ftTotVol.textContent = `${totalKgCalculado.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg`;
+        if (ftTotPCompra) ftTotPCompra.textContent = `R$ ${window.fmtBRL(pCompraMedioPonderado)}`;
+        if (ftTotInvest) ftTotInvest.textContent = `R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+
+        // Atualizar TFOOT - Linha de MÉDIAS
+        const ftMedPct = document.getElementById('plestv3-tfoot-med-pct');
+        const ftMedFat = document.getElementById('plestv3-tfoot-med-fat');
+        const ftMedPVenda = document.getElementById('plestv3-tfoot-med-pvenda');
+        const ftMedVol = document.getElementById('plestv3-tfoot-med-vol');
+        const ftMedPCompra = document.getElementById('plestv3-tfoot-med-pcompra');
+        const ftMedInvest = document.getElementById('plestv3-tfoot-med-invest');
+
+        if (ftMedPct) ftMedPct.textContent = `${medFracaoPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%`;
+        if (ftMedFat) ftMedFat.textContent = `R$ ${medFatAlvo.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+        if (ftMedPVenda) ftMedPVenda.textContent = `R$ ${window.fmtBRL(pVendaMedioPonderado)}`;
+        if (ftMedVol) ftMedVol.textContent = `${medVolKg.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg`;
+        if (ftMedPCompra) ftMedPCompra.textContent = `R$ ${window.fmtBRL(pCompraMedioPonderado)}`;
+        if (ftMedInvest) ftMedInvest.textContent = `R$ ${medInvestimento.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+
+        // Atualizar Card de Indicadores (Margem Bruta, Margem Líquida, Ponto de Equilíbrio)
+        const indBruta = document.getElementById('plestv3-ind-margem-bruta');
+        const indLiquida = document.getElementById('plestv3-ind-margem-liquida');
+        const indEquilibrio = document.getElementById('plestv3-ind-ponto-equilibrio');
+
+        if (indBruta) indBruta.textContent = `R$ ${lucroBruto.toLocaleString('pt-BR', {minimumFractionDigits:2})} (${margemBrutaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)`;
+        if (indLiquida) indLiquida.textContent = `R$ ${lucroLiquido.toLocaleString('pt-BR', {minimumFractionDigits:2})} (${margemLiquidaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)`;
+        if (indEquilibrio) indEquilibrio.textContent = `R$ ${pontoEquilibrioFat.toLocaleString('pt-BR', {minimumFractionDigits:2})} (${pontoEquilibrioKg.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg)`;
 
         // Feedback visual de alocação
         if (lblFeed && _mixSimulacaoV3.length > 0) {
@@ -1499,14 +1580,39 @@ window.excluirCicloV3 = async function(cicloId) {
                 let htmlItens = '';
                 let totalAlvo = 0;
                 let totalReal = 0;
+                let totalInvest = 0;
+                let totalVol = 0;
+                let totalFracaoPct = 0;
+                let totalVendaLiquida = 0;
 
                 p.itens.forEach(it => {
                     const mNome = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id)?.material_nome || 'Material ' + it.material_id;
                     const fAlvo = parseFloat(it.faturamento_alvo) || 0;
                     const fReal = parseFloat(it.faturamento_realizado) || 0;
-                    
+                    const invest = parseFloat(it.investimento_necessario) || 0;
+                    const vol = parseFloat(it.volume_necessario) || 0;
+                    const fracao = parseFloat(it.fracao_pct) || 0;
+
+                    let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id);
+                    const pRef = p.frente === 'venda'
+                        ? parseFloat(tp?.preco_venda || tp?.venda_ref || 0)
+                        : parseFloat(tp?.preco_entregar || tp?.preco_compra || 0);
+
+                    const comissao = parseFloat(tp?.comissao || 0);
+                    const pisCofins = parseFloat(tp?.pis_cofins || 0);
+                    const fidc = parseFloat(tp?.fidc || 0);
+                    const icms = parseFloat(tp?.icms || 0);
+                    const freteColeta = parseFloat(tp?.frete_coleta || 0);
+                    const totalDedPct = comissao + pisCofins + fidc + icms;
+                    const valDeducoesUnit = pRef * (totalDedPct / 100);
+                    const vendaLiquidaUnit = Math.max(0, pRef - valDeducoesUnit - freteColeta);
+
                     totalAlvo += fAlvo;
                     totalReal += fReal;
+                    totalInvest += invest;
+                    totalVol += vol;
+                    totalFracaoPct += fracao;
+                    totalVendaLiquida += (vol * vendaLiquidaUnit);
 
                     const progPct = fAlvo > 0 ? ((fReal / fAlvo) * 100).toFixed(1) : 0;
                     
@@ -1531,6 +1637,23 @@ window.excluirCicloV3 = async function(cicloId) {
                     `;
                 });
 
+                // Cálculos de Totais, Médias e Indicadores Estratégicos do Plano Ativo
+                const countAtivos = p.itens.length || 1;
+                const mediaFracaoAtivo = totalFracaoPct / countAtivos;
+                const mediaAlvoAtivo = totalAlvo / countAtivos;
+                const mediaRealAtivo = totalReal / countAtivos;
+
+                const pVendaMedioAtivo = totalVol > 0 ? (totalAlvo / totalVol) : 0;
+                const lucroBrutoAtivo = totalAlvo - totalInvest;
+                const margemBrutaPctAtivo = totalAlvo > 0 ? (lucroBrutoAtivo / totalAlvo) * 100 : 0;
+
+                const lucroLiquidoAtivo = totalVendaLiquida - totalInvest;
+                const margemLiquidaPctAtivo = totalAlvo > 0 ? (lucroLiquidoAtivo / totalAlvo) * 100 : 0;
+
+                const taxaVendaLiqAtivo = totalAlvo > 0 ? (totalVendaLiquida / totalAlvo) : 1;
+                const pontoEquilibrioFatAtivo = taxaVendaLiqAtivo > 0 ? (totalInvest / taxaVendaLiqAtivo) : totalInvest;
+                const pontoEquilibrioVolAtivo = pVendaMedioAtivo > 0 ? (pontoEquilibrioFatAtivo / pVendaMedioAtivo) : 0;
+
                 // Scenario Math
                 const metaAlvo = parseFloat(p.meta_faturamento) || totalAlvo;
                 const consPct = parseFloat(p.cenario_conservador_pct) || 80;
@@ -1544,7 +1667,7 @@ window.excluirCicloV3 = async function(cicloId) {
                 const progressToMod = metaAlvo > 0 ? ((totalReal / tMod) * 100).toFixed(1) : 0;
 
                 const cardHTML = `
-                    <div style="background:#162433; border:1px solid #1c2e3d; border-radius:10px; padding:16px; position:relative; opacity: ${p.status === 'FINALIZADO' ? '0.7' : '1'};">
+                    <div style="background:#162433; border:1px solid #1c2e3d; border-radius:10px; padding:16px; position:relative; opacity: ${p.status === 'FINALIZADO' ? '0.7' : '1'}; mb-4;">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
                             <div>
                                 <h3 style="margin:0 0 5px 0; color:#2AD07A; display:flex; align-items:center; gap:8px;">
@@ -1561,7 +1684,7 @@ window.excluirCicloV3 = async function(cicloId) {
                         </div>
 
                         <!-- Scenarios Row -->
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:20px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
                             <div style="background:#0d1826; border:1px solid #00e5ff; padding:12px; border-radius:8px;">
                                 <h4 style="margin:0 0 8px 0; color:#00e5ff; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
                                 <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tCons)}</div>
@@ -1576,6 +1699,22 @@ window.excluirCicloV3 = async function(cicloId) {
                                 <h4 style="margin:0 0 8px 0; color:#ff4d4d; font-size:12px;">AGRESSIVO (${agrPct}%)</h4>
                                 <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tAgr)}</div>
                                 ${totalReal >= tAgr ? '<div style="margin-top:5px; background:#ff4d4d; color:#fff; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            </div>
+                        </div>
+
+                        <!-- Card de Indicadores Estratégicos para o Plano Ativo -->
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:16px; padding:10px; background:#0d1826; border:1px solid #1a3a5c; border-radius:8px;">
+                            <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #2AD07A;">
+                                <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Margem Bruta</span>
+                                <span style="font-size:13px; color:#2AD07A; font-weight:bold;">R$ ${window.fmtBRL(lucroBrutoAtivo)} (${margemBrutaPctAtivo.toFixed(1)}%)</span>
+                            </div>
+                            <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #00e5ff;">
+                                <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-scale-balanced" style="color:#00e5ff;"></i> Margem Líquida Est.</span>
+                                <span style="font-size:13px; color:#00e5ff; font-weight:bold;">R$ ${window.fmtBRL(lucroLiquidoAtivo)} (${margemLiquidaPctAtivo.toFixed(1)}%)</span>
+                            </div>
+                            <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #ffb74d;">
+                                <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Ponto de Equilíbrio</span>
+                                <span style="font-size:13px; color:#ffb74d; font-weight:bold;">R$ ${window.fmtBRL(pontoEquilibrioFatAtivo)} (${pontoEquilibrioVolAtivo.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg)</span>
                             </div>
                         </div>
 
@@ -1604,6 +1743,24 @@ window.excluirCicloV3 = async function(cicloId) {
                             <tbody>
                                 ${htmlItens}
                             </tbody>
+                            <tfoot style="border-top:2px solid #00e5ff; font-weight:bold; background:#0d1826;">
+                                <tr style="color:#00e5ff; border-bottom:1px solid #1a2e3f;">
+                                    <td style="padding:10px;">TOTAL</td>
+                                    <td style="padding:10px;">${totalFracaoPct.toFixed(1)}%</td>
+                                    <td style="padding:10px; color:#2AD07A;">R$ ${window.fmtBRL(totalAlvo)}</td>
+                                    <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(totalReal)}</td>
+                                    <td style="padding:10px; color:#2AD07A;">${totalAlvo > 0 ? ((totalReal/totalAlvo)*100).toFixed(1) : 0}%</td>
+                                    <td style="padding:10px;"></td>
+                                </tr>
+                                <tr style="color:#e0e0e0; background:rgba(0,229,255,0.06);">
+                                    <td style="padding:10px; color:#00e5ff;"><i class="fa-solid fa-calculator"></i> MÉDIAS</td>
+                                    <td style="padding:10px;">${mediaFracaoAtivo.toFixed(1)}%</td>
+                                    <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaAlvoAtivo)}</td>
+                                    <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaRealAtivo)}</td>
+                                    <td style="padding:10px; color:#00e5ff;">${mediaAlvoAtivo > 0 ? ((mediaRealAtivo/mediaAlvoAtivo)*100).toFixed(1) : 0}%</td>
+                                    <td style="padding:10px;"></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 `;
@@ -1692,34 +1849,86 @@ window.excluirCicloV3 = async function(cicloId) {
         doc.text('ESTRATEGIA DE CRESCIMENTO E METAS (V3)', 15, 18);
 
         doc.setTextColor(40, 40, 40);
-        doc.setFontSize(12);
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
-        doc.text('Detalhes do Planejamento', 15, 35);
+        doc.text('Detalhes do Planejamento', 15, 33);
         
         let totalAlvo = 0;
         let totalReal = 0;
         let totalInvest = 0;
-        plano.itens.forEach(it => {
-            totalAlvo += parseFloat(it.faturamento_alvo) || 0;
-            totalReal += parseFloat(it.faturamento_realizado) || 0;
-            totalInvest += parseFloat(it.investimento_necessario) || 0;
-        });
-        const totalFalta = Math.max(0, totalAlvo - totalReal);
-        const totalPct = totalAlvo > 0 ? ((totalReal / totalAlvo) * 100).toFixed(1) : '0.0';
+        let totalVol = 0;
+        let totalFracao = 0;
+        let totalVendaLiquida = 0;
 
-        doc.setFontSize(10);
+        plano.itens.forEach(it => {
+            const alvo = parseFloat(it.faturamento_alvo) || 0;
+            const real = parseFloat(it.faturamento_realizado) || 0;
+            const invest = parseFloat(it.investimento_necessario) || 0;
+            const vol = parseFloat(it.volume_necessario) || 0;
+            const fracao = parseFloat(it.fracao_pct) || 0;
+
+            let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === it.material_id);
+            const pRef = plano.frente === 'venda'
+                ? parseFloat(tp?.preco_venda || tp?.venda_ref || 0)
+                : parseFloat(tp?.preco_entregar || tp?.preco_compra || 0);
+
+            const comissao = parseFloat(tp?.comissao || 0);
+            const pisCofins = parseFloat(tp?.pis_cofins || 0);
+            const fidc = parseFloat(tp?.fidc || 0);
+            const icms = parseFloat(tp?.icms || 0);
+            const freteColeta = parseFloat(tp?.frete_coleta || 0);
+            const totalDedPct = comissao + pisCofins + fidc + icms;
+            const valDeducoesUnit = pRef * (totalDedPct / 100);
+            const vendaLiquidaUnit = Math.max(0, pRef - valDeducoesUnit - freteColeta);
+
+            totalAlvo += alvo;
+            totalReal += real;
+            totalInvest += invest;
+            totalVol += vol;
+            totalFracao += fracao;
+            totalVendaLiquida += (vol * vendaLiquidaUnit);
+        });
+
+        const count = plano.itens.length || 1;
+        const mediaAlvo = totalAlvo / count;
+        const mediaReal = totalReal / count;
+        const mediaInvest = totalInvest / count;
+        const mediaVol = totalVol / count;
+        const mediaFracao = totalFracao / count;
+
+        const totalFalta = Math.max(0, totalAlvo - totalReal);
+        const mediaFalta = Math.max(0, mediaAlvo - mediaReal);
+
+        const totalPct = totalAlvo > 0 ? ((totalReal / totalAlvo) * 100).toFixed(1) : '0.0';
+        const mediaPct = mediaAlvo > 0 ? ((mediaReal / mediaAlvo) * 100).toFixed(1) : '0.0';
+
+        const pVendaPond = totalVol > 0 ? (totalAlvo / totalVol) : 0;
+
+        const lucroBruto = totalAlvo - totalInvest;
+        const margemBrutaPct = totalAlvo > 0 ? (lucroBruto / totalAlvo) * 100 : 0;
+
+        const lucroLiquido = totalVendaLiquida - totalInvest;
+        const margemLiquidaPct = totalAlvo > 0 ? (lucroLiquido / totalAlvo) * 100 : 0;
+
+        const taxaVendaLiquida = totalAlvo > 0 ? (totalVendaLiquida / totalAlvo) : 1;
+        const pontoEquilibrioFat = taxaVendaLiquida > 0 ? (totalInvest / taxaVendaLiquida) : totalInvest;
+        const pontoEquilibrioVol = pVendaPond > 0 ? (pontoEquilibrioFat / pVendaPond) : 0;
+
+        doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Titulo: ${plano.titulo}`, 15, 42);
-        doc.text(`Periodo: ${window.fmtD(plano.data_inicial)} a ${window.fmtD(plano.data_final)}`, 15, 48);
-        doc.text(`Estrategia: ${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}`, 15, 54);
+        doc.text(`Titulo: ${plano.titulo}`, 15, 40);
+        doc.text(`Periodo: ${window.fmtD(plano.data_inicial)} a ${window.fmtD(plano.data_final)}`, 15, 45);
+        doc.text(`Estrategia: ${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}`, 15, 50);
 
         doc.setFont('helvetica', 'bold');
-        doc.text(`Métricas de Acompanhamento:`, 110, 35);
+        doc.text(`Métricas Globais & Financeiras:`, 110, 33);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Investimento Previsto: R$ ${window.fmtBRL(totalInvest)}`, 110, 42);
-        doc.text(`Meta Global (Alvo): R$ ${window.fmtBRL(totalAlvo)}`, 110, 48);
-        doc.text(`Total Realizado: R$ ${window.fmtBRL(totalReal)} (${totalPct}%)`, 110, 54);
-        doc.text(`Falta para a Meta: R$ ${window.fmtBRL(totalFalta)}`, 110, 60);
+        doc.text(`Investimento Previsto: R$ ${window.fmtBRL(totalInvest)}`, 110, 39);
+        doc.text(`Meta Global (Alvo): R$ ${window.fmtBRL(totalAlvo)}`, 110, 44);
+        doc.text(`Total Realizado: R$ ${window.fmtBRL(totalReal)} (${totalPct}%)`, 110, 49);
+        doc.text(`Margem Bruta: R$ ${window.fmtBRL(lucroBruto)} (${margemBrutaPct.toFixed(1)}%)`, 110, 54);
+        doc.text(`Margem Liquida Est.: R$ ${window.fmtBRL(lucroLiquido)} (${margemLiquidaPct.toFixed(1)}%)`, 110, 59);
+        doc.text(`Ponto de Equilibrio: R$ ${window.fmtBRL(pontoEquilibrioFat)} (${pontoEquilibrioVol.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg)`, 110, 64);
 
         const headers = [['Produto', 'Mix (%)', 'Vol (kg)', 'Investimento', 'Meta Alvo', 'Realizado', 'Falta', '%']];
         const body = plano.itens.map(it => {
@@ -1743,12 +1952,37 @@ window.excluirCicloV3 = async function(cicloId) {
             ];
         });
 
+        const foot = [
+            [
+                'TOTAL',
+                totalFracao.toFixed(1) + '%',
+                totalVol.toLocaleString('pt-BR', {maximumFractionDigits:1}),
+                'R$ ' + window.fmtBRL(totalInvest),
+                'R$ ' + window.fmtBRL(totalAlvo),
+                'R$ ' + window.fmtBRL(totalReal),
+                'R$ ' + window.fmtBRL(totalFalta),
+                totalPct + '%'
+            ],
+            [
+                'MEDIAS',
+                mediaFracao.toFixed(1) + '%',
+                mediaVol.toLocaleString('pt-BR', {maximumFractionDigits:1}),
+                'R$ ' + window.fmtBRL(mediaInvest),
+                'R$ ' + window.fmtBRL(mediaAlvo),
+                'R$ ' + window.fmtBRL(mediaReal),
+                'R$ ' + window.fmtBRL(mediaFalta),
+                mediaPct + '%'
+            ]
+        ];
+
         doc.autoTable({
-            startY: 68,
+            startY: 70,
             head: headers,
             body: body,
+            foot: foot,
             theme: 'grid',
             headStyles: { fillColor: [22, 36, 51] },
+            footStyles: { fillColor: [13, 36, 51], textColor: [0, 229, 255], fontStyle: 'bold' },
             styles: { fontSize: 8 }
         });
 
