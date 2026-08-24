@@ -97,26 +97,26 @@
             transform: translateX(-50%) scaleX(1);
         }
 
-        /* Marca d'água do logo */
+        /* Marca d'água do logo — igual ao PDF */
         .mvv-watermark {
             position: absolute;
-            bottom: -18px;
-            right: -18px;
-            width: 130px;
-            height: 130px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
             object-fit: contain;
-            opacity: 0.045;
+            opacity: 0.09;
             pointer-events: none;
             user-select: none;
             filter: grayscale(1);
-            transition: opacity 0.35s ease;
-        }
-        .mvv-card:hover .mvv-watermark {
-            opacity: 0.07;
+            z-index: 0;
         }
 
         /* Ícone */
         .mvv-icon {
+            position: relative;
+            z-index: 1;
             width: 68px; height: 68px;
             margin: 0 auto 26px;
             background: linear-gradient(135deg, rgba(42,208,122,0.15), rgba(13,122,62,0.08));
@@ -135,6 +135,8 @@
 
         /* Título */
         .mvv-title {
+            position: relative;
+            z-index: 1;
             font-family: 'Raleway', sans-serif;
             font-size: 1.25rem;
             font-weight: 800;
@@ -144,6 +146,8 @@
         }
         /* Separador abaixo do título */
         .mvv-title-sep {
+            position: relative;
+            z-index: 1;
             display: block;
             width: 36px;
             height: 3px;
@@ -154,6 +158,8 @@
 
         /* Texto */
         .mvv-desc {
+            position: relative;
+            z-index: 1;
             font-size: 0.93rem;
             color: #4a6655;
             line-height: 1.75;
@@ -163,6 +169,8 @@
 
         /* Lista de valores */
         .mvv-valores-list {
+            position: relative;
+            z-index: 1;
             list-style: none;
             padding: 0; margin: 0;
             text-align: left;
@@ -235,7 +243,7 @@
 
                 <!-- PROPÓSITO -->
                 <div class="mvv-card">
-                    <img src="assets/img/apexlogo.png" alt="" class="mvv-watermark" aria-hidden="true">
+                    <img src="assets/img/logo (2).png" alt="" class="mvv-watermark" aria-hidden="true">
                     <div class="mvv-icon"><i class="fa-solid fa-bullseye"></i></div>
                     <h3 class="mvv-title">Propósito</h3>
                     <span class="mvv-title-sep"></span>
@@ -244,7 +252,7 @@
 
                 <!-- VISÃO -->
                 <div class="mvv-card">
-                    <img src="assets/img/apexlogo.png" alt="" class="mvv-watermark" aria-hidden="true">
+                    <img src="assets/img/logo (2).png" alt="" class="mvv-watermark" aria-hidden="true">
                     <div class="mvv-icon"><i class="fa-solid fa-eye"></i></div>
                     <h3 class="mvv-title">Visão</h3>
                     <span class="mvv-title-sep"></span>
@@ -253,7 +261,7 @@
 
                 <!-- VALORES -->
                 <div class="mvv-card">
-                    <img src="assets/img/apexlogo.png" alt="" class="mvv-watermark" aria-hidden="true">
+                    <img src="assets/img/logo (2).png" alt="" class="mvv-watermark" aria-hidden="true">
                     <div class="mvv-icon"><i class="fa-solid fa-gem"></i></div>
                     <h3 class="mvv-title">Valores</h3>
                     <span class="mvv-title-sep"></span>
