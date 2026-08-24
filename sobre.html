@@ -19,75 +19,184 @@
     <script>window.CURRENT_PAGE = 'sobre';</script>
     <script src="partials.js"></script>
     <style>
-        /* MISSÃO VISÃO VALORES */
+        /* ── PROPÓSITO · VISÃO · VALORES ── */
         .sobre-mvv {
-            background: #fff;
-            padding: 90px 0;
-            border-bottom: 1px solid #e8f0ea;
+            background: linear-gradient(160deg, #f4faf6 0%, #edf7f1 50%, #f0f9f4 100%);
+            padding: 100px 0 110px;
+            border-bottom: 1px solid #d4eadc;
         }
         .sobre-mvv .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 40px;
         }
-        .mvv-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-        }
-        .mvv-card {
-            padding: 40px 30px;
-            background: #f8faf8;
-            border-radius: 16px;
-            text-align: center;
-            transition: transform 0.3s;
-            border: 1px solid transparent;
-        }
-        .mvv-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(42,208,122,0.3);
-            background: #fff;
-            box-shadow: 0 10px 30px rgba(13,36,22,0.06);
-        }
-        .mvv-icon {
-            width: 64px; height: 64px;
-            margin: 0 auto 24px;
-            background: rgba(42,208,122,0.1);
-            color: #0d7a3e;
-            font-size: 1.8rem;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%;
-        }
-        .mvv-title {
-            font-family: 'Raleway', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #0d2416;
-            margin: 0 0 14px;
-        }
-        .mvv-desc {
-            font-size: 0.95rem;
-            color: #5a7060;
-            line-height: 1.6;
-            margin: 0;
-        }
         .section-label {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: #2ad07a;
-            margin-bottom: 12px;
+            color: #1fa85a;
+            margin-bottom: 14px;
+            display: block;
         }
         .section-title {
             font-family: 'Raleway', sans-serif;
-            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            font-size: clamp(1.6rem, 2.8vw, 2.4rem);
             font-weight: 800;
             color: #0d2416;
-            line-height: 1.2;
+            line-height: 1.25;
+            margin-bottom: 60px;
         }
-        @media (max-width: 900px) {
-            .mvv-grid { grid-template-columns: 1fr; }
+        .mvv-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            align-items: stretch;
+        }
+
+        /* Card base */
+        .mvv-card {
+            position: relative;
+            overflow: hidden;
+            padding: 44px 32px 40px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid rgba(13, 122, 62, 0.10);
+            box-shadow: 0 4px 24px rgba(13, 36, 22, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .mvv-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(145deg, rgba(42,208,122,0.04) 0%, rgba(13,122,62,0.02) 100%);
+            pointer-events: none;
+        }
+        /* Linha decorativa inferior animada */
+        .mvv-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 70%; height: 3px;
+            background: linear-gradient(90deg, #2ad07a, #0d7a3e);
+            border-radius: 2px 2px 0 0;
+            transition: transform 0.4s ease;
+        }
+        .mvv-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(13,36,22,0.10);
+            border-color: rgba(42,208,122,0.25);
+        }
+        .mvv-card:hover::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+
+        /* Marca d'água do logo */
+        .mvv-watermark {
+            position: absolute;
+            bottom: -18px;
+            right: -18px;
+            width: 130px;
+            height: 130px;
+            object-fit: contain;
+            opacity: 0.045;
+            pointer-events: none;
+            user-select: none;
+            filter: grayscale(1);
+            transition: opacity 0.35s ease;
+        }
+        .mvv-card:hover .mvv-watermark {
+            opacity: 0.07;
+        }
+
+        /* Ícone */
+        .mvv-icon {
+            width: 68px; height: 68px;
+            margin: 0 auto 26px;
+            background: linear-gradient(135deg, rgba(42,208,122,0.15), rgba(13,122,62,0.08));
+            color: #0d7a3e;
+            font-size: 1.7rem;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            border: 1.5px solid rgba(42,208,122,0.25);
+            box-shadow: 0 4px 16px rgba(42,208,122,0.12);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .mvv-card:hover .mvv-icon {
+            transform: scale(1.08);
+            box-shadow: 0 8px 24px rgba(42,208,122,0.22);
+        }
+
+        /* Título */
+        .mvv-title {
+            font-family: 'Raleway', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0a1f10;
+            margin: 0 0 6px;
+            letter-spacing: 0.01em;
+        }
+        /* Separador abaixo do título */
+        .mvv-title-sep {
+            display: block;
+            width: 36px;
+            height: 3px;
+            background: linear-gradient(90deg, #2ad07a, #0d7a3e);
+            border-radius: 2px;
+            margin: 0 auto 18px;
+        }
+
+        /* Texto */
+        .mvv-desc {
+            font-size: 0.93rem;
+            color: #4a6655;
+            line-height: 1.75;
+            margin: 0;
+            flex: 1;
+        }
+
+        /* Lista de valores */
+        .mvv-valores-list {
+            list-style: none;
+            padding: 0; margin: 0;
+            text-align: left;
+            width: 100%;
+        }
+        .mvv-valores-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: #3d5545;
+            line-height: 1.6;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(13,122,62,0.08);
+        }
+        .mvv-valores-list li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .mvv-valores-list li::before {
+            content: '';
+            flex-shrink: 0;
+            margin-top: 6px;
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2ad07a, #0d7a3e);
+        }
+        .mvv-valores-list strong {
+            color: #0a2e18;
+            font-weight: 700;
+        }
+
+        @media (max-width: 960px) {
+            .mvv-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
             .sobre-mvv .container { padding: 0 20px; }
         }
     </style>
@@ -123,27 +232,40 @@
             <div class="section-label" style="text-align: center;">Nossa Essência</div>
             <h2 class="section-title" style="text-align: center; margin-bottom: 50px;">Apex Tech Metais — Tradição e Inovação na Gestão de Resíduos</h2>
             <div class="mvv-grid">
+
+                <!-- PROPÓSITO -->
                 <div class="mvv-card">
+                    <img src="assets/img/apexlogo.png" alt="" class="mvv-watermark" aria-hidden="true">
                     <div class="mvv-icon"><i class="fa-solid fa-bullseye"></i></div>
                     <h3 class="mvv-title">Propósito</h3>
+                    <span class="mvv-title-sep"></span>
                     <p class="mvv-desc">Transformando sucata em valor, melhorando vidas e construindo um futuro sustentável.</p>
                 </div>
+
+                <!-- VISÃO -->
                 <div class="mvv-card">
+                    <img src="assets/img/apexlogo.png" alt="" class="mvv-watermark" aria-hidden="true">
                     <div class="mvv-icon"><i class="fa-solid fa-eye"></i></div>
                     <h3 class="mvv-title">Visão</h3>
+                    <span class="mvv-title-sep"></span>
                     <p class="mvv-desc">Inspirados pela excelência e guiados pela sustentabilidade, construímos um futuro próspero e responsável: honrando o planeta e suas gerações futuras.</p>
                 </div>
+
+                <!-- VALORES -->
                 <div class="mvv-card">
+                    <img src="assets/img/apexlogo.png" alt="" class="mvv-watermark" aria-hidden="true">
                     <div class="mvv-icon"><i class="fa-solid fa-gem"></i></div>
                     <h3 class="mvv-title">Valores</h3>
-                    <ul class="mvv-desc" style="text-align:left; list-style:none; padding:0; margin:0;">
-                        <li style="margin-bottom:10px;"><strong>Empatia:</strong> Tratar todas as pessoas com respeito e dignidade, considerando suas necessidades e perspectivas.</li>
-                        <li style="margin-bottom:10px;"><strong>Foco:</strong> Buscar constantemente a excelência em todas as operações e processos, garantindo a eficiência e a eficácia.</li>
-                        <li style="margin-bottom:10px;"><strong>Sustentabilidade:</strong> Utilizar recursos de forma eficiente e responsável, minimizando o desperdício e maximizando o valor.</li>
-                        <li style="margin-bottom:10px;"><strong>Caráter:</strong> Agir com transparência e honestidade em todas as ações e decisões.</li>
-                        <li><strong>Credibilidade:</strong> Estabelecer parcerias confiáveis com fornecedores, clientes e colaboradores, baseadas em transparência, respeito e mutualidade.</li>
+                    <span class="mvv-title-sep"></span>
+                    <ul class="mvv-valores-list">
+                        <li><span><strong>Empatia:</strong> Tratar todas as pessoas com respeito e dignidade, considerando suas necessidades e perspectivas.</span></li>
+                        <li><span><strong>Foco:</strong> Buscar constantemente a excelência em todas as operações e processos, garantindo a eficiência e a eficácia.</span></li>
+                        <li><span><strong>Sustentabilidade:</strong> Utilizar recursos de forma eficiente e responsável, minimizando o desperdício e maximizando o valor.</span></li>
+                        <li><span><strong>Caráter:</strong> Agir com transparência e honestidade em todas as ações e decisões.</span></li>
+                        <li><span><strong>Credibilidade:</strong> Estabelecer parcerias confiáveis com fornecedores, clientes e colaboradores, baseadas em transparência, respeito e mutualidade.</span></li>
                     </ul>
                 </div>
+
             </div>
         </div>
     </section>
