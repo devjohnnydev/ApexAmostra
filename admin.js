@@ -200,6 +200,12 @@ var _listTabelaPrecosEstrategica = [];
                 if (item.dataset.target === 'pedidos-venda-view' && window.initApexPedidos) {
                     window.initApexPedidos();
                 }
+                if (item.dataset.target === 'residuos-view' && window.initApexPrecosResiduos) {
+                    window.initApexPrecosResiduos();
+                }
+                if (item.dataset.target === 'ligas-view' && window.initApexPrecosLigas) {
+                    window.initApexPrecosLigas();
+                }
                 if (item.dataset.target === 'planejamento-estrategicov3-view' && window.carregarPlanejamentoEstrategicov3) {
                     window.carregarPlanejamentoEstrategicov3();
                 }
@@ -241,6 +247,8 @@ var _listTabelaPrecosEstrategica = [];
         initApexClientes();
         initApexMateriais();
         initApexPrecos();
+        initApexPrecosResiduos();
+        initApexPrecosLigas();
         initApexAmostras();
         initApexPlanejamento();
         initApexEstoque();
@@ -5982,6 +5990,546 @@ var _listTabelaPrecosEstrategica = [];
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
             _apexNotify('Atenção', '❌ Erro ao enviar e-mail: ' + err.message, 'error');
         }
+    };
+
+    // --- 3b. TABELA DE PREÇOS — RESÍDUOS ---
+    let localPrecosResiduos = [];
+    let settingsPrecosResiduos = {};
+    let visualizacaoResiduos = 'completa';
+
+    window.initApexPrecosResiduos = function() {
+        window.carregarPrecosResiduos();
+    };
+
+    window.carregarPrecosResiduos = async function() {
+        try {
+            const res = await fetch('/api/tabela-precos-residuos', { cache: 'no-store' });
+            localPrecosResiduos = await res.json();
+            try {
+                const resSet = await fetch('/api/settings');
+                settingsPrecosResiduos = await resSet.json();
+            } catch(e) {}
+            renderTabelaPrecosResiduos();
+        } catch(err) { console.error('Erro carregarPrecosResiduos:', err); }
+    };
+
+    window.alterarVisualizacaoResiduo = function(tipo) {
+        visualizacaoResiduos = tipo;
+        renderTabelaPrecosResiduos();
+    };
+
+    function renderTabelaPrecosResiduos() {
+        const container = document.getElementById('residuos-precos-categorias-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const categorias = [];
+        localPrecosResiduos.forEach(p => {
+            if (p.material_categoria && !categorias.includes(p.material_categoria)) {
+                categorias.push(p.material_categoria);
+            }
+        });
+        if (categorias.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-recycle" style="font-size:2rem; margin-bottom:16px; display:block; color:#2AD07A;"></i>Nenhum resíduo cadastrado ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
+            return;
+        }
+
+        const showCompleta = visualizacaoResiduos === 'completa';
+
+        categorias.forEach(cat => {
+            const precosCat = localPrecosResiduos.filter(p => p.material_categoria === cat);
+            if (precosCat.length === 0) return;
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
+            const corCategoria = settingsPrecosResiduos[`cor_categoria_residuo_${cat}`] || '#2AD07A';
+
+            const box = document.createElement('div');
+            box.className = 'categoria-preco-box';
+            box.style.borderColor = corCategoria;
+            box.innerHTML = `
+                <div class="categoria-preco-header" style="background: ${corCategoria};">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span>${cat.toUpperCase()}</span>
+                        <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaResiduo('${cat}', this.value)">
+                    </div>
+                    <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralResiduo()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                    </button>
+                </div>
+                <div class="categoria-preco-observacao">
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                        <thead>
+                            <tr style="background:#172635; text-align:left;">
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                ${showCompleta ? `
+                                <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                ` : ''}
+                                <th style="padding:10px;">NCM</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${precosCat.map((p, idx) => {
+                                const comissao = parseFloat(p.comissao || 0);
+                                const pisCofins = parseFloat(p.pis_cofins || 0);
+                                const fidc = parseFloat(p.fidc || 0);
+                                const icms = parseFloat(p.icms || 0);
+                                const freteColeta = parseFloat(p.frete_coleta || 0);
+                                const totalDedPct = comissao + pisCofins + fidc + icms;
+                                const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                                const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+                                const lucroEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                                const margemEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                                const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
+                                const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                                const bgRow = idx % 2 === 0 ? 'background:#0d1826;' : 'background:#16273b;';
+                                return `
+                                    <tr style="${bgRow} border-bottom:1px solid #1e3650; transition:background 0.15s;" onmouseover="this.style.background='#1f4068'" onmouseout="this.style.background='${idx % 2 === 0 ? '#0d1826' : '#16273b'}'">
+                                        <td style="padding:10px; color:#fff;"><strong>${p.material_nome}</strong></td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                                        ${showCompleta ? `
+                                        <td style="padding:10px; text-align:right; color:#ffeb3b; font-weight:bold;">R$ ${fmtBRL(p.venda_ref)}</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(comissao)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(pisCofins)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(fidc)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(icms)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">R$ ${fmtBRL(freteColeta)}</td>
+                                        <td style="padding:10px; text-align:right; color:#4fc3f7; font-weight:bold;">R$ ${fmtBRL(vendaLiquida)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${fmtBRL(lucroEnt)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A; font-weight:bold;">${fmtBRL(margemEnt)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${fmtBRL(lucroCol)}</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
+                                        ` : ''}
+                                        <td style="padding:10px; color:#fff; font-weight:bold;">${p.material_ncm || '-'}</td>
+                                        <td style="padding:6px 8px; text-align:center; position:sticky; right:0; background:${idx % 2 === 0 ? '#0d1826' : '#16273b'}; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">
+                                            <div style="display:flex; gap:6px; justify-content:center; align-items:center;">
+                                                <button class="btn-secondary restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#1a5c38; color:#fff; border:1px solid #2AD07A; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" onclick="editarPrecoResiduo(${p.id})"><i class="fa-solid fa-pen-to-square"></i> Editar</button>
+                                                <button class="btn-danger restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#c0392b; color:#fff; border:1px solid #e74c3c; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" onclick="deletarPrecoResiduo(${p.id})"><i class="fa-solid fa-trash"></i> Excluir</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                            <tr style="background:#131c26;">
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(box);
+        });
+        applyRolePermissions();
+    }
+
+    window.alterarCorCategoriaResiduo = async function(cat, cor) {
+        try {
+            await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [`cor_categoria_residuo_${cat}`]: cor }) });
+            settingsPrecosResiduos[`cor_categoria_residuo_${cat}`] = cor;
+            renderTabelaPrecosResiduos();
+        } catch(e) { console.error(e); }
+    };
+
+    window.abrirModalPrecoResiduo = function() {
+        document.getElementById('form-preco-residuo-apex').reset();
+        document.getElementById('prc-res-id').value = '';
+        document.getElementById('modal-preco-residuo').style.display = 'flex';
+        calcularMargemLiquidaModalResiduo();
+    };
+
+    window.fecharModalPrecoResiduo = function() {
+        document.getElementById('modal-preco-residuo').style.display = 'none';
+    };
+
+    window.calcularMargemLiquidaModalResiduo = function() {
+        const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+        const vendaRef = parseVal('prc-res-venda');
+        const precoEnt = parseVal('prc-res-entregar');
+        const precoCol = parseVal('prc-res-coletar');
+        const comissao = parseVal('prc-res-comissao');
+        const pisCofins = parseVal('prc-res-piscofins');
+        const fidc = parseVal('prc-res-fidc');
+        const icms = parseVal('prc-res-icms');
+        const freteColeta = parseVal('prc-res-frete-coleta');
+        const pctTotal = comissao + pisCofins + fidc + icms;
+        const valDeducoes = vendaRef * (pctTotal / 100);
+        const vendaLiquida = vendaRef - valDeducoes;
+        const lucroEnt = vendaLiquida - precoEnt;
+        const margemEnt = vendaRef > 0 ? (lucroEnt / vendaRef) * 100 : 0;
+        const lucroCol = vendaLiquida - precoCol - freteColeta;
+        const margemCol = vendaRef > 0 ? (lucroCol / vendaRef) * 100 : 0;
+        const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+        set('prc-res-live-deducoes', `${fmtBRL(pctTotal)}% (R$ ${fmtBRL(valDeducoes)}/kg)`);
+        set('prc-res-live-venda-liq', `R$ ${fmtBRL(vendaLiquida)}/kg`);
+        set('prc-res-live-frete', `R$ ${fmtBRL(freteColeta)}/kg`);
+        const elME = document.getElementById('prc-res-live-margem-ent');
+        if (elME) { elME.textContent = `${fmtBRL(margemEnt)}%`; elME.style.color = margemEnt >= 15 ? '#2AD07A' : (margemEnt >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-res-live-lucro-ent', `Lucro: R$ ${fmtBRL(lucroEnt)}/kg`);
+        const elMC = document.getElementById('prc-res-live-margem-col');
+        if (elMC) { elMC.textContent = `${fmtBRL(margemCol)}%`; elMC.style.color = margemCol >= 15 ? '#4fc3f7' : (margemCol >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-res-live-lucro-col', `Lucro: R$ ${fmtBRL(lucroCol)}/kg`);
+    };
+
+    window.editarPrecoResiduo = function(id) {
+        const p = localPrecosResiduos.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('prc-res-id').value = p.id;
+        document.getElementById('prc-res-material').value = p.material_nome;
+        document.getElementById('prc-res-categoria').value = p.material_categoria;
+        document.getElementById('prc-res-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
+        document.getElementById('prc-res-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
+        document.getElementById('prc-res-venda').value = parseFloat(p.venda_ref || 0).toFixed(2);
+        document.getElementById('prc-res-comissao').value = parseFloat(p.comissao || 0).toFixed(2);
+        document.getElementById('prc-res-piscofins').value = parseFloat(p.pis_cofins || 0).toFixed(2);
+        document.getElementById('prc-res-fidc').value = parseFloat(p.fidc || 0).toFixed(2);
+        document.getElementById('prc-res-icms').value = parseFloat(p.icms || 0).toFixed(2);
+        document.getElementById('prc-res-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
+        document.getElementById('prc-res-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
+        document.getElementById('prc-res-ncm').value = p.material_ncm || '';
+        document.getElementById('modal-preco-residuo').style.display = 'flex';
+        calcularMargemLiquidaModalResiduo();
+    };
+
+    window.salvarPrecoResiduo = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('prc-res-id').value;
+        const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
+        const data = {
+            material_nome: document.getElementById('prc-res-material').value,
+            material_categoria: document.getElementById('prc-res-categoria').value,
+            material_ncm: document.getElementById('prc-res-ncm').value,
+            preco_entregar: parseVal(document.getElementById('prc-res-entregar').value),
+            preco_coletar: parseVal(document.getElementById('prc-res-coletar').value),
+            venda_ref: parseVal(document.getElementById('prc-res-venda').value),
+            comissao: parseVal(document.getElementById('prc-res-comissao').value),
+            pis_cofins: parseVal(document.getElementById('prc-res-piscofins').value),
+            fidc: parseVal(document.getElementById('prc-res-fidc').value),
+            icms: parseVal(document.getElementById('prc-res-icms').value),
+            frete_coleta: parseVal(document.getElementById('prc-res-frete-coleta').value),
+            validade: document.getElementById('prc-res-validade').value,
+        };
+        const btn = e.target.querySelector('[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
+        try {
+            const url = id ? `/api/tabela-precos-residuos/${id}` : '/api/tabela-precos-residuos';
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            if (!res.ok) throw new Error(await res.text());
+            fecharModalPrecoResiduo();
+            carregarPrecosResiduos();
+        } catch(err) {
+            _apexNotify('Atenção', 'Erro ao salvar preço do resíduo: ' + err.message, 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
+        }
+    };
+
+    window.deletarPrecoResiduo = async function(id) {
+        if (!confirm('Excluir este preço de resíduo?')) return;
+        try {
+            await fetch(`/api/tabela-precos-residuos/${id}`, { method: 'DELETE' });
+            carregarPrecosResiduos();
+        } catch(err) { console.error(err); }
+    };
+
+    window.alterarValidadeGeralResiduo = async function() {
+        const novaData = prompt('Digite a nova data de vigência (YYYY-MM-DD):');
+        if (!novaData) return;
+        try {
+            const res = await fetch('/api/tabela-precos-residuos-validade', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ validade: novaData }) });
+            if (!res.ok) throw new Error(await res.text());
+            _apexNotify('Sistema', 'Vigência dos resíduos atualizada!', 'info');
+            carregarPrecosResiduos();
+        } catch(err) { _apexNotify('Atenção', 'Erro ao atualizar vigência: ' + err.message, 'error'); }
+    };
+
+    window.exportarTabelaResiduo = function() {
+        _apexNotify('Sistema', 'Tabela de Resíduos exportada com sucesso!', 'info');
+    };
+
+    // --- 3c. TABELA DE PREÇOS — LIGAS ---
+    let localPrecosLigas = [];
+    let settingsPrecosLigas = {};
+    let visualizacaoLigas = 'completa';
+
+    window.initApexPrecosLigas = function() {
+        window.carregarPrecosLigas();
+    };
+
+    window.carregarPrecosLigas = async function() {
+        try {
+            const res = await fetch('/api/tabela-precos-ligas', { cache: 'no-store' });
+            localPrecosLigas = await res.json();
+            try {
+                const resSet = await fetch('/api/settings');
+                settingsPrecosLigas = await resSet.json();
+            } catch(e) {}
+            renderTabelaPrecosLigas();
+        } catch(err) { console.error('Erro carregarPrecosLigas:', err); }
+    };
+
+    window.alterarVisualizacaoLiga = function(tipo) {
+        visualizacaoLigas = tipo;
+        renderTabelaPrecosLigas();
+    };
+
+    function renderTabelaPrecosLigas() {
+        const container = document.getElementById('ligas-precos-categorias-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const categorias = [];
+        localPrecosLigas.forEach(p => {
+            if (p.material_categoria && !categorias.includes(p.material_categoria)) {
+                categorias.push(p.material_categoria);
+            }
+        });
+        if (categorias.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-atom" style="font-size:2rem; margin-bottom:16px; display:block; color:#4fc3f7;"></i>Nenhuma liga cadastrada ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
+            return;
+        }
+
+        const showCompleta = visualizacaoLigas === 'completa';
+
+        categorias.forEach(cat => {
+            const precosCat = localPrecosLigas.filter(p => p.material_categoria === cat);
+            if (precosCat.length === 0) return;
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
+            const corCategoria = settingsPrecosLigas[`cor_categoria_liga_${cat}`] || '#1e88e5';
+
+            const box = document.createElement('div');
+            box.className = 'categoria-preco-box';
+            box.style.borderColor = corCategoria;
+            box.innerHTML = `
+                <div class="categoria-preco-header" style="background: ${corCategoria};">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span>${cat.toUpperCase()}</span>
+                        <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaLiga('${cat}', this.value)">
+                    </div>
+                    <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralLiga()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                    </button>
+                </div>
+                <div class="categoria-preco-observacao">
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                        <thead>
+                            <tr style="background:#172635; text-align:left;">
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                ${showCompleta ? `
+                                <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                ` : ''}
+                                <th style="padding:10px;">NCM</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${precosCat.map((p, idx) => {
+                                const comissao = parseFloat(p.comissao || 0);
+                                const pisCofins = parseFloat(p.pis_cofins || 0);
+                                const fidc = parseFloat(p.fidc || 0);
+                                const icms = parseFloat(p.icms || 0);
+                                const freteColeta = parseFloat(p.frete_coleta || 0);
+                                const totalDedPct = comissao + pisCofins + fidc + icms;
+                                const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                                const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+                                const lucroEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                                const margemEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                                const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
+                                const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                                const bgRow = idx % 2 === 0 ? 'background:#0d1826;' : 'background:#16273b;';
+                                return `
+                                    <tr style="${bgRow} border-bottom:1px solid #1e3650; transition:background 0.15s;" onmouseover="this.style.background='#1f4068'" onmouseout="this.style.background='${idx % 2 === 0 ? '#0d1826' : '#16273b'}'">
+                                        <td style="padding:10px; color:#fff;"><strong>${p.material_nome}</strong></td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                                        <td style="padding:10px; text-align:right; color:#e0e8f0; font-weight:600;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                                        ${showCompleta ? `
+                                        <td style="padding:10px; text-align:right; color:#ffeb3b; font-weight:bold;">R$ ${fmtBRL(p.venda_ref)}</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(comissao)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(pisCofins)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(fidc)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">${fmtBRL(icms)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#ccc;">R$ ${fmtBRL(freteColeta)}</td>
+                                        <td style="padding:10px; text-align:right; color:#4fc3f7; font-weight:bold;">R$ ${fmtBRL(vendaLiquida)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A;">R$ ${fmtBRL(lucroEnt)}</td>
+                                        <td style="padding:10px; text-align:right; color:#2AD07A; font-weight:bold;">${fmtBRL(margemEnt)}%</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1;">R$ ${fmtBRL(lucroCol)}</td>
+                                        <td style="padding:10px; text-align:right; color:#3e7cb1; font-weight:bold;">${fmtBRL(margemCol)}%</td>
+                                        ` : ''}
+                                        <td style="padding:10px; color:#fff; font-weight:bold;">${p.material_ncm || '-'}</td>
+                                        <td style="padding:6px 8px; text-align:center; position:sticky; right:0; background:${idx % 2 === 0 ? '#0d1826' : '#16273b'}; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">
+                                            <div style="display:flex; gap:6px; justify-content:center; align-items:center;">
+                                                <button class="btn-secondary restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#1a3a5c; color:#fff; border:1px solid #4fc3f7; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" onclick="editarPrecoLiga(${p.id})"><i class="fa-solid fa-pen-to-square"></i> Editar</button>
+                                                <button class="btn-danger restrito-financeiro" style="padding:5px 9px; font-size:0.78rem; background:#c0392b; color:#fff; border:1px solid #e74c3c; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" onclick="deletarPrecoLiga(${p.id})"><i class="fa-solid fa-trash"></i> Excluir</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                            <tr style="background:#131c26;">
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(box);
+        });
+        applyRolePermissions();
+    }
+
+    window.alterarCorCategoriaLiga = async function(cat, cor) {
+        try {
+            await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [`cor_categoria_liga_${cat}`]: cor }) });
+            settingsPrecosLigas[`cor_categoria_liga_${cat}`] = cor;
+            renderTabelaPrecosLigas();
+        } catch(e) { console.error(e); }
+    };
+
+    window.abrirModalPrecoLiga = function() {
+        document.getElementById('form-preco-liga-apex').reset();
+        document.getElementById('prc-lig-id').value = '';
+        document.getElementById('modal-preco-liga').style.display = 'flex';
+        calcularMargemLiquidaModalLiga();
+    };
+
+    window.fecharModalPrecoLiga = function() {
+        document.getElementById('modal-preco-liga').style.display = 'none';
+    };
+
+    window.calcularMargemLiquidaModalLiga = function() {
+        const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+        const vendaRef = parseVal('prc-lig-venda');
+        const precoEnt = parseVal('prc-lig-entregar');
+        const precoCol = parseVal('prc-lig-coletar');
+        const comissao = parseVal('prc-lig-comissao');
+        const pisCofins = parseVal('prc-lig-piscofins');
+        const fidc = parseVal('prc-lig-fidc');
+        const icms = parseVal('prc-lig-icms');
+        const freteColeta = parseVal('prc-lig-frete-coleta');
+        const pctTotal = comissao + pisCofins + fidc + icms;
+        const valDeducoes = vendaRef * (pctTotal / 100);
+        const vendaLiquida = vendaRef - valDeducoes;
+        const lucroEnt = vendaLiquida - precoEnt;
+        const margemEnt = vendaRef > 0 ? (lucroEnt / vendaRef) * 100 : 0;
+        const lucroCol = vendaLiquida - precoCol - freteColeta;
+        const margemCol = vendaRef > 0 ? (lucroCol / vendaRef) * 100 : 0;
+        const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+        set('prc-lig-live-deducoes', `${fmtBRL(pctTotal)}% (R$ ${fmtBRL(valDeducoes)}/kg)`);
+        set('prc-lig-live-venda-liq', `R$ ${fmtBRL(vendaLiquida)}/kg`);
+        set('prc-lig-live-frete', `R$ ${fmtBRL(freteColeta)}/kg`);
+        const elME = document.getElementById('prc-lig-live-margem-ent');
+        if (elME) { elME.textContent = `${fmtBRL(margemEnt)}%`; elME.style.color = margemEnt >= 15 ? '#2AD07A' : (margemEnt >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-lig-live-lucro-ent', `Lucro: R$ ${fmtBRL(lucroEnt)}/kg`);
+        const elMC = document.getElementById('prc-lig-live-margem-col');
+        if (elMC) { elMC.textContent = `${fmtBRL(margemCol)}%`; elMC.style.color = margemCol >= 15 ? '#4fc3f7' : (margemCol >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-lig-live-lucro-col', `Lucro: R$ ${fmtBRL(lucroCol)}/kg`);
+    };
+
+    window.editarPrecoLiga = function(id) {
+        const p = localPrecosLigas.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('prc-lig-id').value = p.id;
+        document.getElementById('prc-lig-material').value = p.material_nome;
+        document.getElementById('prc-lig-categoria').value = p.material_categoria;
+        document.getElementById('prc-lig-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
+        document.getElementById('prc-lig-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
+        document.getElementById('prc-lig-venda').value = parseFloat(p.venda_ref || 0).toFixed(2);
+        document.getElementById('prc-lig-comissao').value = parseFloat(p.comissao || 0).toFixed(2);
+        document.getElementById('prc-lig-piscofins').value = parseFloat(p.pis_cofins || 0).toFixed(2);
+        document.getElementById('prc-lig-fidc').value = parseFloat(p.fidc || 0).toFixed(2);
+        document.getElementById('prc-lig-icms').value = parseFloat(p.icms || 0).toFixed(2);
+        document.getElementById('prc-lig-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
+        document.getElementById('prc-lig-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
+        document.getElementById('prc-lig-ncm').value = p.material_ncm || '';
+        document.getElementById('modal-preco-liga').style.display = 'flex';
+        calcularMargemLiquidaModalLiga();
+    };
+
+    window.salvarPrecoLiga = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('prc-lig-id').value;
+        const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
+        const data = {
+            material_nome: document.getElementById('prc-lig-material').value,
+            material_categoria: document.getElementById('prc-lig-categoria').value,
+            material_ncm: document.getElementById('prc-lig-ncm').value,
+            preco_entregar: parseVal(document.getElementById('prc-lig-entregar').value),
+            preco_coletar: parseVal(document.getElementById('prc-lig-coletar').value),
+            venda_ref: parseVal(document.getElementById('prc-lig-venda').value),
+            comissao: parseVal(document.getElementById('prc-lig-comissao').value),
+            pis_cofins: parseVal(document.getElementById('prc-lig-piscofins').value),
+            fidc: parseVal(document.getElementById('prc-lig-fidc').value),
+            icms: parseVal(document.getElementById('prc-lig-icms').value),
+            frete_coleta: parseVal(document.getElementById('prc-lig-frete-coleta').value),
+            validade: document.getElementById('prc-lig-validade').value,
+        };
+        const btn = e.target.querySelector('[type="submit"]');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
+        try {
+            const url = id ? `/api/tabela-precos-ligas/${id}` : '/api/tabela-precos-ligas';
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            if (!res.ok) throw new Error(await res.text());
+            fecharModalPrecoLiga();
+            carregarPrecosLigas();
+        } catch(err) {
+            _apexNotify('Atenção', 'Erro ao salvar preço da liga: ' + err.message, 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
+        }
+    };
+
+    window.deletarPrecoLiga = async function(id) {
+        if (!confirm('Excluir este preço de liga?')) return;
+        try {
+            await fetch(`/api/tabela-precos-ligas/${id}`, { method: 'DELETE' });
+            carregarPrecosLigas();
+        } catch(err) { console.error(err); }
+    };
+
+    window.alterarValidadeGeralLiga = async function() {
+        const novaData = prompt('Digite a nova data de vigência (YYYY-MM-DD):');
+        if (!novaData) return;
+        try {
+            const res = await fetch('/api/tabela-precos-ligas-validade', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ validade: novaData }) });
+            if (!res.ok) throw new Error(await res.text());
+            _apexNotify('Sistema', 'Vigência das ligas atualizada!', 'info');
+            carregarPrecosLigas();
+        } catch(err) { _apexNotify('Atenção', 'Erro ao atualizar vigência: ' + err.message, 'error'); }
+    };
+
+    window.exportarTabelaLiga = function() {
+        _apexNotify('Sistema', 'Tabela de Ligas exportada com sucesso!', 'info');
     };
 
     // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---

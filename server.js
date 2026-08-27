@@ -222,7 +222,9 @@ const memStore = {
     clientes: [],
     pedidos_venda: [],
     pedidos_venda_itens: [],
-    audit_logs: []
+    audit_logs: [],
+    tabela_precos_residuos: [],
+    tabela_precos_ligas: []
 };
 
 // Inicializa tabelas na primeira execução (apenas se DB disponível)
@@ -354,6 +356,28 @@ async function initDatabase() {
                 criado_em   TIMESTAMP DEFAULT NOW()
             );
 
+            CREATE TABLE IF NOT EXISTS residuos_catalogo (
+                id          SERIAL PRIMARY KEY,
+                nome        TEXT NOT NULL,
+                unidade     TEXT DEFAULT 'kg',
+                categoria   TEXT NOT NULL,
+                cor         TEXT,
+                ncm         TEXT,
+                observacoes TEXT,
+                criado_em   TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS ligas_catalogo (
+                id          SERIAL PRIMARY KEY,
+                nome        TEXT NOT NULL,
+                unidade     TEXT DEFAULT 'kg',
+                categoria   TEXT NOT NULL,
+                cor         TEXT,
+                ncm         TEXT,
+                observacoes TEXT,
+                criado_em   TIMESTAMP DEFAULT NOW()
+            );
+
             CREATE TABLE IF NOT EXISTS tabela_precos (
                 id              SERIAL PRIMARY KEY,
                 material_id     INTEGER NOT NULL,
@@ -363,6 +387,46 @@ async function initDatabase() {
                 validade        DATE NOT NULL,
                 criado_em       TIMESTAMP DEFAULT NOW()
             );
+
+            CREATE TABLE IF NOT EXISTS tabela_precos_residuos (
+                id              SERIAL PRIMARY KEY,
+                material_nome   TEXT NOT NULL,
+                material_categoria TEXT NOT NULL,
+                material_ncm    TEXT,
+                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
+                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
+                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
+                comissao        NUMERIC(6,2)  DEFAULT 0.00,
+                pis_cofins      NUMERIC(6,2)  DEFAULT 0.00,
+                fidc            NUMERIC(6,2)  DEFAULT 0.00,
+                icms            NUMERIC(6,2)  DEFAULT 0.00,
+                frete_coleta    NUMERIC(10,2) DEFAULT 0.00,
+                validade        DATE NOT NULL,
+                criado_em       TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE IF NOT EXISTS tabela_precos_ligas (
+                id              SERIAL PRIMARY KEY,
+                material_nome   TEXT NOT NULL,
+                material_categoria TEXT NOT NULL,
+                material_ncm    TEXT,
+                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
+                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
+                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
+                comissao        NUMERIC(6,2)  DEFAULT 0.00,
+                pis_cofins      NUMERIC(6,2)  DEFAULT 0.00,
+                fidc            NUMERIC(6,2)  DEFAULT 0.00,
+                icms            NUMERIC(6,2)  DEFAULT 0.00,
+                frete_coleta    NUMERIC(10,2) DEFAULT 0.00,
+                validade        DATE NOT NULL,
+                criado_em       TIMESTAMP DEFAULT NOW()
+            );
+
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS comissao   NUMERIC(6,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS pis_cofins NUMERIC(6,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS fidc       NUMERIC(6,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS icms       NUMERIC(6,2) DEFAULT 0.00;
+            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS frete_coleta NUMERIC(10,2) DEFAULT 0.00;
 
             CREATE TABLE IF NOT EXISTS amostras (
                 id             SERIAL PRIMARY KEY,
@@ -999,6 +1063,10 @@ app.use('/api', authMiddleware);
 app.use('/api/usuarios', requireRole(['Diretoria']));
 app.use('/api/tabela-precos', requireRole(['Diretoria', 'Compras', 'Comercial']));
 app.use('/api/tabela-precos-validade-geral', requireRole(['Diretoria', 'Compras', 'Comercial']));
+app.use('/api/tabela-precos-residuos', requireRole(['Diretoria', 'Compras', 'Comercial']));
+app.use('/api/tabela-precos-residuos-validade', requireRole(['Diretoria', 'Compras', 'Comercial']));
+app.use('/api/tabela-precos-ligas', requireRole(['Diretoria', 'Compras', 'Comercial']));
+app.use('/api/tabela-precos-ligas-validade', requireRole(['Diretoria', 'Compras', 'Comercial']));
 app.use('/api/amostras', requireRole(['Diretoria', 'Laboratório', 'Produção']));
 app.use('/api/planejamento', requireRole(['Diretoria', 'Compras', 'Produção', 'Comercial']));
 app.use('/api/planejamento-compras', requireRole(['Diretoria', 'Compras']));
@@ -1020,6 +1088,8 @@ app.use('/api/fornecedores', requireRole(['Diretoria', 'Compras', 'Laboratório'
 app.use('/api/clientes', requireRole(['Diretoria', 'Comercial']));
 app.use('/api/materiais', requireRole(['Diretoria', 'Laboratório', 'Compras', 'Produção']));
 app.use('/api/materiais-catalogo', requireRole(['Diretoria', 'Laboratório', 'Compras', 'Produção']));
+app.use('/api/residuos-catalogo', requireRole(['Diretoria', 'Laboratório', 'Compras', 'Produção']));
+app.use('/api/ligas-catalogo', requireRole(['Diretoria', 'Laboratório', 'Compras', 'Produção']));
 app.use('/api/pedidos-venda', requireRole(['Diretoria', 'Comercial', 'Financeiro']));
 app.use('/api/estoque', requireRole(['Diretoria', 'Produção', 'Laboratório', 'Compras', 'Comercial']));
 app.use('/api/audit-logs', requireRole(['Diretoria']));
@@ -1414,6 +1484,156 @@ app.delete('/api/materiais-catalogo/:id', async (req, res) => {
     }
 });
 
+// ─── API: Resíduos (CRUD) ──────────────────────────────────────────────────────
+app.get('/api/residuos-catalogo', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM residuos_catalogo ORDER BY categoria ASC, nome ASC');
+            return res.json(result.rows);
+        }
+        res.json(memStore.residuos_catalogo || []);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar resíduos.' });
+    }
+});
+
+app.post('/api/residuos-catalogo', async (req, res) => {
+    try {
+        let { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        nome = formatarNomeCapitalizado(nome);
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO residuos_catalogo (nome, unidade, categoria, cor, ncm, observacoes)
+                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
+            if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
+            memStore.residuos_catalogo.push(newM);
+            return res.json(newM);
+        }
+    } catch (err) {
+        console.error('Erro ao criar resíduo:', err);
+        res.status(500).json({ error: 'Erro ao criar resíduo: ' + err.message });
+    }
+});
+
+app.put('/api/residuos-catalogo/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `UPDATE residuos_catalogo SET nome=$1, unidade=$2, categoria=$3, cor=$4, ncm=$5, observacoes=$6
+                 WHERE id=$7 RETURNING *`,
+                [nome, unidade, categoria, cor, ncm, observacoes, id]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
+            const idx = memStore.residuos_catalogo.findIndex(x => x.id === id);
+            if (idx === -1) return res.status(404).json({ error: 'Resíduo não encontrado.' });
+            memStore.residuos_catalogo[idx] = { id, nome, unidade, categoria, cor, ncm, observacoes };
+            return res.json(memStore.residuos_catalogo[idx]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar resíduo.' });
+    }
+});
+
+app.delete('/api/residuos-catalogo/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) {
+            await pool.query('DELETE FROM residuos_catalogo WHERE id=$1', [id]);
+        } else {
+            if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
+            memStore.residuos_catalogo = memStore.residuos_catalogo.filter(x => x.id !== id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro ao deletar resíduo:', err);
+        res.status(500).json({ error: 'Erro ao deletar resíduo.' });
+    }
+});
+
+// ─── API: Ligas (CRUD) ─────────────────────────────────────────────────────────
+app.get('/api/ligas-catalogo', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM ligas_catalogo ORDER BY categoria ASC, nome ASC');
+            return res.json(result.rows);
+        }
+        res.json(memStore.ligas_catalogo || []);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar ligas.' });
+    }
+});
+
+app.post('/api/ligas-catalogo', async (req, res) => {
+    try {
+        let { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        nome = formatarNomeCapitalizado(nome);
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO ligas_catalogo (nome, unidade, categoria, cor, ncm, observacoes)
+                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
+            if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
+            memStore.ligas_catalogo.push(newM);
+            return res.json(newM);
+        }
+    } catch (err) {
+        console.error('Erro ao criar liga:', err);
+        res.status(500).json({ error: 'Erro ao criar liga: ' + err.message });
+    }
+});
+
+app.put('/api/ligas-catalogo/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `UPDATE ligas_catalogo SET nome=$1, unidade=$2, categoria=$3, cor=$4, ncm=$5, observacoes=$6
+                 WHERE id=$7 RETURNING *`,
+                [nome, unidade, categoria, cor, ncm, observacoes, id]
+            );
+            return res.json(result.rows[0]);
+        } else {
+            if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
+            const idx = memStore.ligas_catalogo.findIndex(x => x.id === id);
+            if (idx === -1) return res.status(404).json({ error: 'Liga não encontrada.' });
+            memStore.ligas_catalogo[idx] = { id, nome, unidade, categoria, cor, ncm, observacoes };
+            return res.json(memStore.ligas_catalogo[idx]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar liga.' });
+    }
+});
+
+app.delete('/api/ligas-catalogo/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) {
+            await pool.query('DELETE FROM ligas_catalogo WHERE id=$1', [id]);
+        } else {
+            if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
+            memStore.ligas_catalogo = memStore.ligas_catalogo.filter(x => x.id !== id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro ao deletar liga:', err);
+        res.status(500).json({ error: 'Erro ao deletar liga.' });
+    }
+});
+
 // ─── API: Tabela de Preços (CRUD) ─────────────────────────────────────────────
 async function atualizarDataUltimaModificacaoPrecos() {
     try {
@@ -1565,6 +1785,146 @@ app.delete('/api/tabela-precos/:id', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: 'Erro ao deletar preço.' });
     }
+});
+
+// ─── API: Tabela de Preços — Resíduos (CRUD) ──────────────────────────────────
+app.get('/api/tabela-precos-residuos', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM tabela_precos_residuos ORDER BY material_categoria ASC, material_nome ASC');
+            return res.json(result.rows);
+        }
+        res.json(memStore.tabela_precos_residuos || []);
+    } catch (err) { res.status(500).json({ error: 'Erro ao buscar tabela de preços de resíduos.' }); }
+});
+
+app.post('/api/tabela-precos-residuos', async (req, res) => {
+    try {
+        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO tabela_precos_residuos (material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
+            );
+            return res.json(result.rows[0]);
+        }
+        const newP = { id: Date.now(), material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
+        memStore.tabela_precos_residuos.push(newP);
+        res.json(newP);
+    } catch (err) { console.error(err); res.status(500).json({ error: 'Erro ao salvar preço de resíduo.' }); }
+});
+
+app.put('/api/tabela-precos-residuos-validade', async (req, res) => {
+    try {
+        const { validade } = req.body;
+        if (!validade) return res.status(400).json({ error: 'Data de validade obrigatória.' });
+        if (dbAvailable) {
+            await pool.query('UPDATE tabela_precos_residuos SET validade = $1', [validade]);
+            return res.json({ success: true, validade });
+        }
+        memStore.tabela_precos_residuos.forEach(p => p.validade = validade);
+        res.json({ success: true, validade });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/tabela-precos-residuos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `UPDATE tabela_precos_residuos SET material_nome=$1, material_categoria=$2, material_ncm=$3,
+                 preco_entregar=$4, preco_coletar=$5, venda_ref=$6, validade=$7, comissao=$8,
+                 pis_cofins=$9, fidc=$10, icms=$11, frete_coleta=$12 WHERE id=$13 RETURNING *`,
+                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
+            );
+            return res.json(result.rows[0]);
+        }
+        const idx = memStore.tabela_precos_residuos.findIndex(x => x.id === id);
+        if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
+        Object.assign(memStore.tabela_precos_residuos[idx], { material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 });
+        res.json(memStore.tabela_precos_residuos[idx]);
+    } catch (err) { res.status(500).json({ error: 'Erro ao atualizar preço de resíduo.' }); }
+});
+
+app.delete('/api/tabela-precos-residuos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_residuos WHERE id=$1', [id]); }
+        else { memStore.tabela_precos_residuos = memStore.tabela_precos_residuos.filter(x => x.id !== id); }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Erro ao deletar preço de resíduo.' }); }
+});
+
+// ─── API: Tabela de Preços — Ligas (CRUD) ────────────────────────────────────
+app.get('/api/tabela-precos-ligas', async (req, res) => {
+    try {
+        if (dbAvailable) {
+            const result = await pool.query('SELECT * FROM tabela_precos_ligas ORDER BY material_categoria ASC, material_nome ASC');
+            return res.json(result.rows);
+        }
+        res.json(memStore.tabela_precos_ligas || []);
+    } catch (err) { res.status(500).json({ error: 'Erro ao buscar tabela de preços de ligas.' }); }
+});
+
+app.post('/api/tabela-precos-ligas', async (req, res) => {
+    try {
+        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `INSERT INTO tabela_precos_ligas (material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
+            );
+            return res.json(result.rows[0]);
+        }
+        const newP = { id: Date.now(), material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
+        memStore.tabela_precos_ligas.push(newP);
+        res.json(newP);
+    } catch (err) { console.error(err); res.status(500).json({ error: 'Erro ao salvar preço de liga.' }); }
+});
+
+app.put('/api/tabela-precos-ligas-validade', async (req, res) => {
+    try {
+        const { validade } = req.body;
+        if (!validade) return res.status(400).json({ error: 'Data de validade obrigatória.' });
+        if (dbAvailable) {
+            await pool.query('UPDATE tabela_precos_ligas SET validade = $1', [validade]);
+            return res.json({ success: true, validade });
+        }
+        memStore.tabela_precos_ligas.forEach(p => p.validade = validade);
+        res.json({ success: true, validade });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/tabela-precos-ligas/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        if (dbAvailable) {
+            const result = await pool.query(
+                `UPDATE tabela_precos_ligas SET material_nome=$1, material_categoria=$2, material_ncm=$3,
+                 preco_entregar=$4, preco_coletar=$5, venda_ref=$6, validade=$7, comissao=$8,
+                 pis_cofins=$9, fidc=$10, icms=$11, frete_coleta=$12 WHERE id=$13 RETURNING *`,
+                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
+            );
+            return res.json(result.rows[0]);
+        }
+        const idx = memStore.tabela_precos_ligas.findIndex(x => x.id === id);
+        if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
+        Object.assign(memStore.tabela_precos_ligas[idx], { material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 });
+        res.json(memStore.tabela_precos_ligas[idx]);
+    } catch (err) { res.status(500).json({ error: 'Erro ao atualizar preço de liga.' }); }
+});
+
+app.delete('/api/tabela-precos-ligas/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_ligas WHERE id=$1', [id]); }
+        else { memStore.tabela_precos_ligas = memStore.tabela_precos_ligas.filter(x => x.id !== id); }
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: 'Erro ao deletar preço de liga.' }); }
 });
 
 // ─── API: Amostras & Análise (CRUD) ───────────────────────────────────────────

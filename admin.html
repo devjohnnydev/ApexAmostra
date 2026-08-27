@@ -219,6 +219,14 @@
                     <i class="fa-solid fa-tags"></i>
                     <span>Catálogo de Materiais</span>
                 </a>
+                <a href="#" class="nav-item" data-target="residuos-view" id="nav-residuos" data-tooltip="Resíduos">
+                    <i class="fa-solid fa-recycle" style="color:#2AD07A;"></i>
+                    <span>Resíduos</span>
+                </a>
+                <a href="#" class="nav-item" data-target="ligas-view" id="nav-ligas" data-tooltip="Ligas">
+                    <i class="fa-solid fa-atom" style="color:#4fc3f7;"></i>
+                    <span>Ligas</span>
+                </a>
                 <a href="#" class="nav-item" data-target="tabela-precos-view" id="nav-precos" data-tooltip="Tabela de Preços">
                     <i class="fa-solid fa-dollar-sign"></i>
                     <span>Tabela de Preços</span>
@@ -1757,6 +1765,123 @@
                     </div>
                 </div>
             </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 RESÍDUOS — Tabela de Preços
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="residuos-view" class="view-section">
+                <header class="section-header" style="margin-bottom: 20px;">
+                    <div style="width: 100%;">
+                        <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                            <h1 style="font-size: 1.8rem; margin: 0; display: flex; align-items: center; gap: 10px; color: #2AD07A;">
+                                <i class="fa-solid fa-recycle" style="color: #2AD07A; background: rgba(42,208,122,0.15); padding: 8px 12px; border-radius: 8px;"></i>
+                                <span>Tabela de Preços — Resíduos</span>
+                            </h1>
+                            <p style="margin: 6px 0 0 0; color: #aaa; font-size: 0.9rem;">
+                                Define e monitora os custos de entrega, coleta e o lucro projetado dos resíduos com base em LME / Venda Ref.
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                            <button class="btn-secondary" onclick="exportarTabelaResiduo()" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-excel" style="color: #2AD07A;"></i> Exportar Excel
+                            </button>
+                            <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
+                            <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralResiduo()" style="width: auto; background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-calendar-days"></i> Alterar Vigência
+                            </button>
+                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPrecoResiduo()" style="width: auto; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; background: linear-gradient(135deg, #2AD07A, #1aab5f); white-space: nowrap;">
+                                <i class="fa-solid fa-plus"></i> Novo Item de Preço
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:rgba(30,78,140,0.15); padding:15px 20px; border-radius:8px; border:1px solid rgba(30,78,140,0.3);">
+                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-weight: bold; color: #fff; font-size: 0.95rem;"><i class="fa-solid fa-eye"></i> Modo de Exibição:</span>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-residuo-visualizacao" value="completa" checked onchange="alterarVisualizacaoResiduo(this.value)">
+                            Tabela Completa (Todos os Dados)
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-residuo-visualizacao" value="fornecedor" onchange="alterarVisualizacaoResiduo(this.value)">
+                            Tabela para Fornecedor (Oculta Estratégicos)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px; margin-bottom: 20px; border:1px solid #1e4e8c;">
+                    <h3 style="margin-top:0; color:#2AD07A;"><i class="fa-solid fa-triangle-exclamation"></i> Diretrizes Gerais de Compra — Resíduos</h3>
+                    <ul style="color:#aaa; font-size:0.9rem; padding-left:20px; margin-bottom:0;">
+                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                        <li><strong>DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</strong></li>
+                    </ul>
+                </div>
+
+                <div id="residuos-precos-categorias-container">
+                    <!-- Categorias de resíduos renderizadas aqui pelo JS -->
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 LIGAS — Tabela de Preços
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="ligas-view" class="view-section">
+                <header class="section-header" style="margin-bottom: 20px;">
+                    <div style="width: 100%;">
+                        <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                            <h1 style="font-size: 1.8rem; margin: 0; display: flex; align-items: center; gap: 10px; color: #4fc3f7;">
+                                <i class="fa-solid fa-atom" style="color: #4fc3f7; background: rgba(79,195,247,0.15); padding: 8px 12px; border-radius: 8px;"></i>
+                                <span>Tabela de Preços — Ligas</span>
+                            </h1>
+                            <p style="margin: 6px 0 0 0; color: #aaa; font-size: 0.9rem;">
+                                Define e monitora os custos de entrega, coleta e o lucro projetado das ligas metálicas com base em LME / Venda Ref.
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                            <button class="btn-secondary" onclick="exportarTabelaLiga()" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-excel" style="color: #4fc3f7;"></i> Exportar Excel
+                            </button>
+                            <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
+                            <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralLiga()" style="width: auto; background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-calendar-days"></i> Alterar Vigência
+                            </button>
+                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPrecoLiga()" style="width: auto; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; background: linear-gradient(135deg, #4fc3f7, #1e88e5); white-space: nowrap;">
+                                <i class="fa-solid fa-plus"></i> Novo Item de Preço
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:rgba(30,78,140,0.15); padding:15px 20px; border-radius:8px; border:1px solid rgba(30,78,140,0.3);">
+                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-weight: bold; color: #fff; font-size: 0.95rem;"><i class="fa-solid fa-eye"></i> Modo de Exibição:</span>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-liga-visualizacao" value="completa" checked onchange="alterarVisualizacaoLiga(this.value)">
+                            Tabela Completa (Todos os Dados)
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-liga-visualizacao" value="fornecedor" onchange="alterarVisualizacaoLiga(this.value)">
+                            Tabela para Fornecedor (Oculta Estratégicos)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px; margin-bottom: 20px; border:1px solid #1e4e8c;">
+                    <h3 style="margin-top:0; color:#4fc3f7;"><i class="fa-solid fa-triangle-exclamation"></i> Diretrizes Gerais de Compra — Ligas</h3>
+                    <ul style="color:#aaa; font-size:0.9rem; padding-left:20px; margin-bottom:0;">
+                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                        <li><strong>DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</strong></li>
+                    </ul>
+                </div>
+
+                <div id="ligas-precos-categorias-container">
+                    <!-- Categorias de ligas renderizadas aqui pelo JS -->
+                </div>
+            </section>
+
 
             <!-- ═══════════════════════════════════════════════════════════
                  3. TABELA DE PREÇOS
@@ -3912,6 +4037,120 @@
     </div>
 
 
+    <!-- Modal Resíduo -->
+    <div id="modal-residuo" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:620px; max-width:95vw; max-height:92vh; overflow-y:auto; padding:30px; background:#0d1821; border:1px solid #1a5c38; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid #1a3045;">
+                <h3 style="margin:0; color:#fff; font-size:1.15rem; display:flex; align-items:center; gap:9px;">
+                    <span style="background:#1a5c38; padding:7px 10px; border-radius:8px;"><i class="fa-solid fa-recycle" style="color:#2AD07A;"></i></span>
+                    <span id="modal-residuo-titulo">Cadastro de Resíduo</span>
+                </h3>
+                <button type="button" onclick="fecharModalResiduo()" style="background:none; border:none; color:#aaa; font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px; border-radius:6px;" title="Fechar">✕</button>
+            </div>
+            <form id="form-residuo-apex" onsubmit="salvarResiduo(event)">
+                <input type="hidden" id="res-id" value="">
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Nome do Resíduo *</label>
+                    <input type="text" id="res-nome" required class="noble-input" placeholder="Ex: Sucata de Cobre Misto" style="font-size:1rem;">
+                </div>
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Categoria *</label>
+                    <input type="text" id="res-categoria" required class="noble-input" placeholder="Ex: Metálico, Eletrônico, Construção...">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Unidade *</label>
+                        <select id="res-unidade" required class="noble-input" style="width:100%;">
+                            <option value="kg">kg — Quilograma</option>
+                            <option value="g">g — Grama</option>
+                            <option value="t">t — Tonelada</option>
+                            <option value="un">un — Unidade</option>
+                            <option value="l">l — Litro</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">NCM</label>
+                        <input type="text" id="res-ncm" class="noble-input" placeholder="0000.00.00">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:auto 1fr; gap:14px; margin-bottom:24px; align-items:end;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Cor Badge</label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="color" id="res-cor" value="#2AD07A" style="width:48px; height:42px; border:2px solid #1a3045; border-radius:8px; cursor:pointer; background:none; padding:2px;">
+                            <span id="res-cor-preview" style="font-size:0.78rem; color:#aaa; font-family:monospace;">#2AD07A</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Observações</label>
+                        <input type="text" id="res-obs" class="noble-input" placeholder="Observações opcionais...">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:1; padding:12px; font-size:1rem; background:linear-gradient(135deg,#2AD07A,#1aab5f);"><i class="fa-solid fa-save"></i> Salvar Resíduo</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalResiduo()" style="flex:1; padding:12px; font-size:1rem;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Liga -->
+    <div id="modal-liga" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
+        <div class="login-box" style="width:620px; max-width:95vw; max-height:92vh; overflow-y:auto; padding:30px; background:#0d1821; border:1px solid #1a3a5c; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid #1a3045;">
+                <h3 style="margin:0; color:#fff; font-size:1.15rem; display:flex; align-items:center; gap:9px;">
+                    <span style="background:#1a3a5c; padding:7px 10px; border-radius:8px;"><i class="fa-solid fa-atom" style="color:#4fc3f7;"></i></span>
+                    <span id="modal-liga-titulo">Cadastro de Liga</span>
+                </h3>
+                <button type="button" onclick="fecharModalLiga()" style="background:none; border:none; color:#aaa; font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px; border-radius:6px;" title="Fechar">✕</button>
+            </div>
+            <form id="form-liga-apex" onsubmit="salvarLiga(event)">
+                <input type="hidden" id="lig-id" value="">
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Nome da Liga *</label>
+                    <input type="text" id="lig-nome" required class="noble-input" placeholder="Ex: Liga de Alumínio 6061" style="font-size:1rem;">
+                </div>
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Categoria *</label>
+                    <input type="text" id="lig-categoria" required class="noble-input" placeholder="Ex: Alumínio, Cobre, Latão, Zamac...">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Unidade *</label>
+                        <select id="lig-unidade" required class="noble-input" style="width:100%;">
+                            <option value="kg">kg — Quilograma</option>
+                            <option value="g">g — Grama</option>
+                            <option value="t">t — Tonelada</option>
+                            <option value="un">un — Unidade</option>
+                            <option value="l">l — Litro</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">NCM</label>
+                        <input type="text" id="lig-ncm" class="noble-input" placeholder="0000.00.00">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:auto 1fr; gap:14px; margin-bottom:24px; align-items:end;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Cor Badge</label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="color" id="lig-cor" value="#4fc3f7" style="width:48px; height:42px; border:2px solid #1a3045; border-radius:8px; cursor:pointer; background:none; padding:2px;">
+                            <span id="lig-cor-preview" style="font-size:0.78rem; color:#aaa; font-family:monospace;">#4fc3f7</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="color:#a0b4c8; font-size:0.82rem; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; display:block;">Observações</label>
+                        <input type="text" id="lig-obs" class="noble-input" placeholder="Observações opcionais...">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary" style="flex:1; padding:12px; font-size:1rem; background:linear-gradient(135deg,#4fc3f7,#1e88e5);"><i class="fa-solid fa-save"></i> Salvar Liga</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalLiga()" style="flex:1; padding:12px; font-size:1rem;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Receber Amostra -->
     <div id="modal-amostra" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
         <div class="login-box" style="width:520px; padding:25px; background:#101a24; border:1px solid #1e4e8c; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,0.6);">
@@ -4157,6 +4396,188 @@
                 <div style="display:flex; gap:10px; margin-top:14px;">
                     <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar</button>
                     <button type="button" class="btn-secondary" onclick="fecharModalPreco()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Preço — Resíduo -->
+    <div id="modal-preco-residuo" class="fullscreen-overlay" style="display:none;">
+        <div class="login-box" style="width:540px; max-width:96vw; padding:18px 22px 16px; background:#101a24; border:1px solid #1a5c38; margin:auto; max-height:92vh; overflow-y:auto;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:8px; color:#fff; font-size:1rem;"><i class="fa-solid fa-recycle" style="color:#2AD07A;"></i> Definir Preço — Resíduo</h3>
+            <form id="form-preco-residuo-apex" onsubmit="salvarPrecoResiduo(event)">
+                <input type="hidden" id="prc-res-id" value="">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Resíduo *</label>
+                        <input type="text" id="prc-res-material" required class="noble-input" placeholder="Nome do resíduo" oninput="calcularMargemLiquidaModalResiduo()">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Categoria *</label>
+                        <input type="text" id="prc-res-categoria" required class="noble-input" placeholder="Ex: Metálico, Eletrônico..." oninput="calcularMargemLiquidaModalResiduo()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="font-size:0.8rem;">Preço Venda Ref. (R$/kg) *</label>
+                    <input type="number" step="0.01" id="prc-res-venda" required class="noble-input" oninput="calcularMargemLiquidaModalResiduo()">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Entregar (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-res-entregar" required class="noble-input" oninput="calcularMargemLiquidaModalResiduo()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Coletar (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-res-coletar" required class="noble-input" oninput="calcularMargemLiquidaModalResiduo()">
+                    </div>
+                </div>
+                <div style="background:#162432; padding:8px 12px; border-radius:8px; border:1px solid #1a5c38; margin-bottom:10px;">
+                    <div style="font-weight:bold; color:#2AD07A; font-size:0.8rem; margin-bottom:6px;"><i class="fa-solid fa-percent"></i> Composição Fiscal & Deduções</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Comissão (%)</label>
+                            <input type="number" step="0.1" id="prc-res-comissao" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalResiduo()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">PIS/COFINS (%)</label>
+                            <input type="number" step="0.1" id="prc-res-piscofins" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalResiduo()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">FIDC (%)</label>
+                            <input type="number" step="0.1" id="prc-res-fidc" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalResiduo()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">ICMS (%)</label>
+                            <input type="number" step="0.1" id="prc-res-icms" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalResiduo()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.75rem;">Frete Coleta (R$/kg)</label>
+                        <input type="number" step="0.01" id="prc-res-frete-coleta" class="noble-input" placeholder="0.00" oninput="calcularMargemLiquidaModalResiduo()">
+                    </div>
+                </div>
+                <div style="background:#0a1622; padding:8px 12px; border-radius:8px; border-left:4px solid #2AD07A; margin-bottom:10px;">
+                    <div style="font-size:0.8rem; text-transform:uppercase; font-weight:bold; color:#aaa; margin-bottom:6px;"><i class="fa-solid fa-calculator" style="color:#2AD07A;"></i> Simulação de Margem Líquida Real</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; font-size:0.82rem; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #1a2a3a;">
+                        <div><span style="color:#888;">Total Deduções:</span><div style="color:#ff6b6b; font-weight:bold;" id="prc-res-live-deducoes">0.00%</div></div>
+                        <div><span style="color:#888;">Venda Líquida:</span><div style="color:#ffeb3b; font-weight:bold;" id="prc-res-live-venda-liq">R$ 0,00/kg</div></div>
+                        <div><span style="color:#888;">Frete Coleta:</span><div style="color:#aaa; font-weight:bold;" id="prc-res-live-frete">R$ 0,00/kg</div></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.85rem;">
+                        <div style="background:#0f251d; padding:8px; border-radius:6px; border:1px solid #1a4d36;">
+                            <span style="color:#a8e6cf; font-size:0.75rem; text-transform:uppercase; font-weight:bold;">Margem Líquida Entrega</span>
+                            <div style="font-size:1.05rem; font-weight:bold; color:#2AD07A;" id="prc-res-live-margem-ent">0.00%</div>
+                            <div style="font-size:0.75rem; color:#aaa;" id="prc-res-live-lucro-ent">Lucro: R$ 0,00/kg</div>
+                        </div>
+                        <div style="background:#0f2030; padding:8px; border-radius:6px; border:1px solid #1e3a5f;">
+                            <span style="color:#a0c4ff; font-size:0.75rem; text-transform:uppercase; font-weight:bold;">Margem Líquida Coleta</span>
+                            <div style="font-size:1.05rem; font-weight:bold; color:#4fc3f7;" id="prc-res-live-margem-col">0.00%</div>
+                            <div style="font-size:0.75rem; color:#aaa;" id="prc-res-live-lucro-col">Lucro: R$ 0,00/kg</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="font-size:0.8rem;">Válido Até *</label>
+                    <input type="date" id="prc-res-validade" required class="noble-input">
+                </div>
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="font-size:0.8rem;">NCM</label>
+                    <input type="text" id="prc-res-ncm" class="noble-input" placeholder="Ex: 7602.00.00">
+                </div>
+                <div style="display:flex; gap:10px; margin-top:14px;">
+                    <button type="submit" class="btn-primary" style="flex:1; background:linear-gradient(135deg,#2AD07A,#1aab5f);"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalPrecoResiduo()" style="flex:1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Preço — Liga -->
+    <div id="modal-preco-liga" class="fullscreen-overlay" style="display:none;">
+        <div class="login-box" style="width:540px; max-width:96vw; padding:18px 22px 16px; background:#101a24; border:1px solid #1a3a5c; margin:auto; max-height:92vh; overflow-y:auto;">
+            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:8px; color:#fff; font-size:1rem;"><i class="fa-solid fa-atom" style="color:#4fc3f7;"></i> Definir Preço — Liga</h3>
+            <form id="form-preco-liga-apex" onsubmit="salvarPrecoLiga(event)">
+                <input type="hidden" id="prc-lig-id" value="">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Liga *</label>
+                        <input type="text" id="prc-lig-material" required class="noble-input" placeholder="Nome da liga" oninput="calcularMargemLiquidaModalLiga()">
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Categoria *</label>
+                        <input type="text" id="prc-lig-categoria" required class="noble-input" placeholder="Ex: Alumínio, Cobre, Latão..." oninput="calcularMargemLiquidaModalLiga()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="font-size:0.8rem;">Preço Venda Ref. (R$/kg) *</label>
+                    <input type="number" step="0.01" id="prc-lig-venda" required class="noble-input" oninput="calcularMargemLiquidaModalLiga()">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Entregar (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-lig-entregar" required class="noble-input" oninput="calcularMargemLiquidaModalLiga()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Coletar (R$/kg) *</label>
+                        <input type="number" step="0.01" id="prc-lig-coletar" required class="noble-input" oninput="calcularMargemLiquidaModalLiga()">
+                    </div>
+                </div>
+                <div style="background:#162432; padding:8px 12px; border-radius:8px; border:1px solid #1a3a5c; margin-bottom:10px;">
+                    <div style="font-weight:bold; color:#4fc3f7; font-size:0.8rem; margin-bottom:6px;"><i class="fa-solid fa-percent"></i> Composição Fiscal & Deduções</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Comissão (%)</label>
+                            <input type="number" step="0.1" id="prc-lig-comissao" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalLiga()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">PIS/COFINS (%)</label>
+                            <input type="number" step="0.1" id="prc-lig-piscofins" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalLiga()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">FIDC (%)</label>
+                            <input type="number" step="0.1" id="prc-lig-fidc" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalLiga()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">ICMS (%)</label>
+                            <input type="number" step="0.1" id="prc-lig-icms" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalLiga()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.75rem;">Frete Coleta (R$/kg)</label>
+                        <input type="number" step="0.01" id="prc-lig-frete-coleta" class="noble-input" placeholder="0.00" oninput="calcularMargemLiquidaModalLiga()">
+                    </div>
+                </div>
+                <div style="background:#0a1622; padding:8px 12px; border-radius:8px; border-left:4px solid #4fc3f7; margin-bottom:10px;">
+                    <div style="font-size:0.8rem; text-transform:uppercase; font-weight:bold; color:#aaa; margin-bottom:6px;"><i class="fa-solid fa-calculator" style="color:#4fc3f7;"></i> Simulação de Margem Líquida Real</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; font-size:0.82rem; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #1a2a3a;">
+                        <div><span style="color:#888;">Total Deduções:</span><div style="color:#ff6b6b; font-weight:bold;" id="prc-lig-live-deducoes">0.00%</div></div>
+                        <div><span style="color:#888;">Venda Líquida:</span><div style="color:#ffeb3b; font-weight:bold;" id="prc-lig-live-venda-liq">R$ 0,00/kg</div></div>
+                        <div><span style="color:#888;">Frete Coleta:</span><div style="color:#aaa; font-weight:bold;" id="prc-lig-live-frete">R$ 0,00/kg</div></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.85rem;">
+                        <div style="background:#0f251d; padding:8px; border-radius:6px; border:1px solid #1a4d36;">
+                            <span style="color:#a8e6cf; font-size:0.75rem; text-transform:uppercase; font-weight:bold;">Margem Líquida Entrega</span>
+                            <div style="font-size:1.05rem; font-weight:bold; color:#2AD07A;" id="prc-lig-live-margem-ent">0.00%</div>
+                            <div style="font-size:0.75rem; color:#aaa;" id="prc-lig-live-lucro-ent">Lucro: R$ 0,00/kg</div>
+                        </div>
+                        <div style="background:#0f2030; padding:8px; border-radius:6px; border:1px solid #1e3a5f;">
+                            <span style="color:#a0c4ff; font-size:0.75rem; text-transform:uppercase; font-weight:bold;">Margem Líquida Coleta</span>
+                            <div style="font-size:1.05rem; font-weight:bold; color:#4fc3f7;" id="prc-lig-live-margem-col">0.00%</div>
+                            <div style="font-size:0.75rem; color:#aaa;" id="prc-lig-live-lucro-col">Lucro: R$ 0,00/kg</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="font-size:0.8rem;">Válido Até *</label>
+                    <input type="date" id="prc-lig-validade" required class="noble-input">
+                </div>
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="font-size:0.8rem;">NCM</label>
+                    <input type="text" id="prc-lig-ncm" class="noble-input" placeholder="Ex: 7602.00.00">
+                </div>
+                <div style="display:flex; gap:10px; margin-top:14px;">
+                    <button type="submit" class="btn-primary" style="flex:1; background:linear-gradient(135deg,#4fc3f7,#1e88e5);"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalPrecoLiga()" style="flex:1;">Cancelar</button>
                 </div>
             </form>
         </div>
