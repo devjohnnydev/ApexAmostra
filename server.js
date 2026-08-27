@@ -390,9 +390,7 @@ async function initDatabase() {
 
             CREATE TABLE IF NOT EXISTS tabela_precos_residuos (
                 id              SERIAL PRIMARY KEY,
-                material_nome   TEXT NOT NULL,
-                material_categoria TEXT NOT NULL,
-                material_ncm    TEXT,
+                material_id     INTEGER NOT NULL,
                 preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
                 preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
                 venda_ref       NUMERIC(10,2) DEFAULT 0.00,
@@ -407,9 +405,7 @@ async function initDatabase() {
 
             CREATE TABLE IF NOT EXISTS tabela_precos_ligas (
                 id              SERIAL PRIMARY KEY,
-                material_nome   TEXT NOT NULL,
-                material_categoria TEXT NOT NULL,
-                material_ncm    TEXT,
+                material_id     INTEGER NOT NULL,
                 preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
                 preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
                 venda_ref       NUMERIC(10,2) DEFAULT 0.00,
@@ -1791,25 +1787,34 @@ app.delete('/api/tabela-precos/:id', async (req, res) => {
 app.get('/api/tabela-precos-residuos', async (req, res) => {
     try {
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM tabela_precos_residuos ORDER BY material_categoria ASC, material_nome ASC');
+            const result = await pool.query(`
+                SELECT tp.*, mc.nome as material_nome, mc.categoria as material_categoria, mc.ncm as material_ncm
+                FROM tabela_precos_residuos tp
+                JOIN materiais_catalogo mc ON tp.material_id = mc.id
+                ORDER BY mc.categoria ASC, mc.nome ASC
+            `);
             return res.json(result.rows);
         }
-        res.json(memStore.tabela_precos_residuos || []);
+        const data = memStore.tabela_precos_residuos.map(p => {
+            const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
+            return { ...p, material_nome: mc?.nome||'', material_categoria: mc?.categoria||'', material_ncm: mc?.ncm||'' };
+        });
+        res.json(data);
     } catch (err) { res.status(500).json({ error: 'Erro ao buscar tabela de preços de resíduos.' }); }
 });
 
 app.post('/api/tabela-precos-residuos', async (req, res) => {
     try {
-        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO tabela_precos_residuos (material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
+                `INSERT INTO tabela_precos_residuos (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
             return res.json(result.rows[0]);
         }
-        const newP = { id: Date.now(), material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
+        const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_residuos.push(newP);
         res.json(newP);
     } catch (err) { console.error(err); res.status(500).json({ error: 'Erro ao salvar preço de resíduo.' }); }
@@ -1831,19 +1836,18 @@ app.put('/api/tabela-precos-residuos-validade', async (req, res) => {
 app.put('/api/tabela-precos-residuos/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE tabela_precos_residuos SET material_nome=$1, material_categoria=$2, material_ncm=$3,
-                 preco_entregar=$4, preco_coletar=$5, venda_ref=$6, validade=$7, comissao=$8,
-                 pis_cofins=$9, fidc=$10, icms=$11, frete_coleta=$12 WHERE id=$13 RETURNING *`,
-                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
+                `UPDATE tabela_precos_residuos SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
+                 pis_cofins=$7, fidc=$8, icms=$9, frete_coleta=$10 WHERE id=$11 RETURNING *`,
+                [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
             return res.json(result.rows[0]);
         }
         const idx = memStore.tabela_precos_residuos.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
-        Object.assign(memStore.tabela_precos_residuos[idx], { material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 });
+        Object.assign(memStore.tabela_precos_residuos[idx], { material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 });
         res.json(memStore.tabela_precos_residuos[idx]);
     } catch (err) { res.status(500).json({ error: 'Erro ao atualizar preço de resíduo.' }); }
 });
@@ -1861,25 +1865,34 @@ app.delete('/api/tabela-precos-residuos/:id', async (req, res) => {
 app.get('/api/tabela-precos-ligas', async (req, res) => {
     try {
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM tabela_precos_ligas ORDER BY material_categoria ASC, material_nome ASC');
+            const result = await pool.query(`
+                SELECT tp.*, mc.nome as material_nome, mc.categoria as material_categoria, mc.ncm as material_ncm
+                FROM tabela_precos_ligas tp
+                JOIN materiais_catalogo mc ON tp.material_id = mc.id
+                ORDER BY mc.categoria ASC, mc.nome ASC
+            `);
             return res.json(result.rows);
         }
-        res.json(memStore.tabela_precos_ligas || []);
+        const data = memStore.tabela_precos_ligas.map(p => {
+            const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
+            return { ...p, material_nome: mc?.nome||'', material_categoria: mc?.categoria||'', material_ncm: mc?.ncm||'' };
+        });
+        res.json(data);
     } catch (err) { res.status(500).json({ error: 'Erro ao buscar tabela de preços de ligas.' }); }
 });
 
 app.post('/api/tabela-precos-ligas', async (req, res) => {
     try {
-        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO tabela_precos_ligas (material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
+                `INSERT INTO tabela_precos_ligas (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
             return res.json(result.rows[0]);
         }
-        const newP = { id: Date.now(), material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
+        const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_ligas.push(newP);
         res.json(newP);
     } catch (err) { console.error(err); res.status(500).json({ error: 'Erro ao salvar preço de liga.' }); }
@@ -1901,19 +1914,18 @@ app.put('/api/tabela-precos-ligas-validade', async (req, res) => {
 app.put('/api/tabela-precos-ligas/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { material_nome, material_categoria, material_ncm, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE tabela_precos_ligas SET material_nome=$1, material_categoria=$2, material_ncm=$3,
-                 preco_entregar=$4, preco_coletar=$5, venda_ref=$6, validade=$7, comissao=$8,
-                 pis_cofins=$9, fidc=$10, icms=$11, frete_coleta=$12 WHERE id=$13 RETURNING *`,
-                [material_nome, material_categoria, material_ncm||'', preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
+                `UPDATE tabela_precos_ligas SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
+                 pis_cofins=$7, fidc=$8, icms=$9, frete_coleta=$10 WHERE id=$11 RETURNING *`,
+                [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
             return res.json(result.rows[0]);
         }
         const idx = memStore.tabela_precos_ligas.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
-        Object.assign(memStore.tabela_precos_ligas[idx], { material_nome, material_categoria, material_ncm: material_ncm||'', preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 });
+        Object.assign(memStore.tabela_precos_ligas[idx], { material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 });
         res.json(memStore.tabela_precos_ligas[idx]);
     } catch (err) { res.status(500).json({ error: 'Erro ao atualizar preço de liga.' }); }
 });

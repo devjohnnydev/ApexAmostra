@@ -6145,9 +6145,17 @@ var _listTabelaPrecosEstrategica = [];
         } catch(e) { console.error(e); }
     };
 
+    window.popularSelectMateriaisModal = function(idSelect) {
+        const el = document.getElementById(idSelect);
+        if (!el) return;
+        el.innerHTML = '<option value="">Selecione um material...</option>' + 
+            localMateriais.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Sem Categoria'})</option>`).join('');
+    };
+
     window.abrirModalPrecoResiduo = function() {
         document.getElementById('form-preco-residuo-apex').reset();
         document.getElementById('prc-res-id').value = '';
+        popularSelectMateriaisModal('prc-res-material-id');
         document.getElementById('modal-preco-residuo').style.display = 'flex';
         calcularMargemLiquidaModalResiduo();
     };
@@ -6188,9 +6196,9 @@ var _listTabelaPrecosEstrategica = [];
     window.editarPrecoResiduo = function(id) {
         const p = localPrecosResiduos.find(x => x.id === id);
         if (!p) return;
+        popularSelectMateriaisModal('prc-res-material-id');
         document.getElementById('prc-res-id').value = p.id;
-        document.getElementById('prc-res-material').value = p.material_nome;
-        document.getElementById('prc-res-categoria').value = p.material_categoria;
+        document.getElementById('prc-res-material-id').value = p.material_id;
         document.getElementById('prc-res-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
         document.getElementById('prc-res-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
         document.getElementById('prc-res-venda').value = parseFloat(p.venda_ref || 0).toFixed(2);
@@ -6200,7 +6208,6 @@ var _listTabelaPrecosEstrategica = [];
         document.getElementById('prc-res-icms').value = parseFloat(p.icms || 0).toFixed(2);
         document.getElementById('prc-res-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
         document.getElementById('prc-res-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
-        document.getElementById('prc-res-ncm').value = p.material_ncm || '';
         document.getElementById('modal-preco-residuo').style.display = 'flex';
         calcularMargemLiquidaModalResiduo();
     };
@@ -6210,9 +6217,7 @@ var _listTabelaPrecosEstrategica = [];
         const id = document.getElementById('prc-res-id').value;
         const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
         const data = {
-            material_nome: document.getElementById('prc-res-material').value,
-            material_categoria: document.getElementById('prc-res-categoria').value,
-            material_ncm: document.getElementById('prc-res-ncm').value,
+            material_id: parseInt(document.getElementById('prc-res-material-id').value),
             preco_entregar: parseVal(document.getElementById('prc-res-entregar').value),
             preco_coletar: parseVal(document.getElementById('prc-res-coletar').value),
             venda_ref: parseVal(document.getElementById('prc-res-venda').value),
@@ -6418,6 +6423,7 @@ var _listTabelaPrecosEstrategica = [];
     window.abrirModalPrecoLiga = function() {
         document.getElementById('form-preco-liga-apex').reset();
         document.getElementById('prc-lig-id').value = '';
+        if(window.popularSelectMateriaisModal) window.popularSelectMateriaisModal('prc-lig-material-id');
         document.getElementById('modal-preco-liga').style.display = 'flex';
         calcularMargemLiquidaModalLiga();
     };
@@ -6458,9 +6464,9 @@ var _listTabelaPrecosEstrategica = [];
     window.editarPrecoLiga = function(id) {
         const p = localPrecosLigas.find(x => x.id === id);
         if (!p) return;
+        if(window.popularSelectMateriaisModal) window.popularSelectMateriaisModal('prc-lig-material-id');
         document.getElementById('prc-lig-id').value = p.id;
-        document.getElementById('prc-lig-material').value = p.material_nome;
-        document.getElementById('prc-lig-categoria').value = p.material_categoria;
+        document.getElementById('prc-lig-material-id').value = p.material_id;
         document.getElementById('prc-lig-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
         document.getElementById('prc-lig-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
         document.getElementById('prc-lig-venda').value = parseFloat(p.venda_ref || 0).toFixed(2);
@@ -6470,7 +6476,6 @@ var _listTabelaPrecosEstrategica = [];
         document.getElementById('prc-lig-icms').value = parseFloat(p.icms || 0).toFixed(2);
         document.getElementById('prc-lig-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
         document.getElementById('prc-lig-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
-        document.getElementById('prc-lig-ncm').value = p.material_ncm || '';
         document.getElementById('modal-preco-liga').style.display = 'flex';
         calcularMargemLiquidaModalLiga();
     };
@@ -6480,9 +6485,7 @@ var _listTabelaPrecosEstrategica = [];
         const id = document.getElementById('prc-lig-id').value;
         const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
         const data = {
-            material_nome: document.getElementById('prc-lig-material').value,
-            material_categoria: document.getElementById('prc-lig-categoria').value,
-            material_ncm: document.getElementById('prc-lig-ncm').value,
+            material_id: parseInt(document.getElementById('prc-lig-material-id').value),
             preco_entregar: parseVal(document.getElementById('prc-lig-entregar').value),
             preco_coletar: parseVal(document.getElementById('prc-lig-coletar').value),
             venda_ref: parseVal(document.getElementById('prc-lig-venda').value),
