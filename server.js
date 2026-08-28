@@ -1057,6 +1057,46 @@ const requireRole = (allowedRoles) => {
 // Aplica autenticação em todas as rotas da API
 app.use('/api', authMiddleware);
 
+// Middleware Global de Auditoria
+const globalAuditMiddleware = async (req, res, next) => {
+    // Escuta o término da requisição para registrar apenas se foi sucesso (opcional) ou registra na entrada
+    // Vamos registrar na entrada para capturar tentativas, mas ignorar métodos GET e OPTIONS
+    if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+        const usuario = req.user ? req.user.user : (req.body.user ? req.body.user : 'Anônimo');
+        let acao = req.method;
+        let detalhe = `Endpoint: ${req.path}`;
+        
+        let safeBody = { ...req.body };
+        if (safeBody.pass) safeBody.pass = '***'; // Omitir senhas
+        
+        if (req.path === '/login') {
+            acao = 'LOGIN';
+            detalhe = 'Tentativa de Login';
+        } else if (req.path.includes('/usuarios')) {
+            acao = 'USUÁRIOS';
+        } else if (req.path.includes('/amostras')) {
+            acao = 'AMOSTRAS';
+        } else if (req.path.includes('/tabela-precos')) {
+            acao = 'PREÇOS';
+        } else if (req.path.includes('/pedidos-venda')) {
+            acao = 'PEDIDOS';
+        } else if (req.path.includes('/fornecedores') || req.path.includes('/clientes')) {
+            acao = 'CADASTROS';
+        }
+
+        const payloadStr = JSON.stringify(safeBody) || '';
+        if (payloadStr !== '{}') {
+            detalhe += ` | Dados: ${payloadStr.substring(0, 200)}`;
+        }
+        
+        // Chamada não bloqueante
+        registrarAuditLog(usuario, acao, detalhe, null, req).catch(console.error);
+    }
+    next();
+};
+
+app.use('/api', globalAuditMiddleware);
+
 // Regras de Autorização por Agrupamento de Rotas (RBAC)
 app.use('/api/usuarios', requireRole(['Diretoria']));
 app.use('/api/tabela-precos', requireRole(['Diretoria', 'Compras', 'Comercial']));
