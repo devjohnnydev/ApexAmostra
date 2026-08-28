@@ -16,8 +16,11 @@ const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger    = require('./config/logger');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'apextech_secret_key_2026_safe';
-
+if (!process.env.JWT_SECRET) {
+    console.error('ERRO CRÍTICO: JWT_SECRET não definido nas variáveis de ambiente. Defina a variável para garantir a segurança dos tokens.');
+    process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 // ─── Multer: armazenamento em memória (fotos de amostras) ──────────────────────
 const uploadMemory = multer({
     storage: multer.memoryStorage(),
@@ -212,12 +215,12 @@ const memStore = {
     ],
     fotos_amostra: [],   // { id, amostra_id, tipo: 'bruta'|'separada'|'componente', data_b64, mimetype, nome, criado_em }
     usuarios: [
-        { id: 1, user: "admin", pass: "apex2026", perfil: "Administrador", nome: "Admin Apex" },
-        { id: 2, user: "lab", pass: "lab123", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
-        { id: 3, user: "compras", pass: "compras123", perfil: "Compras", nome: "Ana (Compras)" },
-        { id: 4, user: "producao", pass: "prod123", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
-        { id: 5, user: "financeiro", pass: "fin123", perfil: "Financeiro", nome: "Mariana (Fin)" },
-        { id: 6, user: "diretoria", pass: "dir123", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
+        { id: 1, user: "admin", pass: "$2b$10$OtCdpJ40BrNkHE2npxGDnOMxYHYl9HRGP6mw/le4NlJCnbtF6iyUS", perfil: "Administrador", nome: "Admin Apex" },
+        { id: 2, user: "lab", pass: "$2b$10$IQb7v6yEEwWAkAqio4ZYOulYFteWjTUect2aDd49Vay7DtxiBQJXm", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
+        { id: 3, user: "compras", pass: "$2b$10$mpmo8hj4iXEN/BoZQN2Xr.3kjaps0Ip5yij09/styuWodKyW.cae.", perfil: "Compras", nome: "Ana (Compras)" },
+        { id: 4, user: "producao", pass: "$2b$10$1BWuIfla8e52NApbFR8yGu9Kq0KYz04aHxLen0Lx9r9dH2OV5iZFe", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
+        { id: 5, user: "financeiro", pass: "$2b$10$4dxfQXRxOqoHQdeYQsj3Ue7v5CCZdhZOddhihwY4cAeGnRXBckjVK", perfil: "Financeiro", nome: "Mariana (Fin)" },
+        { id: 6, user: "diretoria", pass: "$2b$10$S1be8oS/GPW/h1aM38o0Su0PFjxr8xl0O5QtNRBQ/knqLE6.JeA16", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
     ],
     clientes: [],
     pedidos_venda: [],
@@ -1020,8 +1023,7 @@ app.use(express.static(__dirname, {
 
 // ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
-    // Pula autenticação para login e rotas públicas
-    const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje', '/settings', '/debug-logs', '/db-test'];
+    const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje'];
     if (publicRoutes.includes(req.path) || req.path.startsWith('/public')) return next();
 
     const authHeader = req.headers.authorization;
@@ -1102,30 +1104,30 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         const { user, pass } = req.body;
         let foundUser = null;
         
-        // Verificar no banco de dados primeiro
+        // Buscar usuário (somente o registro, sem comparar senha na query SQL)
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM usuarios WHERE "user" = $1 AND pass = $2', [user, pass]);
+            const result = await pool.query('SELECT * FROM usuarios WHERE "user" = $1', [user]);
             if (result.rows.length > 0) {
                 foundUser = result.rows[0];
             }
         } else {
-            const u = memStore.usuarios.find(x => x.user === user && x.pass === pass);
+            const u = memStore.usuarios.find(x => x.user === user);
             if (u) foundUser = u;
         }
 
-        // Fallback admin padrão
-        if (!foundUser && user === 'admin' && pass === 'apex2026') {
-            foundUser = { user: 'admin', perfil: 'Administrador', nome: 'Admin Apex' };
+        // Validação da senha com bcrypt
+        if (foundUser) {
+            const passwordMatches = await bcrypt.compare(pass, foundUser.pass);
+            
+            if (passwordMatches) {
+                const perfilFinal = foundUser.perfil;
+                // Assina o Token JWT
+                const token = jwt.sign({ user: foundUser.user, perfil: perfilFinal, nome: foundUser.nome }, JWT_SECRET, { expiresIn: '12h' });
+                return res.json({ success: true, token, user: { user: foundUser.user, perfil: perfilFinal, nome: foundUser.nome } });
+            }
         }
         
-        if (foundUser) {
-            const perfilFinal = (foundUser.user === 'admin' ? 'Administrador' : foundUser.perfil);
-            // Assina o Token JWT
-            const token = jwt.sign({ user: foundUser.user, perfil: perfilFinal, nome: foundUser.nome }, JWT_SECRET, { expiresIn: '12h' });
-            return res.json({ success: true, token, user: { user: foundUser.user, perfil: perfilFinal, nome: foundUser.nome } });
-        } else {
-            res.status(401).json({ success: false, error: 'Usuário ou senha inválidos.' });
-        }
+        res.status(401).json({ success: false, error: 'Usuário ou senha inválidos.' });
     } catch (error) {
         console.error('Erro na autenticação:', error);
         res.status(500).json({ error: 'Erro interno no servidor.' });
@@ -1150,14 +1152,18 @@ app.post('/api/usuarios', async (req, res) => {
         const { user, pass, perfil, nome } = req.body;
         if (!user || !pass || !perfil || !nome) return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
         
+        // Gerar o hash da senha
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(pass, salt);
+
         if (dbAvailable) {
             const result = await pool.query(
                 'INSERT INTO usuarios ("user", pass, perfil, nome) VALUES ($1, $2, $3, $4) RETURNING id, "user", perfil, nome',
-                [user, pass, perfil, nome]
+                [user, hashedPassword, perfil, nome]
             );
             return res.json(result.rows[0]);
         } else {
-            const newU = { id: nextId++, user, pass, perfil, nome };
+            const newU = { id: nextId++, user, pass: hashedPassword, perfil, nome };
             memStore.usuarios.push(newU);
             return res.json({ id: newU.id, user, perfil, nome });
         }
