@@ -2490,20 +2490,34 @@ window.excluirCicloV3 = async function(cicloId) {
     };
 
     window.alternarSubAbaEstrategico = function(aba) {
-        document.getElementById('tab-btn-estr-margens').classList.remove('active');
-        document.getElementById('tab-btn-estr-ativos').classList.remove('active');
+        const btnMargens = document.getElementById('tab-btn-estr-margens');
+        const btnAtivos = document.getElementById('tab-btn-estr-ativos');
+        const btnPlan = document.getElementById('tab-btn-estr-planejamento-mes');
 
-        document.getElementById('subaba-estr-margens').style.display = 'none';
-        document.getElementById('subaba-estr-ativos').style.display = 'none';
+        if (btnMargens) btnMargens.classList.remove('active');
+        if (btnAtivos) btnAtivos.classList.remove('active');
+        if (btnPlan) btnPlan.classList.remove('active');
+
+        const secMargens = document.getElementById('subaba-estr-margens');
+        const secAtivos = document.getElementById('subaba-estr-ativos');
+        const secPlan = document.getElementById('subaba-estr-planejamento-mes');
+
+        if (secMargens) secMargens.style.display = 'none';
+        if (secAtivos) secAtivos.style.display = 'none';
+        if (secPlan) secPlan.style.display = 'none';
 
         if (aba === 'margens') {
-            document.getElementById('tab-btn-estr-margens').classList.add('active');
-            document.getElementById('subaba-estr-margens').style.display = 'block';
+            if (btnMargens) btnMargens.classList.add('active');
+            if (secMargens) secMargens.style.display = 'block';
         } else if (aba === 'ativos') {
-            document.getElementById('tab-btn-estr-ativos').classList.add('active');
-            document.getElementById('subaba-estr-ativos').style.display = 'block';
+            if (btnAtivos) btnAtivos.classList.add('active');
+            if (secAtivos) secAtivos.style.display = 'block';
             if (window.carregarPlanejamentoDashboard) window.carregarPlanejamentoDashboard();
             window.renderPlanejamentosAtivosV3();
+        } else if (aba === 'planejamento-mes') {
+            if (btnPlan) btnPlan.classList.add('active');
+            if (secPlan) secPlan.style.display = 'block';
+            if (window.renderPlanejamentoMesEstrategico) window.renderPlanejamentoMesEstrategico();
         }
     };
 
