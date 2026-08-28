@@ -566,6 +566,7 @@ async function initDatabase() {
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_entregar NUMERIC(10,2);
             ALTER TABLE clientes ADD COLUMN IF NOT EXISTS vendedor TEXT;
             ALTER TABLE clientes ADD COLUMN IF NOT EXISTS filial TEXT;
+            ALTER TABLE clientes ALTER COLUMN dias TYPE TEXT USING dias::TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_coletar NUMERIC(10,2);
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_validade TIMESTAMP;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS autorizado_por TEXT;
@@ -6642,7 +6643,7 @@ app.post('/api/clientes', async (req, res) => {
                  cnpj, cpf, ie, rg, email,
                  endereco, numero, bairro, cidade, uf,
                  pais || 'BR', cep, tipo_cliente, contato_comercial,
-                 contato_financeiro, status || 'ATIVO', vendedor, parseInt(dias) || 0, filial || '01']
+                 contato_financeiro, status || 'ATIVO', vendedor, dias !== undefined && dias !== null ? String(dias).trim() : '0', filial || '01']
             );
             return res.json(result.rows[0]);
         }
@@ -6673,7 +6674,7 @@ app.put('/api/clientes/:id', async (req, res) => {
                  cnpj, cpf, ie, rg, email,
                  endereco, numero, bairro, cidade, uf,
                  pais, cep, tipo_cliente, contato_comercial,
-                 contato_financeiro, status || 'ATIVO', vendedor, dias || 0, filial,
+                 contato_financeiro, status || 'ATIVO', vendedor, dias !== undefined && dias !== null ? String(dias).trim() : '0', filial,
                  id]
             );
             if (result.rows.length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });

@@ -4532,7 +4532,7 @@ var _listTabelaPrecosEstrategica = [];
         document.getElementById('cli-pais').value = c.pais || '';
         document.getElementById('cli-cep').value = c.cep || '';
         document.getElementById('cli-vendedor').value = c.vendedor || '';
-        document.getElementById('cli-dias').value = c.dias || 0;
+        document.getElementById('cli-dias').value = (c.dias !== undefined && c.dias !== null) ? c.dias : '0';
         document.getElementById('cli-filial').value = c.filial || '';
         document.getElementById('modal-cliente').style.display = 'flex';
     };
@@ -4562,7 +4562,7 @@ var _listTabelaPrecosEstrategica = [];
             pais: document.getElementById('cli-pais').value,
             cep: document.getElementById('cli-cep').value,
             vendedor: document.getElementById('cli-vendedor').value,
-            dias: parseInt(document.getElementById('cli-dias').value) || 0,
+            dias: (document.getElementById('cli-dias').value || '').trim() || '0',
             filial: document.getElementById('cli-filial').value
         };
         const btn = e.target.querySelector('[type="submit"]');
