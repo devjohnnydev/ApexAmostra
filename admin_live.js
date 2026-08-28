@@ -18285,7 +18285,7 @@ window.carregarFinanceiroView = async function() {
         // Garantir que os lotes de compra estao carregados
         if (!localPlanejamento || localPlanejamento.length === 0) {
             try {
-                const res = await fetch('/api/planejamento');
+                const res = await fetch('/api/planejamento-compras');
                 if (res.ok) {
                     localPlanejamento = await res.json();
                 }
