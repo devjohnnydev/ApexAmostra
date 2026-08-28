@@ -2524,6 +2524,9 @@
                     <button type="button" class="btn-subtab" id="tab-btn-estr-ativos" onclick="alternarSubAbaEstrategico('ativos')">
                         <i class="fa-solid fa-list-check"></i> Planos Ativos
                     </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-estr-planejamento-mes" onclick="alternarSubAbaEstrategico('planejamento-mes')">
+                        <i class="fa-solid fa-calendar-check"></i> Planejamento do Mês
+                    </button>
                 </div>
                 
                 <div id="subaba-estr-margens">
@@ -3215,6 +3218,85 @@
                     <!-- Carregado via JS -->
                 </div>
             </div>
+
+                <div id="subaba-estr-planejamento-mes" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <h3 style="margin:0; color:#fff; display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-calendar-check" style="color:#00e5ff;"></i> Planejamento do Mês
+                            </h3>
+                            <select id="plest-subaba-mes" onchange="window.onChangeMesPlanejamentoEstrategico()" class="noble-input" style="width:160px; margin:0;">
+                                <option value="todos">Todos os Meses</option>
+                                <option value="01">01 - Janeiro</option>
+                                <option value="02">02 - Fevereiro</option>
+                                <option value="03">03 - Março</option>
+                                <option value="04">04 - Abril</option>
+                                <option value="05">05 - Maio</option>
+                                <option value="06">06 - Junho</option>
+                                <option value="07">07 - Julho</option>
+                                <option value="08">08 - Agosto</option>
+                                <option value="09">09 - Setembro</option>
+                                <option value="10">10 - Outubro</option>
+                                <option value="11">11 - Novembro</option>
+                                <option value="12">12 - Dezembro</option>
+                            </select>
+                            <button type="button" class="btn-secondary" onclick="window.renderPlanejamentoMesEstrategico()" style="padding:6px 12px; font-size:0.85rem;"><i class="fa-solid fa-arrows-rotate"></i> Atualizar</button>
+                        </div>
+                        <div>
+                            <button class="btn-secondary" onclick="window.exportarPlanejamentoMesEstrategicoPdf()" style="background:#2AD07A; color:#0d1826; border:none; padding:8px 14px; font-weight:bold;">
+                                <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:20px;">
+                        <div class="kpi-card" style="background:#0d1826; border:1px solid #1c2e3d; padding:15px;">
+                            <h4 style="margin:0 0 5px 0; color:#aaa; font-size:0.85rem;">Investimento Total</h4>
+                            <div id="plest-kpi-inv" style="font-size:1.4rem; font-weight:bold; color:#ffb74d;">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-card" style="background:#0d1826; border:1px solid #1c2e3d; padding:15px;">
+                            <h4 style="margin:0 0 5px 0; color:#aaa; font-size:0.85rem;">Faturamento Previsto</h4>
+                            <div id="plest-kpi-fat" style="font-size:1.4rem; font-weight:bold; color:#3e7cb1;">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-card" style="background:#0d1826; border:1px solid #1c2e3d; padding:15px;">
+                            <h4 style="margin:0 0 5px 0; color:#aaa; font-size:0.85rem;">Lucro Bruto Total</h4>
+                            <div id="plest-kpi-lucro" style="font-size:1.4rem; font-weight:bold; color:#2AD07A;">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-card" style="background:#0d1826; border:1px solid #1c2e3d; padding:15px;">
+                            <h4 style="margin:0 0 5px 0; color:#aaa; font-size:0.85rem;">% Bruto Médio</h4>
+                            <div id="plest-kpi-pct" style="font-size:1.4rem; font-weight:bold; color:#2AD07A;">0,00%</div>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto; background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                        <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                            <thead>
+                                <tr style="background:#ffeb3b; text-align:center; color:#333; font-weight:bold; border-bottom:2px solid #fbc02d;">
+                                    <th colspan="9" style="padding:10px; font-size:0.9rem;">planejamento mês</th>
+                                </tr>
+                                <tr style="background:#ffeb3b; text-align:left; color:#333;">
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold;">PRODUTO</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">FRAÇÃO</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">PESO</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">PREÇO COMPRA</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">INVESTIMENTO</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">VENDA LÍQUIDA</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">FATURAMENTO</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">LUCRO BRUTO</th>
+                                    <th style="padding:10px; border:1px solid #333; font-weight:bold; text-align:right;">PERCENTUAL BRUTO</th>
+                                </tr>
+                            </thead>
+                            <tbody id="plest-mes-table-body">
+                                <tr>
+                                    <td colspan="9" style="text-align:center; padding:20px; color:#aaa; background:#101a24; border:1px solid #333;">Selecione um mês ou atualize os dados.</td>
+                                </tr>
+                            </tbody>
+                            <tfoot id="plest-mes-table-footer">
+                                <!-- Preenchido via JS -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- ═══════════════════════════════════════════════════════════

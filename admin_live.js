@@ -18240,20 +18240,242 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.alternarSubAbaEstrategico = function(aba) {
-        document.getElementById('tab-btn-estr-margens').classList.remove('active');
-        document.getElementById('tab-btn-estr-ativos').classList.remove('active');
+        const btnMargens = document.getElementById('tab-btn-estr-margens');
+        const btnAtivos = document.getElementById('tab-btn-estr-ativos');
+        const btnPlan = document.getElementById('tab-btn-estr-planejamento-mes');
 
-        document.getElementById('subaba-estr-margens').style.display = 'none';
-        document.getElementById('subaba-estr-ativos').style.display = 'none';
+        if (btnMargens) btnMargens.classList.remove('active');
+        if (btnAtivos) btnAtivos.classList.remove('active');
+        if (btnPlan) btnPlan.classList.remove('active');
+
+        const secMargens = document.getElementById('subaba-estr-margens');
+        const secAtivos = document.getElementById('subaba-estr-ativos');
+        const secPlan = document.getElementById('subaba-estr-planejamento-mes');
+
+        if (secMargens) secMargens.style.display = 'none';
+        if (secAtivos) secAtivos.style.display = 'none';
+        if (secPlan) secPlan.style.display = 'none';
 
         if (aba === 'margens') {
-            document.getElementById('tab-btn-estr-margens').classList.add('active');
-            document.getElementById('subaba-estr-margens').style.display = 'block';
+            if (btnMargens) btnMargens.classList.add('active');
+            if (secMargens) secMargens.style.display = 'block';
         } else if (aba === 'ativos') {
-            document.getElementById('tab-btn-estr-ativos').classList.add('active');
-            document.getElementById('subaba-estr-ativos').style.display = 'block';
+            if (btnAtivos) btnAtivos.classList.add('active');
+            if (secAtivos) secAtivos.style.display = 'block';
             if (window.carregarPlanejamentoDashboard) window.carregarPlanejamentoDashboard();
             window.renderPlanejamentosAtivosV3();
+        } else if (aba === 'planejamento-mes') {
+            if (btnPlan) btnPlan.classList.add('active');
+            if (secPlan) secPlan.style.display = 'block';
+            window.renderPlanejamentoMesEstrategico();
+        }
+    };
+
+    let mesPlanejamentoEstrategicoSelecionado = 'todos';
+
+    window.onChangeMesPlanejamentoEstrategico = function() {
+        const select = document.getElementById('plest-subaba-mes');
+        if (select) {
+            mesPlanejamentoEstrategicoSelecionado = select.value;
+            window.renderPlanejamentoMesEstrategico();
+        }
+    };
+
+    window.renderPlanejamentoMesEstrategico = async function() {
+        // Garantir que os lotes de compra estao carregados
+        if (!localPlanejamento || localPlanejamento.length === 0) {
+            try {
+                const res = await fetch('/api/planejamento');
+                if (res.ok) {
+                    localPlanejamento = await res.json();
+                }
+            } catch(e) {
+                console.error("Erro ao buscar localPlanejamento:", e);
+            }
+        }
+
+        const lotesMes = (localPlanejamento || []).filter(lc => {
+            if (mesPlanejamentoEstrategicoSelecionado === 'todos') return true;
+            if (!lc.mes) return true;
+            return lc.mes === mesPlanejamentoEstrategicoSelecionado;
+        });
+
+        // Agrupar por produto
+        const mapProdutos = new Map();
+        let pesoTotalGeral = 0;
+        let totalCompraGeral = 0;
+        let pesoMaterialGeral = 0;
+        let totalVendaGeral = 0;
+        let lucroBrutoGeral = 0;
+
+        lotesMes.forEach(lc => {
+            const produtoNome = lc.produto || 'Indefinido';
+            if (!mapProdutos.has(produtoNome)) {
+                mapProdutos.set(produtoNome, { peso: 0, investimento: 0, vendaLiquidaAcumulada: 0, pesoMaterial: 0, faturamento: 0, lucro: 0 });
+            }
+            const data = mapProdutos.get(produtoNome);
+            
+            const totalC = parseFloat(lc.peso_comprado || 0) * parseFloat(lc.preco_compra || 0);
+            const pesoMat = parseFloat(lc.peso_comprado || 0) * (parseFloat(lc.percentual_rendimento || 0) / 100);
+            const totalV = pesoMat * parseFloat(lc.preco_venda_material || 0);
+            const lucroB = totalV - totalC;
+
+            data.peso += parseFloat(lc.peso_comprado || 0);
+            data.investimento += totalC;
+            data.pesoMaterial += pesoMat;
+            data.faturamento += totalV;
+            data.lucro += lucroB;
+            // Para venda liquida media ponderada
+            data.vendaLiquidaAcumulada += (parseFloat(lc.preco_venda_material || 0) * pesoMat);
+
+            pesoTotalGeral += parseFloat(lc.peso_comprado || 0);
+            totalCompraGeral += totalC;
+            pesoMaterialGeral += pesoMat;
+            totalVendaGeral += totalV;
+            lucroBrutoGeral += lucroB;
+        });
+
+        // KPI
+        document.getElementById('plest-kpi-inv').textContent = totalCompraGeral.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        document.getElementById('plest-kpi-fat').textContent = totalVendaGeral.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        document.getElementById('plest-kpi-lucro').textContent = lucroBrutoGeral.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        const pctGeral = totalVendaGeral > 0 ? (lucroBrutoGeral / totalVendaGeral) * 100 : 0;
+        document.getElementById('plest-kpi-pct').textContent = fmtBRL(pctGeral) + '%';
+
+        const tbody = document.getElementById('plest-mes-table-body');
+        const tfoot = document.getElementById('plest-mes-table-footer');
+        if (!tbody || !tfoot) return;
+
+        tbody.innerHTML = '';
+        tfoot.innerHTML = '';
+
+        if (mapProdutos.size === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">Nenhum planejamento encontrado para este mês.</td></tr>`;
+            return;
+        }
+
+        const linhas = Array.from(mapProdutos.entries()).map(([produto, data]) => {
+            const fracao = pesoTotalGeral > 0 ? (data.peso / pesoTotalGeral) * 100 : 0;
+            const precoMedioCompra = data.peso > 0 ? data.investimento / data.peso : 0;
+            const vendaLiquidaMedia = data.pesoMaterial > 0 ? data.vendaLiquidaAcumulada / data.pesoMaterial : 0;
+            const percBruto = data.faturamento > 0 ? (data.lucro / data.faturamento) * 100 : 0;
+
+            return { produto, fracao, peso: data.peso, precoCompra: precoMedioCompra, investimento: data.investimento, vendaLiquida: vendaLiquidaMedia, faturamento: data.faturamento, lucro: data.lucro, percBruto };
+        });
+
+        // Sort descending by weight
+        linhas.sort((a, b) => b.peso - a.peso);
+
+        linhas.forEach(linha => {
+            const tr = document.createElement('tr');
+            tr.style.background = '#ffffff';
+            tr.style.color = '#333';
+            tr.innerHTML = `
+                <td style="padding:8px; border:1px solid #ddd;">${linha.produto}</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">${fmtBRL(linha.fracao)}%</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">KGS ${linha.peso.toLocaleString('pt-BR')}</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">R$ ${fmtBRL(linha.precoCompra)}</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">R$ ${linha.investimento.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">R$ ${fmtBRL(linha.vendaLiquida)}</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">KGS ${linha.faturamento.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">R$ ${linha.lucro.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:8px; border:1px solid #ddd; text-align:right;">${fmtBRL(linha.percBruto)}%</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const precoCompraGeral = pesoTotalGeral > 0 ? totalCompraGeral / pesoTotalGeral : 0;
+        const vendaLiquidaGeral = pesoMaterialGeral > 0 ? totalVendaGeral / pesoMaterialGeral : 0;
+
+        tfoot.innerHTML = `
+            <tr style="background:#ffeb3b; text-align:left; color:#333; font-weight:bold;">
+                <td style="padding:10px; border:1px solid #fbc02d;">TOTAIS</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right;">100,00%</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right;">KGS ${pesoTotalGeral.toLocaleString('pt-BR')}</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right; color:#2e7d32;">R$ ${fmtBRL(precoCompraGeral)}</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right;">R$ ${totalCompraGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right; color:#2e7d32;">R$ ${fmtBRL(vendaLiquidaGeral)}</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right;">KGS ${totalVendaGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right;">R$ ${lucroBrutoGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                <td style="padding:10px; border:1px solid #fbc02d; text-align:right;">${fmtBRL(pctGeral)}%</td>
+            </tr>
+        `;
+    };
+
+    window.exportarPlanejamentoMesEstrategicoPdf = async function() {
+        const tblContainer = document.getElementById('subaba-estr-planejamento-mes').querySelector('table').parentNode;
+        
+        let logoWatermarkBase64 = null;
+        try {
+            const logoRes = await fetch('/assets/img/logo%20(2).png');
+            if (logoRes.ok) {
+                const blob = await logoRes.blob();
+                logoWatermarkBase64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            }
+        } catch(e) { console.warn('Logo watermark nao carregou:', e); }
+
+        const tempDiv = document.createElement('div');
+        tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1200px;box-sizing:border-box;background:#ffffff;padding:25px;font-family:sans-serif;color:#333;';
+        
+        let grid = '';
+        if (logoWatermarkBase64) {
+            grid += '<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">';
+            for (let r = 0; r < 10; r++) {
+                grid += '<div style="display:flex;justify-content:space-around;align-items:center;padding:20px 0;">';
+                for (let c = 0; c < 5; c++) {
+                    grid += `<img src="${logoWatermarkBase64}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />`;
+                }
+                grid += '</div>';
+            }
+            grid += '</div>';
+        }
+
+        const tableHtml = tblContainer.innerHTML;
+        const hojeStr = new Date().toLocaleDateString('pt-BR');
+        const mesLabel = mesPlanejamentoEstrategicoSelecionado === 'todos' ? 'Todos os Meses' : mesPlanejamentoEstrategicoSelecionado;
+
+        tempDiv.innerHTML = `
+            ${grid}
+            <div style="position:relative;z-index:1;">
+                <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #ffb74d;padding-bottom:20px;margin-bottom:25px;">
+                    <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:50px;"></div>
+                    <div style="text-align:right;">
+                        <h1 style="margin:0;color:#333;font-size:1.8rem;text-transform:uppercase;">Planejamento Estratégico - Mês</h1>
+                        <p style="margin:5px 0 0 0;color:#666;font-size:1rem;">Mês Referência: <strong>${mesLabel}</strong> | Gerado em: ${hojeStr}</p>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:25px; background:#f5f5f5; padding:15px; border-radius:8px; border:1px solid #ddd;">
+                    <div><strong style="color:#666;">Investimento:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-inv').textContent}</span></div>
+                    <div><strong style="color:#666;">Faturamento:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-fat').textContent}</span></div>
+                    <div><strong style="color:#666;">Lucro Bruto:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-lucro').textContent}</span></div>
+                    <div><strong style="color:#666;">% Bruto:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-pct').textContent}</span></div>
+                </div>
+                <div>${tableHtml}</div>
+            </div>
+        `;
+        
+        document.body.appendChild(tempDiv);
+
+        try {
+            await new Promise(r => setTimeout(r, 400));
+            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('landscape', 'mm', 'a4');
+            const pdfWidth = 297;
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Planejamento_Estrategico_Mes_${mesLabel}_${hojeStr.replace(/\//g,'-')}.pdf`);
+            _apexNotify('Sucesso', 'PDF Exportado com sucesso!', 'success');
+        } catch (e) {
+            console.error(e);
+            _apexNotify('Erro', 'Falha ao exportar PDF: ' + e.message, 'error');
+        } finally {
+            document.body.removeChild(tempDiv);
         }
     };
 
