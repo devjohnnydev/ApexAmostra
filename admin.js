@@ -4941,6 +4941,8 @@ var _listTabelaPrecosEstrategica = [];
         if (prcM) {
             prcM.innerHTML = '';
             localMateriais.forEach(m => {
+                const c = (m.categoria || '').toUpperCase();
+                if (c.includes('LIGA') || c.includes('RESIDUO') || c.includes('RESÍDUO')) return;
                 prcM.innerHTML += `<option value="${m.id}">${m.nome} (${m.categoria})</option>`;
             });
         }
@@ -6148,12 +6150,25 @@ var _listTabelaPrecosEstrategica = [];
     window.popularSelectMateriaisModal = function(idSelect) {
         const el = document.getElementById(idSelect);
         if (!el) return;
-        // Usa sempre a lista global (atualizada pelo admin_live.js ao salvar/editar materiais)
         const mats = window.localMateriais && window.localMateriais.length > 0
             ? window.localMateriais
             : localMateriais;
+            
+        let filteredMats = mats;
+        if (idSelect === 'prc-res-material-id') {
+            filteredMats = mats.filter(m => {
+                const c = (m.categoria || '').toUpperCase();
+                return c.includes('RESIDUO') || c.includes('RESÍDUO') || c.includes('PLÁSTICO');
+            });
+        } else if (idSelect === 'prc-lig-material-id') {
+            filteredMats = mats.filter(m => {
+                const c = (m.categoria || '').toUpperCase();
+                return c.includes('LIGA') || c.includes('ESTANHO') || c.includes('SOLDA');
+            });
+        }
+        
         el.innerHTML = '<option value="">Selecione um material...</option>' + 
-            mats.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Sem Categoria'})</option>`).join('');
+            filteredMats.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Sem Categoria'})</option>`).join('');
     };
 
     window.abrirModalPrecoResiduo = function() {

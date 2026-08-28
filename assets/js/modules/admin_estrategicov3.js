@@ -1377,16 +1377,21 @@ window.excluirCicloV3 = async function(cicloId) {
     }
 
     window.fmtD = function(d) {
-        if (!d) return '-'; 
+        if (!d || d === 'dd/mm/aaaa') return '-'; 
         try { 
-            if (typeof d === 'string' && d.includes('T')) d = d.split('T')[0];
-            const parts = d.split('-');
+            if (d === 'Invalid Date') return '-';
+            let strD = String(d);
+            if (strD.includes('T')) strD = strD.split('T')[0];
+            if (strD.includes('/')) return strD; 
+            const parts = strD.split('-');
             if(parts.length === 3) {
                 return `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
-            return new Date(d).toLocaleDateString('pt-BR', {timeZone:'UTC'}); 
+            const dateObj = new Date(d);
+            if (isNaN(dateObj.getTime())) return strD; 
+            return dateObj.toLocaleDateString('pt-BR', {timeZone:'UTC'}); 
         } catch(e){ 
-            return d; 
+            return String(d); 
         }
     };
 
