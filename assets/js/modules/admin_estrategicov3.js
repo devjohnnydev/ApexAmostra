@@ -2820,6 +2820,106 @@ window.excluirCicloV3 = async function(cicloId) {
         `;
     };
 
+    window.gerarPrevisaoAutomaticaMes = async function() {
+        if (!_mesPlanejamentoEstrategicoSelecionado || _mesPlanejamentoEstrategicoSelecionado === 'todos') {
+            _apexNotify('Atenção', 'Selecione um mês específico (Ex: 10 - Outubro) na caixa de seleção para gerar a previsão.', 'warning');
+            return;
+        }
+
+        if (!confirm(`Deseja gerar uma simulação automática de lotes para o mês ${_mesPlanejamentoEstrategicoSelecionado}? Isso substituirá simulações anteriores deste mês.`)) {
+            return;
+        }
+
+        const btn = document.getElementById('btn-gerar-previsao-mes');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Gerando...';
+        }
+
+        try {
+            // Remove lotes antigos deste mes localmente e na API
+            const lotesParaRemover = (_localPlanejamentoEstrategico || []).filter(lc => lc.mes === _mesPlanejamentoEstrategicoSelecionado);
+            for (const lote of lotesParaRemover) {
+                if (lote.id) {
+                    await fetch(`/api/planejamento-compras/${lote.id}`, { method: 'DELETE' }).catch(() => {});
+                }
+            }
+            _localPlanejamentoEstrategico = _localPlanejamentoEstrategico.filter(lc => lc.mes !== _mesPlanejamentoEstrategicoSelecionado);
+
+            // Gerar 5 lotes simulados que refletem o mix da empresa (sucata, aluminio, fio, conectores)
+            const novosLotes = [
+                {
+                    fornecedor_id: 1, fornecedor_nome: 'Fornecedor A',
+                    produto: 'Sucata de Alumínio Misturada',
+                    peso_comprado: 15000, preco_compra: 5.50, percentual_rendimento: 85.0,
+                    material_id: 1, material_nome: 'Alumínio Bloco', preco_venda_material: 7.80,
+                    comissao: 2.0, fidc: 2.3, mes: _mesPlanejamentoEstrategicoSelecionado
+                },
+                {
+                    fornecedor_id: 2, fornecedor_nome: 'Reciclagem B',
+                    produto: 'Cobre Limpo Desmontado',
+                    peso_comprado: 8000, preco_compra: 38.00, percentual_rendimento: 98.0,
+                    material_id: 2, material_nome: 'Cobre Mel', preco_venda_material: 46.50,
+                    comissao: 2.0, fidc: 2.3, mes: _mesPlanejamentoEstrategicoSelecionado
+                },
+                {
+                    fornecedor_id: 3, fornecedor_nome: 'Metalúrgica C',
+                    produto: 'Lote Conectores & Tomadas',
+                    peso_comprado: 12000, preco_compra: 8.20, percentual_rendimento: 72.0,
+                    material_id: 3, material_nome: 'Latão/Bronze', preco_venda_material: 14.50,
+                    comissao: 2.0, fidc: 2.3, mes: _mesPlanejamentoEstrategicoSelecionado
+                },
+                {
+                    fornecedor_id: 4, fornecedor_nome: 'Fornecedor D',
+                    produto: 'fio misto',
+                    peso_comprado: 25000, preco_compra: 15.67, percentual_rendimento: 40.0,
+                    material_id: 2, material_nome: 'Cobre Mel', preco_venda_material: 46.50,
+                    comissao: 2.0, fidc: 2.3, mes: _mesPlanejamentoEstrategicoSelecionado
+                },
+                {
+                    fornecedor_id: 5, fornecedor_nome: 'Fornecedor E',
+                    produto: 'fio terminais',
+                    peso_comprado: 10000, preco_compra: 14.00, percentual_rendimento: 30.0,
+                    material_id: 2, material_nome: 'Cobre Mel', preco_venda_material: 46.50,
+                    comissao: 2.0, fidc: 2.3, mes: _mesPlanejamentoEstrategicoSelecionado
+                }
+            ];
+
+            for (const lote of novosLotes) {
+                const res = await fetch('/api/planejamento-compras', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lote)
+                });
+                if (res.ok) {
+                    const salvo = await res.json();
+                    _localPlanejamentoEstrategico.push(salvo);
+                }
+            }
+
+            if (typeof _apexNotify === 'function') {
+                _apexNotify('Sucesso', 'Simulação automática gerada com sucesso!', 'success');
+            } else {
+                alert('Simulação automática gerada com sucesso!');
+            }
+            
+            window.renderPlanejamentoMesEstrategico();
+
+        } catch (err) {
+            console.error(err);
+            if (typeof _apexNotify === 'function') {
+                _apexNotify('Erro', 'Falha ao gerar previsão automática', 'error');
+            } else {
+                alert('Falha ao gerar previsão automática');
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Gerar Simulação';
+            }
+        }
+    };
+
     window.exportarPlanejamentoMesEstrategicoPdf = async function() {
         const tblContainer = document.getElementById('subaba-estr-planejamento-mes').querySelector('table').parentNode;
         
