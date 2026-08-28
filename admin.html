@@ -1785,6 +1785,12 @@
                             <button class="btn-secondary" onclick="exportarTabelaResiduo()" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
                                 <i class="fa-solid fa-file-excel" style="color: #2AD07A;"></i> Exportar Excel
                             </button>
+                            <button id="btn-pdf-residuos-completa" class="btn-secondary restrito-financeiro" onclick="exportarTabelaResiduosPdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Geral
+                            </button>
+                            <button id="btn-pdf-residuos-fornecedor" class="btn-secondary" onclick="exportarTabelaResiduosPdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #2AD07A;"></i> PDF Fornecedor
+                            </button>
                             <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
                             <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralResiduo()" style="width: auto; background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
                                 <i class="fa-solid fa-calendar-days"></i> Alterar Vigência
@@ -1842,6 +1848,12 @@
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
                             <button class="btn-secondary" onclick="exportarTabelaLiga()" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
                                 <i class="fa-solid fa-file-excel" style="color: #4fc3f7;"></i> Exportar Excel
+                            </button>
+                            <button id="btn-pdf-ligas-completa" class="btn-secondary restrito-financeiro" onclick="exportarTabelaLigasPdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Geral
+                            </button>
+                            <button id="btn-pdf-ligas-fornecedor" class="btn-secondary" onclick="exportarTabelaLigasPdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #4fc3f7;"></i> PDF Fornecedor
                             </button>
                             <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
                             <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralLiga()" style="width: auto; background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">

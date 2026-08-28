@@ -5928,7 +5928,428 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // ─── PDF RESÍDUOS ────────────────────────────────────────────────────────────
+
+    function gerarHtmlTabelaResiduosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
+        const isCompleta = modo === 'completa';
+        const activeSettings = settings || settingsPrecosResiduos || {};
+        const tituloPdf = isCompleta ? 'Tabela Geral de Resíduos — Visão Completa' : 'Tabela de Preços — Resíduos';
+
+        const categorias = [];
+        precos.forEach(p => {
+            if (p.material_categoria && !categorias.includes(p.material_categoria)) categorias.push(p.material_categoria);
+        });
+
+        function gerarGridLogo(src) {
+            if (!src) return '';
+            const cols = isCompleta ? 6 : 4;
+            const rows = 16;
+            let grid = '<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">';
+            for (let r = 0; r < rows; r++) {
+                grid += '<div style="display:flex;justify-content:space-around;align-items:center;padding:18px 0;">';
+                for (let c = 0; c < cols; c++) {
+                    grid += `<img src="${src}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />`;
+                }
+                grid += '</div>';
+            }
+            grid += '</div>';
+            return grid;
+        }
+
+        let html = `
+            <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background:#ffffff;width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
+                ${gerarGridLogo(logoBase64)}
+                <div style="position:relative;z-index:1;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1a5c38;padding-bottom:20px;margin-bottom:25px;">
+                        <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
+                        <div style="text-align:right;">
+                            <h1 style="margin:0;color:#1a5c38;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1a5c38;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                        </div>
+                    </div>
+                    <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">⚠️ Diretrizes Gerais de Compra — Resíduos</h4>
+                        <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                        </ul>
+                    </div>`;
+
+        categorias.forEach(cat => {
+            const precosCat = precos.filter(p => p.material_categoria === cat);
+            if (precosCat.length === 0) return;
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
+            const corCategoria = (activeSettings && activeSettings[`cor_categoria_residuo_${cat}`]) || '#2AD07A';
+
+            html += `
+                <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
+                        <span>${cat}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
+                        <thead>
+                            <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
+                                ${isCompleta ? `
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
+                                ` : ''}
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            precosCat.forEach((p, idx) => {
+                const comissao = parseFloat(p.comissao || 0);
+                const pisCofins = parseFloat(p.pis_cofins || 0);
+                const fidc = parseFloat(p.fidc || 0);
+                const icms = parseFloat(p.icms || 0);
+                const freteColeta = parseFloat(p.frete_coleta || 0);
+                const totalDedPct = comissao + pisCofins + fidc + icms;
+                const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+                const lucroEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                const margemEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
+                const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                const bgRow = idx % 2 === 0 ? '#ffffff' : '#e8f5ee';
+                html += `
+                    <tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};">
+                        <td style="padding:8px;border:1px solid #c8d3e0;color:#111;"><strong>${p.material_nome}</strong></td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                        ${isCompleta ? `
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#d97706;">R$ ${fmtBRL(p.venda_ref)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(comissao)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(pisCofins)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(fidc)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(icms)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">R$ ${fmtBRL(freteColeta)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#0284c7;">R$ ${fmtBRL(vendaLiquida)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#16a34a;">R$ ${fmtBRL(lucroEnt)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#16a34a;">${fmtBRL(margemEnt)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#2563eb;">R$ ${fmtBRL(lucroCol)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#2563eb;">${fmtBRL(margemCol)}%</td>
+                        ` : ''}
+                        <td style="padding:8px;border:1px solid #c8d3e0;color:#111;font-weight:bold;">${p.material_ncm || '-'}</td>
+                    </tr>`;
+            });
+
+            html += `
+                            <tr style="background:#fafafa;">
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+        });
+
+        html += `
+                    <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
+                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                    </div>
+                </div>
+            </div>`;
+        return html;
+    }
+
+    window.gerarPdfTabelaResiduosBase64 = async function(modo) {
+        const modoPDF = modo || 'fornecedor';
+        const isCompleta = modoPDF === 'completa';
+        let precos = localPrecosResiduos;
+        if (!precos || precos.length === 0) {
+            const res = await fetch('/api/tabela-precos-residuos');
+            precos = await res.json();
+        }
+        let settings = {};
+        try { const r = await fetch('/api/settings'); settings = await r.json(); } catch(e) {}
+        const hoje = new Date().toLocaleDateString('pt-BR');
+
+        let logoWatermarkBase64 = null;
+        try {
+            const logoRes = await fetch('/assets/img/logo%20(2).png');
+            if (logoRes.ok) {
+                const blob = await logoRes.blob();
+                logoWatermarkBase64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            }
+        } catch(e) { console.warn('Logo watermark não carregou:', e); }
+
+        const tempDiv = document.createElement('div');
+        tempDiv.style.cssText = `position:absolute;left:-9999px;top:-9999px;width:${isCompleta ? '1400px' : '1000px'};box-sizing:border-box;background:#ffffff;`;
+        tempDiv.innerHTML = gerarHtmlTabelaResiduosParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
+        document.body.appendChild(tempDiv);
+        try {
+            await new Promise(r => setTimeout(r, 600));
+            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf;
+            const pdfWidthMm = isCompleta ? 297 : 210;
+            const pdfPageHeightMm = isCompleta ? 210 : 297;
+            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+            const pdf = new jsPDF({ orientation: isCompleta ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+            let heightLeft = imgHeightMm, position = 0;
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+            heightLeft -= pdfPageHeightMm;
+            while (heightLeft > 5) { position -= pdfPageHeightMm; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm); heightLeft -= pdfPageHeightMm; }
+            return pdf.output('datauristring').split(',')[1];
+        } catch(err) { console.error('Erro ao gerar PDF Resíduos:', err); return null; }
+        finally { document.body.removeChild(tempDiv); }
+    };
+
+    window.exportarTabelaResiduosPdf = async function(modo) {
+        const modoPDF = modo || 'fornecedor';
+        const isCompleta = modoPDF === 'completa';
+        const btnId = isCompleta ? 'btn-pdf-residuos-completa' : 'btn-pdf-residuos-fornecedor';
+        const btn = document.getElementById(btnId);
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
+        try {
+            const base64 = await window.gerarPdfTabelaResiduosBase64(modoPDF);
+            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Resíduos.', 'error'); return; }
+            const link = document.createElement('a');
+            link.href = `data:application/pdf;base64,${base64}`;
+            link.download = isCompleta ? 'Tabela_Residuos_Completa.pdf' : 'Tabela_Residuos_Fornecedor.pdf';
+            link.click();
+        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Resíduos: ' + err.message, 'error'); }
+        finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = isCompleta
+                    ? '<i class="fa-solid fa-file-pdf" style="color:#ff4d4d;"></i> PDF Geral'
+                    : '<i class="fa-solid fa-file-pdf" style="color:#2AD07A;"></i> PDF Fornecedor';
+            }
+        }
+    };
+
+    // ─── PDF LIGAS ────────────────────────────────────────────────────────────────
+
+    function gerarHtmlTabelaLigasParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
+        const isCompleta = modo === 'completa';
+        const activeSettings = settings || settingsPrecosLigas || {};
+        const tituloPdf = isCompleta ? 'Tabela Geral de Ligas Metálicas — Visão Completa' : 'Tabela de Preços — Ligas Metálicas';
+
+        const categorias = [];
+        precos.forEach(p => {
+            if (p.material_categoria && !categorias.includes(p.material_categoria)) categorias.push(p.material_categoria);
+        });
+
+        function gerarGridLogo(src) {
+            if (!src) return '';
+            const cols = isCompleta ? 6 : 4;
+            const rows = 16;
+            let grid = '<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">';
+            for (let r = 0; r < rows; r++) {
+                grid += '<div style="display:flex;justify-content:space-around;align-items:center;padding:18px 0;">';
+                for (let c = 0; c < cols; c++) {
+                    grid += `<img src="${src}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />`;
+                }
+                grid += '</div>';
+            }
+            grid += '</div>';
+            return grid;
+        }
+
+        let html = `
+            <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background:#ffffff;width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
+                ${gerarGridLogo(logoBase64)}
+                <div style="position:relative;z-index:1;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1565c0;padding-bottom:20px;margin-bottom:25px;">
+                        <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
+                        <div style="text-align:right;">
+                            <h1 style="margin:0;color:#1565c0;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1565c0;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                        </div>
+                    </div>
+                    <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">⚠️ Diretrizes Gerais de Compra — Ligas</h4>
+                        <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                        </ul>
+                    </div>`;
+
+        categorias.forEach(cat => {
+            const precosCat = precos.filter(p => p.material_categoria === cat);
+            if (precosCat.length === 0) return;
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
+            const corCategoria = (activeSettings && activeSettings[`cor_categoria_liga_${cat}`]) || '#4fc3f7';
+
+            html += `
+                <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
+                        <span>${cat}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
+                        <thead>
+                            <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
+                                ${isCompleta ? `
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
+                                ` : ''}
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            precosCat.forEach((p, idx) => {
+                const comissao = parseFloat(p.comissao || 0);
+                const pisCofins = parseFloat(p.pis_cofins || 0);
+                const fidc = parseFloat(p.fidc || 0);
+                const icms = parseFloat(p.icms || 0);
+                const freteColeta = parseFloat(p.frete_coleta || 0);
+                const totalDedPct = comissao + pisCofins + fidc + icms;
+                const valDeducoes = (parseFloat(p.venda_ref) || 0) * (totalDedPct / 100);
+                const vendaLiquida = (parseFloat(p.venda_ref) || 0) - valDeducoes;
+                const lucroEnt = vendaLiquida - (parseFloat(p.preco_entregar) || 0);
+                const margemEnt = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroEnt / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
+                const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
+                const bgRow = idx % 2 === 0 ? '#ffffff' : '#e8f2ff';
+                html += `
+                    <tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};">
+                        <td style="padding:8px;border:1px solid #c8d3e0;color:#111;"><strong>${p.material_nome}</strong></td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_entregar)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_coletar)}</td>
+                        ${isCompleta ? `
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#d97706;">R$ ${fmtBRL(p.venda_ref)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(comissao)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(pisCofins)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(fidc)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">${fmtBRL(icms)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#444;">R$ ${fmtBRL(freteColeta)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#0284c7;">R$ ${fmtBRL(vendaLiquida)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#16a34a;">R$ ${fmtBRL(lucroEnt)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#16a34a;">${fmtBRL(margemEnt)}%</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;color:#2563eb;">R$ ${fmtBRL(lucroCol)}</td>
+                        <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#2563eb;">${fmtBRL(margemCol)}%</td>
+                        ` : ''}
+                        <td style="padding:8px;border:1px solid #c8d3e0;color:#111;font-weight:bold;">${p.material_ncm || '-'}</td>
+                    </tr>`;
+            });
+
+            html += `
+                            <tr style="background:#fafafa;">
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+        });
+
+        html += `
+                    <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
+                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                    </div>
+                </div>
+            </div>`;
+        return html;
+    }
+
+    window.gerarPdfTabelaLigasBase64 = async function(modo) {
+        const modoPDF = modo || 'fornecedor';
+        const isCompleta = modoPDF === 'completa';
+        let precos = localPrecosLigas;
+        if (!precos || precos.length === 0) {
+            const res = await fetch('/api/tabela-precos-ligas');
+            precos = await res.json();
+        }
+        let settings = {};
+        try { const r = await fetch('/api/settings'); settings = await r.json(); } catch(e) {}
+        const hoje = new Date().toLocaleDateString('pt-BR');
+
+        let logoWatermarkBase64 = null;
+        try {
+            const logoRes = await fetch('/assets/img/logo%20(2).png');
+            if (logoRes.ok) {
+                const blob = await logoRes.blob();
+                logoWatermarkBase64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            }
+        } catch(e) { console.warn('Logo watermark não carregou:', e); }
+
+        const tempDiv = document.createElement('div');
+        tempDiv.style.cssText = `position:absolute;left:-9999px;top:-9999px;width:${isCompleta ? '1400px' : '1000px'};box-sizing:border-box;background:#ffffff;`;
+        tempDiv.innerHTML = gerarHtmlTabelaLigasParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
+        document.body.appendChild(tempDiv);
+        try {
+            await new Promise(r => setTimeout(r, 600));
+            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf;
+            const pdfWidthMm = isCompleta ? 297 : 210;
+            const pdfPageHeightMm = isCompleta ? 210 : 297;
+            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+            const pdf = new jsPDF({ orientation: isCompleta ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+            let heightLeft = imgHeightMm, position = 0;
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
+            heightLeft -= pdfPageHeightMm;
+            while (heightLeft > 5) { position -= pdfPageHeightMm; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm); heightLeft -= pdfPageHeightMm; }
+            return pdf.output('datauristring').split(',')[1];
+        } catch(err) { console.error('Erro ao gerar PDF Ligas:', err); return null; }
+        finally { document.body.removeChild(tempDiv); }
+    };
+
+    window.exportarTabelaLigasPdf = async function(modo) {
+        const modoPDF = modo || 'fornecedor';
+        const isCompleta = modoPDF === 'completa';
+        const btnId = isCompleta ? 'btn-pdf-ligas-completa' : 'btn-pdf-ligas-fornecedor';
+        const btn = document.getElementById(btnId);
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
+        try {
+            const base64 = await window.gerarPdfTabelaLigasBase64(modoPDF);
+            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Ligas.', 'error'); return; }
+            const link = document.createElement('a');
+            link.href = `data:application/pdf;base64,${base64}`;
+            link.download = isCompleta ? 'Tabela_Ligas_Completa.pdf' : 'Tabela_Ligas_Fornecedor.pdf';
+            link.click();
+        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Ligas: ' + err.message, 'error'); }
+        finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = isCompleta
+                    ? '<i class="fa-solid fa-file-pdf" style="color:#ff4d4d;"></i> PDF Geral'
+                    : '<i class="fa-solid fa-file-pdf" style="color:#4fc3f7;"></i> PDF Fornecedor';
+            }
+        }
+    };
+
     window.enviarTabelaPrecosEmail = async function(modo, emailDestino) {
+
         const testEmailMsg = document.getElementById('test-email-msg');
         const modoPDF = modo || visualizacaoTabelaPrecos || 'fornecedor';
         const isCompleta = modoPDF === 'completa';
