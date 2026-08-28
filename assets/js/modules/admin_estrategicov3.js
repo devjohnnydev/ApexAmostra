@@ -538,7 +538,7 @@
         const dataInicio = document.getElementById('plestv3-ciclo-data-inicio')?.value;
         const dataFim    = document.getElementById('plestv3-ciclo-data-fim')?.value;
         const metaFatEl  = document.getElementById('plestv3-ciclo-meta-fat');
-        let   metaFat    = parseFloat(metaFatEl?.value) || 0;
+        let   metaFat    = window.parseCurrencyV3(metaFatEl?.value) || 0;
 
         if (!metaFat) {
             const elFat = document.getElementById('plestv3-fat-alvo');
@@ -559,7 +559,7 @@
         }
 
         _syncInvestimentoSimuladoCiclo();
-        const investSimulado = parseFloat(document.getElementById('plestv3-ciclo-investimento-sim')?.value) || 0;
+        const investSimulado = window.parseCurrencyV3(document.getElementById('plestv3-ciclo-investimento-sim')?.value) || 0;
 
         const mixSnapshot = _mixSimulacaoV3.map(item => {
             const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === item.material_id);
@@ -630,9 +630,9 @@
 
     window.confirmarResultadoRealV3 = async function() {
     const cicloId  = parseInt(document.getElementById('modal-rr-ciclo-id')?.value);
-    const fatReal  = parseFloat(document.getElementById('modal-rr-fat-real')?.value);
-    const invReal  = parseFloat(document.getElementById('modal-rr-invest-real')?.value);
-    const volReal  = parseFloat(document.getElementById('modal-rr-volume-real')?.value) || null;
+    const fatReal  = window.parseCurrencyV3(document.getElementById('modal-rr-fat-real')?.value);
+    const invReal  = window.parseCurrencyV3(document.getElementById('modal-rr-invest-real')?.value);
+    const volReal  = window.parseCurrencyV3(document.getElementById('modal-rr-volume-real')?.value) || null;
     const obs      = document.getElementById('modal-rr-obs')?.value?.trim() || '';
 
     if (!fatReal || fatReal <= 0) { alert('Informe o Faturamento Real alcançado.'); return; }
@@ -1403,6 +1403,11 @@ window.excluirCicloV3 = async function(cicloId) {
         value = value.replace(".", ",");
         value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
         input.value = value;
+    };
+
+    window.parseCurrencyV3 = function(val) {
+        if (!val) return 0;
+        return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
     };
 
     window.salvarPlanejamentoV3 = async function() {

@@ -231,6 +231,14 @@
                     <i class="fa-solid fa-dollar-sign" style="color:#f0c040;"></i>
                     <span>Tabela de Preços</span>
                 </a>
+                <a href="#" class="nav-item" data-target="volume-view" id="nav-volume" data-tooltip="Tabela de Preço (Volume)">
+                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i>
+                    <span>Preço por Volume</span>
+                </a>
+                <a href="#" class="nav-item" data-target="fundicao-view" id="nav-fundicao" data-tooltip="Tabela de Fundição">
+                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i>
+                    <span>Fundição</span>
+                </a>
                 <a href="#" class="nav-item" data-target="amostras-view" id="nav-amostras" style="position:relative;" data-tooltip="Análise de Amostras">
                     <i class="fa-solid fa-flask" style="color:#c084fc;"></i>
                     <span>Análise de Amostras</span>
@@ -1894,6 +1902,134 @@
                 </div>
             </section>
 
+            <!-- ═══════════════════════════════════════════════════════════
+                 VOLUME — Tabela de Preço (Volume)
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="volume-view" class="view-section">
+                <header class="section-header" style="margin-bottom: 20px;">
+                    <div style="width: 100%;">
+                        <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                            <h1 style="font-size: 1.8rem; margin: 0; display: flex; align-items: center; gap: 10px; color: #f97316;">
+                                <i class="fa-solid fa-boxes-stacked" style="color: #f97316; background: rgba(249,115,22,0.15); padding: 8px 12px; border-radius: 8px;"></i>
+                                <span>Tabela de Preço (Volume)</span>
+                            </h1>
+                            <p style="margin: 6px 0 0 0; color: #aaa; font-size: 0.9rem;">
+                                Define e monitora os custos de entrega, coleta e o lucro projetado dos itens por volume com base em LME / Venda Ref.
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                            <button class="btn-secondary" onclick="exportarTabelaVolume()" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-excel" style="color: #f97316;"></i> Exportar Excel
+                            </button>
+                            <button id="btn-pdf-volume-completa" class="btn-secondary restrito-financeiro" onclick="exportarTabelaVolumePdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Geral
+                            </button>
+                            <button id="btn-pdf-volume-fornecedor" class="btn-secondary" onclick="exportarTabelaVolumePdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #f97316;"></i> PDF Fornecedor
+                            </button>
+                            <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
+                            <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralVolume()" style="width: auto; background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-calendar-days"></i> Alterar Vigência
+                            </button>
+                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPrecoVolume()" style="width: auto; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; background: linear-gradient(135deg, #f97316, #ea580c); white-space: nowrap;">
+                                <i class="fa-solid fa-plus"></i> Novo Item de Preço
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:rgba(30,78,140,0.15); padding:15px 20px; border-radius:8px; border:1px solid rgba(30,78,140,0.3);">
+                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-weight: bold; color: #fff; font-size: 0.95rem;"><i class="fa-solid fa-eye"></i> Modo de Exibição:</span>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-volume-visualizacao" value="completa" checked onchange="alterarVisualizacaoVolume(this.value)">
+                            Tabela Completa (Todos os Dados)
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-volume-visualizacao" value="fornecedor" onchange="alterarVisualizacaoVolume(this.value)">
+                            Tabela para Fornecedor (Oculta Estratégicos)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px; margin-bottom: 20px; border:1px solid #f97316;">
+                    <h3 style="margin-top:0; color:#f97316;"><i class="fa-solid fa-triangle-exclamation"></i> Diretrizes Gerais de Compra — Volume</h3>
+                    <ul style="color:#aaa; font-size:0.9rem; padding-left:20px; margin-bottom:0;">
+                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                        <li><strong>DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</strong></li>
+                    </ul>
+                </div>
+
+                <div id="volume-precos-categorias-container">
+                    <!-- Categorias de volume renderizadas aqui pelo JS -->
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 FUNDIÇÃO — Tabela de Preços
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="fundicao-view" class="view-section">
+                <header class="section-header" style="margin-bottom: 20px;">
+                    <div style="width: 100%;">
+                        <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                            <h1 style="font-size: 1.8rem; margin: 0; display: flex; align-items: center; gap: 10px; color: #ef4444;">
+                                <i class="fa-solid fa-fire-flame-curved" style="color: #ef4444; background: rgba(239,68,68,0.15); padding: 8px 12px; border-radius: 8px;"></i>
+                                <span>Tabela de Fundição</span>
+                            </h1>
+                            <p style="margin: 6px 0 0 0; color: #aaa; font-size: 0.9rem;">
+                                Define e monitora os custos de entrega, coleta e o lucro projetado dos materiais de fundição com base em LME / Venda Ref.
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                            <button class="btn-secondary" onclick="exportarTabelaFundicao()" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-excel" style="color: #ef4444;"></i> Exportar Excel
+                            </button>
+                            <button id="btn-pdf-fundicao-completa" class="btn-secondary restrito-financeiro" onclick="exportarTabelaFundicaoPdf('completa')" title="Baixar PDF completo com todos os dados estratégicos e fiscais" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #ff4d4d;"></i> PDF Geral
+                            </button>
+                            <button id="btn-pdf-fundicao-fornecedor" class="btn-secondary" onclick="exportarTabelaFundicaoPdf('fornecedor')" title="Baixar PDF simplificado para fornecedor/cliente" style="width: auto; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> PDF Fornecedor
+                            </button>
+                            <div style="height: 22px; width: 1px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
+                            <button class="btn-secondary restrito-financeiro" onclick="alterarValidadeGeralFundicao()" style="width: auto; background:#1e4e8c; color:#fff; border-color:#1e4e8c; padding: 8px 14px; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">
+                                <i class="fa-solid fa-calendar-days"></i> Alterar Vigência
+                            </button>
+                            <button class="btn-primary restrito-financeiro" onclick="abrirModalPrecoFundicao()" style="width: auto; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; background: linear-gradient(135deg, #ef4444, #dc2626); white-space: nowrap;">
+                                <i class="fa-solid fa-plus"></i> Novo Item de Preço
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:rgba(30,78,140,0.15); padding:15px 20px; border-radius:8px; border:1px solid rgba(30,78,140,0.3);">
+                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-weight: bold; color: #fff; font-size: 0.95rem;"><i class="fa-solid fa-eye"></i> Modo de Exibição:</span>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-fundicao-visualizacao" value="completa" checked onchange="alterarVisualizacaoFundicao(this.value)">
+                            Tabela Completa (Todos os Dados)
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9rem; font-weight:500;">
+                            <input type="radio" name="tipo-fundicao-visualizacao" value="fornecedor" onchange="alterarVisualizacaoFundicao(this.value)">
+                            Tabela para Fornecedor (Oculta Estratégicos)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="kpi-card" style="padding: 20px; border-radius: 8px; margin-bottom: 20px; border:1px solid #ef4444;">
+                    <h3 style="margin-top:0; color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Diretrizes Gerais de Compra — Fundição</h3>
+                    <ul style="color:#aaa; font-size:0.9rem; padding-left:20px; margin-bottom:0;">
+                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                        <li><strong>DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)</strong></li>
+                    </ul>
+                </div>
+
+                <div id="fundicao-precos-categorias-container">
+                    <!-- Categorias de fundição renderizadas aqui pelo JS -->
+                </div>
+            </section>
+
 
             <!-- ═══════════════════════════════════════════════════════════
                  3. TABELA DE PREÇOS
@@ -2778,11 +2914,11 @@
                         </div>
                         <div class="form-group">
                             <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Meta Faturamento Simulada (R$)</label>
-                            <input type="number" id="plestv3-ciclo-meta-fat" class="noble-input" placeholder="Ex: 1000000" style="font-size:0.85rem;">
+                            <input type="text" id="plestv3-ciclo-meta-fat" class="noble-input" placeholder="Ex: 1.000,00" style="font-size:0.85rem;" oninput="window.maskCurrencyV3(this)">
                         </div>
                         <div class="form-group">
                             <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;"><i class="fa-solid fa-cart-shopping" style="color:#ff9800;"></i> Investimento Simulado (R$)</label>
-                            <input type="number" id="plestv3-ciclo-investimento-sim" class="noble-input" placeholder="Calculado automaticamente" style="font-size:0.85rem;" readonly>
+                            <input type="text" id="plestv3-ciclo-investimento-sim" class="noble-input" placeholder="Calculado automaticamente" style="font-size:0.85rem;" readonly>
                         </div>
                     </div>
 
@@ -2820,15 +2956,15 @@
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
                             <div class="form-group">
                                 <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Faturamento Real (R$) *</label>
-                                <input type="number" id="modal-rr-fat-real" class="noble-input" placeholder="Ex: 850000" step="0.01" min="0">
+                                <input type="text" id="modal-rr-fat-real" class="noble-input" placeholder="Ex: 850.000,00" oninput="window.maskCurrencyV3(this)">
                             </div>
                             <div class="form-group">
                                 <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Investimento Real em Compras (R$) *</label>
-                                <input type="number" id="modal-rr-invest-real" class="noble-input" placeholder="Ex: 620000" step="0.01" min="0">
+                                <input type="text" id="modal-rr-invest-real" class="noble-input" placeholder="Ex: 620.000,00" oninput="window.maskCurrencyV3(this)">
                             </div>
                             <div class="form-group">
                                 <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Volume Total Comprado (kg)</label>
-                                <input type="number" id="modal-rr-volume-real" class="noble-input" placeholder="Ex: 145000" step="0.001" min="0">
+                                <input type="text" id="modal-rr-volume-real" class="noble-input" placeholder="Ex: 145.000,00" oninput="window.maskCurrencyV3(this)">
                             </div>
                             <div class="form-group">
                                 <label style="color:#aaa; font-size:0.78rem; margin-bottom:4px; display:block;">Observações</label>
