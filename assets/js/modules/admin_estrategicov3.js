@@ -2845,7 +2845,7 @@ window.excluirCicloV3 = async function(cicloId) {
             for (let r = 0; r < 10; r++) {
                 grid += '<div style="display:flex;justify-content:space-around;align-items:center;padding:20px 0;">';
                 for (let c = 0; c < 5; c++) {
-                    grid += \`<img src="\${logoWatermarkBase64}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />\`;
+                    grid += `<img src="${logoWatermarkBase64}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />`;
                 }
                 grid += '</div>';
             }
@@ -2857,25 +2857,25 @@ window.excluirCicloV3 = async function(cicloId) {
         const mesLabel = _mesPlanejamentoEstrategicoSelecionado === 'todos' ? 'Todos os Meses' : _mesPlanejamentoEstrategicoSelecionado;
         const fmt = window.fmtBRL || function(v) { return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); };
 
-        tempDiv.innerHTML = \`
-            \${grid}
+        tempDiv.innerHTML = `
+            ${grid}
             <div style="position:relative;z-index:1;">
                 <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #ffb74d;padding-bottom:20px;margin-bottom:25px;">
                     <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:50px;"></div>
                     <div style="text-align:right;">
                         <h1 style="margin:0;color:#333;font-size:1.8rem;text-transform:uppercase;">Planejamento Estratégico - Mês</h1>
-                        <p style="margin:5px 0 0 0;color:#666;font-size:1rem;">Mês Referência: <strong>\${mesLabel}</strong> | Gerado em: \${hojeStr}</p>
+                        <p style="margin:5px 0 0 0;color:#666;font-size:1rem;">Mês Referência: <strong>${mesLabel}</strong> | Gerado em: ${hojeStr}</p>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:25px; background:#f5f5f5; padding:15px; border-radius:8px; border:1px solid #ddd;">
-                    <div><strong style="color:#666;">Investimento:</strong> <span style="font-size:1.2rem;color:#333;">\${document.getElementById('plest-kpi-inv').textContent}</span></div>
-                    <div><strong style="color:#666;">Faturamento:</strong> <span style="font-size:1.2rem;color:#333;">\${document.getElementById('plest-kpi-fat').textContent}</span></div>
-                    <div><strong style="color:#666;">Lucro Bruto:</strong> <span style="font-size:1.2rem;color:#333;">\${document.getElementById('plest-kpi-lucro').textContent}</span></div>
-                    <div><strong style="color:#666;">% Bruto:</strong> <span style="font-size:1.2rem;color:#333;">\${document.getElementById('plest-kpi-pct').textContent}</span></div>
+                    <div><strong style="color:#666;">Investimento:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-inv').textContent}</span></div>
+                    <div><strong style="color:#666;">Faturamento:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-fat').textContent}</span></div>
+                    <div><strong style="color:#666;">Lucro Bruto:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-lucro').textContent}</span></div>
+                    <div><strong style="color:#666;">% Bruto:</strong> <span style="font-size:1.2rem;color:#333;">${document.getElementById('plest-kpi-pct').textContent}</span></div>
                 </div>
-                <div>\${tableHtml}</div>
+                <div>${tableHtml}</div>
             </div>
-        \`;
+        `;
         
         document.body.appendChild(tempDiv);
 
@@ -2888,7 +2888,7 @@ window.excluirCicloV3 = async function(cicloId) {
             const pdfWidth = 297;
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
             pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(\`Planejamento_Estrategico_Mes_\${mesLabel}_\${hojeStr.replace(/\\//g,'-')}.pdf\`);
+            pdf.save(`Planejamento_Estrategico_Mes_${mesLabel}_${hojeStr.replace(/\//g,'-')}.pdf`);
             _apexNotify('Sucesso', 'PDF Exportado com sucesso!', 'success');
         } catch (e) {
             console.error(e);
