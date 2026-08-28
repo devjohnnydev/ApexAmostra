@@ -1795,15 +1795,15 @@ window.excluirCicloV3 = async function(cicloId) {
 
                     <!-- Scenarios Row -->
                     <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
-                        <div style="background:#0d1826; border:1px solid #00e5ff; padding:12px; border-radius:8px;">
-                            <h4 style="margin:0 0 8px 0; color:#00e5ff; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
+                        <div style="background:#0d1826; border:1px solid #2AD07A; padding:12px; border-radius:8px;">
+                            <h4 style="margin:0 0 8px 0; color:#2AD07A; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
                             <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tCons)}</div>
-                            ${totalReal >= tCons ? '<div style="margin-top:5px; background:#00e5ff; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            ${totalReal >= tCons ? '<div style="margin-top:5px; background:#2AD07A; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
                         </div>
-                        <div style="background:#0d1826; border:1px solid #ffb74d; padding:12px; border-radius:8px;">
-                            <h4 style="margin:0 0 8px 0; color:#ffb74d; font-size:12px;">MODERADO (${modPct}%)</h4>
+                        <div style="background:#0d1826; border:1px solid #f0b800; padding:12px; border-radius:8px;">
+                            <h4 style="margin:0 0 8px 0; color:#f0b800; font-size:12px;">MODERADO (${modPct}%)</h4>
                             <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tMod)}</div>
-                            ${totalReal >= tMod ? '<div style="margin-top:5px; background:#ffb74d; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            ${totalReal >= tMod ? '<div style="margin-top:5px; background:#f0b800; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
                         </div>
                         <div style="background:#0d1826; border:1px solid #ff4d4d; padding:12px; border-radius:8px;">
                             <h4 style="margin:0 0 8px 0; color:#ff4d4d; font-size:12px;">AGRESSIVO (${agrPct}%)</h4>
@@ -2259,15 +2259,15 @@ window.excluirCicloV3 = async function(cicloId) {
 
                     <!-- Scenarios Row -->
                     <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
-                        <div style="background:#0d1826; border:1px solid #00e5ff; padding:12px; border-radius:8px;">
-                            <h4 style="margin:0 0 8px 0; color:#00e5ff; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
+                        <div style="background:#0d1826; border:1px solid #2AD07A; padding:12px; border-radius:8px;">
+                            <h4 style="margin:0 0 8px 0; color:#2AD07A; font-size:12px;">CONSERVADOR (${consPct}%)</h4>
                             <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tCons)}</div>
-                            ${totalReal >= tCons ? '<div style="margin-top:5px; background:#00e5ff; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            ${totalReal >= tCons ? '<div style="margin-top:5px; background:#2AD07A; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
                         </div>
-                        <div style="background:#0d1826; border:1px solid #ffb74d; padding:12px; border-radius:8px;">
-                            <h4 style="margin:0 0 8px 0; color:#ffb74d; font-size:12px;">MODERADO (${modPct}%)</h4>
+                        <div style="background:#0d1826; border:1px solid #f0b800; padding:12px; border-radius:8px;">
+                            <h4 style="margin:0 0 8px 0; color:#f0b800; font-size:12px;">MODERADO (${modPct}%)</h4>
                             <div style="color:#fff; font-weight:bold; font-size:14px;">R$ ${window.fmtBRL(tMod)}</div>
-                            ${totalReal >= tMod ? '<div style="margin-top:5px; background:#ffb74d; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
+                            ${totalReal >= tMod ? '<div style="margin-top:5px; background:#f0b800; color:#0d1826; font-size:10px; font-weight:bold; text-align:center; padding:2px; border-radius:4px;">ATINGIDO</div>' : ''}
                         </div>
                         <div style="background:#0d1826; border:1px solid #ff4d4d; padding:12px; border-radius:8px;">
                             <h4 style="margin:0 0 8px 0; color:#ff4d4d; font-size:12px;">AGRESSIVO (${agrPct}%)</h4>

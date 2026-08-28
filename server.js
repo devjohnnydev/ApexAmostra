@@ -3984,9 +3984,9 @@ app.post('/api/planejamento/cenarios/simular', async (req, res) => {
             };
         };
 
-        const conservador = calcCenario('CONSERVADOR', pctCons, 'Baixo Risco (Cenário de Segurança)', '🔴 ABAIXO DA META BASE');
-        const moderado = calcCenario('MODERADO', pctMod, 'Risco Moderado (Padrão Operacional)', '🟡 META BASE');
-        const agressivo = calcCenario('AGRESSIVO', pctAgr, 'Risco Controlado (Expansão)', '🟢 META ESTRATÉGICA');
+        const conservador = calcCenario('CONSERVADOR', pctCons, 'Baixo Risco (Cenário de Segurança)', '🟢 CENÁRIO CONSERVADOR');
+        const moderado = calcCenario('MODERADO', pctMod, 'Risco Moderado (Padrão Operacional)', '🟡 META BASE (MODERADO)');
+        const agressivo = calcCenario('AGRESSIVO', pctAgr, 'Risco Controlado (Expansão)', '🔴 META EXPANSÃO (AGRESSIVO)');
 
         res.json({
             meta_base_rs: metaBase,

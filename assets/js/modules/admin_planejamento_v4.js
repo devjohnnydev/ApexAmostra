@@ -3722,7 +3722,7 @@
                     {
                         label: 'Faturamento Previsto (R$)',
                         data: [cons.faturamento_previsto_rs, mod.faturamento_previsto_rs, agr.faturamento_previsto_rs],
-                        backgroundColor: ['#ff4d4d', '#f0b800', '#2AD07A']
+                        backgroundColor: ['#2AD07A', '#f0b800', '#ff4d4d']
                     }
                 ]
             },
@@ -3786,9 +3786,9 @@
         };
 
         tbody.innerHTML =
-            buildRow('🔴 CONSERVADOR', pCons, '#ff4d4d') +
+            buildRow('🟢 CONSERVADOR', pCons, '#2AD07A') +
             buildRow('🟡 MODERADO', pMod, '#f0b800') +
-            buildRow('🟢 AGRESSIVO', pAgr, '#2AD07A');
+            buildRow('🔴 AGRESSIVO', pAgr, '#ff4d4d');
     }
 
     window.imprimirCenariosPdf = async function() {
@@ -5157,8 +5157,8 @@ function renderChartDashPlTendencia(planos) {
                         {
                             label: 'Cenário Conservador',
                             data: dataConservador,
-                            borderColor: '#ff4d4d',
-                            backgroundColor: 'rgba(255, 77, 77, 0.1)',
+                            borderColor: '#2AD07A',
+                            backgroundColor: 'rgba(42, 208, 122, 0.15)',
                             borderWidth: 2,
                             fill: true,
                             tension: 0.3
@@ -5166,8 +5166,8 @@ function renderChartDashPlTendencia(planos) {
                         {
                             label: 'Planejado Alvo (Moderado)',
                             data: dataModerado,
-                            borderColor: '#2AD07A',
-                            backgroundColor: 'rgba(42, 208, 122, 0.1)',
+                            borderColor: '#f0b800',
+                            backgroundColor: 'rgba(240, 184, 0, 0.15)',
                             borderWidth: 3,
                             fill: true,
                             tension: 0.3
@@ -5175,8 +5175,8 @@ function renderChartDashPlTendencia(planos) {
                         {
                             label: 'Cenário Agressivo',
                             data: dataAgressivo,
-                            borderColor: '#3e7cb1',
-                            backgroundColor: 'rgba(62, 124, 177, 0.1)',
+                            borderColor: '#ff4d4d',
+                            backgroundColor: 'rgba(255, 77, 77, 0.15)',
                             borderWidth: 2,
                             fill: true,
                             tension: 0.3

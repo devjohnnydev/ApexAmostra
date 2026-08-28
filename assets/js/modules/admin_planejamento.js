@@ -3720,7 +3720,7 @@
                     {
                         label: 'Faturamento Previsto (R$)',
                         data: [cons.faturamento_previsto_rs, mod.faturamento_previsto_rs, agr.faturamento_previsto_rs],
-                        backgroundColor: ['#ff4d4d', '#f0b800', '#2AD07A']
+                        backgroundColor: ['#2AD07A', '#f0b800', '#ff4d4d']
                     }
                 ]
             },
@@ -3784,9 +3784,9 @@
         };
 
         tbody.innerHTML =
-            buildRow('🔴 CONSERVADOR', pCons, '#ff4d4d') +
+            buildRow('🟢 CONSERVADOR', pCons, '#2AD07A') +
             buildRow('🟡 MODERADO', pMod, '#f0b800') +
-            buildRow('🟢 AGRESSIVO', pAgr, '#2AD07A');
+            buildRow('🔴 AGRESSIVO', pAgr, '#ff4d4d');
     }
 
     window.imprimirCenariosPdf = async function() {
