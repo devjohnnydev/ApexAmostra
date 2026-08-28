@@ -16,11 +16,11 @@ const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger    = require('./config/logger');
 
-if (!process.env.JWT_SECRET) {
-    console.error('ERRO CRÍTICO: JWT_SECRET não definido nas variáveis de ambiente. Defina a variável para garantir a segurança dos tokens.');
-    process.exit(1);
+let JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.warn('⚠️ AVISO CRÍTICO: JWT_SECRET não definido no .env. Gerando chave aleatória temporária. Todos os usuários serão deslogados caso o servidor reinicie.');
+    JWT_SECRET = require('crypto').randomBytes(64).toString('hex');
 }
-const JWT_SECRET = process.env.JWT_SECRET;
 // ─── Multer: armazenamento em memória (fotos de amostras) ──────────────────────
 const uploadMemory = multer({
     storage: multer.memoryStorage(),
