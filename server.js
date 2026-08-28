@@ -36,6 +36,27 @@ dotenv.config();
 
 const app  = express();
 app.set('trust proxy', 1); // Necessário para o express-rate-limit funcionar atrás de um proxy (Railway)
+
+// ─── Utilitários ─────────────────────────────────────────────────────────────
+/**
+ * Capitaliza cada palavra do nome (ex: "sucata de cobre" → "Sucata De Cobre").
+ * Artigos/preposições curtos em português permanecem em minúsculas quando no meio.
+ */
+function formatarNomeCapitalizado(nome) {
+    if (!nome || typeof nome !== 'string') return nome;
+    const minusculas = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'em', 'com', 'para', 'por']);
+    return nome
+        .trim()
+        .toLowerCase()
+        .split(' ')
+        .filter(p => p.length > 0)
+        .map((palavra, idx) =>
+            idx === 0 || !minusculas.has(palavra)
+                ? palavra.charAt(0).toUpperCase() + palavra.slice(1)
+                : palavra
+        )
+        .join(' ');
+}
 const PORT = process.env.PORT || 3000;
 
 // ─── SEGURANÇA BÁSICA (HELMET REMOVIDO TEMPORARIAMENTE) ──────────────────────
