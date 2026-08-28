@@ -6148,8 +6148,12 @@ var _listTabelaPrecosEstrategica = [];
     window.popularSelectMateriaisModal = function(idSelect) {
         const el = document.getElementById(idSelect);
         if (!el) return;
+        // Usa sempre a lista global (atualizada pelo admin_live.js ao salvar/editar materiais)
+        const mats = window.localMateriais && window.localMateriais.length > 0
+            ? window.localMateriais
+            : localMateriais;
         el.innerHTML = '<option value="">Selecione um material...</option>' + 
-            localMateriais.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Sem Categoria'})</option>`).join('');
+            mats.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Sem Categoria'})</option>`).join('');
     };
 
     window.abrirModalPrecoResiduo = function() {

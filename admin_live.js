@@ -4887,6 +4887,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await carregarMateriais();
             // Reload the pricing table so the new material/category appears immediately
             if (window.carregarPrecos) await window.carregarPrecos();
+            // Reload residuos and ligas pricing tables so new items appear in their dropdowns
+            if (window.carregarPrecosResiduos) await window.carregarPrecosResiduos();
+            if (window.carregarPrecosLigas) await window.carregarPrecosLigas();
         } catch (err) {
             console.error(err);
             _apexNotify('Atenção', 'Erro de conexão ao salvar material: ' + err.message, 'error');
@@ -4900,6 +4903,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await carregarMateriais();
             // Reload the pricing table so the deleted material/category is removed
             if (window.carregarPrecos) await window.carregarPrecos();
+            if (window.carregarPrecosResiduos) await window.carregarPrecosResiduos();
+            if (window.carregarPrecosLigas) await window.carregarPrecosLigas();
         } catch (err) {
             console.error(err);
         }
