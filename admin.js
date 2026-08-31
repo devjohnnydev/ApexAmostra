@@ -6187,11 +6187,73 @@ var _listTabelaPrecosEstrategica = [];
         calcularMargemLiquidaModalResiduo();
     };
 
+
     window.fecharModalPrecoResiduo = function() {
         document.getElementById('modal-preco-residuo').style.display = 'none';
     };
 
+    window.calcularPorcentagemDeEntregarResiduo = function() {
+        const venda = parseFloat(document.getElementById('prc-res-venda')?.value) || 0;
+        const entregar = parseFloat(document.getElementById('prc-res-entregar')?.value) || 0;
+        const pctEl = document.getElementById('prc-res-entregar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((entregar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalResiduo();
+    };
+
+    window.calcularValorDeEntregarResiduo = function() {
+        const venda = parseFloat(document.getElementById('prc-res-venda')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-res-entregar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-res-entregar');
+        if (entEl && venda > 0) entEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalResiduo();
+    };
+
+    window.calcularPorcentagemDeColetarResiduo = function() {
+        const venda = parseFloat(document.getElementById('prc-res-venda')?.value) || 0;
+        const coletar = parseFloat(document.getElementById('prc-res-coletar')?.value) || 0;
+        const pctEl = document.getElementById('prc-res-coletar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((coletar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalResiduo();
+    };
+
+    window.calcularValorDeColetarResiduo = function() {
+        const venda = parseFloat(document.getElementById('prc-res-venda')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-res-coletar-pct')?.value) || 0;
+        const colEl = document.getElementById('prc-res-coletar');
+        if (colEl && venda > 0) colEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalResiduo();
+    };
+
+    window.calcularValoresDeAcordoComPorcentagemResiduo = function() {
+        const venda = parseFloat(document.getElementById('prc-res-venda')?.value) || 0;
+        const pctEnt = parseFloat(document.getElementById('prc-res-entregar-pct')?.value) || 0;
+        const pctCol = parseFloat(document.getElementById('prc-res-coletar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-res-entregar');
+        const colEl = document.getElementById('prc-res-coletar');
+        if (venda > 0) {
+            if (pctEnt > 0 && entEl) entEl.value = ((pctEnt / 100) * venda).toFixed(2);
+            if (pctCol > 0 && colEl) colEl.value = ((pctCol / 100) * venda).toFixed(2);
+        }
+        window.calcularPorcentagemDeEntregarResiduo();
+        window.calcularPorcentagemDeColetarResiduo();
+        window.calcularMargemLiquidaModalResiduo();
+    };
+
+    window.atualizarPreviewDataResiduo = function() {
+        const val = document.getElementById('prc-res-validade')?.value;
+        const preview = document.getElementById('prc-res-data-preview');
+        if (preview) {
+            if (val) {
+                const [y, m, d] = val.split('-');
+                preview.textContent = `${d}/${m}/${y}`;
+            } else {
+                preview.textContent = '--/--/----';
+            }
+        }
+    };
+
     window.calcularMargemLiquidaModalResiduo = function() {
+
         const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
         const vendaRef = parseVal('prc-res-venda');
         const precoEnt = parseVal('prc-res-entregar');
@@ -6236,6 +6298,9 @@ var _listTabelaPrecosEstrategica = [];
         document.getElementById('prc-res-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
         document.getElementById('prc-res-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
         document.getElementById('modal-preco-residuo').style.display = 'flex';
+        window.calcularPorcentagemDeEntregarResiduo();
+        window.calcularPorcentagemDeColetarResiduo();
+        window.atualizarPreviewDataResiduo();
         calcularMargemLiquidaModalResiduo();
     };
 
@@ -6459,7 +6524,68 @@ var _listTabelaPrecosEstrategica = [];
         document.getElementById('modal-preco-liga').style.display = 'none';
     };
 
+    window.calcularPorcentagemDeEntregarLiga = function() {
+        const venda = parseFloat(document.getElementById('prc-lig-venda')?.value) || 0;
+        const entregar = parseFloat(document.getElementById('prc-lig-entregar')?.value) || 0;
+        const pctEl = document.getElementById('prc-lig-entregar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((entregar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalLiga();
+    };
+
+    window.calcularValorDeEntregarLiga = function() {
+        const venda = parseFloat(document.getElementById('prc-lig-venda')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-lig-entregar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-lig-entregar');
+        if (entEl && venda > 0) entEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalLiga();
+    };
+
+    window.calcularPorcentagemDeColetarLiga = function() {
+        const venda = parseFloat(document.getElementById('prc-lig-venda')?.value) || 0;
+        const coletar = parseFloat(document.getElementById('prc-lig-coletar')?.value) || 0;
+        const pctEl = document.getElementById('prc-lig-coletar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((coletar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalLiga();
+    };
+
+    window.calcularValorDeColetarLiga = function() {
+        const venda = parseFloat(document.getElementById('prc-lig-venda')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-lig-coletar-pct')?.value) || 0;
+        const colEl = document.getElementById('prc-lig-coletar');
+        if (colEl && venda > 0) colEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalLiga();
+    };
+
+    window.calcularValoresDeAcordoComPorcentagemLiga = function() {
+        const venda = parseFloat(document.getElementById('prc-lig-venda')?.value) || 0;
+        const pctEnt = parseFloat(document.getElementById('prc-lig-entregar-pct')?.value) || 0;
+        const pctCol = parseFloat(document.getElementById('prc-lig-coletar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-lig-entregar');
+        const colEl = document.getElementById('prc-lig-coletar');
+        if (venda > 0) {
+            if (pctEnt > 0 && entEl) entEl.value = ((pctEnt / 100) * venda).toFixed(2);
+            if (pctCol > 0 && colEl) colEl.value = ((pctCol / 100) * venda).toFixed(2);
+        }
+        window.calcularPorcentagemDeEntregarLiga();
+        window.calcularPorcentagemDeColetarLiga();
+        window.calcularMargemLiquidaModalLiga();
+    };
+
+    window.atualizarPreviewDataLiga = function() {
+        const val = document.getElementById('prc-lig-validade')?.value;
+        const preview = document.getElementById('prc-lig-data-preview');
+        if (preview) {
+            if (val) {
+                const [y, m, d] = val.split('-');
+                preview.textContent = `${d}/${m}/${y}`;
+            } else {
+                preview.textContent = '--/--/----';
+            }
+        }
+    };
+
     window.calcularMargemLiquidaModalLiga = function() {
+
         const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
         const vendaRef = parseVal('prc-lig-venda');
         const precoEnt = parseVal('prc-lig-entregar');
@@ -6504,6 +6630,9 @@ var _listTabelaPrecosEstrategica = [];
         document.getElementById('prc-lig-frete-coleta').value = parseFloat(p.frete_coleta || 0).toFixed(2);
         document.getElementById('prc-lig-validade').value = p.validade ? p.validade.split('T')[0] : new Date().toISOString().split('T')[0];
         document.getElementById('modal-preco-liga').style.display = 'flex';
+        window.calcularPorcentagemDeEntregarLiga();
+        window.calcularPorcentagemDeColetarLiga();
+        window.atualizarPreviewDataLiga();
         calcularMargemLiquidaModalLiga();
     };
 
@@ -6714,37 +6843,201 @@ var _listTabelaPrecosEstrategica = [];
     window.abrirModalPrecoVolume = function() {
         const hoje = new Date(); hoje.setMonth(hoje.getMonth() + 1);
         const validadeDefault = hoje.toISOString().split('T')[0];
+        const [vy, vm, vd] = validadeDefault.split('-');
+        const dataPreviewDefault = `${vd}/${vm}/${vy}`;
         const html = `
         <div id="modal-preco-volume" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
-            <div style="background:#0d1826;border:1px solid #f97316;border-radius:12px;padding:30px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;">
-                <h2 style="color:#f97316;margin-top:0;"><i class="fa-solid fa-boxes-stacked"></i> Novo Item — Preço por Volume</h2>
-                <div style="display:grid;gap:14px;">
-                    <div><label style="color:#aaa;font-size:0.85rem;">Material</label><select id="prc-vol-material-id" class="noble-input" style="width:100%;"><option value="">Selecione...</option></select></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div><label style="color:#aaa;font-size:0.85rem;">Preço Entregar (R$/kg)</label><input id="prc-vol-entregar" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
-                        <div><label style="color:#aaa;font-size:0.85rem;">Preço Coletar (R$/kg)</label><input id="prc-vol-coletar" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
+            <div style="background:#101a24;border:1px solid #f97316;border-radius:12px;padding:18px 22px 16px;width:540px;max-width:96vw;max-height:92vh;overflow-y:auto;">
+                <h3 style="margin-top:0;border-bottom:1px solid #2d3f52;padding-bottom:8px;color:#fff;font-size:1rem;">
+                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i> Definir Preço — Volume
+                </h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Material *</label>
+                        <select id="prc-vol-material-id" class="noble-input" onchange="calcularMargemLiquidaModalVolume()"><option value="">Selecione...</option></select>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div><label style="color:#aaa;font-size:0.85rem;">Venda Ref (R$/kg)</label><input id="prc-vol-venda-ref" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
-                        <div><label style="color:#aaa;font-size:0.85rem;">Validade</label><input id="prc-vol-validade" type="date" class="noble-input" style="width:100%;" value="${validadeDefault}"></div>
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Preço Venda Ref. (R\$/kg) *</label>
+                        <input id="prc-vol-venda-ref" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularValoresDeAcordoComPorcentagemVolume()">
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;">
-                        <div><label style="color:#aaa;font-size:0.82rem;">Comissão (%)</label><input id="prc-vol-comissao" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                        <div><label style="color:#aaa;font-size:0.82rem;">PIS/COFINS (%)</label><input id="prc-vol-piscofins" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                        <div><label style="color:#aaa;font-size:0.82rem;">FIDC (%)</label><input id="prc-vol-fidc" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                        <div><label style="color:#aaa;font-size:0.82rem;">ICMS (%)</label><input id="prc-vol-icms" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                    </div>
-                    <div><label style="color:#aaa;font-size:0.85rem;">Frete Coleta (R$/kg)</label><input id="prc-vol-frete" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
                 </div>
-                <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
-                    <button onclick="document.getElementById('modal-preco-volume').remove()" class="btn-secondary">Cancelar</button>
-                    <button onclick="salvarPrecoVolume()" class="btn-primary" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-save"></i> Salvar</button>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Entregar (R\$/kg) *</label>
+                        <input id="prc-vol-entregar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeEntregarVolume()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Entregar (%)</label>
+                        <input id="prc-vol-entregar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 90" oninput="calcularValorDeEntregarVolume()">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Coletar (R\$/kg) *</label>
+                        <input id="prc-vol-coletar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeColetarVolume()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Coletar (%)</label>
+                        <input id="prc-vol-coletar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetarVolume()">
+                    </div>
+                </div>
+                <div style="background:#162432;padding:8px 12px;border-radius:8px;border:1px solid #7c3a12;margin-bottom:10px;">
+                    <div style="font-weight:bold;color:#f97316;font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                        <i class="fa-solid fa-percent"></i> Composição Fiscal &amp; Deduções (% e R\$/kg)
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Comissão (%)</label>
+                            <input id="prc-vol-comissao" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalVolume()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">PIS/COFINS (%)</label>
+                            <input id="prc-vol-piscofins" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalVolume()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">FIDC (%)</label>
+                            <input id="prc-vol-fidc" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalVolume()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">ICMS (%)</label>
+                            <input id="prc-vol-icms" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalVolume()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.75rem;">Frete Coleta (R\$/kg)</label>
+                        <input id="prc-vol-frete" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularMargemLiquidaModalVolume()">
+                    </div>
+                </div>
+                <div style="background:#0a1622;padding:8px 12px;border-radius:8px;border-left:4px solid #f97316;margin-bottom:10px;">
+                    <div style="font-size:0.8rem;text-transform:uppercase;font-weight:bold;color:#aaa;margin-bottom:6px;">
+                        <i class="fa-solid fa-calculator" style="color:#f97316;"></i> Simulação de Margem Líquida Real
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:0.82rem;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1a2a3a;">
+                        <div>
+                            <span style="color:#888;">Total Deduções:</span>
+                            <div style="color:#ff6b6b;font-weight:bold;" id="prc-vol-live-deducoes">0.00% (R\$ 0,00)</div>
+                        </div>
+                        <div>
+                            <span style="color:#888;">Venda Líquida:</span>
+                            <div style="color:#ffeb3b;font-weight:bold;" id="prc-vol-live-venda-liq">R\$ 0,00/kg</div>
+                        </div>
+                        <div>
+                            <span style="color:#888;">Frete Coleta:</span>
+                            <div style="color:#aaa;font-weight:bold;" id="prc-vol-live-frete">R\$ 0,00/kg</div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
+                        <div style="background:#0f251d;padding:8px;border-radius:6px;border:1px solid #1a4d36;">
+                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Entrega</span>
+                            <div style="font-size:1.05rem;font-weight:bold;color:#2AD07A;" id="prc-vol-live-margem-ent">0.00%</div>
+                            <div style="font-size:0.75rem;color:#aaa;" id="prc-vol-live-lucro-ent">Lucro: R\$ 0,00/kg</div>
+                        </div>
+                        <div style="background:#2a1800;padding:8px;border-radius:6px;border:1px solid #7c3a12;">
+                            <span style="color:#ffd4a3;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Coleta</span>
+                            <div style="font-size:1.05rem;font-weight:bold;color:#f97316;" id="prc-vol-live-margem-col">0.00%</div>
+                            <div style="font-size:0.75rem;color:#aaa;" id="prc-vol-live-lucro-col">Lucro: R\$ 0,00/kg</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="font-size:0.8rem;">Válido Até * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
+                    <input id="prc-vol-validade" type="date" class="noble-input" value="${validadeDefault}" onchange="atualizarPreviewDataVolume()">
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:#162738;padding:8px 12px;border-radius:6px;border:1px solid #7c3a12;margin-top:6px;">
+                        <span style="color:#aaa;font-size:0.82rem;">Data Selecionada:</span>
+                        <strong id="prc-vol-data-preview" style="color:#f97316;font-size:0.95rem;">${dataPreviewDefault}</strong>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:14px;">
+                    <button onclick="salvarPrecoVolume()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button onclick="document.getElementById('modal-preco-volume').remove()" class="btn-secondary" style="flex:1;">Cancelar</button>
                 </div>
             </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', html);
         window.popularSelectMateriaisModal('prc-vol-material-id');
+        setTimeout(() => window.calcularMargemLiquidaModalVolume(), 50);
     };
+
+    window.calcularPorcentagemDeEntregarVolume = function() {
+        const venda = parseFloat(document.getElementById('prc-vol-venda-ref')?.value) || 0;
+        const entregar = parseFloat(document.getElementById('prc-vol-entregar')?.value) || 0;
+        const pctEl = document.getElementById('prc-vol-entregar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((entregar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalVolume();
+    };
+    window.calcularValorDeEntregarVolume = function() {
+        const venda = parseFloat(document.getElementById('prc-vol-venda-ref')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-vol-entregar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-vol-entregar');
+        if (entEl && venda > 0) entEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalVolume();
+    };
+    window.calcularPorcentagemDeColetarVolume = function() {
+        const venda = parseFloat(document.getElementById('prc-vol-venda-ref')?.value) || 0;
+        const coletar = parseFloat(document.getElementById('prc-vol-coletar')?.value) || 0;
+        const pctEl = document.getElementById('prc-vol-coletar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((coletar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalVolume();
+    };
+    window.calcularValorDeColetarVolume = function() {
+        const venda = parseFloat(document.getElementById('prc-vol-venda-ref')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-vol-coletar-pct')?.value) || 0;
+        const colEl = document.getElementById('prc-vol-coletar');
+        if (colEl && venda > 0) colEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalVolume();
+    };
+    window.calcularValoresDeAcordoComPorcentagemVolume = function() {
+        const venda = parseFloat(document.getElementById('prc-vol-venda-ref')?.value) || 0;
+        const pctEnt = parseFloat(document.getElementById('prc-vol-entregar-pct')?.value) || 0;
+        const pctCol = parseFloat(document.getElementById('prc-vol-coletar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-vol-entregar');
+        const colEl = document.getElementById('prc-vol-coletar');
+        if (venda > 0) {
+            if (pctEnt > 0 && entEl) entEl.value = ((pctEnt / 100) * venda).toFixed(2);
+            if (pctCol > 0 && colEl) colEl.value = ((pctCol / 100) * venda).toFixed(2);
+        }
+        window.calcularPorcentagemDeEntregarVolume();
+        window.calcularPorcentagemDeColetarVolume();
+        window.calcularMargemLiquidaModalVolume();
+    };
+    window.atualizarPreviewDataVolume = function() {
+        const val = document.getElementById('prc-vol-validade')?.value;
+        const preview = document.getElementById('prc-vol-data-preview');
+        if (preview) {
+            if (val) { const [y, m, d] = val.split('-'); preview.textContent = `${d}/${m}/${y}`; }
+            else { preview.textContent = '--/--/----'; }
+        }
+    };
+    window.calcularMargemLiquidaModalVolume = function() {
+        const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+        const vendaRef = parseVal('prc-vol-venda-ref');
+        const precoEnt = parseVal('prc-vol-entregar');
+        const precoCol = parseVal('prc-vol-coletar');
+        const comissao = parseVal('prc-vol-comissao');
+        const pisCofins = parseVal('prc-vol-piscofins');
+        const fidc = parseVal('prc-vol-fidc');
+        const icms = parseVal('prc-vol-icms');
+        const freteColeta = parseVal('prc-vol-frete');
+        const pctTotal = comissao + pisCofins + fidc + icms;
+        const valDeducoes = vendaRef * (pctTotal / 100);
+        const vendaLiquida = vendaRef - valDeducoes;
+        const lucroEnt = vendaLiquida - precoEnt;
+        const margemEnt = vendaRef > 0 ? (lucroEnt / vendaRef) * 100 : 0;
+        const lucroCol = vendaLiquida - precoCol - freteColeta;
+        const margemCol = vendaRef > 0 ? (lucroCol / vendaRef) * 100 : 0;
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        const fmtN = n => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        set('prc-vol-live-deducoes', `${fmtN(pctTotal)}% (R$ ${fmtN(valDeducoes)}/kg)`);
+        set('prc-vol-live-venda-liq', `R$ ${fmtN(vendaLiquida)}/kg`);
+        set('prc-vol-live-frete', `R$ ${fmtN(freteColeta)}/kg`);
+        const elME = document.getElementById('prc-vol-live-margem-ent');
+        if (elME) { elME.textContent = `${fmtN(margemEnt)}%`; elME.style.color = margemEnt >= 15 ? '#2AD07A' : (margemEnt >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-vol-live-lucro-ent', `Lucro: R$ ${fmtN(lucroEnt)}/kg`);
+        const elMC = document.getElementById('prc-vol-live-margem-col');
+        if (elMC) { elMC.textContent = `${fmtN(margemCol)}%`; elMC.style.color = margemCol >= 15 ? '#f97316' : (margemCol >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-vol-live-lucro-col', `Lucro: R$ ${fmtN(lucroCol)}/kg`);
+    };
+
 
     window.salvarPrecoVolume = async function() {
         const body = {
@@ -6775,18 +7068,22 @@ var _listTabelaPrecosEstrategica = [];
         window.abrirModalPrecoVolume();
         setTimeout(() => {
             document.getElementById('prc-vol-material-id').value = p.material_id;
-            document.getElementById('prc-vol-entregar').value = p.preco_entregar;
-            document.getElementById('prc-vol-coletar').value = p.preco_coletar;
-            document.getElementById('prc-vol-venda-ref').value = p.venda_ref;
+            document.getElementById('prc-vol-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
+            document.getElementById('prc-vol-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
+            document.getElementById('prc-vol-venda-ref').value = parseFloat(p.venda_ref || 0).toFixed(2);
             document.getElementById('prc-vol-validade').value = p.validade ? p.validade.split('T')[0] : '';
-            document.getElementById('prc-vol-comissao').value = p.comissao;
-            document.getElementById('prc-vol-piscofins').value = p.pis_cofins;
-            document.getElementById('prc-vol-fidc').value = p.fidc;
-            document.getElementById('prc-vol-icms').value = p.icms;
-            document.getElementById('prc-vol-frete').value = p.frete_coleta;
+            document.getElementById('prc-vol-comissao').value = parseFloat(p.comissao || 0).toFixed(2);
+            document.getElementById('prc-vol-piscofins').value = parseFloat(p.pis_cofins || 0).toFixed(2);
+            document.getElementById('prc-vol-fidc').value = parseFloat(p.fidc || 0).toFixed(2);
+            document.getElementById('prc-vol-icms').value = parseFloat(p.icms || 0).toFixed(2);
+            document.getElementById('prc-vol-frete').value = parseFloat(p.frete_coleta || 0).toFixed(2);
+            window.calcularPorcentagemDeEntregarVolume();
+            window.calcularPorcentagemDeColetarVolume();
+            window.atualizarPreviewDataVolume();
+            window.calcularMargemLiquidaModalVolume();
             const btn = document.querySelector('#modal-preco-volume .btn-primary');
             if (btn) { btn.onclick = () => atualizarPrecoVolume(id); btn.innerHTML = '<i class="fa-solid fa-save"></i> Atualizar'; }
-        }, 100);
+        }, 150);
     };
 
     window.atualizarPrecoVolume = async function(id) {
@@ -7001,37 +7298,201 @@ var _listTabelaPrecosEstrategica = [];
     window.abrirModalPrecoFundicao = function() {
         const hoje = new Date(); hoje.setMonth(hoje.getMonth() + 1);
         const validadeDefault = hoje.toISOString().split('T')[0];
+        const [fy, fm, fd] = validadeDefault.split('-');
+        const dataPreviewDefault = `${fd}/${fm}/${fy}`;
         const html = `
         <div id="modal-preco-fundicao" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
-            <div style="background:#0d1826;border:1px solid #ef4444;border-radius:12px;padding:30px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;">
-                <h2 style="color:#ef4444;margin-top:0;"><i class="fa-solid fa-fire-flame-curved"></i> Novo Item — Fundição</h2>
-                <div style="display:grid;gap:14px;">
-                    <div><label style="color:#aaa;font-size:0.85rem;">Material</label><select id="prc-fund-material-id" class="noble-input" style="width:100%;"><option value="">Selecione...</option></select></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div><label style="color:#aaa;font-size:0.85rem;">Preço Entregar (R$/kg)</label><input id="prc-fund-entregar" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
-                        <div><label style="color:#aaa;font-size:0.85rem;">Preço Coletar (R$/kg)</label><input id="prc-fund-coletar" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
+            <div style="background:#101a24;border:1px solid #ef4444;border-radius:12px;padding:18px 22px 16px;width:540px;max-width:96vw;max-height:92vh;overflow-y:auto;">
+                <h3 style="margin-top:0;border-bottom:1px solid #2d3f52;padding-bottom:8px;color:#fff;font-size:1rem;">
+                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i> Definir Preço — Fundição
+                </h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Material *</label>
+                        <select id="prc-fund-material-id" class="noble-input" onchange="calcularMargemLiquidaModalFundicao()"><option value="">Selecione...</option></select>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div><label style="color:#aaa;font-size:0.85rem;">Venda Ref (R$/kg)</label><input id="prc-fund-venda-ref" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
-                        <div><label style="color:#aaa;font-size:0.85rem;">Validade</label><input id="prc-fund-validade" type="date" class="noble-input" style="width:100%;" value="${validadeDefault}"></div>
+                    <div class="form-group">
+                        <label style="font-size:0.8rem;">Preço Venda Ref. (R\$/kg) *</label>
+                        <input id="prc-fund-venda-ref" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularValoresDeAcordoComPorcentagemFundicao()">
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;">
-                        <div><label style="color:#aaa;font-size:0.82rem;">Comissão (%)</label><input id="prc-fund-comissao" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                        <div><label style="color:#aaa;font-size:0.82rem;">PIS/COFINS (%)</label><input id="prc-fund-piscofins" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                        <div><label style="color:#aaa;font-size:0.82rem;">FIDC (%)</label><input id="prc-fund-fidc" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                        <div><label style="color:#aaa;font-size:0.82rem;">ICMS (%)</label><input id="prc-fund-icms" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0"></div>
-                    </div>
-                    <div><label style="color:#aaa;font-size:0.85rem;">Frete Coleta (R$/kg)</label><input id="prc-fund-frete" type="number" step="0.01" class="noble-input" style="width:100%;" placeholder="0.00"></div>
                 </div>
-                <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
-                    <button onclick="document.getElementById('modal-preco-fundicao').remove()" class="btn-secondary">Cancelar</button>
-                    <button onclick="salvarPrecoFundicao()" class="btn-primary" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-save"></i> Salvar</button>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Entregar (R\$/kg) *</label>
+                        <input id="prc-fund-entregar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeEntregarFundicao()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Entregar (%)</label>
+                        <input id="prc-fund-entregar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 90" oninput="calcularValorDeEntregarFundicao()">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="form-group">
+                        <label>Preço Coletar (R\$/kg) *</label>
+                        <input id="prc-fund-coletar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeColetarFundicao()">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Coletar (%)</label>
+                        <input id="prc-fund-coletar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetarFundicao()">
+                    </div>
+                </div>
+                <div style="background:#162432;padding:8px 12px;border-radius:8px;border:1px solid #7f1d1d;margin-bottom:10px;">
+                    <div style="font-weight:bold;color:#ef4444;font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                        <i class="fa-solid fa-percent"></i> Composição Fiscal &amp; Deduções (% e R\$/kg)
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Comissão (%)</label>
+                            <input id="prc-fund-comissao" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalFundicao()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">PIS/COFINS (%)</label>
+                            <input id="prc-fund-piscofins" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalFundicao()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">FIDC (%)</label>
+                            <input id="prc-fund-fidc" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalFundicao()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">ICMS (%)</label>
+                            <input id="prc-fund-icms" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalFundicao()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.75rem;">Frete Coleta (R\$/kg)</label>
+                        <input id="prc-fund-frete" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularMargemLiquidaModalFundicao()">
+                    </div>
+                </div>
+                <div style="background:#0a1622;padding:8px 12px;border-radius:8px;border-left:4px solid #ef4444;margin-bottom:10px;">
+                    <div style="font-size:0.8rem;text-transform:uppercase;font-weight:bold;color:#aaa;margin-bottom:6px;">
+                        <i class="fa-solid fa-calculator" style="color:#ef4444;"></i> Simulação de Margem Líquida Real
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:0.82rem;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1a2a3a;">
+                        <div>
+                            <span style="color:#888;">Total Deduções:</span>
+                            <div style="color:#ff6b6b;font-weight:bold;" id="prc-fund-live-deducoes">0.00% (R\$ 0,00)</div>
+                        </div>
+                        <div>
+                            <span style="color:#888;">Venda Líquida:</span>
+                            <div style="color:#ffeb3b;font-weight:bold;" id="prc-fund-live-venda-liq">R\$ 0,00/kg</div>
+                        </div>
+                        <div>
+                            <span style="color:#888;">Frete Coleta:</span>
+                            <div style="color:#aaa;font-weight:bold;" id="prc-fund-live-frete">R\$ 0,00/kg</div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
+                        <div style="background:#0f251d;padding:8px;border-radius:6px;border:1px solid #1a4d36;">
+                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Entrega</span>
+                            <div style="font-size:1.05rem;font-weight:bold;color:#2AD07A;" id="prc-fund-live-margem-ent">0.00%</div>
+                            <div style="font-size:0.75rem;color:#aaa;" id="prc-fund-live-lucro-ent">Lucro: R\$ 0,00/kg</div>
+                        </div>
+                        <div style="background:#250f0f;padding:8px;border-radius:6px;border:1px solid #7f1d1d;">
+                            <span style="color:#fca5a5;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Coleta</span>
+                            <div style="font-size:1.05rem;font-weight:bold;color:#ef4444;" id="prc-fund-live-margem-col">0.00%</div>
+                            <div style="font-size:0.75rem;color:#aaa;" id="prc-fund-live-lucro-col">Lucro: R\$ 0,00/kg</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:4px;">
+                    <label style="font-size:0.8rem;">Válido Até * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
+                    <input id="prc-fund-validade" type="date" class="noble-input" value="${validadeDefault}" onchange="atualizarPreviewDataFundicao()">
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:#162738;padding:8px 12px;border-radius:6px;border:1px solid #7f1d1d;margin-top:6px;">
+                        <span style="color:#aaa;font-size:0.82rem;">Data Selecionada:</span>
+                        <strong id="prc-fund-data-preview" style="color:#ef4444;font-size:0.95rem;">${dataPreviewDefault}</strong>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:14px;">
+                    <button onclick="salvarPrecoFundicao()" class="btn-primary" style="flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-save"></i> Salvar</button>
+                    <button onclick="document.getElementById('modal-preco-fundicao').remove()" class="btn-secondary" style="flex:1;">Cancelar</button>
                 </div>
             </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', html);
         window.popularSelectMateriaisModal('prc-fund-material-id');
+        setTimeout(() => window.calcularMargemLiquidaModalFundicao(), 50);
     };
+
+    window.calcularPorcentagemDeEntregarFundicao = function() {
+        const venda = parseFloat(document.getElementById('prc-fund-venda-ref')?.value) || 0;
+        const entregar = parseFloat(document.getElementById('prc-fund-entregar')?.value) || 0;
+        const pctEl = document.getElementById('prc-fund-entregar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((entregar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalFundicao();
+    };
+    window.calcularValorDeEntregarFundicao = function() {
+        const venda = parseFloat(document.getElementById('prc-fund-venda-ref')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-fund-entregar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-fund-entregar');
+        if (entEl && venda > 0) entEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalFundicao();
+    };
+    window.calcularPorcentagemDeColetarFundicao = function() {
+        const venda = parseFloat(document.getElementById('prc-fund-venda-ref')?.value) || 0;
+        const coletar = parseFloat(document.getElementById('prc-fund-coletar')?.value) || 0;
+        const pctEl = document.getElementById('prc-fund-coletar-pct');
+        if (pctEl && venda > 0) pctEl.value = ((coletar / venda) * 100).toFixed(1);
+        window.calcularMargemLiquidaModalFundicao();
+    };
+    window.calcularValorDeColetarFundicao = function() {
+        const venda = parseFloat(document.getElementById('prc-fund-venda-ref')?.value) || 0;
+        const pct = parseFloat(document.getElementById('prc-fund-coletar-pct')?.value) || 0;
+        const colEl = document.getElementById('prc-fund-coletar');
+        if (colEl && venda > 0) colEl.value = ((pct / 100) * venda).toFixed(2);
+        window.calcularMargemLiquidaModalFundicao();
+    };
+    window.calcularValoresDeAcordoComPorcentagemFundicao = function() {
+        const venda = parseFloat(document.getElementById('prc-fund-venda-ref')?.value) || 0;
+        const pctEnt = parseFloat(document.getElementById('prc-fund-entregar-pct')?.value) || 0;
+        const pctCol = parseFloat(document.getElementById('prc-fund-coletar-pct')?.value) || 0;
+        const entEl = document.getElementById('prc-fund-entregar');
+        const colEl = document.getElementById('prc-fund-coletar');
+        if (venda > 0) {
+            if (pctEnt > 0 && entEl) entEl.value = ((pctEnt / 100) * venda).toFixed(2);
+            if (pctCol > 0 && colEl) colEl.value = ((pctCol / 100) * venda).toFixed(2);
+        }
+        window.calcularPorcentagemDeEntregarFundicao();
+        window.calcularPorcentagemDeColetarFundicao();
+        window.calcularMargemLiquidaModalFundicao();
+    };
+    window.atualizarPreviewDataFundicao = function() {
+        const val = document.getElementById('prc-fund-validade')?.value;
+        const preview = document.getElementById('prc-fund-data-preview');
+        if (preview) {
+            if (val) { const [y, m, d] = val.split('-'); preview.textContent = `${d}/${m}/${y}`; }
+            else { preview.textContent = '--/--/----'; }
+        }
+    };
+    window.calcularMargemLiquidaModalFundicao = function() {
+        const parseVal = id => parseFloat(String(document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+        const vendaRef = parseVal('prc-fund-venda-ref');
+        const precoEnt = parseVal('prc-fund-entregar');
+        const precoCol = parseVal('prc-fund-coletar');
+        const comissao = parseVal('prc-fund-comissao');
+        const pisCofins = parseVal('prc-fund-piscofins');
+        const fidc = parseVal('prc-fund-fidc');
+        const icms = parseVal('prc-fund-icms');
+        const freteColeta = parseVal('prc-fund-frete');
+        const pctTotal = comissao + pisCofins + fidc + icms;
+        const valDeducoes = vendaRef * (pctTotal / 100);
+        const vendaLiquida = vendaRef - valDeducoes;
+        const lucroEnt = vendaLiquida - precoEnt;
+        const margemEnt = vendaRef > 0 ? (lucroEnt / vendaRef) * 100 : 0;
+        const lucroCol = vendaLiquida - precoCol - freteColeta;
+        const margemCol = vendaRef > 0 ? (lucroCol / vendaRef) * 100 : 0;
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        const fmtN = n => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        set('prc-fund-live-deducoes', `${fmtN(pctTotal)}% (R$ ${fmtN(valDeducoes)}/kg)`);
+        set('prc-fund-live-venda-liq', `R$ ${fmtN(vendaLiquida)}/kg`);
+        set('prc-fund-live-frete', `R$ ${fmtN(freteColeta)}/kg`);
+        const elME = document.getElementById('prc-fund-live-margem-ent');
+        if (elME) { elME.textContent = `${fmtN(margemEnt)}%`; elME.style.color = margemEnt >= 15 ? '#2AD07A' : (margemEnt >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-fund-live-lucro-ent', `Lucro: R$ ${fmtN(lucroEnt)}/kg`);
+        const elMC = document.getElementById('prc-fund-live-margem-col');
+        if (elMC) { elMC.textContent = `${fmtN(margemCol)}%`; elMC.style.color = margemCol >= 15 ? '#ef4444' : (margemCol >= 5 ? '#f0b800' : '#ff4d4d'); }
+        set('prc-fund-live-lucro-col', `Lucro: R$ ${fmtN(lucroCol)}/kg`);
+    };
+
 
     window.salvarPrecoFundicao = async function() {
         const body = { material_id: document.getElementById('prc-fund-material-id').value, preco_entregar: document.getElementById('prc-fund-entregar').value, preco_coletar: document.getElementById('prc-fund-coletar').value, venda_ref: document.getElementById('prc-fund-venda-ref').value, validade: document.getElementById('prc-fund-validade').value, comissao: document.getElementById('prc-fund-comissao').value, pis_cofins: document.getElementById('prc-fund-piscofins').value, fidc: document.getElementById('prc-fund-fidc').value, icms: document.getElementById('prc-fund-icms').value, frete_coleta: document.getElementById('prc-fund-frete').value };
@@ -7051,18 +7512,22 @@ var _listTabelaPrecosEstrategica = [];
         window.abrirModalPrecoFundicao();
         setTimeout(() => {
             document.getElementById('prc-fund-material-id').value = p.material_id;
-            document.getElementById('prc-fund-entregar').value = p.preco_entregar;
-            document.getElementById('prc-fund-coletar').value = p.preco_coletar;
-            document.getElementById('prc-fund-venda-ref').value = p.venda_ref;
+            document.getElementById('prc-fund-entregar').value = parseFloat(p.preco_entregar || 0).toFixed(2);
+            document.getElementById('prc-fund-coletar').value = parseFloat(p.preco_coletar || 0).toFixed(2);
+            document.getElementById('prc-fund-venda-ref').value = parseFloat(p.venda_ref || 0).toFixed(2);
             document.getElementById('prc-fund-validade').value = p.validade ? p.validade.split('T')[0] : '';
-            document.getElementById('prc-fund-comissao').value = p.comissao;
-            document.getElementById('prc-fund-piscofins').value = p.pis_cofins;
-            document.getElementById('prc-fund-fidc').value = p.fidc;
-            document.getElementById('prc-fund-icms').value = p.icms;
-            document.getElementById('prc-fund-frete').value = p.frete_coleta;
+            document.getElementById('prc-fund-comissao').value = parseFloat(p.comissao || 0).toFixed(2);
+            document.getElementById('prc-fund-piscofins').value = parseFloat(p.pis_cofins || 0).toFixed(2);
+            document.getElementById('prc-fund-fidc').value = parseFloat(p.fidc || 0).toFixed(2);
+            document.getElementById('prc-fund-icms').value = parseFloat(p.icms || 0).toFixed(2);
+            document.getElementById('prc-fund-frete').value = parseFloat(p.frete_coleta || 0).toFixed(2);
+            window.calcularPorcentagemDeEntregarFundicao();
+            window.calcularPorcentagemDeColetarFundicao();
+            window.atualizarPreviewDataFundicao();
+            window.calcularMargemLiquidaModalFundicao();
             const btn = document.querySelector('#modal-preco-fundicao .btn-primary');
             if (btn) { btn.onclick = () => atualizarPrecoFundicao(id); btn.innerHTML = '<i class="fa-solid fa-save"></i> Atualizar'; }
-        }, 100);
+        }, 150);
     };
 
     window.atualizarPrecoFundicao = async function(id) {
