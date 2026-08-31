@@ -5867,6 +5867,22 @@ var _listTabelaPrecosEstrategica = [];
         }
 
         const isCompleta = modoPDF === 'completa';
+        
+        let logoWatermarkBase64 = null;
+        try {
+            const logoRes = await fetch('/assets/img/logo%20(2).png');
+            if (logoRes.ok) {
+                const blob = await logoRes.blob();
+                logoWatermarkBase64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            }
+        } catch(e) {
+            console.warn('Logo watermark não carregou, usando fallback:', e);
+        }
+
         const htmlContent = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, logoWatermarkBase64, modoPDF);
         return await renderHtmlToPdfBase64(htmlContent, modoPDF === 'completa');
     };
@@ -7655,18 +7671,17 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
         const tempDiv = document.createElement('div');
-        tempDiv.style.width = isCompleta ? '1400px' : '1000px'; 
-        tempDiv.style.zoom = isCompleta ? '0.74' : '0.71'; // Scales layout to fit A4 width perfectly (1036px/710px)
+        tempDiv.style.width = '1084px'; // Exactly fits A4 landscape width with 5mm margins at 96 DPI
         tempDiv.style.background = '#ffffff';
         tempDiv.style.padding = '0';
         tempDiv.innerHTML = htmlContent;
         
         const opt = {
-            margin:       [10, 10, 10, 10],
+            margin:       [5, 5, 5, 5],
             filename:     'tabela.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
+            image:        { type: 'jpeg', quality: 1.0 },
             html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: isCompleta ? 'landscape' : 'portrait' },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
             pagebreak:    { mode: 'css', avoid: 'tr' }
         };
 
