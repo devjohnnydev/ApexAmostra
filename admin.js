@@ -7717,26 +7717,37 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     async function renderHtmlToPdfBase64(htmlContent, isCompleta) {
+        if (!window.html2pdf) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
         const tempDiv = document.createElement('div');
-        tempDiv.style.position = 'absolute'; tempDiv.style.left = '-9999px'; tempDiv.style.top = '-9999px';
-        tempDiv.style.width = isCompleta ? '1400px' : '1000px'; tempDiv.style.boxSizing = 'border-box'; tempDiv.style.background = '#ffffff';
+        tempDiv.style.width = isCompleta ? '1400px' : '1000px'; 
+        tempDiv.style.background = '#ffffff';
+        tempDiv.style.padding = '0';
         tempDiv.innerHTML = htmlContent;
-        document.body.appendChild(tempDiv);
+        
+        const opt = {
+            margin:       [10, 10, 10, 10],
+            filename:     'tabela.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: isCompleta ? 'landscape' : 'portrait' },
+            pagebreak:    { mode: 'css', avoid: 'tr' }
+        };
+
         try {
-            await new Promise(r => setTimeout(r, 600));
-            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const { jsPDF } = window.jspdf;
-            const pdfWidthMm = isCompleta ? 297 : 210, pdfPageHeightMm = isCompleta ? 210 : 297;
-            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-            const pdf = new jsPDF({ orientation: isCompleta ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-            let heightLeft = imgHeightMm, position = 0;
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
-            heightLeft -= pdfPageHeightMm;
-            while (heightLeft > 5) { position -= pdfPageHeightMm; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm); heightLeft -= pdfPageHeightMm; }
-            return pdf.output('datauristring').split(',')[1];
-        } catch(err) { console.error('Erro ao gerar PDF:', err); return null; }
-        finally { document.body.removeChild(tempDiv); }
+            const pdfOutput = await html2pdf().set(opt).from(tempDiv).outputPdf('datauristring');
+            return pdfOutput.split(',')[1];
+        } catch(err) { 
+            console.error('Erro ao gerar PDF:', err); 
+            return null; 
+        }
     }
 
     // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---
