@@ -162,6 +162,70 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
 }
 .nav-item.return-site:hover { color: #aaa; }
 
+/* ─── NAV GROUP (COLLAPSIBLE) ─────────────────────────────────────────────── */
+.nav-group {
+    border-top: 1px solid #1a2e40;
+    margin-top: 6px;
+}
+.nav-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px 10px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    border-left: 3px solid transparent;
+}
+.nav-group-header:hover {
+    background: rgba(42, 208, 122, 0.06);
+    border-left-color: rgba(42, 208, 122, 0.25);
+}
+.nav-group-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #5a8a70;
+    letter-spacing: 0.09em;
+}
+.nav-group-chevron {
+    font-size: 0.65rem;
+    color: #5a8a70;
+    transition: transform 0.3s ease;
+}
+.nav-group.collapsed .nav-group-chevron {
+    transform: rotate(-90deg);
+}
+.nav-group-items {
+    overflow: hidden;
+    max-height: 600px;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+.nav-group.collapsed .nav-group-items {
+    max-height: 0;
+    opacity: 0;
+}
+.nav-group-child {
+    padding-left: 30px;
+    border-left-width: 3px;
+}
+.admin-container.sidebar-collapsed .nav-group-header {
+    justify-content: center;
+    padding: 10px 0;
+}
+.admin-container.sidebar-collapsed .nav-group-label span,
+.admin-container.sidebar-collapsed .nav-group-chevron {
+    display: none;
+}
+.admin-container.sidebar-collapsed .nav-group-child {
+    padding-left: 0;
+    justify-content: center;
+}
+
 /* ─── SIDEBAR COLLAPSED STATE ──────────────────────────────────────────────── */
 .admin-container.sidebar-collapsed .sidebar {
     width: 68px;

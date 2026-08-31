@@ -203,42 +203,52 @@
                     <span>Trilha de Auditoria</span>
                 </a>
 
-                <!-- DIVISOR GESTÃO INTERNA APEX -->
-                <div class="sidebar-section-divider" style="padding: 12px 18px 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #5a738e; letter-spacing: 0.1em; border-top: 1px solid #223547; margin-top: 10px;">
-                    Gestão ApexTech
+
+                <!-- GRUPO EXPANSÍVEL: GESTÃO APEXTECH -->
+                <div class="nav-group" id="nav-group-gestao">
+                    <div class="nav-group-header" onclick="toggleNavGroup('nav-group-gestao')" title="Expandir / Recolher">
+                        <span class="nav-group-label">
+                            <i class="fa-solid fa-layer-group" style="color:#2AD07A; font-size:0.75rem;"></i>
+                            Gestão ApexTech
+                        </span>
+                        <i class="fa-solid fa-chevron-down nav-group-chevron" id="chevron-nav-group-gestao"></i>
+                    </div>
+                    <div class="nav-group-items" id="items-nav-group-gestao">
+                        <a href="#" class="nav-item nav-group-child" data-target="fornecedores-view" id="nav-fornecedores" data-tooltip="Fornecedores">
+                            <i class="fa-solid fa-handshake" style="color:#34d399;"></i>
+                            <span>Fornecedores</span>
+                        </a>
+                        <a href="#" class="nav-item nav-group-child" data-target="clientes-view" id="nav-clientes" data-tooltip="Clientes">
+                            <i class="fa-solid fa-user-tie" style="color:#e07b39;"></i>
+                            <span>Clientes</span>
+                        </a>
+                        <a href="#" class="nav-item nav-group-child" data-target="materiais-view" id="nav-materiais" data-tooltip="Catálogo de Materiais">
+                            <i class="fa-solid fa-tags" style="color:#2AD07A;"></i>
+                            <span>Catálogo de Materiais</span>
+                        </a>
+                        <a href="#" class="nav-item nav-group-child" data-target="residuos-view" id="nav-residuos" data-tooltip="Resíduos">
+                            <i class="fa-solid fa-recycle" style="color:#2AD07A;"></i>
+                            <span>Resíduos</span>
+                        </a>
+                        <a href="#" class="nav-item nav-group-child" data-target="ligas-view" id="nav-ligas" data-tooltip="Ligas">
+                            <i class="fa-solid fa-atom" style="color:#4fc3f7;"></i>
+                            <span>Ligas</span>
+                        </a>
+                        <a href="#" class="nav-item nav-group-child" data-target="tabela-precos-view" id="nav-precos" data-tooltip="Tabela de Preços">
+                            <i class="fa-solid fa-dollar-sign" style="color:#f0c040;"></i>
+                            <span>Tabela de Preços</span>
+                        </a>
+                        <a href="#" class="nav-item nav-group-child" data-target="volume-view" id="nav-volume" data-tooltip="Preço por Volume">
+                            <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i>
+                            <span>Preço por Volume</span>
+                        </a>
+                        <a href="#" class="nav-item nav-group-child" data-target="fundicao-view" id="nav-fundicao" data-tooltip="Tabela de Fundição">
+                            <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i>
+                            <span>Fundição</span>
+                        </a>
+                    </div>
                 </div>
-                <a href="#" class="nav-item" data-target="fornecedores-view" id="nav-fornecedores" data-tooltip="Fornecedores">
-                    <i class="fa-solid fa-handshake" style="color:#34d399;"></i>
-                    <span>Fornecedores</span>
-                </a>
-                <a href="#" class="nav-item" data-target="clientes-view" id="nav-clientes" data-tooltip="Clientes">
-                    <i class="fa-solid fa-user-tie" style="color:#e07b39;"></i>
-                    <span>Clientes</span>
-                </a>
-                <a href="#" class="nav-item" data-target="materiais-view" id="nav-materiais" data-tooltip="Catálogo de Materiais">
-                    <i class="fa-solid fa-tags" style="color:#2AD07A;"></i>
-                    <span>Catálogo de Materiais</span>
-                </a>
-                <a href="#" class="nav-item" data-target="residuos-view" id="nav-residuos" data-tooltip="Resíduos">
-                    <i class="fa-solid fa-recycle" style="color:#2AD07A;"></i>
-                    <span>Resíduos</span>
-                </a>
-                <a href="#" class="nav-item" data-target="ligas-view" id="nav-ligas" data-tooltip="Ligas">
-                    <i class="fa-solid fa-atom" style="color:#4fc3f7;"></i>
-                    <span>Ligas</span>
-                </a>
-                <a href="#" class="nav-item" data-target="tabela-precos-view" id="nav-precos" data-tooltip="Tabela de Preços">
-                    <i class="fa-solid fa-dollar-sign" style="color:#f0c040;"></i>
-                    <span>Tabela de Preços</span>
-                </a>
-                <a href="#" class="nav-item" data-target="volume-view" id="nav-volume" data-tooltip="Tabela de Preço (Volume)">
-                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i>
-                    <span>Preço por Volume</span>
-                </a>
-                <a href="#" class="nav-item" data-target="fundicao-view" id="nav-fundicao" data-tooltip="Tabela de Fundição">
-                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i>
-                    <span>Fundição</span>
-                </a>
+
                 <a href="#" class="nav-item" data-target="amostras-view" id="nav-amostras" style="position:relative;" data-tooltip="Análise de Amostras">
                     <i class="fa-solid fa-flask" style="color:#c084fc;"></i>
                     <span>Análise de Amostras</span>
@@ -6472,6 +6482,36 @@
             </div>
         </div>
     </div>
+
+<script>
+// ─── NAV GROUP: Expansível / Recolhível ─────────────────────────────────────
+function toggleNavGroup(groupId) {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+    const isCollapsed = group.classList.toggle('collapsed');
+    try { localStorage.setItem('navGroup_' + groupId, isCollapsed ? '0' : '1'); } catch(e) {}
+}
+
+// Restaurar estado salvo ao carregar
+(function restoreNavGroups() {
+    const groups = document.querySelectorAll('.nav-group[id]');
+    groups.forEach(group => {
+        const saved = localStorage.getItem('navGroup_' + group.id);
+        // Default: expandido (null = não salvo ainda)
+        if (saved === '0') group.classList.add('collapsed');
+    });
+
+    // Quando um item filho é clicado e se torna ativo, garantir que o grupo esteja aberto
+    document.querySelectorAll('.nav-group-child').forEach(item => {
+        item.addEventListener('click', function() {
+            const groupEl = this.closest('.nav-group');
+            if (groupEl && groupEl.classList.contains('collapsed')) {
+                toggleNavGroup(groupEl.id);
+            }
+        });
+    });
+})();
+</script>
 </body>
 
 </html>
