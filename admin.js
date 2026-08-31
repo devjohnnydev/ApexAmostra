@@ -5794,7 +5794,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 const bgRow = idx % 2 === 0 ? '#ffffff' : '#e3ebf3';
                 html += `
-                    <tr style="border-bottom: 1px solid #c8d3e0; background-color: ${bgRow};">
+                    <tr style="border-bottom: 1px solid #c8d3e0; background-color: ${bgRow}; page-break-inside: avoid;">
                         <td style="padding: 8px; border: 1px solid #c8d3e0; color: #111;"><strong>${p.material_nome}</strong></td>
                         <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_entregar)}</td>
                         <td style="padding: 8px; text-align: right; border: 1px solid #c8d3e0; font-weight: bold; color: #111;">R$ ${fmtBRL(p.preco_coletar)}</td>
@@ -7686,7 +7686,7 @@ var _listTabelaPrecosEstrategica = [];
                 const lucroCol = vendaLiquida - (parseFloat(p.preco_coletar) || 0) - freteColeta;
                 const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
                 const bgRow = idx % 2 === 0 ? '#ffffff' : '#e3ebf3';
-                html += `<tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};">
+                html += `<tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};page-break-inside:avoid;">
                     <td style="padding:8px;border:1px solid #c8d3e0;color:#111;"><strong>${p.material_nome}</strong></td>
                     <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_entregar)}</td>
                     <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_coletar)}</td>
@@ -9873,7 +9873,7 @@ var _listTabelaPrecosEstrategica = [];
                 const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
                 const bgRow = idx % 2 === 0 ? '#ffffff' : '#e8f5ee';
                 html += `
-                    <tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};">
+                    <tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};page-break-inside:avoid;">
                         <td style="padding:8px;border:1px solid #c8d3e0;color:#111;"><strong>${p.material_nome}</strong></td>
                         <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_entregar)}</td>
                         <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_coletar)}</td>
@@ -10083,7 +10083,7 @@ var _listTabelaPrecosEstrategica = [];
                 const margemCol = (parseFloat(p.venda_ref) || 0) > 0 ? (lucroCol / (parseFloat(p.venda_ref) || 0)) * 100 : 0;
                 const bgRow = idx % 2 === 0 ? '#ffffff' : '#e8f2ff';
                 html += `
-                    <tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};">
+                    <tr style="border-bottom:1px solid #c8d3e0;background-color:${bgRow};page-break-inside:avoid;">
                         <td style="padding:8px;border:1px solid #c8d3e0;color:#111;"><strong>${p.material_nome}</strong></td>
                         <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_entregar)}</td>
                         <td style="padding:8px;text-align:right;border:1px solid #c8d3e0;font-weight:bold;color:#111;">R$ ${fmtBRL(p.preco_coletar)}</td>
