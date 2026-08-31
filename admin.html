@@ -204,16 +204,15 @@
                 </a>
 
 
-                <!-- GRUPO EXPANSÍVEL: GESTÃO APEXTECH -->
+                <!-- GRUPO ESTATICO: GESTÃO APEXTECH -->
                 <div class="nav-group" id="nav-group-gestao">
-                    <div class="nav-group-header" onclick="toggleNavGroup('nav-group-gestao')" title="Expandir / Recolher">
-                        <span class="nav-group-label">
-                            <i class="fa-solid fa-layer-group" style="color:#2AD07A; font-size:0.75rem;"></i>
+                    <div class="nav-group-header" style="cursor: default;">
+                        <span class="nav-group-label" style="color: #4fc3f7; white-space: nowrap;">
+                            <i class="fa-solid fa-layer-group" style="color:#4fc3f7; font-size:0.75rem;"></i>
                             Gestão ApexTech
                         </span>
-                        <i class="fa-solid fa-chevron-down nav-group-chevron" id="chevron-nav-group-gestao"></i>
                     </div>
-                    <div class="nav-group-items" id="items-nav-group-gestao">
+                    <div class="nav-group-items" id="items-nav-group-gestao" style="max-height: none; overflow: visible;">
                         <a href="#" class="nav-item nav-group-child" data-target="fornecedores-view" id="nav-fornecedores" data-tooltip="Fornecedores">
                             <i class="fa-solid fa-handshake" style="color:#34d399;"></i>
                             <span>Fornecedores</span>
@@ -230,7 +229,7 @@
                         <!-- SUBGRUPO: TABELAS -->
                         <div class="nav-group" id="nav-group-tabelas" style="border-top: none; margin-top: 4px;">
                             <div class="nav-group-header" onclick="toggleNavGroup('nav-group-tabelas')" title="Expandir / Recolher" style="padding-left: 28px;">
-                                <span class="nav-group-label" style="color: #4fc3f7;">
+                                <span class="nav-group-label" style="color: #4fc3f7; white-space: nowrap;">
                                     <i class="fa-solid fa-table" style="color:#4fc3f7; font-size:0.75rem;"></i>
                                     Tabelas
                                 </span>
@@ -257,6 +256,8 @@
                                     <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i>
                                     <span>Fundição</span>
                                 </a>
+                                <!-- Linha final sinalizando o fim do grupo Tabelas -->
+                                <div style="height: 1px; background: rgba(90, 138, 112, 0.25); margin: 6px 15px 6px 28px;"></div>
                             </div>
                         </div>
                     </div>
