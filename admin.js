@@ -133,6 +133,11 @@ var _listTabelaPrecosEstrategica = [];
             if (window.fecharModalUsuario) window.fecharModalUsuario();
             if (window.fecharModalReprovacao) window.fecharModalReprovacao();
 
+            document.getElementById('modal-preco-residuos')?.remove();
+            document.getElementById('modal-preco-ligas')?.remove();
+            document.getElementById('modal-preco-volume')?.remove();
+            document.getElementById('modal-preco-fundicao')?.remove();
+
             // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produção
             document.querySelectorAll('.fullscreen-overlay').forEach(modal => {
                 if (modal.id !== 'modal-planejamento-producao') {
@@ -5590,8 +5595,15 @@ var _listTabelaPrecosEstrategica = [];
         renderCalendarioVigencia();
     };
 
-    window.abrirModalVigenciaGeral = function() {
-        const dataAtual = localPrecos[0]?.validade ? localPrecos[0].validade.split('T')[0] : new Date().toISOString().split('T')[0];
+    window.abrirModalVigenciaGeral = function(tipo = 'vigente') {
+        window.vigenciaGeralTipoAtual = tipo;
+        let dataAtual = new Date().toISOString().split('T')[0];
+        if (tipo === 'vigente' && localPrecos.length) dataAtual = localPrecos[0].validade.split('T')[0];
+        else if (tipo === 'residuo' && localPrecosResiduos.length) dataAtual = localPrecosResiduos[0].validade.split('T')[0];
+        else if (tipo === 'liga' && localPrecosLigas.length) dataAtual = localPrecosLigas[0].validade.split('T')[0];
+        else if (tipo === 'volume' && localPrecosVolume.length) dataAtual = localPrecosVolume[0].validade.split('T')[0];
+        else if (tipo === 'fundicao' && localPrecosFundicao.length) dataAtual = localPrecosFundicao[0].validade.split('T')[0];
+
         calVigenciaDataSelecionada = dataAtual;
         const parts = dataAtual.split('-');
         if (parts.length === 3) {
@@ -5612,10 +5624,17 @@ var _listTabelaPrecosEstrategica = [];
             _apexNotify('Sistema', 'Por favor, clique em um dia no calendário.', 'info');
             return;
         }
+        const tipo = window.vigenciaGeralTipoAtual || 'vigente';
+        let url = '/api/tabela-precos-validade-geral';
+        if (tipo === 'residuo') url = '/api/tabela-precos-residuos-validade';
+        else if (tipo === 'liga') url = '/api/tabela-precos-ligas-validade';
+        else if (tipo === 'volume') url = '/api/tabela-precos-volume-validade';
+        else if (tipo === 'fundicao') url = '/api/tabela-precos-fundicao-validade';
+
         const btn = document.getElementById('btn-salvar-vigencia-geral');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spin fa-spinner"></i> Salvando...'; }
         try {
-            const res = await fetch('/api/tabela-precos-validade-geral', {
+            const res = await fetch(url, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ validade: novaData })
@@ -5623,7 +5642,11 @@ var _listTabelaPrecosEstrategica = [];
             if (!res.ok) throw new Error(await res.text());
             fecharModalVigenciaGeral();
             _apexNotify('Sistema', 'Vigência atualizada para todos os materiais com sucesso!', 'info');
-            await carregarPrecos();
+            if (tipo === 'vigente') await carregarPrecos();
+            else if (tipo === 'residuo') carregarPrecosResiduos();
+            else if (tipo === 'liga') carregarPrecosLigas();
+            else if (tipo === 'volume') carregarPrecosVolume();
+            else if (tipo === 'fundicao') carregarPrecosFundicao();
         } catch (err) {
             _apexNotify('Atenção', 'Erro ao atualizar vigência geral: ' + err.message, 'error');
         } finally {
@@ -5632,7 +5655,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.alterarValidadeGeralPrompt = function() {
-        abrirModalVigenciaGeral();
+        abrirModalVigenciaGeral('vigente');
     };
 
     window.deletarPreco = async function(id) {
@@ -6319,6 +6342,7 @@ var _listTabelaPrecosEstrategica = [];
             icms: parseVal(document.getElementById('prc-res-icms').value),
             frete_coleta: parseVal(document.getElementById('prc-res-frete-coleta').value),
             validade: document.getElementById('prc-res-validade').value,
+            aplicar_todos: true,
         };
         const btn = e.target.querySelector('[type="submit"]');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
@@ -6345,14 +6369,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.alterarValidadeGeralResiduo = async function() {
-        const novaData = prompt('Digite a nova data de vigência (YYYY-MM-DD):');
-        if (!novaData) return;
-        try {
-            const res = await fetch('/api/tabela-precos-residuos-validade', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ validade: novaData }) });
-            if (!res.ok) throw new Error(await res.text());
-            _apexNotify('Sistema', 'Vigência dos resíduos atualizada!', 'info');
-            carregarPrecosResiduos();
-        } catch(err) { _apexNotify('Atenção', 'Erro ao atualizar vigência: ' + err.message, 'error'); }
+        abrirModalVigenciaGeral('residuo');
     };
 
     window.exportarTabelaResiduo = function() {
@@ -6651,6 +6668,7 @@ var _listTabelaPrecosEstrategica = [];
             icms: parseVal(document.getElementById('prc-lig-icms').value),
             frete_coleta: parseVal(document.getElementById('prc-lig-frete-coleta').value),
             validade: document.getElementById('prc-lig-validade').value,
+            aplicar_todos: true,
         };
         const btn = e.target.querySelector('[type="submit"]');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
@@ -6677,14 +6695,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.alterarValidadeGeralLiga = async function() {
-        const novaData = prompt('Digite a nova data de vigência (YYYY-MM-DD):');
-        if (!novaData) return;
-        try {
-            const res = await fetch('/api/tabela-precos-ligas-validade', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ validade: novaData }) });
-            if (!res.ok) throw new Error(await res.text());
-            _apexNotify('Sistema', 'Vigência das ligas atualizada!', 'info');
-            carregarPrecosLigas();
-        } catch(err) { _apexNotify('Atenção', 'Erro ao atualizar vigência: ' + err.message, 'error'); }
+        abrirModalVigenciaGeral('liga');
     };
 
     window.exportarTabelaLiga = function() {
@@ -7040,27 +7051,35 @@ var _listTabelaPrecosEstrategica = [];
 
 
     window.salvarPrecoVolume = async function() {
+        const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
         const body = {
-            material_id: document.getElementById('prc-vol-material-id').value,
-            preco_entregar: document.getElementById('prc-vol-entregar').value,
-            preco_coletar: document.getElementById('prc-vol-coletar').value,
-            venda_ref: document.getElementById('prc-vol-venda-ref').value,
+            material_id: parseInt(document.getElementById('prc-vol-material-id').value) || null,
+            preco_entregar: parseVal(document.getElementById('prc-vol-entregar').value),
+            preco_coletar:  parseVal(document.getElementById('prc-vol-coletar').value),
+            venda_ref:      parseVal(document.getElementById('prc-vol-venda-ref').value),
             validade: document.getElementById('prc-vol-validade').value,
-            comissao: document.getElementById('prc-vol-comissao').value,
-            pis_cofins: document.getElementById('prc-vol-piscofins').value,
-            fidc: document.getElementById('prc-vol-fidc').value,
-            icms: document.getElementById('prc-vol-icms').value,
-            frete_coleta: document.getElementById('prc-vol-frete').value
+            aplicar_todos: true,
+            comissao:       parseVal(document.getElementById('prc-vol-comissao').value),
+            pis_cofins:     parseVal(document.getElementById('prc-vol-piscofins').value),
+            fidc:           parseVal(document.getElementById('prc-vol-fidc').value),
+            icms:           parseVal(document.getElementById('prc-vol-icms').value),
+            frete_coleta:   parseVal(document.getElementById('prc-vol-frete').value)
         };
         if (!body.material_id || !body.validade) return _apexNotify('Atenção', 'Material e validade são obrigatórios.', 'warning');
+        const btn = document.querySelector('#modal-preco-volume .btn-primary');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
         try {
             const res = await fetch('/api/tabela-precos-volume', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error(await res.text());
             document.getElementById('modal-preco-volume')?.remove();
             _apexNotify('Sucesso', 'Item de volume salvo com sucesso!', 'success');
             window.carregarPrecosVolume();
-        } catch(e) { _apexNotify('Erro', e.message, 'error'); }
+        } catch(err) {
+            _apexNotify('Erro', err.message, 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
+        }
     };
+
 
     window.editarPrecoVolume = function(id) {
         const p = localPrecosVolume.find(x => x.id === id);
@@ -7093,6 +7112,7 @@ var _listTabelaPrecosEstrategica = [];
             preco_coletar: document.getElementById('prc-vol-coletar').value,
             venda_ref: document.getElementById('prc-vol-venda-ref').value,
             validade: document.getElementById('prc-vol-validade').value,
+            aplicar_todos: true,
             comissao: document.getElementById('prc-vol-comissao').value,
             pis_cofins: document.getElementById('prc-vol-piscofins').value,
             fidc: document.getElementById('prc-vol-fidc').value,
@@ -7118,13 +7138,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.alterarValidadeGeralVolume = async function() {
-        const novaData = prompt('Nova data de vigência para todos os itens de volume (AAAA-MM-DD):');
-        if (!novaData) return;
-        try {
-            await fetch('/api/tabela-precos-volume-validade', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ validade: novaData }) });
-            _apexNotify('Sucesso', 'Vigência de volume atualizada!', 'success');
-            window.carregarPrecosVolume();
-        } catch(e) { _apexNotify('Erro', e.message, 'error'); }
+        abrirModalVigenciaGeral('volume');
     };
 
     window.exportarTabelaVolume = function() {
@@ -7495,16 +7509,35 @@ var _listTabelaPrecosEstrategica = [];
 
 
     window.salvarPrecoFundicao = async function() {
-        const body = { material_id: document.getElementById('prc-fund-material-id').value, preco_entregar: document.getElementById('prc-fund-entregar').value, preco_coletar: document.getElementById('prc-fund-coletar').value, venda_ref: document.getElementById('prc-fund-venda-ref').value, validade: document.getElementById('prc-fund-validade').value, comissao: document.getElementById('prc-fund-comissao').value, pis_cofins: document.getElementById('prc-fund-piscofins').value, fidc: document.getElementById('prc-fund-fidc').value, icms: document.getElementById('prc-fund-icms').value, frete_coleta: document.getElementById('prc-fund-frete').value };
+        const parseVal = v => parseFloat(String(v || '0').replace(',', '.')) || 0;
+        const body = {
+            material_id: parseInt(document.getElementById('prc-fund-material-id').value) || null,
+            preco_entregar: parseVal(document.getElementById('prc-fund-entregar').value),
+            preco_coletar:  parseVal(document.getElementById('prc-fund-coletar').value),
+            venda_ref:      parseVal(document.getElementById('prc-fund-venda-ref').value),
+            validade: document.getElementById('prc-fund-validade').value,
+            aplicar_todos: true,
+            comissao:       parseVal(document.getElementById('prc-fund-comissao').value),
+            pis_cofins:     parseVal(document.getElementById('prc-fund-piscofins').value),
+            fidc:           parseVal(document.getElementById('prc-fund-fidc').value),
+            icms:           parseVal(document.getElementById('prc-fund-icms').value),
+            frete_coleta:   parseVal(document.getElementById('prc-fund-frete').value)
+        };
         if (!body.material_id || !body.validade) return _apexNotify('Atenção', 'Material e validade são obrigatórios.', 'warning');
+        const btn = document.querySelector('#modal-preco-fundicao .btn-primary');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
         try {
             const res = await fetch('/api/tabela-precos-fundicao', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error(await res.text());
             document.getElementById('modal-preco-fundicao')?.remove();
             _apexNotify('Sucesso', 'Item de fundição salvo!', 'success');
             window.carregarPrecosFundicao();
-        } catch(e) { _apexNotify('Erro', e.message, 'error'); }
+        } catch(err) {
+            _apexNotify('Erro', err.message, 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
+        }
     };
+
 
     window.editarPrecoFundicao = function(id) {
         const p = localPrecosFundicao.find(x => x.id === id);
@@ -7531,7 +7564,8 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.atualizarPrecoFundicao = async function(id) {
-        const body = { material_id: document.getElementById('prc-fund-material-id').value, preco_entregar: document.getElementById('prc-fund-entregar').value, preco_coletar: document.getElementById('prc-fund-coletar').value, venda_ref: document.getElementById('prc-fund-venda-ref').value, validade: document.getElementById('prc-fund-validade').value, comissao: document.getElementById('prc-fund-comissao').value, pis_cofins: document.getElementById('prc-fund-piscofins').value, fidc: document.getElementById('prc-fund-fidc').value, icms: document.getElementById('prc-fund-icms').value, frete_coleta: document.getElementById('prc-fund-frete').value };
+        const body = { material_id: document.getElementById('prc-fund-material-id').value, preco_entregar: document.getElementById('prc-fund-entregar').value, preco_coletar: document.getElementById('prc-fund-coletar').value, venda_ref: document.getElementById('prc-fund-venda-ref').value, validade: document.getElementById('prc-fund-validade').value,
+            aplicar_todos: true, comissao: document.getElementById('prc-fund-comissao').value, pis_cofins: document.getElementById('prc-fund-piscofins').value, fidc: document.getElementById('prc-fund-fidc').value, icms: document.getElementById('prc-fund-icms').value, frete_coleta: document.getElementById('prc-fund-frete').value };
         try {
             const res = await fetch(`/api/tabela-precos-fundicao/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error(await res.text());
@@ -7547,9 +7581,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.alterarValidadeGeralFundicao = async function() {
-        const novaData = prompt('Nova data de vigência para todos os itens de fundição (AAAA-MM-DD):');
-        if (!novaData) return;
-        try { await fetch('/api/tabela-precos-fundicao-validade', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ validade: novaData }) }); _apexNotify('Sucesso', 'Vigência de fundição atualizada!', 'success'); window.carregarPrecosFundicao(); } catch(e) { _apexNotify('Erro', e.message, 'error'); }
+        abrirModalVigenciaGeral('fundicao');
     };
 
     window.exportarTabelaFundicao = function() { _apexNotify('Sistema', 'Tabela de Fundição exportada!', 'info'); };

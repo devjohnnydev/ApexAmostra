@@ -1909,7 +1909,13 @@ app.get('/api/tabela-precos-residuos', async (req, res) => {
 
 app.post('/api/tabela-precos-residuos', async (req, res) => {
     try {
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_residuos SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_residuos.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_residuos (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
@@ -1940,7 +1946,13 @@ app.put('/api/tabela-precos-residuos-validade', async (req, res) => {
 app.put('/api/tabela-precos-residuos/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_residuos SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_residuos.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `UPDATE tabela_precos_residuos SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
@@ -1987,7 +1999,13 @@ app.get('/api/tabela-precos-ligas', async (req, res) => {
 
 app.post('/api/tabela-precos-ligas', async (req, res) => {
     try {
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_ligas SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_ligas.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_ligas (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
@@ -2018,7 +2036,13 @@ app.put('/api/tabela-precos-ligas-validade', async (req, res) => {
 app.put('/api/tabela-precos-ligas/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_ligas SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_ligas.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `UPDATE tabela_precos_ligas SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
@@ -2065,7 +2089,13 @@ app.get('/api/tabela-precos-volume', async (req, res) => {
 
 app.post('/api/tabela-precos-volume', async (req, res) => {
     try {
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_volume SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_volume.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_volume (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
@@ -2096,7 +2126,13 @@ app.put('/api/tabela-precos-volume-validade', async (req, res) => {
 app.put('/api/tabela-precos-volume/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_volume SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_volume.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `UPDATE tabela_precos_volume SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
@@ -2143,7 +2179,13 @@ app.get('/api/tabela-precos-fundicao', async (req, res) => {
 
 app.post('/api/tabela-precos-fundicao', async (req, res) => {
     try {
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_fundicao SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_fundicao.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_fundicao (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
@@ -2174,7 +2216,13 @@ app.put('/api/tabela-precos-fundicao-validade', async (req, res) => {
 app.put('/api/tabela-precos-fundicao/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
+        const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
+        if (dbAvailable && aplicar_todos && validade) {
+            await pool.query('UPDATE tabela_precos_fundicao SET validade = $1', [validade]);
+        }
+        if (!dbAvailable && aplicar_todos && validade) {
+            memStore.tabela_precos_fundicao.forEach(p => p.validade = validade);
+        }
         if (dbAvailable) {
             const result = await pool.query(
                 `UPDATE tabela_precos_fundicao SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
