@@ -226,26 +226,39 @@
                             <i class="fa-solid fa-tags" style="color:#2AD07A;"></i>
                             <span>Catálogo de Materiais</span>
                         </a>
-                        <a href="#" class="nav-item nav-group-child" data-target="residuos-view" id="nav-residuos" data-tooltip="Resíduos">
-                            <i class="fa-solid fa-recycle" style="color:#2AD07A;"></i>
-                            <span>Resíduos</span>
-                        </a>
-                        <a href="#" class="nav-item nav-group-child" data-target="ligas-view" id="nav-ligas" data-tooltip="Ligas">
-                            <i class="fa-solid fa-atom" style="color:#4fc3f7;"></i>
-                            <span>Ligas</span>
-                        </a>
-                        <a href="#" class="nav-item nav-group-child" data-target="tabela-precos-view" id="nav-precos" data-tooltip="Tabela de Preços">
-                            <i class="fa-solid fa-dollar-sign" style="color:#f0c040;"></i>
-                            <span>Tabela de Preços</span>
-                        </a>
-                        <a href="#" class="nav-item nav-group-child" data-target="volume-view" id="nav-volume" data-tooltip="Preço por Volume">
-                            <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i>
-                            <span>Preço por Volume</span>
-                        </a>
-                        <a href="#" class="nav-item nav-group-child" data-target="fundicao-view" id="nav-fundicao" data-tooltip="Tabela de Fundição">
-                            <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i>
-                            <span>Fundição</span>
-                        </a>
+
+                        <!-- SUBGRUPO: TABELAS -->
+                        <div class="nav-group" id="nav-group-tabelas" style="border-top: none; margin-top: 4px;">
+                            <div class="nav-group-header" onclick="toggleNavGroup('nav-group-tabelas')" title="Expandir / Recolher" style="padding-left: 28px;">
+                                <span class="nav-group-label" style="color: #4fc3f7;">
+                                    <i class="fa-solid fa-table" style="color:#4fc3f7; font-size:0.75rem;"></i>
+                                    Tabelas
+                                </span>
+                                <i class="fa-solid fa-chevron-down nav-group-chevron" id="chevron-nav-group-tabelas"></i>
+                            </div>
+                            <div class="nav-group-items" id="items-nav-group-tabelas">
+                                <a href="#" class="nav-item nav-group-child" style="padding-left: 45px;" data-target="residuos-view" id="nav-residuos" data-tooltip="Resíduos">
+                                    <i class="fa-solid fa-recycle" style="color:#2AD07A;"></i>
+                                    <span>Resíduos</span>
+                                </a>
+                                <a href="#" class="nav-item nav-group-child" style="padding-left: 45px;" data-target="ligas-view" id="nav-ligas" data-tooltip="Ligas">
+                                    <i class="fa-solid fa-atom" style="color:#4fc3f7;"></i>
+                                    <span>Ligas</span>
+                                </a>
+                                <a href="#" class="nav-item nav-group-child" style="padding-left: 45px;" data-target="tabela-precos-view" id="nav-precos" data-tooltip="Tabela de Preços">
+                                    <i class="fa-solid fa-dollar-sign" style="color:#f0c040;"></i>
+                                    <span>Tabela de Preços</span>
+                                </a>
+                                <a href="#" class="nav-item nav-group-child" style="padding-left: 45px;" data-target="volume-view" id="nav-volume" data-tooltip="Preço por Volume">
+                                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i>
+                                    <span>Preço por Volume</span>
+                                </a>
+                                <a href="#" class="nav-item nav-group-child" style="padding-left: 45px;" data-target="fundicao-view" id="nav-fundicao" data-tooltip="Tabela de Fundição">
+                                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i>
+                                    <span>Fundição</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

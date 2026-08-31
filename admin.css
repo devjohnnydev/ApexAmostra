@@ -190,6 +190,16 @@ h1, h2, h3, h4 { font-family: 'Raleway', sans-serif; }
     text-transform: uppercase;
     color: #5a8a70;
     letter-spacing: 0.09em;
+    flex-grow: 1;
+}
+
+.nav-group-label::after {
+    content: '';
+    flex-grow: 1;
+    height: 1px;
+    background: rgba(90, 138, 112, 0.25);
+    margin-left: 10px;
+    margin-right: 15px;
 }
 .nav-group-chevron {
     font-size: 0.65rem;
