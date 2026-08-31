@@ -7649,7 +7649,7 @@ var _listTabelaPrecosEstrategica = [];
         categorias.forEach(cat => {
             const precosCat = precos.filter(p => p.material_categoria === cat);
             if (precosCat.length === 0) return;
-            const validadeStr = precosCat[0] ? (precosCat[0].validade ? new Date(precosCat[0].validade + 'T00:00:00').toLocaleDateString('pt-BR') : '-') : '-';
+            const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
             const corCat = (settings && settings[`${prefixoCor}${cat}`]) || corPrimaria;
             html += `<div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCat};border-radius:6px;overflow:hidden;">
                 <div style="background:${corCat};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;">
