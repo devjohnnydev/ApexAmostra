@@ -5867,80 +5867,8 @@ var _listTabelaPrecosEstrategica = [];
         }
 
         const isCompleta = modoPDF === 'completa';
-        const tempDiv = document.createElement('div');
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        tempDiv.style.top = '-9999px';
-        tempDiv.style.width = isCompleta ? '1400px' : '1000px';
-        tempDiv.style.boxSizing = 'border-box';
-        tempDiv.style.background = '#ffffff';
-
-        // Carregar logo (2).png como base64 para a marca d'água
-        let logoWatermarkBase64 = null;
-        try {
-            const logoRes = await fetch('/assets/img/logo%20(2).png');
-            if (logoRes.ok) {
-                const blob = await logoRes.blob();
-                logoWatermarkBase64 = await new Promise(resolve => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
-            }
-        } catch(e) {
-            console.warn('Logo watermark não carregou, usando fallback:', e);
-        }
-        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, logoWatermarkBase64, modoPDF);
-        document.body.appendChild(tempDiv);
-
-        try {
-            await new Promise(r => setTimeout(r, 600));
-
-            const canvas = await html2canvas(tempDiv, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                useCORS: true,
-                allowTaint: false,
-                scrollY: 0,
-                windowHeight: tempDiv.scrollHeight,
-                height: tempDiv.scrollHeight,
-                width: tempDiv.scrollWidth
-            });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const { jsPDF } = window.jspdf;
-
-            const pdfWidthMm = isCompleta ? 297 : 210;
-            const pdfPageHeightMm = isCompleta ? 210 : 297;
-            const pdfOrientation = isCompleta ? 'landscape' : 'portrait';
-
-            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-
-            const pdf = new jsPDF({
-                orientation: pdfOrientation,
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            let heightLeft = imgHeightMm;
-            let position = 0;
-
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
-            heightLeft -= pdfPageHeightMm;
-
-            while (heightLeft > 5) {
-                position -= pdfPageHeightMm;
-                pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
-                heightLeft -= pdfPageHeightMm;
-            }
-
-            return pdf.output('datauristring').split(',')[1];
-        } catch (err) {
-            console.error('Erro ao gerar base64 da tabela de preços:', err);
-            return null;
-        } finally {
-            document.body.removeChild(tempDiv);
-        }
+        const htmlContent = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, logoWatermarkBase64, modoPDF);
+        return await renderHtmlToPdfBase64(htmlContent, modoPDF === 'completa');
     };
 
     window.exportarTabelaPrecosPdf = async function(modo) {
@@ -7728,6 +7656,7 @@ var _listTabelaPrecosEstrategica = [];
         }
         const tempDiv = document.createElement('div');
         tempDiv.style.width = isCompleta ? '1400px' : '1000px'; 
+        tempDiv.style.zoom = isCompleta ? '0.74' : '0.71'; // Scales layout to fit A4 width perfectly (1036px/710px)
         tempDiv.style.background = '#ffffff';
         tempDiv.style.padding = '0';
         tempDiv.innerHTML = htmlContent;
@@ -9949,26 +9878,8 @@ var _listTabelaPrecosEstrategica = [];
             }
         } catch(e) { console.warn('Logo watermark não carregou:', e); }
 
-        const tempDiv = document.createElement('div');
-        tempDiv.style.cssText = `position:absolute;left:-9999px;top:-9999px;width:${isCompleta ? '1400px' : '1000px'};box-sizing:border-box;background:#ffffff;`;
-        tempDiv.innerHTML = gerarHtmlTabelaResiduosParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
-        document.body.appendChild(tempDiv);
-        try {
-            await new Promise(r => setTimeout(r, 600));
-            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const { jsPDF } = window.jspdf;
-            const pdfWidthMm = isCompleta ? 297 : 210;
-            const pdfPageHeightMm = isCompleta ? 210 : 297;
-            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-            const pdf = new jsPDF({ orientation: isCompleta ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-            let heightLeft = imgHeightMm, position = 0;
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
-            heightLeft -= pdfPageHeightMm;
-            while (heightLeft > 5) { position -= pdfPageHeightMm; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm); heightLeft -= pdfPageHeightMm; }
-            return pdf.output('datauristring').split(',')[1];
-        } catch(err) { console.error('Erro ao gerar PDF Resíduos:', err); return null; }
-        finally { document.body.removeChild(tempDiv); }
+        const htmlContent = gerarHtmlTabelaResiduosParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
+        return await renderHtmlToPdfBase64(htmlContent, isCompleta);
     };
 
     window.exportarTabelaResiduosPdf = async function(modo) {
@@ -10159,26 +10070,8 @@ var _listTabelaPrecosEstrategica = [];
             }
         } catch(e) { console.warn('Logo watermark não carregou:', e); }
 
-        const tempDiv = document.createElement('div');
-        tempDiv.style.cssText = `position:absolute;left:-9999px;top:-9999px;width:${isCompleta ? '1400px' : '1000px'};box-sizing:border-box;background:#ffffff;`;
-        tempDiv.innerHTML = gerarHtmlTabelaLigasParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
-        document.body.appendChild(tempDiv);
-        try {
-            await new Promise(r => setTimeout(r, 600));
-            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const { jsPDF } = window.jspdf;
-            const pdfWidthMm = isCompleta ? 297 : 210;
-            const pdfPageHeightMm = isCompleta ? 210 : 297;
-            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-            const pdf = new jsPDF({ orientation: isCompleta ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-            let heightLeft = imgHeightMm, position = 0;
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
-            heightLeft -= pdfPageHeightMm;
-            while (heightLeft > 5) { position -= pdfPageHeightMm; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm); heightLeft -= pdfPageHeightMm; }
-            return pdf.output('datauristring').split(',')[1];
-        } catch(err) { console.error('Erro ao gerar PDF Ligas:', err); return null; }
-        finally { document.body.removeChild(tempDiv); }
+        const htmlContent = gerarHtmlTabelaLigasParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
+        return await renderHtmlToPdfBase64(htmlContent, isCompleta);
     };
 
     window.exportarTabelaLigasPdf = async function(modo) {
