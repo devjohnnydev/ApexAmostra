@@ -16,7 +16,7 @@ const pcpUI = {
 
     carregarMateriaisPCP: async function() {
         try {
-            const res = await fetch('/api/materiais');
+            const res = await fetch('/api/materiais-catalogo');
             if (res.ok) {
                 const data = await res.json();
                 this.materiais = data;
@@ -248,10 +248,10 @@ const pcpUI = {
 
             tb.innerHTML += `
                 <tr data-idx="${idx}">
-                    <td><select class="noble-input mix-mat" style="min-width:250px;">${matOptions}</select></td>
-                    <td><input type="number" step="0.0001" class="noble-input mix-vol" value="${item.volume_total || 0}" style="width:120px;" onchange="pcpUI.updateMixConferencia()"></td>
+                    <td><select class="form-control mix-mat" style="width:250px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;">${matOptions}</select></td>
+                    <td><input type="number" step="0.0001" class="form-control mix-vol" value="${item.volume_total || 0}" style="width:120px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.updateMixConferencia()"></td>
                     <td class="mix-perc">${perc}%</td>
-                    <td><input type="number" class="noble-input mix-linha" value="${item.numero_linha || ''}" min="1" max="4" style="width:80px;" onchange="pcpUI.updateMixConferencia()"></td>
+                    <td><input type="number" class="form-control mix-linha" value="${item.numero_linha || ''}" min="1" max="4" style="width:80px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.updateMixConferencia()"></td>
                     <td class="mix-metadia">${metaDia}</td>
                     <td>${metaLinhaMes}</td>
                     <td>${metaLinhaDia}</td>
@@ -264,10 +264,10 @@ const pcpUI = {
         this.materiais.forEach(m => { emptyOpts += `<option value="${m.id}">${m.nome}</option>`; });
         tb.innerHTML += `
             <tr data-idx="new">
-                <td><select class="noble-input mix-mat" style="min-width:250px;">${emptyOpts}</select></td>
-                <td><input type="number" step="0.0001" class="noble-input mix-vol" value="" style="width:120px;" onchange="pcpUI.updateMixConferencia()"></td>
+                <td><select class="form-control mix-mat" style="width:250px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;">${emptyOpts}</select></td>
+                <td><input type="number" step="0.0001" class="form-control mix-vol" value="" style="width:120px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.updateMixConferencia()"></td>
                 <td class="mix-perc">-</td>
-                <td><input type="number" class="noble-input mix-linha" value="" min="1" max="4" style="width:80px;" onchange="pcpUI.updateMixConferencia()"></td>
+                <td><input type="number" class="form-control mix-linha" value="" min="1" max="4" style="width:80px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.updateMixConferencia()"></td>
                 <td class="mix-metadia">-</td>
                 <td>-</td>
                 <td>-</td>
@@ -400,10 +400,10 @@ const pcpUI = {
                     <td style="color:#64748b;">${parseFloat(d.meta_l3).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
                     <td style="color:#64748b; border-right:2px solid #2d3748;">${parseFloat(d.meta_l4).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
                     
-                    <td><input type="number" step="0.01" class="noble-input pcp-real-l1" value="${r1 > 0 ? r1 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
-                    <td><input type="number" step="0.01" class="noble-input pcp-real-l2" value="${r2 > 0 ? r2 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
-                    <td><input type="number" step="0.01" class="noble-input pcp-real-l3" value="${r3 > 0 ? r3 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
-                    <td style="border-right:2px solid #2d3748;"><input type="number" step="0.01" class="noble-input pcp-real-l4" value="${r4 > 0 ? r4 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
+                    <td><input type="number" step="0.01" class="form-control pcp-real-l1" value="${r1 > 0 ? r1 : ''}" style="width:70px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
+                    <td><input type="number" step="0.01" class="form-control pcp-real-l2" value="${r2 > 0 ? r2 : ''}" style="width:70px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
+                    <td><input type="number" step="0.01" class="form-control pcp-real-l3" value="${r3 > 0 ? r3 : ''}" style="width:70px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
+                    <td style="border-right:2px solid #2d3748;"><input type="number" step="0.01" class="form-control pcp-real-l4" value="${r4 > 0 ? r4 : ''}" style="width:70px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
                     
                     <td style="font-weight:bold; color:#38bdf8;">${metaTot.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
                     <td style="font-weight:bold; color:#4ade80;">${rTot.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
@@ -414,7 +414,7 @@ const pcpUI = {
                     <td style="color:#4ade80;">${acumReal.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:2})}</td>
                     
                     <td style="font-weight:bold; font-size:0.75rem; color:${statusColor}; border-left:2px solid #2d3748;">${status}</td>
-                    <td><input type="text" class="noble-input pcp-obs" placeholder="Obs" value="${d.observacao || ''}" style="width:120px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
+                    <td><input type="text" class="form-control pcp-obs" placeholder="Obs" value="${d.observacao || ''}" style="width:120px; padding:6px; background:#1a2e3f; color:#fff; border:1px solid #2d3748; border-radius:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
                 </tr>
             `;
         });
