@@ -1170,6 +1170,8 @@ app.use(express.static(__dirname, {
 const authMiddleware = (req, res, next) => {
     const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje'];
     if (publicRoutes.includes(req.path) || req.path.startsWith('/public')) return next();
+    // Rota de imagem de fotos é pública: a tag <img> do HTML não pode enviar JWT
+    if (/^\/api\/amostras\/\d+\/fotos\/\d+\/img$/.test(req.path)) return next();
 
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Token não fornecido. Acesso Negado.' });
