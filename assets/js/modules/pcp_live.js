@@ -393,8 +393,8 @@ const pcpUI = {
 
             tb.innerHTML += `
                 <tr data-pdid="${d.id}" style="background: ${rTot > 0 ? 'rgba(255,255,255,0.02)' : 'transparent'}">
-                    <td style="position:sticky; left:0; background:#101a24; border-right:1px solid #2d3748; z-index:5;">${idx + 1}</td>
-                    <td style="position:sticky; left:50px; background:#101a24; border-right:2px solid #2d3748; z-index:5;">${dataStr}</td>
+                    <td style="position:sticky; left:0; width:45px; min-width:45px; max-width:45px; background:#101a24; border-right:1px solid #2d3748; z-index:5;">${idx + 1}</td>
+                    <td style="position:sticky; left:45px; width:95px; min-width:95px; max-width:95px; background:#101a24; border-right:2px solid #2d3748; z-index:5;">${dataStr}</td>
                     <td style="color:#64748b;">${parseFloat(d.meta_l1).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
                     <td style="color:#64748b;">${parseFloat(d.meta_l2).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
                     <td style="color:#64748b;">${parseFloat(d.meta_l3).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
@@ -415,7 +415,6 @@ const pcpUI = {
                     
                     <td style="font-weight:bold; font-size:0.75rem; color:${statusColor}; border-left:2px solid #2d3748;">${status}</td>
                     <td><input type="text" class="noble-input pcp-obs" placeholder="Obs" value="${d.observacao || ''}" style="width:120px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
-                    <td></td>
                 </tr>
             `;
         });
