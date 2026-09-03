@@ -546,15 +546,15 @@
         }
 
         if (!dataInicio || !dataFim) {
-            alert('Informe a Data de Início e a Data de Fim do ciclo.');
+            (window._apexNotify ? window._apexNotify('Notificação', 'Informe a Data de Início e a Data de Fim do ciclo.', 'info') : alert('Informe a Data de Início e a Data de Fim do ciclo.'));
             return;
         }
         if (new Date(dataFim) < new Date(dataInicio)) {
-            alert('A Data de Fim deve ser posterior à Data de Início.');
+            (window._apexNotify ? window._apexNotify('Notificação', 'A Data de Fim deve ser posterior à Data de Início.', 'info') : alert('A Data de Fim deve ser posterior à Data de Início.'));
             return;
         }
         if (!metaFat || metaFat <= 0) {
-            alert('Informe a Meta de Faturamento do ciclo.');
+            (window._apexNotify ? window._apexNotify('Notificação', 'Informe a Meta de Faturamento do ciclo.', 'info') : alert('Informe a Meta de Faturamento do ciclo.'));
             return;
         }
 
@@ -590,10 +590,10 @@
             if (nota) nota.style.display = 'block';
 
             _renderizarCiclosV3();
-            alert(`✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}`);
+            (window._apexNotify ? window._apexNotify('Notificação', `✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00', 'info') : alert(`✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00')).toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}`);
         } catch (e) {
             console.error(e);
-            alert('Erro ao salvar ciclo.');
+            (window._apexNotify ? window._apexNotify('Notificação', 'Erro ao salvar ciclo.', 'info') : alert('Erro ao salvar ciclo.'));
         }
     };
 
@@ -608,10 +608,10 @@
                 const data = await res.json();
                 const planos = data.planos || [];
                 const pendente = planos.find(p => p.status !== 'CONCLUIDO');
-                if (!pendente) { alert('Nenhum ciclo pendente no banco. Salve um novo planejamento.'); return; }
+                if (!pendente) { (window._apexNotify ? window._apexNotify('Notificação', 'Nenhum ciclo pendente no banco. Salve um novo planejamento.', 'info') : alert('Nenhum ciclo pendente no banco. Salve um novo planejamento.')); return; }
                 id = pendente.id;
             } catch(e) {
-                alert('Erro ao buscar planos.'); return;
+                (window._apexNotify ? window._apexNotify('Notificação', 'Erro ao buscar planos.', 'info') : alert('Erro ao buscar planos.')); return;
             }
         }
 
@@ -635,8 +635,8 @@
     const volReal  = window.parseCurrencyV3(document.getElementById('modal-rr-volume-real')?.value) || null;
     const obs      = document.getElementById('modal-rr-obs')?.value?.trim() || '';
 
-    if (!fatReal || fatReal <= 0) { alert('Informe o Faturamento Real alcançado.'); return; }
-    if (!invReal || invReal <= 0) { alert('Informe o Investimento Real realizado em compras.'); return; }
+    if (!fatReal || fatReal <= 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Informe o Faturamento Real alcançado.', 'info') : alert('Informe o Faturamento Real alcançado.')); return; }
+    if (!invReal || invReal <= 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Informe o Investimento Real realizado em compras.', 'info') : alert('Informe o Investimento Real realizado em compras.')); return; }
 
     try {
         const res = await fetch('/api/estrategiav3_planos/' + cicloId + '/resultado_real', {
@@ -655,7 +655,7 @@
         _apexNotify('Sucesso', 'Resultado real do ciclo registrado!', 'success');
     } catch(e) {
         console.error(e);
-        alert('Erro ao registrar resultado real.');
+        (window._apexNotify ? window._apexNotify('Notificação', 'Erro ao registrar resultado real.', 'info') : alert('Erro ao registrar resultado real.'));
     }
 };
 
@@ -664,7 +664,7 @@ window.excluirCicloV3 = async function(cicloId) {
     try {
         await fetch('/api/estrategiav3_planos/' + cicloId, { method: 'DELETE' });
         _renderizarCiclosV3();
-    } catch(e) { console.error(e); alert('Erro ao excluir ciclo'); }
+    } catch(e) { console.error(e); (window._apexNotify ? window._apexNotify('Notificação', 'Erro ao excluir ciclo', 'info') : alert('Erro ao excluir ciclo')); }
 };
 
         async function _renderizarCiclosV3() {
@@ -1159,7 +1159,7 @@ window.excluirCicloV3 = async function(cicloId) {
 
         } catch(e) {
             console.error('ERRO ABRIR MODAL:', e);
-            alert('Aviso: ' + e.message);
+            (window._apexNotify ? window._apexNotify('Notificação', 'Aviso: ' + e.message, 'info') : alert('Aviso: ' + e.message));
             if (lista) {
                 lista.innerHTML = `<div style="color:#ff4d4d; text-align:center; padding: 20px;">
                     <b>Erro ao carregar dados do servidor.</b><br><br>
@@ -2910,7 +2910,7 @@ window.excluirCicloV3 = async function(cicloId) {
             if (typeof _apexNotify === 'function') {
                 _apexNotify('Sucesso', 'Simulação automática gerada com sucesso!', 'success');
             } else {
-                alert('Simulação automática gerada com sucesso!');
+                (window._apexNotify ? window._apexNotify('Notificação', 'Simulação automática gerada com sucesso!', 'info') : alert('Simulação automática gerada com sucesso!'));
             }
             
             window.renderPlanejamentoMesEstrategico();
@@ -2920,7 +2920,7 @@ window.excluirCicloV3 = async function(cicloId) {
             if (typeof _apexNotify === 'function') {
                 _apexNotify('Erro', 'Falha ao gerar previsão automática', 'error');
             } else {
-                alert('Falha ao gerar previsão automática');
+                (window._apexNotify ? window._apexNotify('Notificação', 'Falha ao gerar previsão automática', 'info') : alert('Falha ao gerar previsão automática'));
             }
         } finally {
             if (btn) {

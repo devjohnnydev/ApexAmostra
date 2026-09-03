@@ -9084,7 +9084,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errDiv.style = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,0,0,0.8); color:white; z-index:999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:24px; padding:20px; white-space:pre-wrap;";
             errDiv.innerText = "FATAL ERROR DASHBOARD:\n" + (e.stack || e.message || String(e));
             document.body.appendChild(errDiv);
-            alert("ERRO: " + e.message);
+            (window._apexNotify ? window._apexNotify('Notificação', "ERRO: " + e.message, 'info') : alert("ERRO: " + e.message));
         }
     };
 
@@ -9167,7 +9167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (e) {
             console.error('Erro ao renderizar grafico dash pl:', e);
-            alert('Erro ao desenhar grafico: ' + e.message);
+            (window._apexNotify ? window._apexNotify('Notificação', 'Erro ao desenhar grafico: ' + e.message, 'info') : alert('Erro ao desenhar grafico: ' + e.message));
         }
     }
 
@@ -16904,15 +16904,15 @@ window.carregarFinanceiroView = async function() {
         }
 
         if (!dataInicio || !dataFim) {
-            alert('Informe a Data de Início e a Data de Fim do ciclo.');
+            (window._apexNotify ? window._apexNotify('Notificação', 'Informe a Data de Início e a Data de Fim do ciclo.', 'info') : alert('Informe a Data de Início e a Data de Fim do ciclo.'));
             return;
         }
         if (new Date(dataFim) < new Date(dataInicio)) {
-            alert('A Data de Fim deve ser posterior à Data de Início.');
+            (window._apexNotify ? window._apexNotify('Notificação', 'A Data de Fim deve ser posterior à Data de Início.', 'info') : alert('A Data de Fim deve ser posterior à Data de Início.'));
             return;
         }
         if (!metaFat || metaFat <= 0) {
-            alert('Informe a Meta de Faturamento do ciclo.');
+            (window._apexNotify ? window._apexNotify('Notificação', 'Informe a Meta de Faturamento do ciclo.', 'info') : alert('Informe a Meta de Faturamento do ciclo.'));
             return;
         }
 
@@ -16950,7 +16950,7 @@ window.carregarFinanceiroView = async function() {
         if (nota) nota.style.display = 'block';
 
         _renderizarCiclosV3();
-        alert(`✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+        (window._apexNotify ? window._apexNotify('Notificação', `✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00', 'info') : alert(`✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00')).toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
     };
 
     window.abrirModalResultadoRealV3 = function(cicloId) {
@@ -16962,7 +16962,7 @@ window.carregarFinanceiroView = async function() {
         if (!id) {
             const ciclos = _getCiclos();
             const pendente = ciclos.find(c => c.status === 'simulado');
-            if (!pendente) { alert('Nenhum ciclo simulado pendente. Salve primeiro uma simulação.'); return; }
+            if (!pendente) { (window._apexNotify ? window._apexNotify('Notificação', 'Nenhum ciclo simulado pendente. Salve primeiro uma simulação.', 'info') : alert('Nenhum ciclo simulado pendente. Salve primeiro uma simulação.')); return; }
             id = pendente.id;
         }
 
@@ -16986,12 +16986,12 @@ window.carregarFinanceiroView = async function() {
         const volReal  = parseFloat(document.getElementById('modal-rr-volume-real')?.value) || null;
         const obs      = document.getElementById('modal-rr-obs')?.value?.trim() || '';
 
-        if (!fatReal || fatReal <= 0) { alert('Informe o Faturamento Real alcançado.'); return; }
-        if (!invReal || invReal <= 0) { alert('Informe o Investimento Real realizado em compras.'); return; }
+        if (!fatReal || fatReal <= 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Informe o Faturamento Real alcançado.', 'info') : alert('Informe o Faturamento Real alcançado.')); return; }
+        if (!invReal || invReal <= 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Informe o Investimento Real realizado em compras.', 'info') : alert('Informe o Investimento Real realizado em compras.')); return; }
 
         const ciclos = _getCiclos();
         const idx = ciclos.findIndex(c => c.id === cicloId);
-        if (idx < 0) { alert('Ciclo não encontrado.'); return; }
+        if (idx < 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Ciclo não encontrado.', 'info') : alert('Ciclo não encontrado.')); return; }
 
         ciclos[idx].fatReal      = fatReal;
         ciclos[idx].investReal   = invReal;
@@ -17499,7 +17499,7 @@ window.carregarFinanceiroView = async function() {
 
         } catch(e) {
             console.error('ERRO ABRIR MODAL:', e);
-            alert('Aviso: ' + e.message);
+            (window._apexNotify ? window._apexNotify('Notificação', 'Aviso: ' + e.message, 'info') : alert('Aviso: ' + e.message));
             if (lista) {
                 lista.innerHTML = `<div style="color:#ff4d4d; text-align:center; padding: 20px;">
                     <b>Erro ao carregar dados do servidor.</b><br><br>
