@@ -2325,14 +2325,8 @@
                             <h3 style="margin-top:0; color:#f0c040;"><i class="fa-solid fa-screwdriver-wrench"></i> TELA 2 — Triagem Física & Desmonte de Componentes</h3>
                             <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px;">Separe as partes do lote, pesando cada tipo de material extraído após a desmontagem.</p>
 
-                            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                <label class="btn-secondary" style="cursor:pointer; font-size:0.85rem; padding:8px 14px; display:inline-flex; align-items:center; gap:6px; background:#1e3a5f; color:#fff;">
-                                    <i class="fa-solid fa-upload"></i> Anexar Foto da Peça
-                                    <input type="file" id="foto-input-desmonte" accept="image/*" capture="environment" multiple style="display:none;" onchange="uploadFotos(this,'separada','Desmonte')">
-                                </label>
-                                <button type="button" class="btn-primary" style="background:#2AD07A; color:#000; font-weight:bold; padding:8px 14px; font-size:0.85rem;" onclick="abrirWebcamModal('separada', 'Desmonte')">
-                                    <i class="fa-solid fa-camera"></i> Capturar Foto Peça com Webcam
-                                </button>
+                            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; display:none;">
+                                <!-- Botões globais removidos para forçar o fluxo em camadas (cebola) -->
                             </div>
 
                             <table class="admin-table" style="width:100%; border-collapse:collapse; margin-bottom:15px;">

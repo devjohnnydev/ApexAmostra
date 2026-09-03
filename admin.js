@@ -8546,7 +8546,11 @@ var _listTabelaPrecosEstrategica = [];
             wrapper.style.cssText = 'position:relative; width:125px; height:100px; border-radius:8px; overflow:hidden; border:2px solid #1e4e8c; flex-shrink:0; background:#0a141d;';
             const badge = document.createElement('span');
             const etapaTexto = foto.etapa || (foto.tipo === 'bruta' ? 'Recebimento' : 'Desmonte');
-            badge.textContent = `${index + 1}º ${etapaTexto}`;
+            if (etapaTexto.includes('Camada')) {
+                badge.textContent = etapaTexto;
+            } else {
+                badge.textContent = `${index + 1}º ${etapaTexto}`;
+            }
             
             let badgeBg = '#3e7cb1';
             if (etapaTexto === 'Recebimento') badgeBg = '#f0b800';

@@ -297,7 +297,7 @@
 
         /* ── API pública ── */
         window._WCM = {
-            abrir: function(compIdx) { _abrir(compIdx, 'separada', 'Desmonte'); },
+            abrir: function(compIdx, etapaStr) { _abrir(compIdx, 'separada', etapaStr || 'Desmonte'); },
             abrirGeral: function(tipo, etapa) { _compIdx = null; _onConfirmCallback = null; _abrir(null, tipo, etapa); },
             // Modo especial: ao confirmar chama callback(img64, blob) em vez do fluxo normal de componente
             abrirParaRecebimento: function(callback) {
@@ -331,7 +331,7 @@
 
         // Mantém compatibilidade com funções antigas chamadas pelo HTML restante
         window.abrirWebcamModal      = function(tipo, etapa) { window._WCM.abrirGeral(tipo, etapa); };
-        window.abrirWebcamModalComp  = function(idx)         { window._WCM.abrir(idx); };
+        window.abrirWebcamModalComp  = function(idx, etapaStr)         { window._WCM.abrir(idx, etapaStr); };
         window.fecharWebcamModal     = _fechar;
         window.tirarFotoWebcam       = _capturar;
         window.refazerFotoWebcam     = _refazer;
@@ -357,15 +357,16 @@
             const thumbHtml = hasPhotos
                 ? window._WCM.thumbsHtmlList(idx)
                 : `<button class="btn-primary" type="button"
-                       style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.78rem; font-weight:bold;
-                              border-radius:6px; white-space:nowrap;"
-                       onclick="abrirWebcamModalComp(${idx})" title="Capturar foto desta peça">
-                       <i class="fa-solid fa-camera"></i> Foto
+                       style="padding:6px 10px; background:#e07b39; color:#fff; font-size:0.78rem; font-weight:bold;
+                              border-radius:6px; white-space:nowrap; box-shadow:0 0 8px rgba(224,123,57,0.5);"
+                       onclick="abrirWebcamModalComp(${idx}, '${idx + 1}ª Camada')" title="Capturar foto desta camada">
+                       <i class="fa-solid fa-camera"></i> Registrar Camada
                    </button>`;
 
             tr.innerHTML = `
                 <td style="padding:8px 10px; min-width:220px;">
                     <div style="display:flex; flex-direction:column; gap:5px;">
+                        <span style="font-size:0.7rem; font-weight:bold; color:#f0c040; text-transform:uppercase; letter-spacing:1px; margin-bottom:-2px;">${idx + 1}ª Camada</span>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <button type="button" onclick="alterarSelecaoMaterialComp(${idx},'NEW')"
                                 title="Material não cadastrado"
