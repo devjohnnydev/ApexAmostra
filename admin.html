@@ -4430,9 +4430,15 @@
                     <input type="text" id="amo-nome-material" required class="noble-input" placeholder="Ex: Fio de Instalação 1.5mm, Cobre Misto..." style="border-color:#1e4e8c; font-size:0.95rem;">
                 </div>
 
-                <div class="form-group">
-                    <label>Fornecedor *</label>
-                    <select id="amo-fornecedor" required class="noble-input"></select>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Fornecedor *</label>
+                        <select id="amo-fornecedor" required class="noble-input"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Representante</label>
+                        <input type="text" id="amo-representante" class="noble-input" placeholder="Nome do representante (opcional)">
+                    </div>
                 </div>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -4442,7 +4448,7 @@
                     </div>
                     <div class="form-group">
                         <label>Peso Inicial (kg) *</label>
-                        <input type="number" step="0.001" id="amo-peso" required class="noble-input" placeholder="0.000">
+                        <input type="number" step="0.0001" id="amo-peso" required class="noble-input" placeholder="0.0000">
                     </div>
                 </div>
 

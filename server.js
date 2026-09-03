@@ -487,6 +487,7 @@ async function initDatabase() {
                 data           DATE NOT NULL,
                 fornecedor_id  INTEGER NOT NULL,
                 responsavel    TEXT NOT NULL,
+                representante  TEXT,
                 peso_inicial   NUMERIC(12,3) NOT NULL,
                 status         TEXT DEFAULT 'Em Análise', -- 'Em Análise', 'Aguardando Precificação', 'Aguardando Liberação PCP', 'Liberado para Produção', 'Processado'
                 observacoes    TEXT,
@@ -571,6 +572,8 @@ async function initDatabase() {
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_validade TIMESTAMP;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS autorizado_por TEXT;
             ALTER TABLE amostras ADD COLUMN IF NOT EXISTS obs_diretoria TEXT;
+            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS representante TEXT;
+            ALTER TABLE amostras ALTER COLUMN peso_inicial TYPE NUMERIC(14,4);
 
             ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS comissao NUMERIC(10,2) DEFAULT 0.00;
             ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS pis_cofins NUMERIC(10,2) DEFAULT 0.00;
@@ -2314,16 +2317,16 @@ app.get('/api/amostras/:id', async (req, res) => {
 
 app.post('/api/amostras', async (req, res) => {
     try {
-        const { numero_amostra, nome_material, data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original } = req.body;
+        const { numero_amostra, nome_material, data, fornecedor_id, responsavel, representante, peso_inicial, observacoes, foto_original } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `INSERT INTO amostras (numero_amostra, nome_material, data, fornecedor_id, responsavel, peso_inicial, status, observacoes, foto_original)
-                 VALUES ($1, $2, $3, $4, $5, $6, 'Em Análise', $7, $8) RETURNING *`,
-                [numero_amostra, nome_material || '', data, fornecedor_id, responsavel, peso_inicial, observacoes, foto_original || '']
+                `INSERT INTO amostras (numero_amostra, nome_material, data, fornecedor_id, responsavel, representante, peso_inicial, status, observacoes, foto_original)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, 'Em Análise', $8, $9) RETURNING *`,
+                [numero_amostra, nome_material || '', data, fornecedor_id, responsavel, representante || '', peso_inicial, observacoes, foto_original || '']
             );
             return res.json(result.rows[0]);
         } else {
-            const newA = { id: nextId++, numero_amostra, nome_material: nome_material || '', data, fornecedor_id: parseInt(fornecedor_id), responsavel, peso_inicial: parseFloat(peso_inicial), status: 'Em Análise', observacoes, foto_original: foto_original || '' };
+            const newA = { id: nextId++, numero_amostra, nome_material: nome_material || '', data, fornecedor_id: parseInt(fornecedor_id), responsavel, representante: representante || '', peso_inicial: parseFloat(peso_inicial), status: 'Em Análise', observacoes, foto_original: foto_original || '' };
             memStore.amostras.push(newA);
             return res.json(newA);
         }

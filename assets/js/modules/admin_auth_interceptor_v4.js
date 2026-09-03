@@ -67,7 +67,8 @@
             }
 
             // 3. Lógica de Leitura do Cache (Apenas GET sem no-store explícito)
-            if (method === 'GET' && (!config.cache || config.cache !== 'no-store')) {
+            const isImageRoute = resource.match(/\/(img|fotos|pdf|download)$/i);
+            if (method === 'GET' && (!config.cache || config.cache !== 'no-store') && !isImageRoute) {
                 const cacheKey = resource;
                 
                 // Retorna resposta do cache se válida

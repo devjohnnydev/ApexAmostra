@@ -6517,17 +6517,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof carregarAmostras === 'function') carregarAmostras();
     }, 10000);
 
-    function popularSeletoresAmostras() {
+    async function popularSeletoresAmostras() {
         const selFornModal = document.getElementById('amo-fornecedor');
         const selFornFiltro = document.getElementById('amostras-filtro-fornecedor');
         if (!selFornModal) return;
 
-        // Limpa opções antigas mantendo a primeira se houver
         selFornModal.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
         if (selFornFiltro) selFornFiltro.innerHTML = '<option value="">Todos os Fornecedores</option>';
 
-        if (Array.isArray(localFornecedores) && localFornecedores.length > 0) {
-            localFornecedores.forEach(f => {
+        try {
+            const res = await fetch('/api/fornecedores?limit=9999');
+            if (!res.ok) return;
+            const data = await res.json();
+            const fornList = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+
+            fornList.forEach(f => {
                 const fnome = f.apelido || f.nome || f.razao_social;
                 const opt = document.createElement('option');
                 opt.value = f.id;
@@ -6541,6 +6545,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     selFornFiltro.appendChild(optF);
                 }
             });
+        } catch (err) {
+            console.warn('Erro popularSeletoresAmostras', err);
         }
     }
 
@@ -6665,6 +6671,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (form) form.reset();
         const idEl = document.getElementById('amo-id');
         if (idEl) idEl.value = '';
+        if (typeof popularSeletoresAmostras === 'function') popularSeletoresAmostras();
         
         let nextNumber = 1;
         if (typeof localAmostras !== 'undefined' && localAmostras.length > 0) {
@@ -6765,6 +6772,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: document.getElementById('amo-data').value,
             fornecedor_id: document.getElementById('amo-fornecedor').value,
             responsavel: document.getElementById('amo-responsavel').value,
+            representante: document.getElementById('amo-representante') ? document.getElementById('amo-representante').value : '',
             peso_inicial: document.getElementById('amo-peso').value,
             observacoes: document.getElementById('amo-obs').value,
             foto_original: ''
