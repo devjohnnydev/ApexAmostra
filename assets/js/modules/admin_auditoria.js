@@ -252,6 +252,11 @@
                         componentesActivos[cIdx].fotosUrl.push(url);
                         componentesActivos[cIdx].fotosDbIds.push(fotoId);
                         componentesActivos[cIdx].foto = url; // Mantém fallback da última foto ativa
+                        
+                        // Atualiza a galeria principal imediatamente para o usuário ver
+                        if (typeof carregarFotosAmostra === 'function') {
+                            carregarFotosAmostra(activeAmostraIdForDesmonte);
+                        }
                     }
                 } catch(e) { console.warn('Upload webcam (background):', e); }
             }
