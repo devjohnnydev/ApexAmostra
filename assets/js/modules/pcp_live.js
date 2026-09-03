@@ -233,9 +233,14 @@ const pcpUI = {
         }
 
         localMix.forEach((item, idx) => {
-            const perc = ((parseFloat(item.volume_total) / p.meta_mensal)*100).toFixed(4);
+            const perc = ((parseFloat(item.volume_total) / p.meta_mensal)*100).toFixed(1);
             const metaDia = (parseFloat(item.volume_total) / p.dias_trabalhados).toFixed(2);
             
+            let linhaInfo = p.linhas.find(l => l.numero_linha == item.numero_linha) || { meta_mensal: 0, meta_diaria: 0, percentual_carga: 0 };
+            const metaLinhaMes = parseFloat(linhaInfo.meta_mensal).toLocaleString('pt-BR', {minimumFractionDigits:3});
+            const metaLinhaDia = parseFloat(linhaInfo.meta_diaria).toLocaleString('pt-BR', {minimumFractionDigits:3});
+            const cargaLinha = (parseFloat(linhaInfo.percentual_carga) * 100).toFixed(1);
+
             let matOptions = '<option value="">Selecionar...</option>';
             this.materiais.forEach(m => {
                 matOptions += `<option value="${m.id}" ${m.id == item.material_id ? 'selected' : ''}>${m.nome}</option>`;
@@ -244,10 +249,13 @@ const pcpUI = {
             tb.innerHTML += `
                 <tr data-idx="${idx}">
                     <td><select class="noble-input mix-mat" style="min-width:250px;">${matOptions}</select></td>
-                    <td><input type="number" class="noble-input mix-linha" value="${item.numero_linha || ''}" min="1" max="4" style="width:80px;" onchange="pcpUI.updateMixConferencia()"></td>
                     <td><input type="number" step="0.0001" class="noble-input mix-vol" value="${item.volume_total || 0}" style="width:120px;" onchange="pcpUI.updateMixConferencia()"></td>
                     <td class="mix-perc">${perc}%</td>
+                    <td><input type="number" class="noble-input mix-linha" value="${item.numero_linha || ''}" min="1" max="4" style="width:80px;" onchange="pcpUI.updateMixConferencia()"></td>
                     <td class="mix-metadia">${metaDia}</td>
+                    <td>${metaLinhaMes}</td>
+                    <td>${metaLinhaDia}</td>
+                    <td>${cargaLinha}%</td>
                 </tr>
             `;
         });
@@ -257,10 +265,13 @@ const pcpUI = {
         tb.innerHTML += `
             <tr data-idx="new">
                 <td><select class="noble-input mix-mat" style="min-width:250px;">${emptyOpts}</select></td>
-                <td><input type="number" class="noble-input mix-linha" value="" min="1" max="4" style="width:80px;" onchange="pcpUI.updateMixConferencia()"></td>
                 <td><input type="number" step="0.0001" class="noble-input mix-vol" value="" style="width:120px;" onchange="pcpUI.updateMixConferencia()"></td>
                 <td class="mix-perc">-</td>
+                <td><input type="number" class="noble-input mix-linha" value="" min="1" max="4" style="width:80px;" onchange="pcpUI.updateMixConferencia()"></td>
                 <td class="mix-metadia">-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
             </tr>
         `;
 
@@ -325,16 +336,23 @@ const pcpUI = {
         const tb = document.getElementById('pcp-tbody-diario');
         tb.innerHTML = '';
         
-        p.diario.forEach(d => {
+        let acumDiario = 0;
+        p.diario.forEach((d, idx) => {
             const dataStr = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+            acumDiario += parseFloat(d.meta_total_dia);
+            const percMeta = ((acumDiario / p.meta_mensal) * 100).toFixed(1);
             tb.innerHTML += `
                 <tr>
+                    <td>${idx + 1}</td>
                     <td>${dataStr}</td>
                     <td>${parseFloat(d.meta_l1).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                     <td>${parseFloat(d.meta_l2).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                     <td>${parseFloat(d.meta_l3).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                     <td>${parseFloat(d.meta_l4).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                     <td style="font-weight:bold; color:#38bdf8;">${parseFloat(d.meta_total_dia).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td>${acumDiario.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                    <td>${percMeta}%</td>
+                    <td>${d.observacao || ''}</td>
                 </tr>
             `;
         });
@@ -348,7 +366,7 @@ const pcpUI = {
         let acumProg = 0;
         let acumReal = 0;
 
-        p.diario.forEach(d => {
+        p.diario.forEach((d, idx) => {
             const dataStr = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
             
             const metaTot = parseFloat(d.meta_total_dia) || 0;
@@ -365,38 +383,39 @@ const pcpUI = {
             const desvioAcum = acumReal - acumProg;
             const atingimento = metaTot > 0 ? (rTot / metaTot) * 100 : 0;
             
-            let status = 'AGUARDANDO';
+            let status = 'Aguardando';
             let statusColor = '#a0aec0';
             if (rTot > 0) {
-                if (atingimento >= 100) { status = 'META ATINGIDA'; statusColor = '#4ade80'; }
-                else if (atingimento >= 90) { status = 'ATENÇÃO'; statusColor = '#facc15'; }
-                else { status = 'ABAIXO DA META'; statusColor = '#ef4444'; }
+                if (atingimento >= 100) { status = 'Meta Atingida'; statusColor = '#4ade80'; }
+                else if (atingimento >= 90) { status = 'Atenção'; statusColor = '#facc15'; }
+                else { status = 'Abaixo da Meta'; statusColor = '#ef4444'; }
             }
 
             tb.innerHTML += `
                 <tr data-pdid="${d.id}" style="background: ${rTot > 0 ? 'rgba(255,255,255,0.02)' : 'transparent'}">
-                    <td style="position:sticky; left:0; background:#101a24; border-right:2px solid #2d3748; z-index:5;">${dataStr}</td>
-                    <td style="color:#64748b;">${parseFloat(d.meta_l1).toLocaleString('pt-BR')}</td>
-                    <td style="color:#64748b;">${parseFloat(d.meta_l2).toLocaleString('pt-BR')}</td>
-                    <td style="color:#64748b;">${parseFloat(d.meta_l3).toLocaleString('pt-BR')}</td>
-                    <td style="color:#64748b; border-right:2px solid #2d3748;">${parseFloat(d.meta_l4).toLocaleString('pt-BR')}</td>
+                    <td style="position:sticky; left:0; background:#101a24; border-right:1px solid #2d3748; z-index:5;">${idx + 1}</td>
+                    <td style="position:sticky; left:50px; background:#101a24; border-right:2px solid #2d3748; z-index:5;">${dataStr}</td>
+                    <td style="color:#64748b;">${parseFloat(d.meta_l1).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
+                    <td style="color:#64748b;">${parseFloat(d.meta_l2).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
+                    <td style="color:#64748b;">${parseFloat(d.meta_l3).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
+                    <td style="color:#64748b; border-right:2px solid #2d3748;">${parseFloat(d.meta_l4).toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
                     
                     <td><input type="number" step="0.01" class="noble-input pcp-real-l1" value="${r1 > 0 ? r1 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
                     <td><input type="number" step="0.01" class="noble-input pcp-real-l2" value="${r2 > 0 ? r2 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
                     <td><input type="number" step="0.01" class="noble-input pcp-real-l3" value="${r3 > 0 ? r3 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
                     <td style="border-right:2px solid #2d3748;"><input type="number" step="0.01" class="noble-input pcp-real-l4" value="${r4 > 0 ? r4 : ''}" style="width:70px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
                     
-                    <td style="font-weight:bold; color:#38bdf8;">${metaTot.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                    <td style="font-weight:bold; color:#4ade80;">${rTot.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                    <td style="color:${desvioDia < 0 ? '#ef4444' : (desvioDia > 0 ? '#4ade80' : '#a0aec0')}">${desvioDia.toLocaleString('pt-BR')}</td>
+                    <td style="font-weight:bold; color:#38bdf8;">${metaTot.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                    <td style="font-weight:bold; color:#4ade80;">${rTot.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                    <td style="color:${desvioDia < 0 ? '#ef4444' : (desvioDia > 0 ? '#4ade80' : '#a0aec0')}">${desvioDia.toLocaleString('pt-BR', {maximumFractionDigits:2})}</td>
                     <td>${atingimento.toFixed(1)}%</td>
                     
-                    <td style="color:#38bdf8;">${acumProg.toLocaleString('pt-BR', {minimumFractionDigits:1})}</td>
-                    <td style="color:#4ade80;">${acumReal.toLocaleString('pt-BR', {minimumFractionDigits:1})}</td>
-                    <td style="border-right:2px solid #2d3748; color:${desvioAcum < 0 ? '#ef4444' : (desvioAcum > 0 ? '#4ade80' : '#a0aec0')}">${desvioAcum.toLocaleString('pt-BR')}</td>
+                    <td style="color:#38bdf8;">${acumProg.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:2})}</td>
+                    <td style="color:#4ade80;">${acumReal.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:2})}</td>
                     
-                    <td style="font-weight:bold; font-size:0.75rem; color:${statusColor}">${status}</td>
-                    <td><input type="text" class="noble-input pcp-obs" placeholder="Obs" value="${d.observacao || ''}" style="width:100px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
+                    <td style="font-weight:bold; font-size:0.75rem; color:${statusColor}; border-left:2px solid #2d3748;">${status}</td>
+                    <td><input type="text" class="noble-input pcp-obs" placeholder="Obs" value="${d.observacao || ''}" style="width:120px; padding:4px;" onchange="pcpUI.salvarProducao(${d.id})"></td>
+                    <td></td>
                 </tr>
             `;
         });

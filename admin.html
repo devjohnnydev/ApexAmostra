@@ -3973,10 +3973,13 @@
                                 <thead>
                                     <tr>
                                         <th>Produto</th>
-                                        <th>Linha (L1,L2,L3,L4)</th>
-                                        <th>Volume (kg)</th>
-                                        <th>% Vol</th>
-                                        <th>Meta Dia</th>
+                                        <th>Volume total (kg)</th>
+                                        <th>% volume</th>
+                                        <th>Linha responsável</th>
+                                        <th>Meta produto/dia (kg)</th>
+                                        <th>Meta linha/mês (kg)</th>
+                                        <th>Meta linha/dia (kg)</th>
+                                        <th>% carga da linha</th>
                                     </tr>
                                 </thead>
                                 <tbody id="pcp-tbody-mix"></tbody>
@@ -3994,12 +3997,16 @@
                             <table class="noble-table">
                                 <thead>
                                     <tr>
+                                        <th>Dia</th>
                                         <th>Data</th>
-                                        <th>Meta L1</th>
-                                        <th>Meta L2</th>
-                                        <th>Meta L3</th>
-                                        <th>Meta L4</th>
-                                        <th>Total Dia</th>
+                                        <th>Linha 1 (kg)</th>
+                                        <th>Linha 2 (kg)</th>
+                                        <th>Linha 3 (kg)</th>
+                                        <th>Linha 4 (kg)</th>
+                                        <th>Total dia (kg)</th>
+                                        <th>Acumulado</th>
+                                        <th>% Meta</th>
+                                        <th>Observação</th>
                                     </tr>
                                 </thead>
                                 <tbody id="pcp-tbody-diario"></tbody>
@@ -4013,17 +4020,18 @@
                             <table class="noble-table" style="min-width: 1400px; font-size:0.85rem;" id="pcp-tabela-operacional">
                                 <thead style="position:sticky; top:0; z-index:10;">
                                     <tr>
-                                        <th rowspan="2" style="position:sticky; left:0; background:#101a24; border-right:2px solid #2d3748; z-index:11;">Data</th>
+                                        <th rowspan="2" style="position:sticky; left:0; background:#101a24; border-right:2px solid #2d3748; z-index:11;">Dia</th>
+                                        <th rowspan="2" style="position:sticky; left:50px; background:#101a24; border-right:2px solid #2d3748; z-index:11;">Data</th>
                                         <th colspan="4" style="text-align:center; border-right:2px solid #2d3748; background:#1e3a5f;">Produção Programada (kg)</th>
                                         <th colspan="4" style="text-align:center; border-right:2px solid #2d3748; background:#115e59;">Produção Realizada (kg)</th>
-                                        <th rowspan="2" style="background:#101a24;">Prog. Total</th>
-                                        <th rowspan="2" style="background:#101a24;">Real Total</th>
-                                        <th rowspan="2" style="background:#101a24;">Desvio Dia</th>
-                                        <th rowspan="2" style="background:#101a24;">% Ating.</th>
-                                        <th rowspan="2" style="background:#101a24;">Acum. Prog</th>
-                                        <th rowspan="2" style="background:#101a24;">Acum. Real</th>
-                                        <th rowspan="2" style="background:#101a24; border-right:2px solid #2d3748;">Desvio Acum.</th>
-                                        <th rowspan="2" style="background:#101a24;">Status</th>
+                                        <th rowspan="2" style="background:#101a24;">Programa (Total Dia)</th>
+                                        <th rowspan="2" style="background:#101a24;">Real (Total Dia)</th>
+                                        <th rowspan="2" style="background:#101a24;">Desvio kg</th>
+                                        <th rowspan="2" style="background:#101a24;">% ating.</th>
+                                        <th rowspan="2" style="background:#101a24;">Prog. (Acumulado)</th>
+                                        <th rowspan="2" style="background:#101a24;">Real (Acumulado)</th>
+                                        <th rowspan="2" style="background:#101a24; border-right:2px solid #2d3748;">Status</th>
+                                        <th rowspan="2" style="background:#101a24;">Observação</th>
                                         <th rowspan="2" style="background:#101a24; width:120px;">Ação</th>
                                     </tr>
                                     <tr>
