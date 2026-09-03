@@ -8583,11 +8583,29 @@ var _listTabelaPrecosEstrategica = [];
             badge.style.cssText = `position:absolute;top:4px;left:4px;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;background:${badgeBg};color:#000;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.5);`;
             
             const img = document.createElement('img');
-            img.src = `/api/amostras/${amostraId}/fotos/${foto.id}/img`;
             img.alt = foto.nome || 'Foto';
             img.style.cssText = 'width:100%;height:100%;object-fit:cover;cursor:pointer;';
-            img.onclick = () => { if (window._WCM && typeof window._WCM.ampliarSrc === 'function') window._WCM.ampliarSrc(img.src); };
             img.onerror = () => { img.src = 'assets/img/apexlogo.png'; };
+
+            // Carrega a imagem via fetch (que injeta JWT pelo interceptor) e converte para blob URL
+            const imgUrl = `/api/amostras/${amostraId}/fotos/${foto.id}/img`;
+            (async () => {
+                try {
+                    const resp = await fetch(imgUrl);
+                    if (!resp.ok) throw new Error('status ' + resp.status);
+                    const blob = await resp.blob();
+                    const objUrl = URL.createObjectURL(blob);
+                    img.src = objUrl;
+                    img.onclick = () => {
+                        if (window._WCM && typeof window._WCM.ampliarSrc === 'function') {
+                            window._WCM.ampliarSrc(objUrl);
+                        }
+                    };
+                } catch(e) {
+                    console.warn('[gallery] Erro ao carregar foto:', foto.id, e.message);
+                    img.src = 'assets/img/apexlogo.png';
+                }
+            })();
 
             const delBtn = document.createElement('button');
             delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
