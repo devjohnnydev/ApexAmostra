@@ -64,7 +64,7 @@ const pcpUI = {
             }
         } catch (e) {
             console.error(e);
-            alert('Erro ao carregar os dados do plano.');
+            if (window._apexNotify) window._apexNotify('Erro', 'Erro ao carregar os dados do plano.', 'error');
         }
     },
 
@@ -98,10 +98,14 @@ const pcpUI = {
 
     salvarNovoPlano: async function(e) {
         e.preventDefault();
+        
+        let metaVal = document.getElementById('pcp-novo-meta').value;
+        metaVal = metaVal.replace(',', '.'); // Previne erro de sintaxe se usuário digitar vírgula
+
         const payload = {
             ano: document.getElementById('pcp-novo-ano').value,
             mes: document.getElementById('pcp-novo-mes').value,
-            meta_mensal: document.getElementById('pcp-novo-meta').value,
+            meta_mensal: metaVal,
             dias_trabalhados: document.getElementById('pcp-novo-dias').value,
             qtd_linhas: document.getElementById('pcp-novo-linhas').value,
             criado_por: window.currentUser ? window.currentUser.nome : 'Administrador'
@@ -118,10 +122,16 @@ const pcpUI = {
                 await this.carregarPlanos();
                 const mixTab = document.querySelector('.tab-btn[data-target="pcp-tab-mix"]');
                 if (mixTab) this.switchTab(mixTab);
+                if (window._apexNotify) window._apexNotify('Sucesso', 'Planejamento criado com sucesso!', 'success');
             } else {
-                alert('Erro ao criar o plano');
+                const errData = await res.json().catch(() => ({}));
+                const errMsg = errData.error || 'Verifique se os dados estão corretos.';
+                if (window._apexNotify) window._apexNotify('Erro ao criar o plano', errMsg, 'error');
             }
-        } catch(e) { console.error(e); }
+        } catch(e) { 
+            console.error(e);
+            if (window._apexNotify) window._apexNotify('Erro Crítico', e.message, 'error');
+        }
     },
 
     renderAll: function() {
@@ -299,12 +309,15 @@ const pcpUI = {
                 body: JSON.stringify({ mix: mixData })
             });
             if (res.ok) {
-                alert('Mix salvo com sucesso! Metas diárias foram recalculadas.');
+                if (window._apexNotify) window._apexNotify('Mix Salvo', 'As metas diárias foram recalculadas com sucesso!', 'success');
                 await this.carregarPlanoSelecionado();
             } else {
-                alert('Erro ao salvar Mix');
+                if (window._apexNotify) window._apexNotify('Erro', 'Ocorreu um erro ao salvar o Mix de Produtos.', 'error');
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+            if (window._apexNotify) window._apexNotify('Erro Crítico', e.message, 'error');
+        }
     },
 
     renderDiario: function() {
