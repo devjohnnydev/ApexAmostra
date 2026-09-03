@@ -231,7 +231,14 @@
             // 3. Upload em background (não bloqueia UI)
             if (typeof activeAmostraIdForDesmonte !== 'undefined' && activeAmostraIdForDesmonte) {
                 try {
-                    const blob = await (await fetch(img64)).blob();
+                    // Conversão segura de base64 para Blob para evitar bugs em alguns browsers com fetch(dataURI)
+                    const byteString = atob(img64.split(',')[1]);
+                    const mimeString = img64.split(',')[0].split(':')[1].split(';')[0];
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+                    const blob = new Blob([ab], {type: mimeString});
+
                     const fd   = new FormData();
                     fd.append('tipo',  _tipo);
                     fd.append('etapa', _etapa || 'Desmonte');
