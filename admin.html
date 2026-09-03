@@ -3435,7 +3435,7 @@
                         </div>
                     </div>
 
-                    <div style="overflow-x:auto; background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:16px;">
+                    <div style="overflow-x:auto; background:#0d1826; border:1px solid #1a3e3f; border-radius:10px; padding:16px;">
                         <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                             <thead>
                                 <tr style="background:#ffeb3b; text-align:center; color:#333; font-weight:bold; border-bottom:2px solid #fbc02d;">
@@ -3919,7 +3919,7 @@
                             <p style="color: #a0aec0; margin: 0; font-size: 0.95rem;">Planejamento mensal e apontamento diário de moagem</p>
                         </div>
                         <div>
-                            <button type="button" class="noble-btn noble-btn-primary" onclick="pcpUI.abrirModalNovoPlano()">
+                            <button type="button" class="btn-primary" onclick="pcpUI.abrirModalNovoPlano()">
                                 <i class="fa-solid fa-plus"></i> Novo Planejamento
                             </button>
                         </div>
@@ -3970,7 +3970,7 @@
                         </div>
                         <div class="table-responsive">
                             <table class="noble-table">
-                                <thead>
+                                <thead style="white-space:nowrap;">
                                     <tr>
                                         <th>Produto</th>
                                         <th>Volume total (kg)</th>
@@ -3986,7 +3986,7 @@
                             </table>
                         </div>
                         <div style="margin-top:15px; text-align:right;">
-                            <button class="noble-btn noble-btn-success" onclick="pcpUI.salvarMix()"><i class="fa-solid fa-save"></i> Salvar Mix e Recalcular Linhas</button>
+                            <button class="btn-primary" style="background:#2AD07A; border-color:#2AD07A;" onclick="pcpUI.salvarMix()"><i class="fa-solid fa-save"></i> Salvar Mix e Recalcular Linhas</button>
                         </div>
                     </div>
 
@@ -4057,27 +4057,27 @@
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label style="color:#aaa; font-size:0.85rem; margin-bottom:4px;">Ano</label>
-                                    <input type="number" id="pcp-novo-ano" class="noble-input" required>
+                                    <input type="number" id="pcp-novo-ano" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; background: #1a2e3f; color: #fff; border: 1px solid #2d3748;" required>
                                 </div>
                                 <div class="form-group">
                                     <label style="color:#aaa; font-size:0.85rem; margin-bottom:4px;">Mês (Ex: 09)</label>
-                                    <input type="number" id="pcp-novo-mes" class="noble-input" required min="1" max="12">
+                                    <input type="number" id="pcp-novo-mes" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; background: #1a2e3f; color: #fff; border: 1px solid #2d3748;" required min="1" max="12">
                                 </div>
                                 <div class="form-group" style="grid-column: 1 / -1;">
                                     <label style="color:#aaa; font-size:0.85rem; margin-bottom:4px;">Meta Mensal (kg)</label>
-                                    <input type="text" id="pcp-novo-meta" class="noble-input" value="103832.7" required>
+                                    <input type="text" id="pcp-novo-meta" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; background: #1a2e3f; color: #fff; border: 1px solid #2d3748;" value="103832.7" required>
                                 </div>
                                 <div class="form-group">
                                     <label style="color:#aaa; font-size:0.85rem; margin-bottom:4px;">Dias Trabalhados</label>
-                                    <input type="number" id="pcp-novo-dias" class="noble-input" value="20" required>
+                                    <input type="number" id="pcp-novo-dias" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; background: #1a2e3f; color: #fff; border: 1px solid #2d3748;" value="20" required>
                                 </div>
                                 <div class="form-group">
                                     <label style="color:#aaa; font-size:0.85rem; margin-bottom:4px;">Qtd Linhas</label>
-                                    <input type="number" id="pcp-novo-linhas" class="noble-input" value="4" required>
+                                    <input type="number" id="pcp-novo-linhas" class="form-control" style="width: 100%; padding: 8px; border-radius: 4px; background: #1a2e3f; color: #fff; border: 1px solid #2d3748;" value="4" required>
                                 </div>
                             </div>
                             <div style="margin-top: 25px; text-align:right;">
-                                <button type="submit" class="noble-btn noble-btn-success" style="padding:10px 20px; font-weight:bold; letter-spacing:1px; background:linear-gradient(135deg, #00d2d3, #0284c7); border:none; color:#fff; border-radius:8px; cursor:pointer; box-shadow:0 4px 15px rgba(0, 210, 211, 0.4);">
+                                <button type="submit" class="btn-primary" style="padding:10px 20px; font-weight:bold; letter-spacing:1px; background:linear-gradient(135deg, #00d2d3, #0284c7); border:none; color:#fff; border-radius:8px; cursor:pointer; box-shadow:0 4px 15px rgba(0, 210, 211, 0.4);">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i> Criar e Configurar Mix
                                 </button>
                             </div>
