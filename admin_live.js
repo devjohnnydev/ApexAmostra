@@ -4610,6 +4610,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const getNomeFornecedor = (f) => f.nome || f.nome_fantasia || f.apelido || `Fornecedor #${f.id}`;
         
         try {
+            if (amoF && amoF.tomselect) amoF.tomselect.destroy();
+            if (plF && plF.tomselect) plF.tomselect.destroy();
+
             const res = await fetch('/api/fornecedores?limit=9999');
             if (!res.ok) return;
             const data = await res.json();
@@ -4620,12 +4623,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 todos.forEach(f => {
                     amoF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
                 });
+                new TomSelect(amoF, { create: false, sortField: { field: "text", direction: "asc" } });
             }
             if (plF) {
                 plF.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
                 todos.forEach(f => {
                     plF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
                 });
+                new TomSelect(plF, { create: false, sortField: { field: "text", direction: "asc" } });
             }
         } catch (e) {
             console.error('Erro popularSeletoresFornecedores', e);
@@ -6531,6 +6536,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const selFornFiltro = document.getElementById('amostras-filtro-fornecedor');
         if (!selFornModal) return;
 
+        if (selFornModal.tomselect) selFornModal.tomselect.destroy();
+        if (selFornFiltro && selFornFiltro.tomselect) selFornFiltro.tomselect.destroy();
+
         selFornModal.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
         if (selFornFiltro) selFornFiltro.innerHTML = '<option value="">Todos os Fornecedores</option>';
 
@@ -6554,6 +6562,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     selFornFiltro.appendChild(optF);
                 }
             });
+
+            new TomSelect(selFornModal, { create: false, sortField: { field: "text", direction: "asc" } });
+            if (selFornFiltro) new TomSelect(selFornFiltro, { create: false, sortField: { field: "text", direction: "asc" } });
+
         } catch (err) {
             console.warn('Erro popularSeletoresAmostras', err);
         }
