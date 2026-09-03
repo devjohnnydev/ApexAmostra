@@ -9,9 +9,33 @@
 
     window.carregarPlanejamentoEstrategicov3 = async function() {
         try {
-            const resPrecos = await fetch('/api/tabela-precos', { cache: 'no-store' });
-            const raw = await resPrecos.json();
-            _listTabelaPrecosEstrategica = Array.isArray(raw) ? raw : [];
+            console.log("[Estrategico] Buscando tabelas de preços...");
+            
+            const endpoints = [
+                '/api/tabela-precos',
+                '/api/tabela-precos-residuos',
+                '/api/tabela-precos-ligas',
+                '/api/tabela-precos-volume',
+                '/api/tabela-precos-fundicao'
+            ];
+            
+            let todosMateriais = [];
+            
+            for (const ep of endpoints) {
+                try {
+                    const res = await fetch(ep, { cache: 'no-store' });
+                    const raw = await res.json();
+                    if (Array.isArray(raw)) {
+                        todosMateriais = todosMateriais.concat(raw);
+                    }
+                } catch (err) {
+                    console.warn(`[Estrategico] Falha ao buscar ${ep}:`, err);
+                }
+            }
+            
+            _listTabelaPrecosEstrategica = todosMateriais;
+            window._listTabelaPrecosEstrategica = _listTabelaPrecosEstrategica;
+            console.log("[Estrategico] Total de materiais carregados:", _listTabelaPrecosEstrategica.length);
             
             // Popula os selects de material (Consulta Rápida + Simulador)
             if (window.popularSelectsProdutoEstrategicov3) window.popularSelectsProdutoEstrategicov3();
@@ -2430,8 +2454,10 @@ window.excluirCicloV3 = async function(cicloId) {
 
         try {
             if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) {
-                const resPrecos = await fetch('/api/tabela-precos', { cache: 'no-store' });
-                _listTabelaPrecosEstrategica = await resPrecos.json();
+                // Ao invés de buscar só 1 tabela, chamamos a rotina principal
+                if (window.carregarPlanejamentoEstrategicov3) {
+                    await window.carregarPlanejamentoEstrategicov3();
+                }
             }
             
             const resMetas = await fetch('/api/planejamento-estrategicov3');
