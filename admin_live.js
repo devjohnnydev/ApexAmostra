@@ -4604,22 +4604,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    function popularSeletoresFornecedores() {
+    async function popularSeletoresFornecedores() {
         const amoF = document.getElementById('amo-fornecedor');
         const plF = document.getElementById('pl-fornecedor');
-        // Compatibilidade: banco usa 'nome', mock em memória usa 'nome_fantasia'
         const getNomeFornecedor = (f) => f.nome || f.nome_fantasia || f.apelido || `Fornecedor #${f.id}`;
-        if (amoF) {
-            amoF.innerHTML = '';
-            localFornecedores.forEach(f => {
-                amoF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
-            });
-        }
-        if (plF) {
-            plF.innerHTML = '';
-            localFornecedores.forEach(f => {
-                plF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
-            });
+        
+        try {
+            const res = await fetch('/api/fornecedores?limit=9999');
+            if (!res.ok) return;
+            const data = await res.json();
+            const todos = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+            
+            if (amoF) {
+                amoF.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
+                todos.forEach(f => {
+                    amoF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
+                });
+            }
+            if (plF) {
+                plF.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
+                todos.forEach(f => {
+                    plF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
+                });
+            }
+        } catch (e) {
+            console.error('Erro popularSeletoresFornecedores', e);
         }
     }
 
