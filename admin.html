@@ -274,6 +274,10 @@
                     <i class="fa-solid fa-calculator" style="color:#38bdf8;"></i>
                     <span>Planejamento Mensal</span>
                 </a>
+                <a href="#" class="nav-item" data-target="pcp-view" id="nav-pcp" data-tooltip="PCP - Controle de Produção">
+                    <i class="fa-solid fa-industry" style="color:#00d2d3;"></i>
+                    <span>PCP (Produção)</span>
+                </a>
                 <a href="#" class="nav-item" data-target="planejamento-estrategicov3-view" id="nav-planejamento-estrategicov3" data-tooltip="Estratégico">
                     <i class="fa-solid fa-chess-knight" style="color:#f87171;"></i>
                     <span>Estratégico</span>
@@ -3904,6 +3908,175 @@
             <!-- TELA: PLANEJAMENTOS ATIVOS                 -->
             <!-- ========================================== -->
             
+            <!-- ========================================== -->
+            <!-- TELA: PCP - PLANEJAMENTO E CONTROLE DA PRODUÇÃO -->
+            <!-- ========================================== -->
+            <section id="pcp-view" class="view-section" style="display:none;">
+                <header class="section-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <h2 style="margin-bottom: 5px;"><i class="fa-solid fa-industry" style="color:#00d2d3;"></i> PCP - Planejamento e Controle da Produção</h2>
+                            <p style="color: #a0aec0; margin: 0; font-size: 0.95rem;">Planejamento mensal e apontamento diário de moagem</p>
+                        </div>
+                        <div>
+                            <button type="button" class="noble-btn noble-btn-primary" onclick="pcpUI.abrirModalNovoPlano()">
+                                <i class="fa-solid fa-plus"></i> Novo Planejamento
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="kpi-card" style="padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-weight: 600; color: #a0aec0;">PLANO ATIVO:</span>
+                        <select id="pcp-select-plano" class="noble-input" style="flex:1; min-width: 250px;" onchange="pcpUI.carregarPlanoSelecionado()">
+                            <option value="">Selecione um planejamento...</option>
+                        </select>
+                        <button class="noble-btn noble-btn-secondary" onclick="pcpUI.recarregarTudo()">
+                            <i class="fa-solid fa-rotate-right"></i> Atualizar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="pcp-workspace" style="display:none;">
+                    <div class="tabs-container" style="margin-bottom: 20px; border-bottom: 1px solid #2d3748; display: flex; gap: 15px; overflow-x: auto;">
+                        <button class="tab-btn active" data-target="pcp-tab-resumo" onclick="pcpUI.switchTab(this)" style="background:none; border:none; color:#cbd5e0; padding:10px 15px; cursor:pointer; font-weight:600; font-size:1rem; border-bottom:3px solid transparent; transition:0.3s;">Dashboard</button>
+                        <button class="tab-btn" data-target="pcp-tab-mix" onclick="pcpUI.switchTab(this)" style="background:none; border:none; color:#cbd5e0; padding:10px 15px; cursor:pointer; font-weight:600; font-size:1rem; border-bottom:3px solid transparent; transition:0.3s;">Mix de Produtos</button>
+                        <button class="tab-btn" data-target="pcp-tab-diario" onclick="pcpUI.switchTab(this)" style="background:none; border:none; color:#cbd5e0; padding:10px 15px; cursor:pointer; font-weight:600; font-size:1rem; border-bottom:3px solid transparent; transition:0.3s;">Plano Diário</button>
+                        <button class="tab-btn" data-target="pcp-tab-operacional" onclick="pcpUI.switchTab(this)" style="background:none; border:none; color:#00d2d3; padding:10px 15px; cursor:pointer; font-weight:600; font-size:1rem; border-bottom:3px solid #00d2d3; transition:0.3s;">Real x Programado</button>
+                    </div>
+
+                    <!-- TAB: DASHBOARD -->
+                    <div id="pcp-tab-resumo" class="pcp-tab-content" style="display:none;">
+                        <!-- Aqui entram os cards e graficos -->
+                        <div id="pcp-dashboard-cards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom: 20px;"></div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 20px;">
+                            <div class="kpi-card" style="padding:15px;"><canvas id="pcp-chart-acumulado"></canvas></div>
+                            <div class="kpi-card" style="padding:15px;"><canvas id="pcp-chart-diario"></canvas></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="noble-table">
+                                <thead><tr><th>Linha</th><th>Meta Mensal</th><th>Meta Diária</th><th>Participação</th><th>Status</th></tr></thead>
+                                <tbody id="pcp-tbody-resumo"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB: MIX DE PRODUTOS -->
+                    <div id="pcp-tab-mix" class="pcp-tab-content" style="display:none;">
+                        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="color:#00d2d3;"><i class="fa-solid fa-blender"></i> Configuração do Mix</h3>
+                            <div id="pcp-conferencia-mix"></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="noble-table">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Linha (L1,L2,L3,L4)</th>
+                                        <th>Volume (kg)</th>
+                                        <th>% Vol</th>
+                                        <th>Meta Dia</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pcp-tbody-mix"></tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top:15px; text-align:right;">
+                            <button class="noble-btn noble-btn-success" onclick="pcpUI.salvarMix()"><i class="fa-solid fa-save"></i> Salvar Mix e Recalcular Linhas</button>
+                        </div>
+                    </div>
+
+                    <!-- TAB: PLANO DIÁRIO -->
+                    <div id="pcp-tab-diario" class="pcp-tab-content" style="display:none;">
+                        <h3 style="color:#00d2d3; margin-bottom:15px;"><i class="fa-regular fa-calendar-days"></i> Calendário Produtivo Gerado</h3>
+                        <div class="table-responsive">
+                            <table class="noble-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Meta L1</th>
+                                        <th>Meta L2</th>
+                                        <th>Meta L3</th>
+                                        <th>Meta L4</th>
+                                        <th>Total Dia</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pcp-tbody-diario"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB: REAL X PROGRAMADO (OPERACIONAL) -->
+                    <div id="pcp-tab-operacional" class="pcp-tab-content" style="display:block;">
+                        <div class="table-responsive" style="max-height: 600px; overflow-y:auto; overflow-x:auto;">
+                            <table class="noble-table" style="min-width: 1400px; font-size:0.85rem;" id="pcp-tabela-operacional">
+                                <thead style="position:sticky; top:0; z-index:10;">
+                                    <tr>
+                                        <th rowspan="2" style="position:sticky; left:0; background:#101a24; border-right:2px solid #2d3748; z-index:11;">Data</th>
+                                        <th colspan="4" style="text-align:center; border-right:2px solid #2d3748; background:#1e3a5f;">Produção Programada (kg)</th>
+                                        <th colspan="4" style="text-align:center; border-right:2px solid #2d3748; background:#115e59;">Produção Realizada (kg)</th>
+                                        <th rowspan="2" style="background:#101a24;">Prog. Total</th>
+                                        <th rowspan="2" style="background:#101a24;">Real Total</th>
+                                        <th rowspan="2" style="background:#101a24;">Desvio Dia</th>
+                                        <th rowspan="2" style="background:#101a24;">% Ating.</th>
+                                        <th rowspan="2" style="background:#101a24;">Acum. Prog</th>
+                                        <th rowspan="2" style="background:#101a24;">Acum. Real</th>
+                                        <th rowspan="2" style="background:#101a24; border-right:2px solid #2d3748;">Desvio Acum.</th>
+                                        <th rowspan="2" style="background:#101a24;">Status</th>
+                                        <th rowspan="2" style="background:#101a24; width:120px;">Ação</th>
+                                    </tr>
+                                    <tr>
+                                        <th style="background:#1e3a5f;">L1</th><th style="background:#1e3a5f;">L2</th><th style="background:#1e3a5f;">L3</th><th style="background:#1e3a5f; border-right:2px solid #2d3748;">L4</th>
+                                        <th style="background:#115e59;">L1</th><th style="background:#115e59;">L2</th><th style="background:#115e59;">L3</th><th style="background:#115e59; border-right:2px solid #2d3748;">L4</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pcp-tbody-operacional">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODAL DE NOVO PLANO -->
+                <div id="modal-pcp-novo" class="modal">
+                    <div class="modal-content" style="max-width: 500px;">
+                        <div class="modal-header">
+                            <h3><i class="fa-solid fa-plus"></i> Novo Planejamento PCP</h3>
+                            <span class="close" onclick="document.getElementById('modal-pcp-novo').style.display='none'">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="form-pcp-novo" onsubmit="pcpUI.salvarNovoPlano(event)">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Ano</label>
+                                        <input type="number" id="pcp-novo-ano" class="noble-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Mês (Ex: 09)</label>
+                                        <input type="number" id="pcp-novo-mes" class="noble-input" required min="1" max="12">
+                                    </div>
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label>Meta Mensal (kg)</label>
+                                        <input type="number" step="0.0001" id="pcp-novo-meta" class="noble-input" value="103832.7" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Dias Trabalhados</label>
+                                        <input type="number" id="pcp-novo-dias" class="noble-input" value="20" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Qtd Linhas</label>
+                                        <input type="number" id="pcp-novo-linhas" class="noble-input" value="4" required>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 15px; text-align:right;">
+                                    <button type="submit" class="noble-btn noble-btn-success">Criar e Configurar Mix</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -5609,6 +5782,7 @@
     <script defer src="assets/js/modules/admin_estrategicov3.js?v=1786913666561"></script>
     <script defer src="assets/js/modules/admin_auditoria.js?v=3"></script>
     <script defer src="assets/js/modules/admin_planejamento_v4.js?v=4"></script>
+    <script defer src="assets/js/modules/pcp_live.js?v=1"></script>
     <script src="assets/js/theme-toggle.js?v=3"></script>
 
     <!-- ── MODAL GLASSMORPHISM DE NOTIFICAÇÃO (substitui alert nativo) ── -->

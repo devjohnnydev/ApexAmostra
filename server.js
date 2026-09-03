@@ -865,6 +865,94 @@ async function initDatabase() {
             ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS prazo_venda_ate DATE;
         `);
 
+        // ==========================================
+        // MÓDULO PCP (Planejamento e Controle da Produção)
+        // ==========================================
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS pcp_planejamentos (
+                id SERIAL PRIMARY KEY,
+                ano INTEGER NOT NULL,
+                mes VARCHAR(20) NOT NULL,
+                meta_mensal NUMERIC(14,4) NOT NULL,
+                dias_trabalhados INTEGER NOT NULL,
+                qtd_linhas INTEGER NOT NULL,
+                status VARCHAR(50) DEFAULT 'RASCUNHO',
+                observacoes TEXT,
+                criado_em TIMESTAMP DEFAULT NOW(),
+                criado_por VARCHAR(100)
+            );
+
+            CREATE TABLE IF NOT EXISTS pcp_linhas (
+                id SERIAL PRIMARY KEY,
+                planejamento_id INTEGER NOT NULL REFERENCES pcp_planejamentos(id) ON DELETE CASCADE,
+                numero_linha INTEGER NOT NULL,
+                meta_mensal NUMERIC(14,4) NOT NULL,
+                meta_diaria NUMERIC(14,4) NOT NULL,
+                percentual_carga NUMERIC(14,4) NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS pcp_mix (
+                id SERIAL PRIMARY KEY,
+                planejamento_id INTEGER NOT NULL REFERENCES pcp_planejamentos(id) ON DELETE CASCADE,
+                material_id INTEGER NOT NULL REFERENCES materiais_catalogo(id) ON DELETE RESTRICT,
+                linha_id INTEGER REFERENCES pcp_linhas(id) ON DELETE SET NULL,
+                numero_linha INTEGER NOT NULL,
+                volume_total NUMERIC(14,4) NOT NULL,
+                percentual_volume NUMERIC(14,4) NOT NULL,
+                meta_dia NUMERIC(14,4) NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS pcp_plano_diario (
+                id SERIAL PRIMARY KEY,
+                planejamento_id INTEGER NOT NULL REFERENCES pcp_planejamentos(id) ON DELETE CASCADE,
+                data DATE NOT NULL,
+                is_dia_produtivo BOOLEAN DEFAULT TRUE,
+                meta_l1 NUMERIC(14,4) DEFAULT 0,
+                meta_l2 NUMERIC(14,4) DEFAULT 0,
+                meta_l3 NUMERIC(14,4) DEFAULT 0,
+                meta_l4 NUMERIC(14,4) DEFAULT 0,
+                meta_total_dia NUMERIC(14,4) DEFAULT 0
+            );
+
+            CREATE TABLE IF NOT EXISTS pcp_producao_real (
+                id SERIAL PRIMARY KEY,
+                plano_diario_id INTEGER NOT NULL UNIQUE REFERENCES pcp_plano_diario(id) ON DELETE CASCADE,
+                real_l1 NUMERIC(14,4) DEFAULT 0,
+                real_l2 NUMERIC(14,4) DEFAULT 0,
+                real_l3 NUMERIC(14,4) DEFAULT 0,
+                real_l4 NUMERIC(14,4) DEFAULT 0,
+                real_total NUMERIC(14,4) DEFAULT 0,
+                observacao TEXT,
+                atualizado_em TIMESTAMP DEFAULT NOW(),
+                atualizado_por VARCHAR(100)
+            );
+        `);
+
+        // Semeando Produtos Necessários para o PCP (Se não existirem)
+        const pcpMaterials = [
+            "Sucata de fio misto sujo (ELETRONICO)",
+            "Sucata de induzidos",
+            "Sucata de transformadores Cobre",
+            "Sucata de cooler",
+            "Sucata de disjuntores",
+            "Sucata de tomada e conectores",
+            "Sucata de fio de instalação",
+            "Sucata de fio de internet",
+            "Sucata de fio misto limpo",
+            "Ajuste de arredondamento"
+        ];
+        
+        for (const matName of pcpMaterials) {
+            const { rowCount } = await client.query('SELECT 1 FROM materiais_catalogo WHERE nome = $1', [matName]);
+            if (rowCount === 0) {
+                await client.query(
+                    'INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes) VALUES ($1, $2, $3, $4, $5, $6)',
+                    [matName, 'kg', 'PCP', '#4b7bec', '0000.00.00', 'Produto gerado para compatibilidade do módulo PCP']
+                );
+            }
+        }
+
+
         // Semeando fornecedores e amostras
         const { rowCount: fCount } = await client.query('SELECT 1 FROM fornecedores LIMIT 1');
         if (fCount === 0) {
@@ -7050,6 +7138,11 @@ app.get('/api/admin/run-import-fornecedores', (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
+
+// ==========================================
+// INJEÇÃO DAS ROTAS DO MÓDULO PCP
+// ==========================================
+app.use('/api/pcp', require('./src/routes/pcp')(pool, dbAvailable, memStore));
 
 if (require.main === module) {
     initDatabase().then(() => {
