@@ -203,8 +203,12 @@
                 const cb = _onConfirmCallback;
                 _onConfirmCallback = null;
                 try {
-                    const blobResp = await fetch(img64);
-                    const blob = await blobResp.blob();
+                    const byteString = atob(img64.split(',')[1]);
+                    const mimeString = img64.split(',')[0].split(':')[1].split(';')[0];
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+                    const blob = new Blob([ab], {type: mimeString});
                     cb(img64, blob);
                 } catch(e) { console.warn('Webcam callback especial:', e); }
                 return;
