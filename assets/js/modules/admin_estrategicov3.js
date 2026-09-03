@@ -4,6 +4,8 @@
     let _chartEstrategicoV3 = null;
     let _mesV3Ativo = null; // null = visão de 12 meses
     let _mixSimulacaoV3 = []; // Mix de produtos para simulação: [{ material_id, fracaoPct }]
+    let _listTabelaPrecosEstrategica = [];
+    window._listTabelaPrecosEstrategica = _listTabelaPrecosEstrategica;
 
     window.carregarPlanejamentoEstrategicov3 = async function() {
         try {
