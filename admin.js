@@ -4638,22 +4638,36 @@ var _listTabelaPrecosEstrategica = [];
         });
     };
 
-    function popularSeletoresFornecedores() {
+    async function popularSeletoresFornecedores() {
         const amoF = document.getElementById('amo-fornecedor');
         const plF = document.getElementById('pl-fornecedor');
-        // Compatibilidade: banco usa 'nome', mock em memória usa 'nome_fantasia'
         const getNomeFornecedor = (f) => f.nome || f.nome_fantasia || f.apelido || `Fornecedor #${f.id}`;
-        if (amoF) {
-            amoF.innerHTML = '';
-            localFornecedores.forEach(f => {
-                amoF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
-            });
-        }
-        if (plF) {
-            plF.innerHTML = '';
-            localFornecedores.forEach(f => {
-                plF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
-            });
+        
+        try {
+            if (amoF && amoF.tomselect) amoF.tomselect.destroy();
+            if (plF && plF.tomselect) plF.tomselect.destroy();
+
+            const res = await fetch('/api/fornecedores?limit=9999');
+            if (!res.ok) return;
+            const data = await res.json();
+            const todos = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+            
+            if (amoF) {
+                amoF.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
+                todos.forEach(f => {
+                    amoF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
+                });
+                new TomSelect(amoF, { create: false, sortField: { field: "text", direction: "asc" } });
+            }
+            if (plF) {
+                plF.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
+                todos.forEach(f => {
+                    plF.innerHTML += `<option value="${f.id}">${getNomeFornecedor(f)}</option>`;
+                });
+                new TomSelect(plF, { create: false, sortField: { field: "text", direction: "asc" } });
+            }
+        } catch (e) {
+            console.error('Erro popularSeletoresFornecedores', e);
         }
     }
 
@@ -7777,17 +7791,24 @@ var _listTabelaPrecosEstrategica = [];
         if (typeof carregarAmostras === 'function') carregarAmostras();
     }, 10000);
 
-    function popularSeletoresAmostras() {
+    async function popularSeletoresAmostras() {
         const selFornModal = document.getElementById('amo-fornecedor');
         const selFornFiltro = document.getElementById('amostras-filtro-fornecedor');
         if (!selFornModal) return;
 
-        // Limpa opções antigas mantendo a primeira se houver
-        selFornModal.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
-        if (selFornFiltro) selFornFiltro.innerHTML = '<option value="">Todos os Fornecedores</option>';
+        try {
+            if (selFornModal && selFornModal.tomselect) selFornModal.tomselect.destroy();
+            if (selFornFiltro && selFornFiltro.tomselect) selFornFiltro.tomselect.destroy();
 
-        if (Array.isArray(localFornecedores) && localFornecedores.length > 0) {
-            localFornecedores.forEach(f => {
+            const res = await fetch('/api/fornecedores?limit=9999');
+            if (!res.ok) return;
+            const data = await res.json();
+            const todos = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+
+            selFornModal.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
+            if (selFornFiltro) selFornFiltro.innerHTML = '<option value="">Todos os Fornecedores</option>';
+
+            todos.forEach(f => {
                 const fnome = f.apelido || f.nome || f.razao_social;
                 const opt = document.createElement('option');
                 opt.value = f.id;
@@ -7801,6 +7822,12 @@ var _listTabelaPrecosEstrategica = [];
                     selFornFiltro.appendChild(optF);
                 }
             });
+
+            new TomSelect(selFornModal, { create: false, sortField: { field: "text", direction: "asc" } });
+            if (selFornFiltro) new TomSelect(selFornFiltro, { create: false, sortField: { field: "text", direction: "asc" } });
+
+        } catch (e) {
+            console.error('Erro popularSeletoresAmostras', e);
         }
     }
 
