@@ -8071,7 +8071,23 @@ var _listTabelaPrecosEstrategica = [];
                 formData.append('tipo', 'bruta');
                 formData.append('etapa', 'Recebimento');
                 for (const fotoObj of _fotosRecebimento) {
-                    formData.append('fotos', fotoObj.blob, fotoObj.nome);
+                    let blobToSend;
+                    if (fotoObj.base64 && fotoObj.base64.startsWith('data:')) {
+                        // Reconverter do base64 armazenado para garantir bytes íntegros
+                        try {
+                            const byteStr = atob(fotoObj.base64.split(',')[1]);
+                            const mime    = fotoObj.base64.split(',')[0].split(':')[1].split(';')[0];
+                            const ab = new ArrayBuffer(byteStr.length);
+                            const ia = new Uint8Array(ab);
+                            for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
+                            blobToSend = new Blob([ab], { type: mime });
+                        } catch(e) {
+                            blobToSend = fotoObj.blob; // fallback
+                        }
+                    } else {
+                        blobToSend = fotoObj.blob; // arquivo selecionado por input file
+                    }
+                    formData.append('fotos', blobToSend, fotoObj.nome);
                 }
                 await fetch(`/api/amostras/${newAmostra.id}/fotos`, {
                     method: 'POST',

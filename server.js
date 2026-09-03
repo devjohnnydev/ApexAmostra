@@ -2673,12 +2673,16 @@ app.get('/api/amostras/:id/fotos/:fotoId/img', async (req, res) => {
             if (!r.rows[0]) return res.status(404).send('Foto não encontrada');
             const buf = Buffer.from(r.rows[0].data_b64, 'base64');
             res.set('Content-Type', r.rows[0].mimetype);
+            res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.set('Content-Length', buf.length);
             return res.send(buf);
         }
         const foto = (memStore.fotos_amostra || []).find(f => f.id === fotoId && f.amostra_id === id);
         if (!foto) return res.status(404).send('Foto não encontrada');
         const buf = Buffer.from(foto.data_b64, 'base64');
         res.set('Content-Type', foto.mimetype);
+        res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.set('Content-Length', buf.length);
         res.send(buf);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -2690,6 +2694,7 @@ app.post('/api/amostras/:id/fotos', uploadMemory.array('fotos', 20), async (req,
         const etapa         = req.body.etapa || 'Recebimento';
         const componenteIdx = req.body.componente_idx !== undefined ? parseInt(req.body.componente_idx) : null;
         if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+        console.log(`[FOTO-UPLOAD] amostra=${id}, tipo=${tipo}, etapa=${etapa}, arquivos=${req.files.length}, tamanhos=${req.files.map(f => f.size + 'b').join(',')}`);
         const inseridas = [];
         for (const file of req.files) {
             const b64      = file.buffer.toString('base64');
