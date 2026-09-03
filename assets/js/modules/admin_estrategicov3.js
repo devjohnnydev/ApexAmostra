@@ -2500,34 +2500,32 @@ window.excluirCicloV3 = async function(cicloId) {
     };
 
     window.alternarSubAbaEstrategico = function(aba) {
-        const btnMargens = document.getElementById('tab-btn-estr-margens');
-        const btnAtivos = document.getElementById('tab-btn-estr-ativos');
-        const btnPlan = document.getElementById('tab-btn-estr-planejamento-mes');
+        const abas = ['margens', 'radar', 'payback', 'compra', 'venda', 'ativos'];
+        
+        abas.forEach(nome => {
+            const btn = document.getElementById(`tab-btn-estr-${nome}`);
+            const sec = document.getElementById(`subaba-estr-${nome}`);
+            if (btn) btn.classList.remove('active');
+            if (sec) sec.style.display = 'none';
+        });
 
-        if (btnMargens) btnMargens.classList.remove('active');
-        if (btnAtivos) btnAtivos.classList.remove('active');
-        if (btnPlan) btnPlan.classList.remove('active');
+        const btnAtivo = document.getElementById(`tab-btn-estr-${aba}`);
+        const secAtiva = document.getElementById(`subaba-estr-${aba}`);
 
-        const secMargens = document.getElementById('subaba-estr-margens');
-        const secAtivos = document.getElementById('subaba-estr-ativos');
-        const secPlan = document.getElementById('subaba-estr-planejamento-mes');
+        if (btnAtivo) btnAtivo.classList.add('active');
+        if (secAtiva) secAtiva.style.display = 'block';
 
-        if (secMargens) secMargens.style.display = 'none';
-        if (secAtivos) secAtivos.style.display = 'none';
-        if (secPlan) secPlan.style.display = 'none';
-
-        if (aba === 'margens') {
-            if (btnMargens) btnMargens.classList.add('active');
-            if (secMargens) secMargens.style.display = 'block';
-        } else if (aba === 'ativos') {
-            if (btnAtivos) btnAtivos.classList.add('active');
-            if (secAtivos) secAtivos.style.display = 'block';
+        if (aba === 'ativos') {
             if (window.carregarPlanejamentoDashboard) window.carregarPlanejamentoDashboard();
             window.renderPlanejamentosAtivosV3();
-        } else if (aba === 'planejamento-mes') {
-            if (btnPlan) btnPlan.classList.add('active');
-            if (secPlan) secPlan.style.display = 'block';
-            if (window.renderPlanejamentoMesEstrategico) window.renderPlanejamentoMesEstrategico();
+        } else if (aba === 'radar') {
+            if (window.renderRadarOportunidades) window.renderRadarOportunidades();
+        } else if (aba === 'payback') {
+            if (window.calcularPaybackEROIV3) window.calcularPaybackEROIV3();
+        } else if (aba === 'compra') {
+            if (window.renderAnaliseComprarV3) window.renderAnaliseComprarV3();
+        } else if (aba === 'venda') {
+            if (window.renderAnaliseVenderV3) window.renderAnaliseVenderV3();
         }
     };
 
@@ -3006,6 +3004,246 @@ window.excluirCicloV3 = async function(cicloId) {
         } finally {
             document.body.removeChild(tempDiv);
         }
+    };
+    // ═══════════════════════════════════════════════════════════════
+    //  BLOCO 1: RADAR DE OPORTUNIDADES
+    // ═══════════════════════════════════════════════════════════════
+    window.renderRadarOportunidades = function() {
+        if (!_listTabelaPrecosEstrategica || _listTabelaPrecosEstrategica.length === 0) return;
+
+        const estrelas = [];
+        const nicho = [];
+        const volume = [];
+        const rever = [];
+
+        // Médias para definir os eixos do quadrante
+        let somaMargem = 0, countVenda = 0;
+        let pVendaMedioGlobal = 0;
+
+        _listTabelaPrecosEstrategica.forEach(tp => {
+            const pVenda = parseFloat(tp.preco_venda || tp.venda_ref || 0);
+            const pCompra = parseFloat(tp.preco_entregar || tp.preco_compra || 0); // simplificado
+            if (pVenda > 0) {
+                somaMargem += ((pVenda - pCompra) / pVenda) * 100;
+                countVenda++;
+                pVendaMedioGlobal += pVenda;
+            }
+        });
+
+        const margemMediaGlobal = countVenda > 0 ? somaMargem / countVenda : 0;
+        // Definir um "potencial de volume" arbitrário com base no preço de venda (inverso: produtos mais baratos tendem a ter mais volume)
+        // Para simplificar no MVP, vamos dividir em 4 categorias por margem e um limiar de preço de venda (R$ 5,00)
+        
+        _listTabelaPrecosEstrategica.forEach(tp => {
+            const pVenda = parseFloat(tp.preco_venda || tp.venda_ref || 0);
+            const pCompra = parseFloat(tp.preco_entregar || tp.preco_compra || 0);
+            if (pVenda <= 0) return;
+            
+            const margem = ((pVenda - pCompra) / pVenda) * 100;
+            const ehAltoVolume = pVenda < 15.00; // Arbitrário: sucata mais barata gira mais volume
+
+            const itemHTML = `
+                <div style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between;">
+                    <span style="color:#fff; font-weight:bold;">${tp.material_nome}</span>
+                    <span style="color:#aaa;">${margem.toFixed(1)}%</span>
+                </div>
+            `;
+
+            if (margem >= margemMediaGlobal && ehAltoVolume) estrelas.push(itemHTML);
+            else if (margem >= margemMediaGlobal && !ehAltoVolume) nicho.push(itemHTML);
+            else if (margem < margemMediaGlobal && ehAltoVolume) volume.push(itemHTML);
+            else rever.push(itemHTML);
+        });
+
+        document.getElementById('plestv3-radar-estrelas').innerHTML = estrelas.length ? estrelas.join('') : '<span style="color:#666;">Nenhum produto</span>';
+        document.getElementById('plestv3-radar-nicho').innerHTML = nicho.length ? nicho.join('') : '<span style="color:#666;">Nenhum produto</span>';
+        document.getElementById('plestv3-radar-volume').innerHTML = volume.length ? volume.join('') : '<span style="color:#666;">Nenhum produto</span>';
+        document.getElementById('plestv3-radar-rever').innerHTML = rever.length ? rever.join('') : '<span style="color:#666;">Nenhum produto</span>';
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  BLOCO 3: CALCULADORA DE PAYBACK / TEMPO
+    // ═══════════════════════════════════════════════════════════════
+    let _chartPaybackInstance = null;
+    window.calcularPaybackEROIV3 = function() {
+        const fatAtual = window.parseCurrencyV3(document.getElementById('plestv3-payback-fat-atual')?.value) || 0;
+        const metaFat = window.parseCurrencyV3(document.getElementById('plestv3-payback-meta')?.value) || 0;
+        const crescPct = parseFloat(document.getElementById('plestv3-payback-crescimento')?.value) || 0;
+        const invest = window.parseCurrencyV3(document.getElementById('plestv3-payback-invest')?.value) || 0;
+
+        let fatMes = fatAtual;
+        let mesesParaMeta = 0;
+        let lucroAcumulado = -invest;
+        let mesesParaPayback = 0;
+        
+        // Simulação de até 36 meses
+        const historicoMeses = [];
+        const historicoFat = [];
+        const historicoLucro = [];
+
+        // Assumindo uma margem líquida média do sistema (ex: 15% para simulação se não tiver do mix, mas vamos fixar 15% para o exercício)
+        const margemLiquidaSimulada = 0.15; 
+
+        for (let i = 1; i <= 36; i++) {
+            fatMes = fatMes * (1 + (crescPct / 100));
+            let lucroMes = fatMes * margemLiquidaSimulada;
+            lucroAcumulado += lucroMes;
+
+            historicoMeses.push(`Mês ${i}`);
+            historicoFat.push(fatMes.toFixed(2));
+            historicoLucro.push(lucroAcumulado.toFixed(2));
+
+            if (fatMes >= metaFat && mesesParaMeta === 0) mesesParaMeta = i;
+            if (lucroAcumulado >= 0 && mesesParaPayback === 0) mesesParaPayback = i;
+
+            if (mesesParaMeta > 0 && mesesParaPayback > 0 && i >= 12) break; // Para quando achar tudo e tiver pelo menos 12 meses
+        }
+
+        const containerResultados = document.getElementById('plestv3-payback-resultados');
+        if (containerResultados) {
+            containerResultados.innerHTML = `
+                <div style="background:#162433; padding:15px; border-radius:8px; border-left:4px solid #00e5ff;">
+                    <span style="color:#aaa; font-size:0.8rem; display:block;">Tempo para Atingir a Meta</span>
+                    <strong style="color:#00e5ff; font-size:1.5rem;">${mesesParaMeta > 0 ? mesesParaMeta + ' meses' : '> 36 meses'}</strong>
+                </div>
+                <div style="background:#162433; padding:15px; border-radius:8px; border-left:4px solid #2AD07A;">
+                    <span style="color:#aaa; font-size:0.8rem; display:block;">Tempo para Payback (Recuperar R$ ${window.fmtBRL(invest)})</span>
+                    <strong style="color:#2AD07A; font-size:1.5rem;">${mesesParaPayback > 0 ? mesesParaPayback + ' meses' : '> 36 meses'}</strong>
+                </div>
+                <div style="background:#162433; padding:15px; border-radius:8px; border-left:4px solid #ffb74d;">
+                    <span style="color:#aaa; font-size:0.8rem; display:block;">ROI Esperado (12 meses)</span>
+                    <strong style="color:#ffb74d; font-size:1.5rem;">${((historicoLucro[11] / invest) * 100).toFixed(1)}%</strong>
+                </div>
+            `;
+        }
+
+        // Desenhar Gráfico
+        const ctx = document.getElementById('chart-payback-projecao');
+        if (!ctx) return;
+        
+        if (_chartPaybackInstance) _chartPaybackInstance.destroy();
+
+        _chartPaybackInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: historicoMeses,
+                datasets: [
+                    {
+                        label: 'Faturamento Projetado (R$)',
+                        data: historicoFat,
+                        borderColor: '#00e5ff',
+                        backgroundColor: 'rgba(0, 229, 255, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Lucro Acumulado (Caixa) (R$)',
+                        data: historicoLucro,
+                        borderColor: '#2AD07A',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: '#1a2e3f' }, ticks: { color: '#8eaabf' } },
+                    x: { grid: { display: false }, ticks: { color: '#8eaabf' } }
+                },
+                plugins: { legend: { labels: { color: '#fff' } } }
+            }
+        });
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  BLOCO 4: COMPRAR MELHOR (Teto de Compra)
+    // ═══════════════════════════════════════════════════════════════
+    window.renderAnaliseComprarV3 = function() {
+        const margemAlvo = parseFloat(document.getElementById('plestv3-compra-margem-alvo')?.value) || 0;
+        const tbody = document.getElementById('plestv3-compra-tbody');
+        if (!tbody || !_listTabelaPrecosEstrategica) return;
+
+        let html = '';
+        _listTabelaPrecosEstrategica.forEach(tp => {
+            const pVenda = parseFloat(tp.preco_venda || tp.venda_ref || 0);
+            const pCompra = parseFloat(tp.preco_entregar || tp.preco_compra || 0);
+            if (pVenda <= 0) return;
+
+            // Para ter margem alvo, lucro = pVenda * (margemAlvo / 100)
+            // pCompra Max = pVenda - lucro
+            const tetoCompra = pVenda * (1 - (margemAlvo / 100));
+            const diff = pCompra - tetoCompra; // se > 0, estou pagando mais caro do que deveria
+
+            let statusHtml = '';
+            if (diff > 0) {
+                statusHtml = `<span style="color:#ff4d4d; background:rgba(255,77,77,0.1); padding:2px 6px; border-radius:4px; font-weight:bold;">⚠️ Acima do Teto</span>`;
+            } else {
+                statusHtml = `<span style="color:#2AD07A; background:rgba(42,208,122,0.1); padding:2px 6px; border-radius:4px; font-weight:bold;">✅ Margem Atingida</span>`;
+            }
+
+            html += `
+                <tr style="border-bottom:1px solid #1a2e3f;">
+                    <td style="padding:8px;"><strong>${tp.material_nome}</strong></td>
+                    <td style="padding:8px; text-align:right; color:#ccc;">R$ ${window.fmtBRL(pVenda)}</td>
+                    <td style="padding:8px; text-align:right; color:#ffb74d;">R$ ${window.fmtBRL(pCompra)}</td>
+                    <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${window.fmtBRL(tetoCompra)}</td>
+                    <td style="padding:8px; text-align:right; color:${diff > 0 ? '#ff4d4d' : '#2AD07A'};">
+                        ${diff > 0 ? '- R$ ' + window.fmtBRL(diff) : 'R$ 0,00'}
+                    </td>
+                    <td style="padding:8px;">${statusHtml}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  BLOCO 5: VENDER MELHOR (Incremental)
+    // ═══════════════════════════════════════════════════════════════
+    window.renderAnaliseVenderV3 = function() {
+        const tbody = document.getElementById('plestv3-venda-tbody');
+        if (!tbody || !_listTabelaPrecosEstrategica) return;
+
+        let html = '';
+        _listTabelaPrecosEstrategica.forEach(tp => {
+            const pVenda = parseFloat(tp.preco_venda || tp.venda_ref || 0);
+            const pCompra = parseFloat(tp.preco_entregar || tp.preco_compra || 0);
+            if (pVenda <= 0) return;
+
+            const margemAtual = ((pVenda - pCompra) / pVenda) * 100;
+            
+            const pVenda5 = pVenda * 1.05;
+            const pVenda10 = pVenda * 1.10;
+            const pVenda15 = pVenda * 1.15;
+
+            const margem5 = ((pVenda5 - pCompra) / pVenda5) * 100;
+            const margem10 = ((pVenda10 - pCompra) / pVenda10) * 100;
+            const margem15 = ((pVenda15 - pCompra) / pVenda15) * 100;
+
+            html += `
+                <tr style="border-bottom:1px solid #1a2e3f;">
+                    <td style="padding:8px;"><strong>${tp.material_nome}</strong></td>
+                    <td style="padding:8px; text-align:right; color:#ccc;">${margemAtual.toFixed(1)}%</td>
+                    <td style="padding:8px; text-align:right; color:#ccc;">R$ ${window.fmtBRL(pVenda)}</td>
+                    <td style="padding:8px; text-align:right; color:#00e5ff;">
+                        R$ ${window.fmtBRL(pVenda5)} <br>
+                        <span style="font-size:0.7rem; color:#2AD07A;">Mg: ${margem5.toFixed(1)}%</span>
+                    </td>
+                    <td style="padding:8px; text-align:right; color:#00e5ff;">
+                        R$ ${window.fmtBRL(pVenda10)} <br>
+                        <span style="font-size:0.7rem; color:#2AD07A;">Mg: ${margem10.toFixed(1)}%</span>
+                    </td>
+                    <td style="padding:8px; text-align:right; color:#00e5ff;">
+                        R$ ${window.fmtBRL(pVenda15)} <br>
+                        <span style="font-size:0.7rem; color:#2AD07A;">Mg: ${margem15.toFixed(1)}%</span>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
     };
 
 })();

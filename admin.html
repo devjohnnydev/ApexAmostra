@@ -2679,13 +2679,22 @@
                 </style>
                 <div class="planning-subtabs" style="display:flex; gap:8px; margin-bottom:20px; border-bottom:2px solid #00e5ff; padding-bottom:0; flex-wrap:wrap; padding-left: 10px;">
                     <button type="button" class="btn-subtab active" id="tab-btn-estr-margens" onclick="alternarSubAbaEstrategico('margens')">
-                        <i class="fa-solid fa-chart-line"></i> Dashboard de Margens
+                        <i class="fa-solid fa-chart-line"></i> Dashboard & Mix
+                    </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-estr-radar" onclick="alternarSubAbaEstrategico('radar')">
+                        <i class="fa-solid fa-bullseye"></i> Radar de Oportunidades
+                    </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-estr-payback" onclick="alternarSubAbaEstrategico('payback')">
+                        <i class="fa-solid fa-stopwatch"></i> Calculadora de Payback
+                    </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-estr-compra" onclick="alternarSubAbaEstrategico('compra')">
+                        <i class="fa-solid fa-cart-arrow-down"></i> Comprar Melhor
+                    </button>
+                    <button type="button" class="btn-subtab" id="tab-btn-estr-venda" onclick="alternarSubAbaEstrategico('venda')">
+                        <i class="fa-solid fa-money-bill-trend-up"></i> Vender Melhor
                     </button>
                     <button type="button" class="btn-subtab" id="tab-btn-estr-ativos" onclick="alternarSubAbaEstrategico('ativos')">
                         <i class="fa-solid fa-list-check"></i> Planos Ativos
-                    </button>
-                    <button type="button" class="btn-subtab" id="tab-btn-estr-planejamento-mes" onclick="alternarSubAbaEstrategico('planejamento-mes')">
-                        <i class="fa-solid fa-calendar-check"></i> Planejamento do Mês
                     </button>
                 </div>
                 
@@ -3134,6 +3143,124 @@
                     </div>
                 </div>
             
+                </div>
+
+                <!-- NOVA ABA: RADAR DE OPORTUNIDADES -->
+                <div id="subaba-estr-radar" style="display:none;">
+                    <div style="background:#0c1926; border:1px solid #1e4e8c; border-radius:10px; padding:20px; margin-bottom:20px;">
+                        <h3 style="margin-top:0; color:#fff; font-size:1.1rem;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Radar de Oportunidades (Onde atacar)</h3>
+                        <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Matriz Margem Bruta vs. Potencial de Volume. Use para decidir onde focar seus esforços comerciais e de captação.</p>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
+                            <div style="background:rgba(42, 208, 122, 0.1); border:1px solid #2AD07A; border-radius:8px; padding:15px;">
+                                <h4 style="margin:0 0 10px 0; color:#2AD07A;"><i class="fa-solid fa-star"></i> ESTRELAS (Investir Forte)</h4>
+                                <div id="plestv3-radar-estrelas" style="max-height:200px; overflow-y:auto; font-size:0.85rem;"></div>
+                            </div>
+                            <div style="background:rgba(156, 39, 176, 0.1); border:1px solid #9c27b0; border-radius:8px; padding:15px;">
+                                <h4 style="margin:0 0 10px 0; color:#9c27b0;"><i class="fa-solid fa-gem"></i> NICHO RENTÁVEL (Especializar)</h4>
+                                <div id="plestv3-radar-nicho" style="max-height:200px; overflow-y:auto; font-size:0.85rem;"></div>
+                            </div>
+                            <div style="background:rgba(0, 229, 255, 0.1); border:1px solid #00e5ff; border-radius:8px; padding:15px;">
+                                <h4 style="margin:0 0 10px 0; color:#00e5ff;"><i class="fa-solid fa-bolt"></i> VOLUME (Escalar com eficiência)</h4>
+                                <div id="plestv3-radar-volume" style="max-height:200px; overflow-y:auto; font-size:0.85rem;"></div>
+                            </div>
+                            <div style="background:rgba(255, 77, 77, 0.1); border:1px solid #ff4d4d; border-radius:8px; padding:15px;">
+                                <h4 style="margin:0 0 10px 0; color:#ff4d4d;"><i class="fa-solid fa-triangle-exclamation"></i> REVER (Descartar ou Renegociar)</h4>
+                                <div id="plestv3-radar-rever" style="max-height:200px; overflow-y:auto; font-size:0.85rem;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOVA ABA: CALCULADORA DE PAYBACK -->
+                <div id="subaba-estr-payback" style="display:none;">
+                    <div style="background:#0c1926; border:1px solid #1e4e8c; border-radius:10px; padding:20px; margin-bottom:20px;">
+                        <h3 style="margin-top:0; color:#fff; font-size:1.1rem;"><i class="fa-solid fa-stopwatch" style="color:#00e5ff;"></i> Calculadora de Tempo e Retorno (ROI/Payback)</h3>
+                        <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Projete em quanto tempo você atinge a meta ou recupera o investimento.</p>
+                        
+                        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-bottom:20px;">
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px;">Faturamento Atual Mensal (R$)</label>
+                                <input type="text" id="plestv3-payback-fat-atual" class="noble-input" value="100.000,00" oninput="window.maskCurrencyV3(this); window.calcularPaybackEROIV3()">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px;">Meta Faturamento (R$)</label>
+                                <input type="text" id="plestv3-payback-meta" class="noble-input" value="1.000.000,00" oninput="window.maskCurrencyV3(this); window.calcularPaybackEROIV3()">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px;">Cresc. Mensal Estimado (%)</label>
+                                <input type="number" id="plestv3-payback-crescimento" class="noble-input" value="10" step="0.5" oninput="window.calcularPaybackEROIV3()">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#aaa; font-size:0.8rem; margin-bottom:4px;">Investimento Inicial (R$)</label>
+                                <input type="text" id="plestv3-payback-invest" class="noble-input" value="50.000,00" oninput="window.maskCurrencyV3(this); window.calcularPaybackEROIV3()">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                            <div id="plestv3-payback-resultados" style="display:flex; flex-direction:column; gap:10px;">
+                                <!-- Renderizado via JS -->
+                            </div>
+                            <div style="height:300px; background:#101a24; border-radius:8px; padding:10px;">
+                                <canvas id="chart-payback-projecao"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOVA ABA: COMPRAR MELHOR -->
+                <div id="subaba-estr-compra" style="display:none;">
+                    <div style="background:#0c1926; border:1px solid #1e4e8c; border-radius:10px; padding:20px; margin-bottom:20px;">
+                        <h3 style="margin-top:0; color:#fff; font-size:1.1rem;"><i class="fa-solid fa-cart-arrow-down" style="color:#ffb74d;"></i> Onde e como "Comprar Melhor"</h3>
+                        <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Simule o Teto de Custo de Compra necessário para atingir uma margem específica.</p>
+                        
+                        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; background:#12212f; padding:15px; border-radius:8px;">
+                            <label style="color:#00e5ff; font-weight:bold;">Margem Bruta Desejada (%):</label>
+                            <input type="number" id="plestv3-compra-margem-alvo" class="noble-input" value="30" style="width:100px; margin:0;" oninput="window.renderAnaliseComprarV3()">
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; font-size:0.8rem;">
+                                <thead>
+                                    <tr style="background:#162433; color:#fff;">
+                                        <th>Material</th>
+                                        <th style="text-align:right;">Preço Venda (Ref)</th>
+                                        <th style="text-align:right;">Preço Compra Atual</th>
+                                        <th style="text-align:right;">Teto Compra Necessário</th>
+                                        <th style="text-align:right;">Redução Necessária</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plestv3-compra-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOVA ABA: VENDER MELHOR -->
+                <div id="subaba-estr-venda" style="display:none;">
+                    <div style="background:#0c1926; border:1px solid #1e4e8c; border-radius:10px; padding:20px; margin-bottom:20px;">
+                        <h3 style="margin-top:0; color:#fff; font-size:1.1rem;"><i class="fa-solid fa-money-bill-trend-up" style="color:#2AD07A;"></i> Onde e como "Vender Melhor"</h3>
+                        <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Simule o ganho incremental se você conseguir aumentar o preço de venda.</p>
+                        
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="width:100%; font-size:0.8rem;">
+                                <thead>
+                                    <tr style="background:#162433; color:#fff;">
+                                        <th>Material</th>
+                                        <th style="text-align:right;">Margem Atual</th>
+                                        <th style="text-align:right;">Preço Atual (Venda)</th>
+                                        <th style="text-align:right;">Preço Sugerido (+5%)</th>
+                                        <th style="text-align:right;">Preço Sugerido (+10%)</th>
+                                        <th style="text-align:right;">Preço Sugerido (+15%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plestv3-venda-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="subaba-estr-ativos" style="display:none;">
@@ -5781,7 +5908,7 @@
     <script defer src="admin.js?v=1852_fix_img_jwt"></script>
     <script defer src="assets/js/modules/admin_cotacoes.js?v=3"></script>
     <script defer src="assets/js/modules/admin_fidc.js?v=3"></script>
-    <script defer src="assets/js/modules/admin_estrategicov3.js?v=1786913666561"></script>
+    <script defer src="assets/js/modules/admin_estrategicov3.js?v=1786913666562"></script>
     <script defer src="assets/js/modules/admin_auditoria.js?v=7_cache_bust"></script>
     <script defer src="assets/js/modules/admin_planejamento_v4.js?v=4"></script>
     <script defer src="assets/js/modules/pcp_live.js?v=1"></script>
