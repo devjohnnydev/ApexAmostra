@@ -7972,8 +7972,14 @@ var _listTabelaPrecosEstrategica = [];
         
         const modal = document.getElementById('modal-amostra');
         if (modal) modal.style.display = 'flex';
-        const dataEl = document.getElementById('amo-data');
-        if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+        if (dataEl) {
+            // Usa horário local (não UTC) para evitar erro de data com fuso -03:00
+            const hoje = new Date();
+            const ano  = hoje.getFullYear();
+            const mes  = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dia  = String(hoje.getDate()).padStart(2, '0');
+            dataEl.value = `${ano}-${mes}-${dia}`;
+        }
         // Limpa fotos acumuladas de sessões anteriores
         if (typeof window._limparFotosRecebimento === 'function') window._limparFotosRecebimento();
     };
