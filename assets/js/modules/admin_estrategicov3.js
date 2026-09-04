@@ -616,7 +616,11 @@
             if (nota) nota.style.display = 'block';
 
             _renderizarCiclosV3();
-            (window._apexNotify ? window._apexNotify('Notificação', `✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00', 'info') : alert(`✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00')).toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}`);
+            if (window._apexNotify) {
+                window._apexNotify('Notificação', `✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}`, 'success');
+            } else {
+                alert(`✅ Ciclo salvo no banco! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}`);
+            }
         } catch (e) {
             console.error(e);
             (window._apexNotify ? window._apexNotify('Notificação', 'Erro ao salvar ciclo.', 'info') : alert('Erro ao salvar ciclo.'));
