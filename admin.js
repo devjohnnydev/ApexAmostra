@@ -5701,22 +5701,16 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
 
-        // Gera estilo de marca d'água via background-image (não cria altura extra no documento)
-        function gerarEstiloWatermark(src) {
-            if (!src) return '';
-            // Usa background-image repeat para cobrir o documento sem nenhum elemento HTML extra
-            return `background-image: url('${src}'); background-repeat: repeat; background-size: 220px auto; background-position: center; opacity-adjustment: none;`;
-        }
 
         const tituloPdf = isCompleta ? 'Tabela Geral de Preços Vigente (Visão Completa)' : 'Tabela de Preços Vigente';
         const maxWidthContainer = '100%';
-        const watermarkBg = logoBase64 ? `background-image: url('${logoBase64}'); background-repeat: repeat; background-size: 220px auto;` : '';
+        // Marca d'água aplicada diretamente no container (zero elementos extras, zero altura extra)
+        const wmStyle = logoBase64
+            ? `background-image: url('${logoBase64}'); background-repeat: repeat; background-size: 200px auto; background-position: 0 0;`
+            : '';
 
         let html = `
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; width: ${maxWidthContainer}; margin: 0 auto; box-sizing: border-box; position: relative;">
-                <!-- Marca d'água via pseudo-element no container interno -->
-                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; ${watermarkBg} opacity: 0.07; transform: rotate(-20deg) scale(1.5);"></div>
-
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background-color: #ffffff; ${wmStyle} width: ${maxWidthContainer}; margin: 0 auto; box-sizing: border-box; position: relative;">
                 <div style="position: relative; z-index: 1;">
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e4e8c; padding-bottom: 20px; margin-bottom: 25px;">
