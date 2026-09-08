@@ -5695,7 +5695,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const corCategoria = (activeSettings && activeSettings[`cor_categoria_${cat}`]) || '#1e4e8c';
 
             html += `
-                <div style="margin-bottom: 30px; page-break-inside: avoid; border: 1px solid ${corCategoria}; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                <div style="margin-bottom: 30px; border: 1px solid ${corCategoria}; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background: ${corCategoria}; color: #ffffff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         <span>${cat}</span>
                         <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
@@ -5840,7 +5840,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {
             console.warn('Logo watermark não carregou, usando fallback:', e);
         }
-        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, logoWatermarkBase64, modoPDF);
+        // Reduz opacidade da logo para 7% (marca d'água sutil) via canvas
+        let fadedLogo = null;
+        if (logoWatermarkBase64) {
+            fadedLogo = await new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    const c = document.createElement('canvas');
+                    c.width = img.width; c.height = img.height;
+                    const ctx = c.getContext('2d');
+                    ctx.globalAlpha = 0.07;
+                    ctx.drawImage(img, 0, 0);
+                    resolve(c.toDataURL('image/png'));
+                };
+                img.onerror = () => resolve(null);
+                img.src = logoWatermarkBase64;
+            });
+        }
+        tempDiv.innerHTML = gerarHtmlTabelaPrecosParaPdf(precos, lastUpdate, settings, fadedLogo, modoPDF);
         document.body.appendChild(tempDiv);
 
         try {
