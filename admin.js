@@ -5701,30 +5701,21 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
 
-        // Gera grid de logos para cobrir toda a página
-        function gerarGridLogo(src) {
+        // Gera estilo de marca d'água via background-image (não cria altura extra no documento)
+        function gerarEstiloWatermark(src) {
             if (!src) return '';
-            const cols = isCompleta ? 6 : 4;
-            const rows = 16; // linhas suficientes para cobrir documentos longos
-            let grid = '<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">';
-            for (let r = 0; r < rows; r++) {
-                grid += '<div style="display:flex;justify-content:space-around;align-items:center;padding:18px 0;">';
-                for (let c = 0; c < cols; c++) {
-                    grid += `<img src="${src}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />`;
-                }
-                grid += '</div>';
-            }
-            grid += '</div>';
-            return grid;
+            // Usa background-image repeat para cobrir o documento sem nenhum elemento HTML extra
+            return `background-image: url('${src}'); background-repeat: repeat; background-size: 220px auto; background-position: center; opacity-adjustment: none;`;
         }
 
         const tituloPdf = isCompleta ? 'Tabela Geral de Preços Vigente (Visão Completa)' : 'Tabela de Preços Vigente';
         const maxWidthContainer = '100%';
+        const watermarkBg = logoBase64 ? `background-image: url('${logoBase64}'); background-repeat: repeat; background-size: 220px auto;` : '';
 
         let html = `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #333; background: #ffffff; width: ${maxWidthContainer}; margin: 0 auto; box-sizing: border-box; position: relative;">
-                <!-- Marca d'água: logo repetido em toda a página -->
-                ${gerarGridLogo(logoBase64)}
+                <!-- Marca d'água via pseudo-element no container interno -->
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; ${watermarkBg} opacity: 0.07; transform: rotate(-20deg) scale(1.5);"></div>
 
                 <div style="position: relative; z-index: 1;">
                     <!-- Header -->
