@@ -38,5 +38,11 @@
     "cross-env": "^10.1.0",
     "jest": "^30.4.2",
     "supertest": "^7.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "config": {
+    "puppeteer_skip_chromium_download": true
   }
 }
