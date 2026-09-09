@@ -7151,7 +7151,7 @@ app.get('/api/admin/run-import-fornecedores', (req, res) => {
 // ==========================================
 app.use('/api/pcp', require('./src/routes/pcp')(pool, dbAvailable, memStore));
 
-if (require.main === module) {
+if (process.env.NODE_ENV !== 'test') {
     initDatabase().then(() => {
         app.listen(PORT, () => {
             console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
