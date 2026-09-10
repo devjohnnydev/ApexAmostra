@@ -254,681 +254,688 @@ const memStore = {
 };
 
 // Inicializa tabelas na primeira execução (apenas se DB disponível)
+
 async function initDatabase() {
     if (!pool) {
-        console.log('⚠️  DATABASE_URL não configurada. Usando armazenamento em memória.');
+        console.log('⚠️  Banco de dados não configurado. Usando armazenamento em memória.');
         return;
     }
-    let client;
-    try {
-        client = await pool.connect();
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS solucoes (
-                id        SERIAL PRIMARY KEY,
-                nome      TEXT    NOT NULL,
-                img       TEXT    NOT NULL,
-                descricao TEXT    NOT NULL,
-                ordem     INTEGER DEFAULT 0,
-                criado_em TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS materiais (
-                id        SERIAL PRIMARY KEY,
-                nome      TEXT    NOT NULL,
-                imagem    TEXT,
-                descricao TEXT    NOT NULL,
-                locais    JSONB   DEFAULT '[]',
-                criado_em TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS noticias (
-                id         SERIAL PRIMARY KEY,
-                titulo     TEXT    NOT NULL,
-                url        TEXT,
-                resumo     TEXT,
-                data_pub   DATE,
-                categoria  TEXT,
-                criado_em  TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS settings (
-                key   TEXT PRIMARY KEY,
-                value TEXT NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS galeria (
-                id        SERIAL PRIMARY KEY,
-                url       TEXT NOT NULL,
-                titulo    TEXT NOT NULL,
-                ordem     INTEGER DEFAULT 0,
-                criado_em TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS lme_destinatarios (
-                id        SERIAL PRIMARY KEY,
-                nome      TEXT NOT NULL,
-                email     TEXT NOT NULL,
-                tipo      TEXT DEFAULT 'lme',
-                criado_em TIMESTAMP DEFAULT NOW()
-            );
-            ALTER TABLE lme_destinatarios ADD COLUMN IF NOT EXISTS tipo TEXT DEFAULT 'lme';
-
-            -- NOVAS TABELAS APEX
-            
-            CREATE TABLE IF NOT EXISTS pedidos_venda (
-                id              SERIAL PRIMARY KEY,
-                numero          TEXT NOT NULL UNIQUE,
-                cliente_id      INTEGER,
-                cliente_nome    TEXT,
-                data_emissao    DATE NOT NULL DEFAULT CURRENT_DATE,
-                data_entrega    DATE,
-                status          TEXT NOT NULL DEFAULT 'Rascunho',
-                condicao_pagamento TEXT,
-                observacoes     TEXT,
-                desconto_pct    NUMERIC(5,2) DEFAULT 0.00,
-                frete           NUMERIC(10,2) DEFAULT 0.00,
-                total_itens     NUMERIC(14,2) DEFAULT 0.00,
-                total_geral     NUMERIC(14,2) DEFAULT 0.00,
-                criado_por      TEXT,
-                criado_por_perfil TEXT,
-                endereco_entrega TEXT,
-                responsavel_recebimento TEXT,
-                tipo_frete      TEXT,
-                criado_em       TIMESTAMP DEFAULT NOW(),
-                atualizado_em   TIMESTAMP DEFAULT NOW()
-            );
-
-            ALTER TABLE pedidos_venda ALTER COLUMN cliente_id DROP NOT NULL;
-            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS cliente_nome TEXT;
-            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS criado_por_perfil TEXT;
-            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS endereco_entrega TEXT;
-            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS responsavel_recebimento TEXT;
-            ALTER TABLE pedidos_venda ADD COLUMN IF NOT EXISTS tipo_frete TEXT;
-
-            CREATE TABLE IF NOT EXISTS pedidos_venda_itens (
-                id              SERIAL PRIMARY KEY,
-                pedido_id       INTEGER NOT NULL REFERENCES pedidos_venda(id) ON DELETE CASCADE,
-                material_id     INTEGER,
-                descricao       TEXT NOT NULL,
-                unidade         TEXT DEFAULT 'kg',
-                quantidade      NUMERIC(12,3) NOT NULL,
-                preco_unitario  NUMERIC(10,4) NOT NULL,
-                desconto_item   NUMERIC(5,2) DEFAULT 0.00,
-                total_item      NUMERIC(14,2) NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS fornecedores (
-                id            SERIAL PRIMARY KEY,
-                codfor        INTEGER UNIQUE,
-                nome          VARCHAR(255) NOT NULL,
-                apelido       VARCHAR(255),
-                cnpj          VARCHAR(18),
-                comprador     VARCHAR(150),
-                fone1         VARCHAR(20),
-                email         VARCHAR(150),
-                endereco      VARCHAR(255),
-                complemento   TEXT,
-                criado_em     TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS materiais_catalogo (
-                id          SERIAL PRIMARY KEY,
-                nome        TEXT NOT NULL,
-                unidade     TEXT DEFAULT 'kg',
-                categoria   TEXT NOT NULL,
-                cor         TEXT,
-                ncm         TEXT,
-                observacoes TEXT,
-                criado_em   TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS residuos_catalogo (
-                id          SERIAL PRIMARY KEY,
-                nome        TEXT NOT NULL,
-                unidade     TEXT DEFAULT 'kg',
-                categoria   TEXT NOT NULL,
-                cor         TEXT,
-                ncm         TEXT,
-                observacoes TEXT,
-                criado_em   TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS ligas_catalogo (
-                id          SERIAL PRIMARY KEY,
-                nome        TEXT NOT NULL,
-                unidade     TEXT DEFAULT 'kg',
-                categoria   TEXT NOT NULL,
-                cor         TEXT,
-                ncm         TEXT,
-                observacoes TEXT,
-                criado_em   TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS tabela_precos (
-                id              SERIAL PRIMARY KEY,
-                material_id     INTEGER NOT NULL,
-                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
-                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
-                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
-                validade        DATE NOT NULL,
-                criado_em       TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS tabela_precos_residuos (
-                id              SERIAL PRIMARY KEY,
-                material_id     INTEGER NOT NULL,
-                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
-                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
-                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
-                comissao        NUMERIC(6,2)  DEFAULT 0.00,
-                pis_cofins      NUMERIC(6,2)  DEFAULT 0.00,
-                fidc            NUMERIC(6,2)  DEFAULT 0.00,
-                icms            NUMERIC(6,2)  DEFAULT 0.00,
-                frete_coleta    NUMERIC(10,2) DEFAULT 0.00,
-                validade        DATE NOT NULL,
-                criado_em       TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS tabela_precos_ligas (
-                id              SERIAL PRIMARY KEY,
-                material_id     INTEGER NOT NULL,
-                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
-                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
-                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
-                comissao        NUMERIC(6,2)  DEFAULT 0.00,
-                pis_cofins      NUMERIC(6,2)  DEFAULT 0.00,
-                fidc            NUMERIC(6,2)  DEFAULT 0.00,
-                icms            NUMERIC(6,2)  DEFAULT 0.00,
-                frete_coleta    NUMERIC(10,2) DEFAULT 0.00,
-                validade        DATE NOT NULL,
-                criado_em       TIMESTAMP DEFAULT NOW()
-            );
-
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS comissao   NUMERIC(6,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS pis_cofins NUMERIC(6,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS fidc       NUMERIC(6,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS icms       NUMERIC(6,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS frete_coleta NUMERIC(10,2) DEFAULT 0.00;
-
-            CREATE TABLE IF NOT EXISTS tabela_precos_volume (
-                id              SERIAL PRIMARY KEY,
-                material_id     INTEGER NOT NULL,
-                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
-                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
-                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
-                comissao        NUMERIC(6,2)  DEFAULT 0.00,
-                pis_cofins      NUMERIC(6,2)  DEFAULT 0.00,
-                fidc            NUMERIC(6,2)  DEFAULT 0.00,
-                icms            NUMERIC(6,2)  DEFAULT 0.00,
-                frete_coleta    NUMERIC(10,2) DEFAULT 0.00,
-                validade        DATE NOT NULL,
-                criado_em       TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS tabela_precos_fundicao (
-                id              SERIAL PRIMARY KEY,
-                material_id     INTEGER NOT NULL,
-                preco_entregar  NUMERIC(10,2) DEFAULT 0.00,
-                preco_coletar   NUMERIC(10,2) DEFAULT 0.00,
-                venda_ref       NUMERIC(10,2) DEFAULT 0.00,
-                comissao        NUMERIC(6,2)  DEFAULT 0.00,
-                pis_cofins      NUMERIC(6,2)  DEFAULT 0.00,
-                fidc            NUMERIC(6,2)  DEFAULT 0.00,
-                icms            NUMERIC(6,2)  DEFAULT 0.00,
-                frete_coleta    NUMERIC(10,2) DEFAULT 0.00,
-                validade        DATE NOT NULL,
-                criado_em       TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS amostras (
-                id             SERIAL PRIMARY KEY,
-                numero_amostra TEXT NOT NULL UNIQUE,
-                nome_material  TEXT,
-                data           DATE NOT NULL,
-                fornecedor_id  INTEGER NOT NULL,
-                responsavel    TEXT NOT NULL,
-                representante  TEXT,
-                peso_inicial   NUMERIC(12,3) NOT NULL,
-                status         TEXT DEFAULT 'Em Análise', -- 'Em Análise', 'Aguardando Precificação', 'Aguardando Liberação PCP', 'Liberado para Produção', 'Processado'
-                observacoes    TEXT,
-                foto_original  TEXT,
-                criado_em      TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS componentes_amostra (
-                id          SERIAL PRIMARY KEY,
-                amostra_id  INTEGER NOT NULL,
-                material_id INTEGER NOT NULL,
-                peso        NUMERIC(12,3) NOT NULL,
-                percentual  NUMERIC(5,2) NOT NULL,
-                observacoes TEXT
-            );
-
-            CREATE TABLE IF NOT EXISTS lotes_compra (
-                id                   SERIAL PRIMARY KEY,
-                amostra_id           INTEGER,
-                fornecedor_id        INTEGER NOT NULL,
-                produto              TEXT NOT NULL,
-                peso_comprado        NUMERIC(12,3) NOT NULL,
-                preco_compra         NUMERIC(10,2) NOT NULL,
-                percentual_rendimento NUMERIC(5,2) NOT NULL,
-                material_id          INTEGER NOT NULL,
-                preco_venda_material NUMERIC(10,2) NOT NULL,
-                comissao             NUMERIC(5,2) DEFAULT 2.0,
-                fidc                 NUMERIC(5,2) DEFAULT 2.3,
-                mes                  TEXT NOT NULL,
-                cliente              TEXT,
-                prazo_recebimento_dias INTEGER,
-                forma_pagamento      TEXT,
-                simulacoes_historico JSONB DEFAULT '[]'::jsonb,
-                criado_em            TIMESTAMP DEFAULT NOW()
-            );
-
-            -- Garantir que as colunas existam em DBs já criados
-            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS cliente TEXT;
-            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS prazo_recebimento_dias INTEGER;
-            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS forma_pagamento TEXT;
-            ALTER TABLE lotes_compra ADD COLUMN IF NOT EXISTS simulacoes_historico JSONB DEFAULT '[]'::jsonb;
-
-            CREATE TABLE IF NOT EXISTS estoque (
-                material_id INTEGER PRIMARY KEY,
-                saldo       NUMERIC(12,3) DEFAULT 0.000
-            );
-
-            CREATE TABLE IF NOT EXISTS movimentacoes_estoque (
-                id          SERIAL PRIMARY KEY,
-                material_id INTEGER NOT NULL,
-                tipo        TEXT NOT NULL, -- ENTRADA / SAIDA
-                quantidade  NUMERIC(12,3) NOT NULL,
-                motivo      TEXT,
-                data        TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id        SERIAL PRIMARY KEY,
-                "user"    TEXT NOT NULL UNIQUE,
-                pass      TEXT NOT NULL,
-                perfil    TEXT NOT NULL,
-                nome      TEXT NOT NULL,
-                criado_em TIMESTAMP DEFAULT NOW()
-            );
-
-            -- Alterar tabelas existentes para adicionar novas colunas do fluxo de desmonte e decisão da diretoria
-            ALTER TABLE componentes_amostra ADD COLUMN IF NOT EXISTS foto TEXT;
-            ALTER TABLE componentes_amostra ADD COLUMN IF NOT EXISTS dificuldade TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS nome_material TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS tempo_desmonte INTEGER DEFAULT 0;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS parecer_tecnico TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS decisao_diretoria TEXT DEFAULT 'Aguardando';
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS tecnico_analise TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS admin_aprovacao TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS motivo_reprovacao TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS data_decisao TIMESTAMP;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_entregar NUMERIC(10,2);
-            ALTER TABLE clientes ADD COLUMN IF NOT EXISTS vendedor TEXT;
-            ALTER TABLE clientes ADD COLUMN IF NOT EXISTS filial TEXT;
-            ALTER TABLE clientes ALTER COLUMN dias TYPE TEXT USING dias::TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_compra_coletar NUMERIC(10,2);
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS preco_validade TIMESTAMP;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS autorizado_por TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS obs_diretoria TEXT;
-            ALTER TABLE amostras ADD COLUMN IF NOT EXISTS representante TEXT;
-            ALTER TABLE amostras ALTER COLUMN peso_inicial TYPE NUMERIC(14,4);
-
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS comissao NUMERIC(10,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS pis_cofins NUMERIC(10,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS fidc NUMERIC(10,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS icms NUMERIC(10,2) DEFAULT 0.00;
-            ALTER TABLE tabela_precos ADD COLUMN IF NOT EXISTS frete_coleta NUMERIC(10,2) DEFAULT 0.00;
-
-            CREATE TABLE IF NOT EXISTS fotos_amostra (
-                id              SERIAL PRIMARY KEY,
-                amostra_id      INTEGER NOT NULL,
-                tipo            TEXT DEFAULT 'bruta',
-                etapa           TEXT DEFAULT 'Recebimento',
-                componente_idx  INTEGER DEFAULT NULL,
-                data_b64        TEXT NOT NULL,
-                mimetype        TEXT DEFAULT 'image/jpeg',
-                nome            TEXT,
-                criado_em       TIMESTAMP DEFAULT NOW()
-            );
-            ALTER TABLE fotos_amostra ADD COLUMN IF NOT EXISTS etapa TEXT DEFAULT 'Recebimento';
-            ALTER TABLE fotos_amostra ADD COLUMN IF NOT EXISTS componente_idx INTEGER DEFAULT NULL;
-
-            CREATE TABLE IF NOT EXISTS audit_logs (
-                id         SERIAL PRIMARY KEY,
-                usuario    TEXT DEFAULT 'Sistema',
-                acao       TEXT NOT NULL,
-                detalhe    TEXT,
-                amostra_id INTEGER,
-                ip         TEXT,
-                criado_em  TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS planejamento_compras (
-                id                     SERIAL PRIMARY KEY,
-                tipo_planejamento      TEXT DEFAULT 'COMPRA_VENDA',
-                material_id            INTEGER,
-                fornecedor_id          INTEGER,
-                quantidade_necessaria  NUMERIC(12,3) NOT NULL,
-                quantidade_realizada_kg NUMERIC(12,3) DEFAULT 0.00,
-                ponto_pedido_kg        NUMERIC(12,3) DEFAULT 0.00,
-                lead_time_dias         INTEGER DEFAULT 7,
-                preco_estimado         NUMERIC(10,4) DEFAULT 0.00,
-                custo_total_estimado   NUMERIC(14,2) DEFAULT 0.00,
-                custo_total_realizado  NUMERIC(14,2) DEFAULT 0.00,
-                mes_referencia         TEXT,
-                status                 TEXT DEFAULT 'Sugerido',
-                observacoes            TEXT,
-                criado_em              TIMESTAMP DEFAULT NOW()
-            );
-            ALTER TABLE planejamento_compras ADD COLUMN IF NOT EXISTS tipo_planejamento TEXT DEFAULT 'COMPRA_VENDA';
-            ALTER TABLE planejamento_compras ADD COLUMN IF NOT EXISTS quantidade_realizada_kg NUMERIC(12,3) DEFAULT 0.00;
-            ALTER TABLE planejamento_compras ADD COLUMN IF NOT EXISTS custo_total_realizado NUMERIC(14,2) DEFAULT 0.00;
-
-            CREATE TABLE IF NOT EXISTS equipamentos_industriais (
-                id                         SERIAL PRIMARY KEY,
-                nome_equipamento           TEXT NOT NULL,
-                codigo_tag                 TEXT UNIQUE NOT NULL,
-                setor                      TEXT DEFAULT 'Processamento',
-                capacidade_nominal_kgh     NUMERIC(10,2) DEFAULT 1000.00,
-                disponibilidade_horas_dia  NUMERIC(5,2) DEFAULT 16.00,
-                tempo_setup_horas          NUMERIC(5,2) DEFAULT 1.00,
-                eficiencia_oee_pct         NUMERIC(5,2) DEFAULT 85.00,
-                status                     TEXT DEFAULT 'Operacional',
-                observacoes                TEXT,
-                criado_em                  TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS ordens_producao (
-                id                      SERIAL PRIMARY KEY,
-                numero_op               TEXT UNIQUE NOT NULL,
-                amostra_id              INTEGER,
-                lote_id                 INTEGER,
-                material_entrada        TEXT,
-                peso_entrada_kg         NUMERIC(12,3) NOT NULL,
-                material_saida_id       INTEGER,
-                peso_saida_estimado_kg  NUMERIC(12,3) DEFAULT 0.00,
-                data_inicio_prevista    DATE,
-                data_fim_prevista       DATE,
-                responsavel_pcp         TEXT,
-                status                  TEXT DEFAULT 'Planejada',
-                observacoes             TEXT,
-                criado_em               TIMESTAMP DEFAULT NOW(),
-                atualizado_em           TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS ordens_producao_etapas (
-                id                   SERIAL PRIMARY KEY,
-                op_id                INTEGER NOT NULL REFERENCES ordens_producao(id) ON DELETE CASCADE,
-                nome_etapa           TEXT NOT NULL,
-                ordem                INTEGER DEFAULT 1,
-                equipamento_id       INTEGER,
-                tempo_estimado_horas NUMERIC(8,2) DEFAULT 0.00,
-                tempo_real_horas     NUMERIC(8,2) DEFAULT 0.00,
-                status_etapa         TEXT DEFAULT 'Pendente',
-                operador_responsavel TEXT,
-                observacoes          TEXT
-            );
-
-            -- Tabela cabeçalho do planejamento de produção (uma por planejamento)
-            CREATE TABLE IF NOT EXISTS planejamento_producao_insumos (
-                id                             SERIAL PRIMARY KEY,
-                periodo                        TEXT NOT NULL,
-                produto_id                     INTEGER,
-                produto_nome                   TEXT,
-                meta_faturamento_rs            NUMERIC(14,2) DEFAULT 0.00,
-                preco_venda_produto_rs         NUMERIC(14,4) DEFAULT 0.00,
-                qtd_produto_necessaria         NUMERIC(12,3) DEFAULT 0.00,
-                custo_total_projetado_rs       NUMERIC(14,2) DEFAULT 0.00,
-                margem_projetada_pct           NUMERIC(8,4) DEFAULT 0.00,
-                prazo_compra_ate               DATE,
-                prazo_venda_ate                DATE,
-                status                         TEXT DEFAULT 'Pendente',
-                criado_em                      TIMESTAMP DEFAULT NOW()
-            );
-
-            -- Colunas adicionais (migração segura para instâncias existentes)
-            ALTER TABLE planejamento_producao_insumos ADD COLUMN IF NOT EXISTS meta_faturamento_rs NUMERIC(14,2) DEFAULT 0.00;
-            ALTER TABLE planejamento_producao_insumos ADD COLUMN IF NOT EXISTS preco_venda_produto_rs NUMERIC(14,4) DEFAULT 0.00;
-            ALTER TABLE planejamento_producao_insumos ADD COLUMN IF NOT EXISTS qtd_produto_necessaria NUMERIC(12,3) DEFAULT 0.00;
-            ALTER TABLE planejamento_producao_insumos ADD COLUMN IF NOT EXISTS custo_total_projetado_rs NUMERIC(14,2) DEFAULT 0.00;
-            ALTER TABLE planejamento_producao_insumos ADD COLUMN IF NOT EXISTS margem_projetada_pct NUMERIC(8,4) DEFAULT 0.00;
-            ALTER TABLE planejamento_producao_insumos ADD COLUMN IF NOT EXISTS prazo_compra_ate DATE;
-            ALTER TABLE planejamento_producao_insumos ADD COLUMN IF NOT EXISTS prazo_venda_ate DATE;
-
-            -- Linhas de insumos de cada planejamento (N por planejamento)
-            CREATE TABLE IF NOT EXISTS planejamento_producao_linhas (
-                id                      SERIAL PRIMARY KEY,
-                planejamento_id         INTEGER NOT NULL REFERENCES planejamento_producao_insumos(id) ON DELETE CASCADE,
-                insumo_produto_id       INTEGER,
-                insumo_nome             TEXT NOT NULL,
-                coeficiente_pct         NUMERIC(8,4) NOT NULL DEFAULT 100,
-                qtd_necessaria          NUMERIC(12,3) DEFAULT 0.00,
-                preco_compra_tabela     NUMERIC(14,4) DEFAULT 0.00,
-                preco_compra_simulado   NUMERIC(14,4) DEFAULT 0.00,
-                preco_venda_tabela      NUMERIC(14,4) DEFAULT 0.00,
-                custo_total_insumo      NUMERIC(14,2) DEFAULT 0.00,
-                criado_em               TIMESTAMP DEFAULT NOW()
-            );
-
-            -- Movimentações reais por linha de insumo
-            CREATE TABLE IF NOT EXISTS planejamento_producao_movimentacoes (
-                id                  SERIAL PRIMARY KEY,
-                linha_id            INTEGER NOT NULL REFERENCES planejamento_producao_linhas(id) ON DELETE CASCADE,
-                planejamento_id     INTEGER NOT NULL,
-                tipo                TEXT NOT NULL CHECK (tipo IN ('COMPRA','VENDA')),
-                quantidade          NUMERIC(12,3) NOT NULL,
-                preco_unitario      NUMERIC(14,4) NOT NULL,
-                valor_total         NUMERIC(14,2),
-                data_movimentacao   DATE DEFAULT CURRENT_DATE,
-                obs                 TEXT,
-                criado_em           TIMESTAMP DEFAULT NOW()
-            );
-
-
-            CREATE TABLE IF NOT EXISTS planejamento_comercial_revenda (
-                id                         SERIAL PRIMARY KEY,
-                mes_referencia             TEXT NOT NULL,
-                produto_id                 INTEGER,
-                produto_nome               TEXT,
-                compra_planejada_kg        NUMERIC(12,3) DEFAULT 0.00,
-                venda_planejada_kg         NUMERIC(12,3) DEFAULT 0.00,
-                investimento_planejado_rs  NUMERIC(14,2) DEFAULT 0.00,
-                faturamento_previsto_rs    NUMERIC(14,2) DEFAULT 0.00,
-                compra_realizada_kg        NUMERIC(12,3) DEFAULT 0.00,
-                venda_realizada_rs         NUMERIC(14,2) DEFAULT 0.00,
-                participacao_meta_pct      NUMERIC(5,2) DEFAULT 0.00,
-                status                     TEXT DEFAULT 'Em Cotação',
-                observacoes                TEXT,
-                criado_em                  TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS planejamento_comercial_transacoes (
-                id                SERIAL PRIMARY KEY,
-                planejamento_id   INTEGER NOT NULL,
-                tipo              VARCHAR(10) NOT NULL,
-                quantidade_kg     NUMERIC(12,3) NOT NULL,
-                preco_unitario    NUMERIC(14,2) NOT NULL,
-                valor_total       NUMERIC(14,2) NOT NULL,
-                data_transacao    DATE NOT NULL,
-                observacoes       TEXT,
-                criado_em         TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS parametros_estoque_prazos (
-                id                         SERIAL PRIMARY KEY,
-                material_id                INTEGER UNIQUE NOT NULL,
-                lead_time_compra_dias      INTEGER DEFAULT 7,
-                prazo_entrega_dias         INTEGER DEFAULT 15,
-                prazo_producao_dias        INTEGER DEFAULT 5,
-                estoque_minimo_kg          NUMERIC(12,3) DEFAULT 0.00,
-                estoque_seguranca_kg       NUMERIC(12,3) DEFAULT 0.00,
-                prazo_permanencia_dias     INTEGER DEFAULT 30,
-                atualizado_em              TIMESTAMP DEFAULT NOW()
-            );
-
-            CREATE TABLE IF NOT EXISTS configuracao_cenarios_planejamento (
-                id                         SERIAL PRIMARY KEY,
-                percentual_conservador     NUMERIC(5,2) DEFAULT 80.00,
-                percentual_moderado        NUMERIC(5,2) DEFAULT 100.00,
-                percentual_agressivo       NUMERIC(5,2) DEFAULT 120.00,
-                cenario_foco               VARCHAR(20) DEFAULT 'AGRESSIVO',
-                meta_base_padrao_rs        NUMERIC(15,2) DEFAULT 1000000.00,
-                atualizado_em              TIMESTAMP DEFAULT NOW()
-            );
-        `);
-
-        // Tabela de Planejamento Estratégico (Consolidado por mês e produto)
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS planejamento_estrategico (
-                id                         SERIAL PRIMARY KEY,
-                mes                        VARCHAR(7) NOT NULL,
-                material_id                INTEGER NOT NULL,
-                qtd_conservador            NUMERIC(12,3) DEFAULT 0.00,
-                qtd_moderado               NUMERIC(12,3) DEFAULT 0.00,
-                qtd_agressivo              NUMERIC(12,3) DEFAULT 0.00,
-                qtd_realizado              NUMERIC(12,3) DEFAULT 0.00,
-                margem_alvo                NUMERIC(8,4) DEFAULT NULL,
-                valor_compra_realizado     NUMERIC(14,2) DEFAULT 0.00,
-                valor_venda_realizado      NUMERIC(14,2) DEFAULT 0.00,
-                criado_em                  TIMESTAMP DEFAULT NOW(),
-                CONSTRAINT uq_mes_material UNIQUE (mes, material_id)
-            );
-
-            -- Migrações seguras das novas colunas
-            ALTER TABLE planejamento_estrategico ADD COLUMN IF NOT EXISTS margem_alvo NUMERIC(8,4) DEFAULT NULL;
-            ALTER TABLE planejamento_estrategico ADD COLUMN IF NOT EXISTS valor_compra_realizado NUMERIC(14,2) DEFAULT 0.00;
-            ALTER TABLE planejamento_estrategico ADD COLUMN IF NOT EXISTS valor_venda_realizado NUMERIC(14,2) DEFAULT 0.00;
-
-            CREATE TABLE IF NOT EXISTS planejamento_estrategicov3 (
-                id                         SERIAL PRIMARY KEY,
-                mes                        VARCHAR(7) NOT NULL,
-                material_id                INTEGER NOT NULL,
-                meta_faturamento           NUMERIC(14,2) DEFAULT 0.00,
-                margem_desejada            NUMERIC(5,2) DEFAULT 0.00,
-                operacao                   VARCHAR(15) DEFAULT 'entrega',
-                qtd_realizado              NUMERIC(12,3) DEFAULT 0.00,
-                valor_venda_realizado      NUMERIC(14,2) DEFAULT 0.00,
-                criado_em                  TIMESTAMP DEFAULT NOW(),
-                CONSTRAINT uq_mes_material_v3 UNIQUE (mes, material_id)
-            );
-            CREATE TABLE IF NOT EXISTS estrategiav3_planos (
-                id SERIAL PRIMARY KEY,
-                titulo VARCHAR(150),
-                data_inicial DATE,
-                data_final DATE,
-                frente VARCHAR(50),
-                meta_faturamento NUMERIC(14,2) DEFAULT 0.00,
-                status VARCHAR(50) DEFAULT 'EM ANDAMENTO',
-                cenario_conservador_pct NUMERIC(5,2) DEFAULT 80.00,
-                cenario_moderado_pct NUMERIC(5,2) DEFAULT 100.00,
-                cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00,
-                criado_em TIMESTAMP DEFAULT NOW()
-            );
-        `);
-
+    
+    // Função auxiliar para executar cada CREATE TABLE individualmente
+    async function runSQL(sql, label) {
         try {
-            await client.query(`
-                ALTER TABLE estrategiav3_planos 
-                ADD COLUMN IF NOT EXISTS cenario_conservador_pct NUMERIC(5,2) DEFAULT 80.00,
-                ADD COLUMN IF NOT EXISTS cenario_moderado_pct NUMERIC(5,2) DEFAULT 100.00,
-                ADD COLUMN IF NOT EXISTS cenario_agressivo_pct NUMERIC(5,2) DEFAULT 120.00,
-                ADD COLUMN IF NOT EXISTS faturamento_realizado NUMERIC(14,2) DEFAULT NULL,
-                ADD COLUMN IF NOT EXISTS investimento_realizado NUMERIC(14,2) DEFAULT NULL,
-                ADD COLUMN IF NOT EXISTS volume_realizado NUMERIC(12,3) DEFAULT NULL,
-                ADD COLUMN IF NOT EXISTS observacoes TEXT DEFAULT '';
-            `);
-        } catch(e) {}
+            await pool.query(sql);
+        } catch(e) {
+            // Ignora erros de coluna/índice já existente
+            if (!e.message.includes('Duplicate column') && !e.message.includes('already exists')) {
+                console.warn(`⚠️ [${label}]: ${e.message}`);
+            }
+        }
+    }
 
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS estrategiav3_mix (
-                id SERIAL PRIMARY KEY,
-                plano_id INTEGER REFERENCES estrategiav3_planos(id) ON DELETE CASCADE,
-                material_id INTEGER NOT NULL,
-                fracao_pct NUMERIC(5,2) DEFAULT 0.00,
-                volume_necessario NUMERIC(12,3) DEFAULT 0.00,
-                faturamento_alvo NUMERIC(14,2) DEFAULT 0.00,
-                investimento_necessario NUMERIC(14,2) DEFAULT 0.00,
-                faturamento_realizado NUMERIC(14,2) DEFAULT 0.00
-            );
-        `);
+    try {
+        console.log('🗄️  Inicializando banco de dados MySQL...');
 
-        // Migrações adicionais para Planejamento Comercial
-        await client.query(`
-            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_compra_estimado NUMERIC(14,2) DEFAULT 0.00;
-            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_venda_estimado NUMERIC(14,2) DEFAULT 0.00;
-            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_compra_realizado NUMERIC(14,2) DEFAULT 0.00;
-            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS preco_venda_realizado NUMERIC(14,2) DEFAULT 0.00;
-            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS venda_realizada_kg NUMERIC(12,3) DEFAULT 0.00;
-            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS prazo_compra_ate DATE;
-            ALTER TABLE planejamento_comercial_revenda ADD COLUMN IF NOT EXISTS prazo_venda_ate DATE;
-        `);
+        await runSQL(`CREATE TABLE IF NOT EXISTS solucoes (
+            id        INT AUTO_INCREMENT PRIMARY KEY,
+            nome      TEXT    NOT NULL,
+            img       TEXT    NOT NULL,
+            descricao TEXT    NOT NULL,
+            ordem     INTEGER DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'solucoes');
 
-        // ==========================================
-        // MÓDULO PCP (Planejamento e Controle da Produção)
-        // ==========================================
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS pcp_planejamentos (
-                id SERIAL PRIMARY KEY,
-                ano INTEGER NOT NULL,
-                mes VARCHAR(20) NOT NULL,
-                meta_mensal NUMERIC(14,4) NOT NULL,
-                dias_trabalhados INTEGER NOT NULL,
-                qtd_linhas INTEGER NOT NULL,
-                status VARCHAR(50) DEFAULT 'RASCUNHO',
-                observacoes TEXT,
-                criado_em TIMESTAMP DEFAULT NOW(),
-                criado_por VARCHAR(100)
-            );
+        await runSQL(`CREATE TABLE IF NOT EXISTS materiais (
+            id        INT AUTO_INCREMENT PRIMARY KEY,
+            nome      TEXT    NOT NULL,
+            imagem    TEXT,
+            descricao TEXT    NOT NULL,
+            locais    JSON,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'materiais');
 
-            CREATE TABLE IF NOT EXISTS pcp_linhas (
-                id SERIAL PRIMARY KEY,
-                planejamento_id INTEGER NOT NULL REFERENCES pcp_planejamentos(id) ON DELETE CASCADE,
-                numero_linha INTEGER NOT NULL,
-                meta_mensal NUMERIC(14,4) NOT NULL,
-                meta_diaria NUMERIC(14,4) NOT NULL,
-                percentual_carga NUMERIC(14,4) NOT NULL
-            );
+        await runSQL(`CREATE TABLE IF NOT EXISTS noticias (
+            id        INT AUTO_INCREMENT PRIMARY KEY,
+            titulo    TEXT    NOT NULL,
+            url       TEXT,
+            resumo    TEXT,
+            data_pub  DATE,
+            categoria TEXT,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'noticias');
 
-            CREATE TABLE IF NOT EXISTS pcp_mix (
-                id SERIAL PRIMARY KEY,
-                planejamento_id INTEGER NOT NULL REFERENCES pcp_planejamentos(id) ON DELETE CASCADE,
-                material_id INTEGER NOT NULL REFERENCES materiais_catalogo(id) ON DELETE RESTRICT,
-                linha_id INTEGER REFERENCES pcp_linhas(id) ON DELETE SET NULL,
-                numero_linha INTEGER NOT NULL,
-                volume_total NUMERIC(14,4) NOT NULL,
-                percentual_volume NUMERIC(14,4) NOT NULL,
-                meta_dia NUMERIC(14,4) NOT NULL
-            );
+        await runSQL(`CREATE TABLE IF NOT EXISTS settings (
+            \`key\`   VARCHAR(255) PRIMARY KEY,
+            value TEXT NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'settings');
 
-            CREATE TABLE IF NOT EXISTS pcp_plano_diario (
-                id SERIAL PRIMARY KEY,
-                planejamento_id INTEGER NOT NULL REFERENCES pcp_planejamentos(id) ON DELETE CASCADE,
-                data DATE NOT NULL,
-                is_dia_produtivo BOOLEAN DEFAULT TRUE,
-                meta_l1 NUMERIC(14,4) DEFAULT 0,
-                meta_l2 NUMERIC(14,4) DEFAULT 0,
-                meta_l3 NUMERIC(14,4) DEFAULT 0,
-                meta_l4 NUMERIC(14,4) DEFAULT 0,
-                meta_total_dia NUMERIC(14,4) DEFAULT 0
-            );
+        await runSQL(`CREATE TABLE IF NOT EXISTS galeria (
+            id        INT AUTO_INCREMENT PRIMARY KEY,
+            url       TEXT NOT NULL,
+            titulo    TEXT NOT NULL,
+            ordem     INTEGER DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'galeria');
 
-            CREATE TABLE IF NOT EXISTS pcp_producao_real (
-                id SERIAL PRIMARY KEY,
-                plano_diario_id INTEGER NOT NULL UNIQUE REFERENCES pcp_plano_diario(id) ON DELETE CASCADE,
-                real_l1 NUMERIC(14,4) DEFAULT 0,
-                real_l2 NUMERIC(14,4) DEFAULT 0,
-                real_l3 NUMERIC(14,4) DEFAULT 0,
-                real_l4 NUMERIC(14,4) DEFAULT 0,
-                real_total NUMERIC(14,4) DEFAULT 0,
-                observacao TEXT,
-                atualizado_em TIMESTAMP DEFAULT NOW(),
-                atualizado_por VARCHAR(100)
-            );
-        `);
+        await runSQL(`CREATE TABLE IF NOT EXISTS lme_destinatarios (
+            id        INT AUTO_INCREMENT PRIMARY KEY,
+            nome      TEXT NOT NULL,
+            email     TEXT NOT NULL,
+            tipo      TEXT DEFAULT 'lme',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'lme_destinatarios');
 
-        // Semeando Produtos Necessários para o PCP (Se não existirem)
+        await runSQL(`CREATE TABLE IF NOT EXISTS pedidos_venda (
+            id                     INT AUTO_INCREMENT PRIMARY KEY,
+            numero                 VARCHAR(50) NOT NULL UNIQUE,
+            cliente_id             INTEGER,
+            cliente_nome           TEXT,
+            data_emissao           DATE,
+            data_entrega           DATE,
+            status                 VARCHAR(50) NOT NULL DEFAULT 'Rascunho',
+            condicao_pagamento     TEXT,
+            observacoes            TEXT,
+            desconto_pct           DECIMAL(5,2) DEFAULT 0.00,
+            frete                  DECIMAL(10,2) DEFAULT 0.00,
+            total_itens            DECIMAL(14,2) DEFAULT 0.00,
+            total_geral            DECIMAL(14,2) DEFAULT 0.00,
+            criado_por             TEXT,
+            criado_por_perfil      TEXT,
+            aprovado_por           TEXT,
+            data_aprovacao         TIMESTAMP NULL,
+            endereco_entrega       TEXT,
+            responsavel_recebimento TEXT,
+            tipo_frete             TEXT,
+            criado_em              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'pedidos_venda');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS pedidos_venda_itens (
+            id             INT AUTO_INCREMENT PRIMARY KEY,
+            pedido_id      INTEGER NOT NULL,
+            material_id    INTEGER,
+            descricao      TEXT NOT NULL,
+            unidade        TEXT DEFAULT 'kg',
+            quantidade     DECIMAL(12,3) NOT NULL,
+            preco_unitario DECIMAL(10,4) NOT NULL,
+            desconto_item  DECIMAL(5,2) DEFAULT 0.00,
+            total_item     DECIMAL(14,2) NOT NULL,
+            FOREIGN KEY (pedido_id) REFERENCES pedidos_venda(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'pedidos_venda_itens');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS fornecedores (
+            id                 INT AUTO_INCREMENT PRIMARY KEY,
+            codfor             INTEGER UNIQUE,
+            nome               VARCHAR(255) NOT NULL,
+            apelido            VARCHAR(255),
+            fone1              TEXT,
+            fone2              TEXT,
+            whatsapp           TEXT,
+            celular            TEXT,
+            tabela             TEXT,
+            concorrente        TEXT,
+            status_ok          TEXT,
+            dias               INTEGER DEFAULT 0,
+            ultima_entrega     DATE,
+            tipo_pessoa        TEXT,
+            data_cadastro      DATE,
+            endereco           TEXT,
+            numero             TEXT,
+            complemento        TEXT,
+            bairro             TEXT,
+            cidade             TEXT,
+            uf                 TEXT,
+            cep                TEXT,
+            cnpj               VARCHAR(18),
+            ie                 TEXT,
+            im                 TEXT,
+            rg                 TEXT,
+            emissor            TEXT,
+            cpf                TEXT,
+            comprador          VARCHAR(150),
+            email              VARCHAR(150),
+            condicao_pagamento TEXT,
+            usuario_cadastro   TEXT,
+            ultimo_alterou     TEXT,
+            dias_atraso        INTEGER DEFAULT 0,
+            dias_previsao      INTEGER DEFAULT 0,
+            filial             TEXT,
+            criado_em          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'fornecedores');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS clientes (
+            id                  INT AUTO_INCREMENT PRIMARY KEY,
+            codigo              INTEGER NOT NULL UNIQUE,
+            nome                TEXT NOT NULL,
+            fantasia            TEXT,
+            telefone1           TEXT,
+            telefone2           TEXT,
+            dias                TEXT,
+            ultima_saida        DATE,
+            endereco            TEXT,
+            numero              TEXT,
+            bairro              TEXT,
+            cidade              TEXT,
+            uf                  TEXT,
+            pais                TEXT,
+            cep                 TEXT,
+            cnpj                TEXT,
+            ie                  TEXT,
+            cpf                 TEXT,
+            rg                  TEXT,
+            tipo_cliente        TEXT,
+            contato_comercial   TEXT,
+            contato_financeiro  TEXT,
+            status              TEXT,
+            vendedor            TEXT,
+            filial              TEXT,
+            email               TEXT,
+            usuario_cadastro    TEXT,
+            ultimo_alterou      TEXT,
+            atualizado          TEXT,
+            criado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'clientes');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS materiais_catalogo (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            nome        TEXT NOT NULL,
+            unidade     TEXT DEFAULT 'kg',
+            categoria   TEXT NOT NULL,
+            cor         TEXT,
+            ncm         TEXT,
+            observacoes TEXT,
+            criado_em   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'materiais_catalogo');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS residuos_catalogo (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            nome        TEXT NOT NULL,
+            unidade     TEXT DEFAULT 'kg',
+            categoria   TEXT NOT NULL,
+            cor         TEXT,
+            ncm         TEXT,
+            observacoes TEXT,
+            criado_em   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'residuos_catalogo');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS ligas_catalogo (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            nome        TEXT NOT NULL,
+            unidade     TEXT DEFAULT 'kg',
+            categoria   TEXT NOT NULL,
+            cor         TEXT,
+            ncm         TEXT,
+            observacoes TEXT,
+            criado_em   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'ligas_catalogo');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS tabela_precos (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            material_id     INTEGER NOT NULL,
+            preco_entregar  DECIMAL(10,2) DEFAULT 0.00,
+            preco_coletar   DECIMAL(10,2) DEFAULT 0.00,
+            venda_ref       DECIMAL(10,2) DEFAULT 0.00,
+            comissao        DECIMAL(10,2) DEFAULT 0.00,
+            pis_cofins      DECIMAL(10,2) DEFAULT 0.00,
+            fidc            DECIMAL(10,2) DEFAULT 0.00,
+            icms            DECIMAL(10,2) DEFAULT 0.00,
+            frete_coleta    DECIMAL(10,2) DEFAULT 0.00,
+            validade        DATE NOT NULL,
+            criado_em       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'tabela_precos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS tabela_precos_residuos (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            material_id     INTEGER NOT NULL,
+            preco_entregar  DECIMAL(10,2) DEFAULT 0.00,
+            preco_coletar   DECIMAL(10,2) DEFAULT 0.00,
+            venda_ref       DECIMAL(10,2) DEFAULT 0.00,
+            comissao        DECIMAL(6,2) DEFAULT 0.00,
+            pis_cofins      DECIMAL(6,2) DEFAULT 0.00,
+            fidc            DECIMAL(6,2) DEFAULT 0.00,
+            icms            DECIMAL(6,2) DEFAULT 0.00,
+            frete_coleta    DECIMAL(10,2) DEFAULT 0.00,
+            validade        DATE NOT NULL,
+            criado_em       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'tabela_precos_residuos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS tabela_precos_ligas (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            material_id     INTEGER NOT NULL,
+            preco_entregar  DECIMAL(10,2) DEFAULT 0.00,
+            preco_coletar   DECIMAL(10,2) DEFAULT 0.00,
+            venda_ref       DECIMAL(10,2) DEFAULT 0.00,
+            comissao        DECIMAL(6,2) DEFAULT 0.00,
+            pis_cofins      DECIMAL(6,2) DEFAULT 0.00,
+            fidc            DECIMAL(6,2) DEFAULT 0.00,
+            icms            DECIMAL(6,2) DEFAULT 0.00,
+            frete_coleta    DECIMAL(10,2) DEFAULT 0.00,
+            validade        DATE NOT NULL,
+            criado_em       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'tabela_precos_ligas');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS tabela_precos_volume (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            material_id     INTEGER NOT NULL,
+            preco_entregar  DECIMAL(10,2) DEFAULT 0.00,
+            preco_coletar   DECIMAL(10,2) DEFAULT 0.00,
+            venda_ref       DECIMAL(10,2) DEFAULT 0.00,
+            comissao        DECIMAL(6,2) DEFAULT 0.00,
+            pis_cofins      DECIMAL(6,2) DEFAULT 0.00,
+            fidc            DECIMAL(6,2) DEFAULT 0.00,
+            icms            DECIMAL(6,2) DEFAULT 0.00,
+            frete_coleta    DECIMAL(10,2) DEFAULT 0.00,
+            validade        DATE NOT NULL,
+            criado_em       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'tabela_precos_volume');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS tabela_precos_fundicao (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            material_id     INTEGER NOT NULL,
+            preco_entregar  DECIMAL(10,2) DEFAULT 0.00,
+            preco_coletar   DECIMAL(10,2) DEFAULT 0.00,
+            venda_ref       DECIMAL(10,2) DEFAULT 0.00,
+            comissao        DECIMAL(6,2) DEFAULT 0.00,
+            pis_cofins      DECIMAL(6,2) DEFAULT 0.00,
+            fidc            DECIMAL(6,2) DEFAULT 0.00,
+            icms            DECIMAL(6,2) DEFAULT 0.00,
+            frete_coleta    DECIMAL(10,2) DEFAULT 0.00,
+            validade        DATE NOT NULL,
+            criado_em       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'tabela_precos_fundicao');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS amostras (
+            id                    INT AUTO_INCREMENT PRIMARY KEY,
+            numero_amostra        TEXT NOT NULL,
+            nome_material         TEXT,
+            data                  DATE NOT NULL,
+            fornecedor_id         INTEGER NOT NULL,
+            responsavel           TEXT NOT NULL,
+            representante         TEXT,
+            peso_inicial          DECIMAL(14,4) NOT NULL,
+            status                TEXT DEFAULT 'Em Análise',
+            observacoes           TEXT,
+            foto_original         TEXT,
+            tempo_desmonte        INTEGER DEFAULT 0,
+            parecer_tecnico       TEXT,
+            decisao_diretoria     TEXT DEFAULT 'Aguardando',
+            tecnico_analise       TEXT,
+            admin_aprovacao       TEXT,
+            motivo_reprovacao     TEXT,
+            data_decisao          TIMESTAMP NULL,
+            preco_compra_entregar DECIMAL(10,2),
+            preco_compra_coletar  DECIMAL(10,2),
+            preco_validade        TIMESTAMP NULL,
+            autorizado_por        TEXT,
+            obs_diretoria         TEXT,
+            criado_em             TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'amostras');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS componentes_amostra (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            amostra_id  INTEGER NOT NULL,
+            material_id INTEGER NOT NULL,
+            peso        DECIMAL(12,3) NOT NULL,
+            percentual  DECIMAL(5,2) NOT NULL,
+            observacoes TEXT,
+            foto        TEXT,
+            dificuldade TEXT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'componentes_amostra');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS lotes_compra (
+            id                    INT AUTO_INCREMENT PRIMARY KEY,
+            amostra_id            INTEGER,
+            fornecedor_id         INTEGER NOT NULL,
+            produto               TEXT NOT NULL,
+            peso_comprado         DECIMAL(12,3) NOT NULL,
+            preco_compra          DECIMAL(10,2) NOT NULL,
+            percentual_rendimento DECIMAL(5,2) NOT NULL,
+            material_id           INTEGER NOT NULL,
+            preco_venda_material  DECIMAL(10,2) NOT NULL,
+            comissao              DECIMAL(5,2) DEFAULT 2.0,
+            fidc                  DECIMAL(5,2) DEFAULT 2.3,
+            mes                   TEXT NOT NULL,
+            cliente               TEXT,
+            prazo_recebimento_dias INTEGER,
+            forma_pagamento       TEXT,
+            simulacoes_historico  JSON,
+            criado_em             TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'lotes_compra');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS estoque (
+            material_id INTEGER PRIMARY KEY,
+            saldo       DECIMAL(12,3) DEFAULT 0.000
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'estoque');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS movimentacoes_estoque (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            material_id INTEGER NOT NULL,
+            tipo        TEXT NOT NULL,
+            quantidade  DECIMAL(12,3) NOT NULL,
+            motivo      TEXT,
+            data        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'movimentacoes_estoque');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS usuarios (
+            id        INT AUTO_INCREMENT PRIMARY KEY,
+            \`user\`    TEXT NOT NULL,
+            pass      TEXT NOT NULL,
+            perfil    TEXT NOT NULL,
+            nome      TEXT NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'usuarios');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS fotos_amostra (
+            id             INT AUTO_INCREMENT PRIMARY KEY,
+            amostra_id     INTEGER NOT NULL,
+            tipo           TEXT DEFAULT 'bruta',
+            etapa          TEXT DEFAULT 'Recebimento',
+            componente_idx INTEGER DEFAULT NULL,
+            data_b64       LONGTEXT NOT NULL,
+            mimetype       TEXT DEFAULT 'image/jpeg',
+            nome           TEXT,
+            criado_em      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'fotos_amostra');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS audit_logs (
+            id         INT AUTO_INCREMENT PRIMARY KEY,
+            usuario    TEXT DEFAULT 'Sistema',
+            acao       TEXT NOT NULL,
+            detalhe    TEXT,
+            amostra_id INTEGER,
+            ip         TEXT,
+            criado_em  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'audit_logs');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_compras (
+            id                      INT AUTO_INCREMENT PRIMARY KEY,
+            tipo_planejamento       TEXT DEFAULT 'COMPRA_VENDA',
+            material_id             INTEGER,
+            fornecedor_id           INTEGER,
+            quantidade_necessaria   DECIMAL(12,3) NOT NULL,
+            quantidade_realizada_kg DECIMAL(12,3) DEFAULT 0.00,
+            ponto_pedido_kg         DECIMAL(12,3) DEFAULT 0.00,
+            lead_time_dias          INTEGER DEFAULT 7,
+            preco_estimado          DECIMAL(10,4) DEFAULT 0.00,
+            custo_total_estimado    DECIMAL(14,2) DEFAULT 0.00,
+            custo_total_realizado   DECIMAL(14,2) DEFAULT 0.00,
+            mes_referencia          TEXT,
+            status                  TEXT DEFAULT 'Sugerido',
+            observacoes             TEXT,
+            criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_compras');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS equipamentos_industriais (
+            id                        INT AUTO_INCREMENT PRIMARY KEY,
+            nome_equipamento          TEXT NOT NULL,
+            codigo_tag                VARCHAR(255) UNIQUE NOT NULL,
+            setor                     TEXT DEFAULT 'Processamento',
+            capacidade_nominal_kgh    DECIMAL(10,2) DEFAULT 1000.00,
+            disponibilidade_horas_dia DECIMAL(5,2) DEFAULT 16.00,
+            tempo_setup_horas         DECIMAL(5,2) DEFAULT 1.00,
+            eficiencia_oee_pct        DECIMAL(5,2) DEFAULT 85.00,
+            status                    TEXT DEFAULT 'Operacional',
+            observacoes               TEXT,
+            criado_em                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'equipamentos_industriais');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS ordens_producao (
+            id                     INT AUTO_INCREMENT PRIMARY KEY,
+            numero_op              VARCHAR(255) UNIQUE NOT NULL,
+            amostra_id             INTEGER,
+            lote_id                INTEGER,
+            material_entrada       TEXT,
+            peso_entrada_kg        DECIMAL(12,3) NOT NULL,
+            material_saida_id      INTEGER,
+            peso_saida_estimado_kg DECIMAL(12,3) DEFAULT 0.00,
+            data_inicio_prevista   DATE,
+            data_fim_prevista      DATE,
+            responsavel_pcp        TEXT,
+            status                 TEXT DEFAULT 'Planejada',
+            observacoes            TEXT,
+            criado_em              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'ordens_producao');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS ordens_producao_etapas (
+            id                   INT AUTO_INCREMENT PRIMARY KEY,
+            op_id                INTEGER NOT NULL,
+            nome_etapa           TEXT NOT NULL,
+            ordem                INTEGER DEFAULT 1,
+            equipamento_id       INTEGER,
+            tempo_estimado_horas DECIMAL(8,2) DEFAULT 0.00,
+            tempo_real_horas     DECIMAL(8,2) DEFAULT 0.00,
+            status_etapa         TEXT DEFAULT 'Pendente',
+            operador_responsavel TEXT,
+            observacoes          TEXT,
+            FOREIGN KEY (op_id) REFERENCES ordens_producao(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'ordens_producao_etapas');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_producao_insumos (
+            id                       INT AUTO_INCREMENT PRIMARY KEY,
+            periodo                  TEXT NOT NULL,
+            produto_id               INTEGER,
+            produto_nome             TEXT,
+            meta_faturamento_rs      DECIMAL(14,2) DEFAULT 0.00,
+            preco_venda_produto_rs   DECIMAL(14,4) DEFAULT 0.00,
+            qtd_produto_necessaria   DECIMAL(12,3) DEFAULT 0.00,
+            custo_total_projetado_rs DECIMAL(14,2) DEFAULT 0.00,
+            margem_projetada_pct     DECIMAL(8,4) DEFAULT 0.00,
+            prazo_compra_ate         DATE,
+            prazo_venda_ate          DATE,
+            status                   TEXT DEFAULT 'Pendente',
+            criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_producao_insumos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_producao_linhas (
+            id                    INT AUTO_INCREMENT PRIMARY KEY,
+            planejamento_id       INTEGER NOT NULL,
+            insumo_produto_id     INTEGER,
+            insumo_nome           TEXT NOT NULL,
+            coeficiente_pct       DECIMAL(8,4) NOT NULL DEFAULT 100,
+            qtd_necessaria        DECIMAL(12,3) DEFAULT 0.00,
+            preco_compra_tabela   DECIMAL(14,4) DEFAULT 0.00,
+            preco_compra_simulado DECIMAL(14,4) DEFAULT 0.00,
+            preco_venda_tabela    DECIMAL(14,4) DEFAULT 0.00,
+            custo_total_insumo    DECIMAL(14,2) DEFAULT 0.00,
+            criado_em             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (planejamento_id) REFERENCES planejamento_producao_insumos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_producao_linhas');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_producao_movimentacoes (
+            id                INT AUTO_INCREMENT PRIMARY KEY,
+            linha_id          INTEGER NOT NULL,
+            planejamento_id   INTEGER NOT NULL,
+            tipo              TEXT NOT NULL,
+            quantidade        DECIMAL(12,3) NOT NULL,
+            preco_unitario    DECIMAL(14,4) NOT NULL,
+            valor_total       DECIMAL(14,2),
+            data_movimentacao DATE,
+            obs               TEXT,
+            criado_em         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (linha_id) REFERENCES planejamento_producao_linhas(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_producao_movimentacoes');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_comercial_revenda (
+            id                        INT AUTO_INCREMENT PRIMARY KEY,
+            mes_referencia            TEXT NOT NULL,
+            produto_id                INTEGER,
+            produto_nome              TEXT,
+            compra_planejada_kg       DECIMAL(12,3) DEFAULT 0.00,
+            venda_planejada_kg        DECIMAL(12,3) DEFAULT 0.00,
+            investimento_planejado_rs DECIMAL(14,2) DEFAULT 0.00,
+            faturamento_previsto_rs   DECIMAL(14,2) DEFAULT 0.00,
+            compra_realizada_kg       DECIMAL(12,3) DEFAULT 0.00,
+            venda_realizada_rs        DECIMAL(14,2) DEFAULT 0.00,
+            venda_realizada_kg        DECIMAL(12,3) DEFAULT 0.00,
+            participacao_meta_pct     DECIMAL(5,2) DEFAULT 0.00,
+            preco_compra_estimado     DECIMAL(14,2) DEFAULT 0.00,
+            preco_venda_estimado      DECIMAL(14,2) DEFAULT 0.00,
+            preco_compra_realizado    DECIMAL(14,2) DEFAULT 0.00,
+            preco_venda_realizado     DECIMAL(14,2) DEFAULT 0.00,
+            prazo_compra_ate          DATE,
+            prazo_venda_ate           DATE,
+            status                    TEXT DEFAULT 'Em Cotação',
+            observacoes               TEXT,
+            criado_em                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_comercial_revenda');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_comercial_transacoes (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            planejamento_id INTEGER NOT NULL,
+            tipo            VARCHAR(10) NOT NULL,
+            quantidade_kg   DECIMAL(12,3) NOT NULL,
+            preco_unitario  DECIMAL(14,2) NOT NULL,
+            valor_total     DECIMAL(14,2) NOT NULL,
+            data_transacao  DATE NOT NULL,
+            observacoes     TEXT,
+            criado_em       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_comercial_transacoes');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS parametros_estoque_prazos (
+            id                     INT AUTO_INCREMENT PRIMARY KEY,
+            material_id            INTEGER UNIQUE NOT NULL,
+            lead_time_compra_dias  INTEGER DEFAULT 7,
+            prazo_entrega_dias     INTEGER DEFAULT 15,
+            prazo_producao_dias    INTEGER DEFAULT 5,
+            estoque_minimo_kg      DECIMAL(12,3) DEFAULT 0.00,
+            estoque_seguranca_kg   DECIMAL(12,3) DEFAULT 0.00,
+            prazo_permanencia_dias INTEGER DEFAULT 30,
+            atualizado_em          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'parametros_estoque_prazos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS configuracao_cenarios_planejamento (
+            id                     INT AUTO_INCREMENT PRIMARY KEY,
+            percentual_conservador DECIMAL(5,2) DEFAULT 80.00,
+            percentual_moderado    DECIMAL(5,2) DEFAULT 100.00,
+            percentual_agressivo   DECIMAL(5,2) DEFAULT 120.00,
+            cenario_foco           VARCHAR(20) DEFAULT 'AGRESSIVO',
+            meta_base_padrao_rs    DECIMAL(15,2) DEFAULT 1000000.00,
+            atualizado_em          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'configuracao_cenarios_planejamento');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_estrategico (
+            id                     INT AUTO_INCREMENT PRIMARY KEY,
+            mes                    VARCHAR(7) NOT NULL,
+            material_id            INTEGER NOT NULL,
+            qtd_conservador        DECIMAL(12,3) DEFAULT 0.00,
+            qtd_moderado           DECIMAL(12,3) DEFAULT 0.00,
+            qtd_agressivo          DECIMAL(12,3) DEFAULT 0.00,
+            qtd_realizado          DECIMAL(12,3) DEFAULT 0.00,
+            margem_alvo            DECIMAL(8,4) DEFAULT NULL,
+            valor_compra_realizado DECIMAL(14,2) DEFAULT 0.00,
+            valor_venda_realizado  DECIMAL(14,2) DEFAULT 0.00,
+            criado_em              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_mes_material (mes, material_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_estrategico');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planejamento_estrategicov3 (
+            id                    INT AUTO_INCREMENT PRIMARY KEY,
+            mes                   VARCHAR(7) NOT NULL,
+            material_id           INTEGER NOT NULL,
+            meta_faturamento      DECIMAL(14,2) DEFAULT 0.00,
+            margem_desejada       DECIMAL(5,2) DEFAULT 0.00,
+            operacao              VARCHAR(15) DEFAULT 'entrega',
+            qtd_realizado         DECIMAL(12,3) DEFAULT 0.00,
+            valor_venda_realizado DECIMAL(14,2) DEFAULT 0.00,
+            criado_em             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_mes_material_v3 (mes, material_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planejamento_estrategicov3');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS estrategiav3_planos (
+            id                       INT AUTO_INCREMENT PRIMARY KEY,
+            titulo                   VARCHAR(150),
+            data_inicial             DATE,
+            data_final               DATE,
+            frente                   VARCHAR(50),
+            meta_faturamento         DECIMAL(14,2) DEFAULT 0.00,
+            status                   VARCHAR(50) DEFAULT 'EM ANDAMENTO',
+            cenario_conservador_pct  DECIMAL(5,2) DEFAULT 80.00,
+            cenario_moderado_pct     DECIMAL(5,2) DEFAULT 100.00,
+            cenario_agressivo_pct    DECIMAL(5,2) DEFAULT 120.00,
+            faturamento_realizado    DECIMAL(14,2) DEFAULT NULL,
+            investimento_realizado   DECIMAL(14,2) DEFAULT NULL,
+            volume_realizado         DECIMAL(12,3) DEFAULT NULL,
+            observacoes              TEXT,
+            criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'estrategiav3_planos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS estrategiav3_mix (
+            id                      INT AUTO_INCREMENT PRIMARY KEY,
+            plano_id                INTEGER,
+            material_id             INTEGER NOT NULL,
+            fracao_pct              DECIMAL(5,2) DEFAULT 0.00,
+            volume_necessario       DECIMAL(12,3) DEFAULT 0.00,
+            faturamento_alvo        DECIMAL(14,2) DEFAULT 0.00,
+            investimento_necessario DECIMAL(14,2) DEFAULT 0.00,
+            faturamento_realizado   DECIMAL(14,2) DEFAULT 0.00,
+            FOREIGN KEY (plano_id) REFERENCES estrategiav3_planos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'estrategiav3_mix');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS pcp_planejamentos (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            ano             INTEGER NOT NULL,
+            mes             VARCHAR(20) NOT NULL,
+            meta_mensal     DECIMAL(14,4) NOT NULL,
+            dias_trabalhados INTEGER NOT NULL,
+            qtd_linhas      INTEGER NOT NULL,
+            status          VARCHAR(50) DEFAULT 'RASCUNHO',
+            observacoes     TEXT,
+            criado_em       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            criado_por      VARCHAR(100)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'pcp_planejamentos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS pcp_linhas (
+            id               INT AUTO_INCREMENT PRIMARY KEY,
+            planejamento_id  INTEGER NOT NULL,
+            numero_linha     INTEGER NOT NULL,
+            meta_mensal      DECIMAL(14,4) NOT NULL,
+            meta_diaria      DECIMAL(14,4) NOT NULL,
+            percentual_carga DECIMAL(14,4) NOT NULL,
+            FOREIGN KEY (planejamento_id) REFERENCES pcp_planejamentos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'pcp_linhas');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS pcp_mix (
+            id               INT AUTO_INCREMENT PRIMARY KEY,
+            planejamento_id  INTEGER NOT NULL,
+            material_id      INTEGER NOT NULL,
+            linha_id         INTEGER,
+            numero_linha     INTEGER NOT NULL,
+            volume_total     DECIMAL(14,4) NOT NULL,
+            percentual_volume DECIMAL(14,4) NOT NULL,
+            meta_dia         DECIMAL(14,4) NOT NULL,
+            FOREIGN KEY (planejamento_id) REFERENCES pcp_planejamentos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'pcp_mix');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS pcp_plano_diario (
+            id               INT AUTO_INCREMENT PRIMARY KEY,
+            planejamento_id  INTEGER NOT NULL,
+            data             DATE NOT NULL,
+            is_dia_produtivo TINYINT(1) DEFAULT 1,
+            meta_l1          DECIMAL(14,4) DEFAULT 0,
+            meta_l2          DECIMAL(14,4) DEFAULT 0,
+            meta_l3          DECIMAL(14,4) DEFAULT 0,
+            meta_l4          DECIMAL(14,4) DEFAULT 0,
+            meta_total_dia   DECIMAL(14,4) DEFAULT 0,
+            FOREIGN KEY (planejamento_id) REFERENCES pcp_planejamentos(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'pcp_plano_diario');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS pcp_producao_real (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            plano_diario_id INTEGER NOT NULL UNIQUE,
+            real_l1         DECIMAL(14,4) DEFAULT 0,
+            real_l2         DECIMAL(14,4) DEFAULT 0,
+            real_l3         DECIMAL(14,4) DEFAULT 0,
+            real_l4         DECIMAL(14,4) DEFAULT 0,
+            real_total      DECIMAL(14,4) DEFAULT 0,
+            observacao      TEXT,
+            atualizado_em   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            atualizado_por  VARCHAR(100),
+            FOREIGN KEY (plano_diario_id) REFERENCES pcp_plano_diario(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'pcp_producao_real');
+
+        // Semeando Produtos Necessários para o PCP
         const pcpMaterials = [
             "Sucata de fio misto sujo (ELETRONICO)",
             "Sucata de induzidos",
@@ -943,176 +950,25 @@ async function initDatabase() {
         ];
         
         for (const matName of pcpMaterials) {
-            const { rowCount } = await client.query('SELECT 1 FROM materiais_catalogo WHERE nome = ?', [matName]);
-            if (rowCount === 0) {
-                await client.query(
-                    'INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes) VALUES (?, ?, ?, ?, ?, ?)',
-                    [matName, 'kg', 'PCP', '#4b7bec', '0000.00.00', 'Produto gerado para compatibilidade do módulo PCP']
-                );
-            }
+            try {
+                const [rows] = await pool.query('SELECT 1 FROM materiais_catalogo WHERE nome = ? LIMIT 1', [matName]);
+                if (rows.length === 0) {
+                    await pool.query(
+                        'INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes) VALUES (?, ?, ?, ?, ?, ?)',
+                        [matName, 'kg', 'PCP', '#4b7bec', '0000.00.00', 'Produto gerado para compatibilidade do módulo PCP']
+                    );
+                }
+            } catch(e) {}
         }
-
-
-        // Semeando fornecedores e amostras
-        const { rowCount: fCount } = await client.query('SELECT 1 FROM fornecedores LIMIT 1');
-        if (fCount === 0) {
-            await client.query(`
-                INSERT INTO fornecedores (nome, apelido, cnpj, comprador, fone1, email, endereco, complemento)
-                VALUES ('Davi Reciclagem de Metais LTDA', 'davi', '12.345.678/0001-99', 'Davi', '(11) 98765-4321', 'davi@apextech.com', 'Av. da Reciclagem, 1000', 'Fornecedor Parceiro LME');
-            `);
-            
-            // Seed amostras/lotes do Davi
-            await client.query(`
-                INSERT INTO amostras (id, numero_amostra, data, fornecedor_id, responsavel, peso_inicial, status, observacoes, foto_original) VALUES
-                (1, 'AM-001', '2026-07-15', 1, 'Eng. Roberto', 5000, 'Processado', 'Fio de Instalação do Fornecedor davi', 'assets/img/photo-1595246140625-573b715d11dc.jpg'),
-                (2, 'AM-002', '2026-07-16', 1, 'Eng. Roberto', 20000, 'Liberado para Produção', 'Fio Misto', ''),
-                (3, 'AM-003', '2026-07-17', 1, 'Eng. Roberto', 15000, 'Aguardando Liberação PCP', 'Fio Terminais', '');
-
-                INSERT INTO componentes_amostra (id, amostra_id, material_id, peso, percentual, observacoes) VALUES
-                (1, 1, 5, 3100, 62.0, 'Cobre 1'),
-                (2, 1, 15, 1900, 38.0, 'Isolamento plástico/perda'),
-                (3, 2, 6, 8200, 41.0, 'Cobre 2'),
-                (4, 2, 15, 11800, 59.0, 'Resíduos e plásticos'),
-                (5, 3, 6, 4650, 31.0, 'Cobre 2'),
-                (6, 3, 15, 10350, 69.0, 'Resíduos e plásticos');
-
-                INSERT INTO lotes_compra (id, amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes) VALUES
-                (1, 1, 1, 'fio de instalação', 5000, 40.50, 62.0, 5, 71.00, 2.0, 2.3, '2026-07'),
-                (2, 2, 1, 'fio misto', 20000, 18.00, 41.0, 6, 65.50, 2.0, 2.3, '2026-07'),
-                (3, 3, 1, 'fio terminais', 15000, 14.00, 31.0, 6, 65.00, 2.0, 2.3, '2026-07');
-
-                INSERT INTO estoque (material_id, saldo) VALUES
-                (5, 3100),
-                (6, 8200),
-                (15, 13700) ON CONFLICT (material_id) DO NOTHING;
-
-                INSERT INTO movimentacoes_estoque (id, material_id, tipo, quantidade, motivo, data) VALUES
-                (1, 5, 'ENTRADA', 3100, 'Processamento da amostra AM-001', '2026-07-15'),
-                (2, 15, 'ENTRADA', 1900, 'Processamento da amostra AM-001', '2026-07-15'),
-                (3, 6, 'ENTRADA', 8200, 'Processamento da amostra AM-002', '2026-07-16'),
-                (4, 15, 'ENTRADA', 11800, 'Processamento da amostra AM-002', '2026-07-16') ON CONFLICT (id) DO NOTHING;
-            `);
-            console.log('✅ Fornecedores e amostras semeados.');
-        }
-
-        // Seed materiais_catalogo
-        const { rowCount: mCount } = await client.query('SELECT 1 FROM materiais_catalogo LIMIT 1');
-        if (mCount === 0) {
-            const mats = memStore.materiais_catalogo;
-            for (const m of mats) {
-                await client.query(`
-                    INSERT INTO materiais_catalogo (id, nome, unidade, categoria, cor, ncm, observacoes)
-                    VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING;
-                `, [m.id, m.nome, m.unidade, m.categoria, m.cor, m.ncm, m.observacoes]);
-            }
-            console.log('✅ Catálogo de materiais semeado.');
-        }
-
-        // Seed tabela_precos
-        const { rowCount: pCount } = await client.query('SELECT 1 FROM tabela_precos LIMIT 1');
-        if (pCount === 0) {
-            const precos = memStore.tabela_precos;
-            for (const p of precos) {
-                await client.query(`
-                    INSERT INTO tabela_precos (id, material_id, preco_entregar, preco_coletar, venda_ref, validade)
-                    VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING;
-                `, [p.id, p.material_id, p.preco_entregar, p.preco_coletar, p.venda_ref, p.validade]);
-            }
-            console.log('✅ Tabela de preços semeada.');
-        }
-
-        // Seed usuarios
-        const { rowCount: uCount } = await client.query('SELECT 1 FROM usuarios LIMIT 1');
-        if (uCount === 0) {
-            const usrs = memStore.usuarios;
-            for (const u of usrs) {
-                await client.query(`
-                    INSERT INTO usuarios (id, "user", pass, perfil, nome)
-                    VALUES (?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING;
-                `, [u.id, u.user, u.pass, u.perfil, u.nome]);
-            }
-            console.log('✅ Usuários semeados.');
-        }
-
-        // Inserir soluções padrão se a tabela estiver vazia
-        const { rowCount } = await client.query('SELECT 1 FROM solucoes LIMIT 1');
-        if (rowCount === 0) {
-            const defaultSolucoes = [
-                { nome: 'Sucatas de Indústrias',    img: 'assets/img/residuos-de-empresas-e-industrias.svg',  desc: 'Nossos principais serviços incluem a gestão e comercialização de resíduos gerados por indústrias, assegurando o descarte adequado e a reciclagem responsável de materiais. Atendemos a diversos setores industriais, oferecendo soluções inovadoras e eficientes para a gestão de resíduos, com foco constante na sustentabilidade e no reaproveitamento, promovendo um ciclo ambientalmente consciente.', ordem: 1 },
-                { nome: 'Resíduos de Conectores',   img: 'assets/img/icon-residuos-de-conectores.svg',          desc: 'Tratamos e reciclamos resíduos de conectores elétricos e eletrônicos, assegurando que esses materiais sejam reaproveitados de forma eficiente e sustentável. Nosso processo garante a máxima recuperação de metais, reduzindo o impacto ambiental e promovendo fortemente a economia circular em todos os nossos processos logísticos.', ordem: 2 },
-                { nome: 'Sucatas de Fios e Cabos',  img: 'assets/img/sucata-de-fio.svg',                         desc: 'Especializamo-nos na compra e reciclagem de sucata de fio e cabos de todos os tipos. Transformamos resíduos em recursos reutilizáveis através de processos de separação de alta tecnologia que isolam o plástico dos metais valiosos como cobre e alumínio de maneira rápida, limpa e altamente sustentável.', ordem: 3 },
-                { nome: 'Resíduos e Sucatas de Obras', img: 'assets/img/residuos-e-sucatas-de-obras.svg',       desc: 'Oferecemos serviços de gestão de resíduos em obras, proporcionando soluções completas e personalizadas para o setor da construção civil. Trabalhamos com planejamento de coleta programada para manter sua obra limpa, organizada e perfeitamente adequada às normas ambientais mais rigorosas de descarte.', ordem: 4 }
-            ];
-            for (const s of defaultSolucoes) {
-                await client.query(
-                    'INSERT INTO solucoes (nome, img, descricao, ordem) VALUES (?, ?, ?, ?)',
-                    [s.nome, s.img, s.desc, s.ordem]
-                );
-            }
-            console.log('✅ Soluções padrão inseridas no banco de dados.');
-        }
-
-        // Inserir configurações padrão da home se vazia
-        const { rowCount: settingsCount } = await client.query('SELECT 1 FROM settings LIMIT 1');
-        if (settingsCount === 0) {
-            const defaultSettings = [
-                { key: 'show_sobre', value: 'true' },
-                { key: 'show_solucoes', value: 'true' },
-                { key: 'show_catalogo', value: 'true' },
-                { key: 'show_onde_encontramos', value: 'true' },
-                { key: 'show_cotacoes', value: 'true' },
-                { key: 'show_noticias', value: 'true' },
-                { key: 'show_galeria', value: 'true' }
-            ];
-            for (const s of defaultSettings) {
-                await client.query('INSERT INTO settings (key, value) VALUES (?, ?)', [s.key, s.value]);
-            }
-            console.log('✅ Configurações padrão da home inseridas no banco de dados.');
-        }
-
-        // Garante que as chaves de e-mail LME existam no banco (sem sobrescrever dados salvos)
-        const lmeDefaults = [
-            { key: 'lme_envio_ativo',   value: 'false' },
-            { key: 'lme_envio_horario', value: '14:00' },
-            { key: 'lme_envio_dias',    value: '1,2,3,4,5' },
-            { key: 'lme_resend_api_key', value: process.env.RESEND_API_KEY || '' },
-            { key: 'lme_resend_from',   value: process.env.RESEND_FROM || '' },
-            { key: 'role_permissions',  value: JSON.stringify({
-                "Administrador": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios"],
-                "Laboratório": ["view_laboratorio", "view_catalogo"],
-                "Compras": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_estoque"],
-                "Produção": ["view_estoque", "view_planejamento", "view_catalogo", "edit_producao"],
-                "Financeiro": ["view_lme", "view_precos", "view_fornecedores", "view_bi", "edit_financeiro"],
-                "Diretoria": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao"]
-            }) }
-        ];
-        for (const s of lmeDefaults) {
-            await client.query(
-                'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO NOTHING',
-                [s.key, s.value]
-            );
-        }
-        console.log('✅ Chaves de configuração LME garantidas no banco de dados.');
-
-        // SEMPRE reseta as sequences para que novos INSERTs nunca conflitem com IDs do seed
-        await client.query(`SELECT setval('materiais_catalogo_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM materiais_catalogo), false)`);
-        await client.query(`SELECT setval('tabela_precos_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM tabela_precos), false)`);
-        await client.query(`SELECT setval('fornecedores_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM fornecedores), false)`);
-        await client.query(`SELECT setval('amostras_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM amostras), false)`);
-        await client.query(`SELECT setval('componentes_amostra_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM componentes_amostra), false)`);
-        await client.query(`SELECT setval('lotes_compra_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM lotes_compra), false)`);
-        await client.query(`SELECT setval('usuarios_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM usuarios), false)`);
-        console.log('✅ Sequences do banco resetadas com sucesso.');
 
         dbAvailable = true;
-        console.log('✅ Banco de dados inicializado com sucesso.');
+        console.log('✅ Banco de dados MySQL inicializado com sucesso!');
     } catch (err) {
-        console.warn('⚠️  Banco de dados indisponível. Usando armazenamento em memória.', err.message);
+        console.error('❌ Erro ao inicializar banco de dados MySQL:', err.message);
         dbAvailable = false;
-    } finally {
-        if (client) client.release();
     }
 }
+
 
 // ─── Middlewares ─────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '50mb' }));
