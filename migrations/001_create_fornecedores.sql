@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS fornecedores (
-  id                      SERIAL PRIMARY KEY,
+  id                      INT AUTO_INCREMENT PRIMARY KEY,
   codfor                  INTEGER NOT NULL UNIQUE,
   nome                    TEXT NOT NULL,
   apelido                 TEXT,
@@ -35,9 +35,11 @@ CREATE TABLE IF NOT EXISTS fornecedores (
   dias_atraso             INTEGER DEFAULT 0,
   dias_previsao           INTEGER DEFAULT 0,
   filial                  TEXT,
-  criado_em               TIMESTAMP DEFAULT NOW(),
-  atualizado_em           TIMESTAMP DEFAULT NOW()
+  criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_fornecedores_cnpj (cnpj(255)),
+  INDEX idx_fornecedores_nome (nome(255))
 );
 
-CREATE INDEX IF NOT EXISTS idx_fornecedores_cnpj ON fornecedores (cnpj);
-CREATE INDEX IF NOT EXISTS idx_fornecedores_nome ON fornecedores (nome);
+
+

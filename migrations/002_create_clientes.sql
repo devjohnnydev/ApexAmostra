@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS clientes (
-  id                      SERIAL PRIMARY KEY,
+  id                      INT AUTO_INCREMENT PRIMARY KEY,
   codigo                  INTEGER NOT NULL UNIQUE,
   nome                    TEXT NOT NULL,
   fantasia                TEXT,
@@ -22,13 +22,11 @@ CREATE TABLE IF NOT EXISTS clientes (
   contato_comercial       TEXT,
   contato_financeiro      TEXT,
   status                  TEXT,
-  vendedor                TEXT,
-  filial                  TEXT,
   email                   TEXT,
   usuario_cadastro        TEXT,
   ultimo_alterou          TEXT,
   vendedor                TEXT,
   atualizado              TEXT,
   filial                  TEXT,
-  criado_em               TIMESTAMP DEFAULT NOW()
+  criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -8,7 +8,7 @@ app.get('/api/clientes', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM clientes ORDER BY nome ASC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json([]);
     } catch (err) {
@@ -21,9 +21,9 @@ app.get('/api/clientes/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM clientes WHERE id = $1', [id]);
-            if (result.rows.length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
-            return res.json(result.rows[0]);
+            const result = await pool.query('SELECT * FROM clientes WHERE id = ?', [id]);
+            if (result[0].length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
+            return res.json(result[0][0]);
         }
         res.status(404).json({ error: 'Cliente não encontrado.' });
     } catch (err) {
@@ -37,10 +37,10 @@ app.post('/api/clientes', async (req, res) => {
         if (!nome) return res.status(400).json({ error: 'Nome é obrigatório.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO clientes (codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+                'INSERT INTO clientes (codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
                 [codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status || 'ATIVO']
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
     } catch (err) {
@@ -55,11 +55,11 @@ app.put('/api/clientes/:id', async (req, res) => {
         const { codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                'UPDATE clientes SET codigo=$1, nome=$2, fantasia=$3, telefone1=$4, telefone2=$5, cnpj=$6, email=$7, endereco=$8, cidade=$9, uf=$10, status=$11 WHERE id=$12 RETURNING *',
+                'UPDATE clientes SET codigo=?, nome=?, fantasia=?, telefone1=?, telefone2=?, cnpj=?, email=?, endereco=?, cidade=?, uf=?, status=? WHERE id=?',
                 [codigo, nome, fantasia, telefone1, telefone2, cnpj, email, endereco, cidade, uf, status, id]
             );
-            if (result.rows.length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
-            return res.json(result.rows[0]);
+            if (result[0].length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
+            return res.json(result[0][0]);
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
     } catch (err) {
@@ -71,7 +71,7 @@ app.delete('/api/clientes/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM clientes WHERE id = $1', [id]);
+            await pool.query('DELETE FROM clientes WHERE id = ?', [id]);
             return res.json({ success: true });
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });

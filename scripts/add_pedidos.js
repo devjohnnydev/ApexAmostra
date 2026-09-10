@@ -87,10 +87,10 @@ app.get('/api/pedidos-venda/:id', async (req, res) => {
                    c.email AS cliente_email, c.endereco AS cliente_endereco, c.cidade AS cliente_cidade, c.uf AS cliente_uf
             FROM pedidos_venda pv
             LEFT JOIN clientes c ON c.id = pv.cliente_id
-            WHERE pv.id = $1
+            WHERE pv.id = ?
         \`, [id]);
         if (pedido.rows.length === 0) return res.status(404).json({ error: 'Pedido não encontrado' });
-        const itens = await pool.query('SELECT * FROM pedidos_venda_itens WHERE pedido_id = $1 ORDER BY id', [id]);
+        const itens = await pool.query('SELECT * FROM pedidos_venda_itens WHERE pedido_id = ? ORDER BY id', [id]);
         return res.json({ ...pedido.rows[0], itens: itens.rows });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -115,7 +115,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
         const pedido = await client.query(\`
             INSERT INTO pedidos_venda (numero, cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
                 observacoes, desconto_pct, frete, total_itens, total_geral, criado_por)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         \`, [numero, cliente_id, data_emissao || new Date().toISOString().split('T')[0],
              data_entrega, status || 'Rascunho', condicao_pagamento, observacoes,
              desc, fr, total_itens, total_geral, criado_por]);
@@ -124,7 +124,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
         for (const item of itens) {
             await client.query(\`
                 INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                VALUES (?,?,?,?,?,?,?,?)
             \`, [pedidoId, item.material_id || null, item.descricao, item.unidade || 'kg',
                  item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
         }
@@ -154,22 +154,22 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
 
         await client.query('BEGIN');
         await client.query(\`
-            UPDATE pedidos_venda SET cliente_id=$1, data_emissao=$2, data_entrega=$3, status=$4,
-                condicao_pagamento=$5, observacoes=$6, desconto_pct=$7, frete=$8,
-                total_itens=$9, total_geral=$10, atualizado_em=NOW()
-            WHERE id=$11
+            UPDATE pedidos_venda SET cliente_id=?, data_emissao=?, data_entrega=?, status=?,
+                condicao_pagamento=?, observacoes=?, desconto_pct=?, frete=?,
+                total_itens=?, total_geral=?, atualizado_em=NOW()
+            WHERE id=?
         \`, [cliente_id, data_emissao, data_entrega, status, condicao_pagamento,
              observacoes, desc, fr, total_itens, total_geral, id]);
-        await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = $1', [id]);
+        await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = ?', [id]);
         for (const item of itens) {
             await client.query(\`
                 INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                VALUES (?,?,?,?,?,?,?,?)
             \`, [id, item.material_id || null, item.descricao, item.unidade || 'kg',
                  item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
         }
         await client.query('COMMIT');
-        const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=$1', [id]);
+        const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=?', [id]);
         res.json(updated.rows[0]);
     } catch (err) {
         await client.query('ROLLBACK');
@@ -184,7 +184,7 @@ app.delete('/api/pedidos-venda/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (!dbAvailable) return res.status(503).json({ error: 'Banco indisponível' });
-        await pool.query('DELETE FROM pedidos_venda WHERE id = $1', [id]);
+        await pool.query('DELETE FROM pedidos_venda WHERE id = ?', [id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });

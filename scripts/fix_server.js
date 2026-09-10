@@ -69,8 +69,8 @@ c = c.replace(/SELECT \* FROM fornecedores ORDER BY razao_social ASC/g,
 'SELECT id, nome AS razao_social, apelido AS nome_fantasia, cnpj, comprador AS contato, fone1 AS telefone, email, endereco, complemento AS observacoes FROM fornecedores ORDER BY nome ASC');
 
 
-// 5. Fix `UPDATE fornecedores SET razao_social=$1...`
-c = c.replace(/UPDATE fornecedores SET razao_social=\$1, nome_fantasia=\$2, cnpj=\$3, contato=\$4, telefone=\$5, \n?email=\$6, endereco=\$7, observacoes=\$8/g, 
-'UPDATE fornecedores SET nome=$1, apelido=$2, cnpj=$3, comprador=$4, fone1=$5, email=$6, endereco=$7, complemento=$8');
+// 5. Fix `UPDATE fornecedores SET razao_social=?...`
+c = c.replace(/UPDATE fornecedores SET razao_social=\?, nome_fantasia=\?, cnpj=\?, contato=\?, telefone=\?, \n?email=\?, endereco=\?, observacoes=\?/g, 
+'UPDATE fornecedores SET nome=?, apelido=?, cnpj=?, comprador=?, fone1=?, email=?, endereco=?, complemento=?');
 
 fs.writeFileSync('../server.js', c);

@@ -1,13 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 const ExcelJS = require('exceljs');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 const pgFormat = require('pg-format');
 const { normalizeCliente } = require('../lib/normalizeCliente');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 const EXCEL_PATH = process.argv[2] || path.join(__dirname, '../DADOS CLIENTES.xlsx');

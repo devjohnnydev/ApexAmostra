@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS pedidos_venda (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     numero VARCHAR(50) UNIQUE NOT NULL,
     cliente_id INT,
     cliente_nome_avulso VARCHAR(255),
-    data_emissao DATE DEFAULT CURRENT_DATE,
+    data_emissao DATE DEFAULT (CURRENT_DATE),
     data_entrega DATE,
     status VARCHAR(50) DEFAULT 'Rascunho',
     condicao_pagamento VARCHAR(100),
@@ -24,8 +24,9 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
 );
 
 CREATE TABLE IF NOT EXISTS pedidos_venda_itens (
-    id SERIAL PRIMARY KEY,
-    pedido_id INT REFERENCES pedidos_venda(id) ON DELETE CASCADE,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pedido_id INT,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos_venda(id) ON DELETE CASCADE,
     material_id INT,
     descricao VARCHAR(255) NOT NULL,
     unidade VARCHAR(20) DEFAULT 'kg',

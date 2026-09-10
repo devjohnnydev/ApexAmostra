@@ -67,7 +67,7 @@ let pool = null;
 let dbAvailable = false;
 
 if (process.env.DATABASE_URL) {
-    const { Pool } = require('pg');
+    const mysql = require('mysql2/promise');
     pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false },
@@ -236,12 +236,12 @@ const memStore = {
     ],
     fotos_amostra: [],   // { id, amostra_id, tipo: 'bruta'|'separada'|'componente', data_b64, mimetype, nome, criado_em }
     usuarios: [
-        { id: 1, user: "admin", pass: "$2b$10$OtCdpJ40BrNkHE2npxGDnOMxYHYl9HRGP6mw/le4NlJCnbtF6iyUS", perfil: "Administrador", nome: "Admin Apex" },
-        { id: 2, user: "lab", pass: "$2b$10$IQb7v6yEEwWAkAqio4ZYOulYFteWjTUect2aDd49Vay7DtxiBQJXm", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
-        { id: 3, user: "compras", pass: "$2b$10$mpmo8hj4iXEN/BoZQN2Xr.3kjaps0Ip5yij09/styuWodKyW.cae.", perfil: "Compras", nome: "Ana (Compras)" },
-        { id: 4, user: "producao", pass: "$2b$10$1BWuIfla8e52NApbFR8yGu9Kq0KYz04aHxLen0Lx9r9dH2OV5iZFe", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
-        { id: 5, user: "financeiro", pass: "$2b$10$4dxfQXRxOqoHQdeYQsj3Ue7v5CCZdhZOddhihwY4cAeGnRXBckjVK", perfil: "Financeiro", nome: "Mariana (Fin)" },
-        { id: 6, user: "diretoria", pass: "$2b$10$S1be8oS/GPW/h1aM38o0Su0PFjxr8xl0O5QtNRBQ/knqLE6.JeA16", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
+        { id: 1, user: "admin", pass: "?b?$OtCdpJ40BrNkHE2npxGDnOMxYHYl9HRGP6mw/le4NlJCnbtF6iyUS", perfil: "Administrador", nome: "Admin Apex" },
+        { id: 2, user: "lab", pass: "?b?$IQb7v6yEEwWAkAqio4ZYOulYFteWjTUect2aDd49Vay7DtxiBQJXm", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
+        { id: 3, user: "compras", pass: "?b?$mpmo8hj4iXEN/BoZQN2Xr.3kjaps0Ip5yij09/styuWodKyW.cae.", perfil: "Compras", nome: "Ana (Compras)" },
+        { id: 4, user: "producao", pass: "?b??BWuIfla8e52NApbFR8yGu9Kq0KYz04aHxLen0Lx9r9dH2OV5iZFe", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
+        { id: 5, user: "financeiro", pass: "?b??dxfQXRxOqoHQdeYQsj3Ue7v5CCZdhZOddhihwY4cAeGnRXBckjVK", perfil: "Financeiro", nome: "Mariana (Fin)" },
+        { id: 6, user: "diretoria", pass: "?b?$S1be8oS/GPW/h1aM38o0Su0PFjxr8xl0O5QtNRBQ/knqLE6.JeA16", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
     ],
     clientes: [],
     pedidos_venda: [],
@@ -943,10 +943,10 @@ async function initDatabase() {
         ];
         
         for (const matName of pcpMaterials) {
-            const { rowCount } = await client.query('SELECT 1 FROM materiais_catalogo WHERE nome = $1', [matName]);
+            const { rowCount } = await client.query('SELECT 1 FROM materiais_catalogo WHERE nome = ?', [matName]);
             if (rowCount === 0) {
                 await client.query(
-                    'INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes) VALUES ($1, $2, $3, $4, $5, $6)',
+                    'INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes) VALUES (?, ?, ?, ?, ?, ?)',
                     [matName, 'kg', 'PCP', '#4b7bec', '0000.00.00', 'Produto gerado para compatibilidade do módulo PCP']
                 );
             }
@@ -1002,7 +1002,7 @@ async function initDatabase() {
             for (const m of mats) {
                 await client.query(`
                     INSERT INTO materiais_catalogo (id, nome, unidade, categoria, cor, ncm, observacoes)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING;
+                    VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING;
                 `, [m.id, m.nome, m.unidade, m.categoria, m.cor, m.ncm, m.observacoes]);
             }
             console.log('✅ Catálogo de materiais semeado.');
@@ -1015,7 +1015,7 @@ async function initDatabase() {
             for (const p of precos) {
                 await client.query(`
                     INSERT INTO tabela_precos (id, material_id, preco_entregar, preco_coletar, venda_ref, validade)
-                    VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING;
+                    VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING;
                 `, [p.id, p.material_id, p.preco_entregar, p.preco_coletar, p.venda_ref, p.validade]);
             }
             console.log('✅ Tabela de preços semeada.');
@@ -1028,7 +1028,7 @@ async function initDatabase() {
             for (const u of usrs) {
                 await client.query(`
                     INSERT INTO usuarios (id, "user", pass, perfil, nome)
-                    VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING;
+                    VALUES (?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING;
                 `, [u.id, u.user, u.pass, u.perfil, u.nome]);
             }
             console.log('✅ Usuários semeados.');
@@ -1045,7 +1045,7 @@ async function initDatabase() {
             ];
             for (const s of defaultSolucoes) {
                 await client.query(
-                    'INSERT INTO solucoes (nome, img, descricao, ordem) VALUES ($1, $2, $3, $4)',
+                    'INSERT INTO solucoes (nome, img, descricao, ordem) VALUES (?, ?, ?, ?)',
                     [s.nome, s.img, s.desc, s.ordem]
                 );
             }
@@ -1065,7 +1065,7 @@ async function initDatabase() {
                 { key: 'show_galeria', value: 'true' }
             ];
             for (const s of defaultSettings) {
-                await client.query('INSERT INTO settings (key, value) VALUES ($1, $2)', [s.key, s.value]);
+                await client.query('INSERT INTO settings (key, value) VALUES (?, ?)', [s.key, s.value]);
             }
             console.log('✅ Configurações padrão da home inseridas no banco de dados.');
         }
@@ -1088,7 +1088,7 @@ async function initDatabase() {
         ];
         for (const s of lmeDefaults) {
             await client.query(
-                'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING',
+                'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO NOTHING',
                 [s.key, s.value]
             );
         }
@@ -1148,7 +1148,7 @@ app.get('/api/db-test', async (req, res) => {
     try {
         if (!pool) return res.send('No pool');
         const result = await pool.query('SELECT * FROM estrategiav3_mix');
-        res.json(result.rows);
+        res.json(result[0]);
     } catch(e) {
         res.send('SQL Error: ' + e.message);
     }
@@ -1297,9 +1297,9 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         
         // Buscar usuário (somente o registro, sem comparar senha na query SQL)
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM usuarios WHERE "user" = $1', [user]);
-            if (result.rows.length > 0) {
-                foundUser = result.rows[0];
+            const result = await pool.query('SELECT * FROM usuarios WHERE "user" = ?', [user]);
+            if (result[0].length > 0) {
+                foundUser = result[0][0];
             }
         } else {
             const u = memStore.usuarios.find(x => x.user === user);
@@ -1330,7 +1330,7 @@ app.get('/api/usuarios', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT id, "user", perfil, nome FROM usuarios ORDER BY id ASC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json(memStore.usuarios.map(({ id, user, perfil, nome }) => ({ id, user, perfil, nome })));
     } catch (err) {
@@ -1349,10 +1349,10 @@ app.post('/api/usuarios', async (req, res) => {
 
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO usuarios ("user", pass, perfil, nome) VALUES ($1, $2, $3, $4) RETURNING id, "user", perfil, nome',
+                'INSERT INTO usuarios ("user", pass, perfil, nome) VALUES (?, ?, ?, ?), "user", perfil, nome',
                 [user, hashedPassword, perfil, nome]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             const newU = { id: nextId++, user, pass: hashedPassword, perfil, nome };
             memStore.usuarios.push(newU);
@@ -1367,7 +1367,7 @@ app.delete('/api/usuarios/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+            await pool.query('DELETE FROM usuarios WHERE id = ?', [id]);
         } else {
             memStore.usuarios = memStore.usuarios.filter(x => x.id !== id);
         }
@@ -1388,7 +1388,7 @@ app.get('/api/fornecedores', async (req, res) => {
             let whereClause = '';
             let params = [];
             if (search) {
-                whereClause = `WHERE LOWER(nome) LIKE $1 OR LOWER(COALESCE(apelido,'')) LIKE $1 OR LOWER(COALESCE(cnpj,'')) LIKE $1 OR LOWER(COALESCE(email,'')) LIKE $1`;
+                whereClause = `WHERE LOWER(nome) LIKE ? OR LOWER(COALESCE(apelido,'')) LIKE ? OR LOWER(COALESCE(cnpj,'')) LIKE ? OR LOWER(COALESCE(email,'')) LIKE ?`;
                 params.push(`%${search}%`);
             }
 
@@ -1415,13 +1415,13 @@ app.get('/api/fornecedores', async (req, res) => {
             const result = await pool.query(dataQuery, params);
             if (page) {
                 return res.json({
-                    data: result.rows,
+                    data: result[0],
                     total,
                     page,
                     totalPages: Math.ceil(total / limit)
                 });
             }
-            return res.json(result.rows);
+            return res.json(result[0]);
         } else {
             let list = memStore.fornecedores || [];
             if (search) {
@@ -1461,14 +1461,13 @@ app.post('/api/fornecedores', async (req, res) => {
                 `INSERT INTO fornecedores (nome, apelido, cnpj, cpf, ie, comprador, fone1, fone2,
                   whatsapp, celular, email, endereco, numero, bairro, cidade, uf, cep,
                   complemento, condicao_pagamento, tabela, filial)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
-                 RETURNING *`,
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [razao_social, nome_fantasia, cnpj, cpf, ie, contato,
                  telefone, fone2, whatsapp, celular, email,
                  endereco, numero, bairro, cidade, uf, cep,
                  observacoes, condicao_pagamento, tabela, filial]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const newF = { 
             id: Date.now(), nome: razao_social, apelido: nome_fantasia, cnpj, cpf, ie, 
@@ -1494,19 +1493,19 @@ app.put('/api/fornecedores/:id', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `UPDATE fornecedores SET
-                    nome=$1, apelido=$2, cnpj=$3, cpf=$4, ie=$5, comprador=$6,
-                    fone1=$7, fone2=$8, whatsapp=$9, celular=$10, email=$11,
-                    endereco=$12, numero=$13, bairro=$14, cidade=$15, uf=$16,
-                    cep=$17, complemento=$18, condicao_pagamento=$19, tabela=$20,
-                    filial=$21, atualizado_em=NOW()
-                WHERE id=$22 RETURNING *`,
+                    nome=?, apelido=?, cnpj=?, cpf=?, ie=?, comprador=?,
+                    fone1=?, fone2=?, whatsapp=?, celular=?, email=?,
+                    endereco=?, numero=?, bairro=?, cidade=?, uf=?,
+                    cep=?, complemento=?, condicao_pagamento=?, tabela=?,
+                    filial=?, atualizado_em=NOW()
+                WHERE id=?`,
                 [razao_social, nome_fantasia, cnpj, cpf, ie, contato,
                  telefone, fone2, whatsapp, celular, email,
                  endereco, numero, bairro, cidade, uf, cep,
                  observacoes, condicao_pagamento, tabela, filial, id]
             );
-            if (result.rows.length === 0) return res.status(404).json({ error: 'Fornecedor não encontrado.' });
-            return res.json(result.rows[0]);
+            if (result[0].length === 0) return res.status(404).json({ error: 'Fornecedor não encontrado.' });
+            return res.json(result[0][0]);
         }
         res.status(503).json({ error: 'Banco indisponível.' });
     } catch (err) {
@@ -1519,7 +1518,7 @@ app.delete('/api/fornecedores/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM fornecedores WHERE id=$1', [id]);
+            await pool.query('DELETE FROM fornecedores WHERE id=?', [id]);
         } else {
             memStore.fornecedores = memStore.fornecedores.filter(x => x.id !== id);
         }
@@ -1539,7 +1538,7 @@ app.post('/api/admin/reparo-seed', async (req, res) => {
         for (const m of mats) {
             const r = await pool.query(
                 `INSERT INTO materiais_catalogo (id, nome, unidade, categoria, cor, ncm, observacoes)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING`,
+                 VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING`,
                 [m.id, m.nome, m.unidade, m.categoria, m.cor, m.ncm, m.observacoes]
             );
             insertedMat += r.rowCount;
@@ -1550,7 +1549,7 @@ app.post('/api/admin/reparo-seed', async (req, res) => {
         for (const p of precos) {
             const r = await pool.query(
                 `INSERT INTO tabela_precos (id, material_id, preco_entregar, preco_coletar, venda_ref, validade)
-                 VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING`,
+                 VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING`,
                 [p.id, p.material_id, p.preco_entregar, p.preco_coletar, p.venda_ref, p.validade]
             );
             insertedPreco += r.rowCount;
@@ -1574,7 +1573,7 @@ app.get('/api/materiais-catalogo', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM materiais_catalogo ORDER BY categoria ASC, nome ASC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json(memStore.materiais_catalogo);
     } catch (err) {
@@ -1593,16 +1592,16 @@ app.post('/api/materiais-catalogo', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO materiais_catalogo (nome, unidade, categoria, cor, ncm, observacoes)
-                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                 VALUES (?, ?, ?, ?, ?, ?)`,
                 [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
             );
-            material = result.rows[0];
+            material = result[0][0];
 
             // Auto-create pricing row (non-blocking)
             try {
                 await pool.query(
                     `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade)
-                     VALUES ($1, $2, $3, $4, $5)`,
+                     VALUES (?, ?, ?, ?, ?)`,
                     [material.id, 0.00, 0.00, 0.00, validadeDefault]
                 );
                 await atualizarDataUltimaModificacaoPrecos();
@@ -1642,11 +1641,11 @@ app.put('/api/materiais-catalogo/:id', async (req, res) => {
         const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE materiais_catalogo SET nome=$1, unidade=$2, categoria=$3, cor=$4, ncm=$5, observacoes=$6
-                 WHERE id=$7 RETURNING *`,
+                `UPDATE materiais_catalogo SET nome=?, unidade=?, categoria=?, cor=?, ncm=?, observacoes=?
+                 WHERE id=?`,
                 [nome, unidade, categoria, cor, ncm, observacoes, id]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             const idx = memStore.materiais_catalogo.findIndex(x => x.id === id);
             if (idx === -1) return res.status(404).json({ error: 'Material não encontrado.' });
@@ -1662,8 +1661,8 @@ app.delete('/api/materiais-catalogo/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM tabela_precos WHERE material_id=$1', [id]);
-            await pool.query('DELETE FROM materiais_catalogo WHERE id=$1', [id]);
+            await pool.query('DELETE FROM tabela_precos WHERE material_id=?', [id]);
+            await pool.query('DELETE FROM materiais_catalogo WHERE id=?', [id]);
             await atualizarDataUltimaModificacaoPrecos();
         } else {
             memStore.tabela_precos = memStore.tabela_precos.filter(x => x.material_id !== id);
@@ -1682,7 +1681,7 @@ app.get('/api/residuos-catalogo', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM residuos_catalogo ORDER BY categoria ASC, nome ASC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json(memStore.residuos_catalogo || []);
     } catch (err) {
@@ -1697,10 +1696,10 @@ app.post('/api/residuos-catalogo', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO residuos_catalogo (nome, unidade, categoria, cor, ncm, observacoes)
-                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                 VALUES (?, ?, ?, ?, ?, ?)`,
                 [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
             if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
@@ -1719,11 +1718,11 @@ app.put('/api/residuos-catalogo/:id', async (req, res) => {
         const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE residuos_catalogo SET nome=$1, unidade=$2, categoria=$3, cor=$4, ncm=$5, observacoes=$6
-                 WHERE id=$7 RETURNING *`,
+                `UPDATE residuos_catalogo SET nome=?, unidade=?, categoria=?, cor=?, ncm=?, observacoes=?
+                 WHERE id=?`,
                 [nome, unidade, categoria, cor, ncm, observacoes, id]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
             const idx = memStore.residuos_catalogo.findIndex(x => x.id === id);
@@ -1740,7 +1739,7 @@ app.delete('/api/residuos-catalogo/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM residuos_catalogo WHERE id=$1', [id]);
+            await pool.query('DELETE FROM residuos_catalogo WHERE id=?', [id]);
         } else {
             if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
             memStore.residuos_catalogo = memStore.residuos_catalogo.filter(x => x.id !== id);
@@ -1757,7 +1756,7 @@ app.get('/api/ligas-catalogo', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM ligas_catalogo ORDER BY categoria ASC, nome ASC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json(memStore.ligas_catalogo || []);
     } catch (err) {
@@ -1772,10 +1771,10 @@ app.post('/api/ligas-catalogo', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO ligas_catalogo (nome, unidade, categoria, cor, ncm, observacoes)
-                 VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+                 VALUES (?, ?, ?, ?, ?, ?)`,
                 [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
             if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
@@ -1794,11 +1793,11 @@ app.put('/api/ligas-catalogo/:id', async (req, res) => {
         const { nome, unidade, categoria, cor, ncm, observacoes } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE ligas_catalogo SET nome=$1, unidade=$2, categoria=$3, cor=$4, ncm=$5, observacoes=$6
-                 WHERE id=$7 RETURNING *`,
+                `UPDATE ligas_catalogo SET nome=?, unidade=?, categoria=?, cor=?, ncm=?, observacoes=?
+                 WHERE id=?`,
                 [nome, unidade, categoria, cor, ncm, observacoes, id]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
             const idx = memStore.ligas_catalogo.findIndex(x => x.id === id);
@@ -1815,7 +1814,7 @@ app.delete('/api/ligas-catalogo/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM ligas_catalogo WHERE id=$1', [id]);
+            await pool.query('DELETE FROM ligas_catalogo WHERE id=?', [id]);
         } else {
             if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
             memStore.ligas_catalogo = memStore.ligas_catalogo.filter(x => x.id !== id);
@@ -1839,7 +1838,7 @@ async function atualizarDataUltimaModificacaoPrecos() {
         
         if (dbAvailable) {
             await pool.query(
-                'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+                'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = ?',
                 ['tabela_precos_ultima_atualizacao', formatted]
             );
         } else {
@@ -1859,7 +1858,7 @@ app.get('/api/tabela-precos', async (req, res) => {
                 JOIN materiais_catalogo mc ON tp.material_id = mc.id
                 ORDER BY mc.categoria ASC, mc.nome ASC
             `);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         const data = memStore.tabela_precos.map(p => {
             const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
@@ -1881,15 +1880,15 @@ app.post('/api/tabela-precos', async (req, res) => {
         const { material_id, preco_entregar, preco_coletar, venda_ref, validade, aplicar_todos, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             if (aplicar_todos && validade) {
-                await pool.query('UPDATE tabela_precos SET validade = $1', [validade]);
+                await pool.query('UPDATE tabela_precos SET validade = ?', [validade]);
             }
             const result = await pool.query(
                 `INSERT INTO tabela_precos (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao || 0, pis_cofins || 0, fidc || 0, icms || 0, frete_coleta || 0]
             );
             await atualizarDataUltimaModificacaoPrecos();
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             if (aplicar_todos && validade) {
                 memStore.tabela_precos.forEach(p => p.validade = validade);
@@ -1910,7 +1909,7 @@ app.put('/api/tabela-precos-validade-geral', async (req, res) => {
         const { validade } = req.body;
         if (!validade) return res.status(400).json({ error: 'Data de validade é obrigatória.' });
         if (dbAvailable) {
-            await pool.query('UPDATE tabela_precos SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos SET validade = ?', [validade]);
             await atualizarDataUltimaModificacaoPrecos();
             return res.json({ success: true, validade });
         } else {
@@ -1930,16 +1929,16 @@ app.put('/api/tabela-precos/:id', async (req, res) => {
         const { preco_entregar, preco_coletar, venda_ref, validade, aplicar_todos, comissao, pis_cofins, fidc, icms, frete_coleta } = req.body;
         if (dbAvailable) {
             if (aplicar_todos && validade) {
-                await pool.query('UPDATE tabela_precos SET validade = $1', [validade]);
+                await pool.query('UPDATE tabela_precos SET validade = ?', [validade]);
             }
             const result = await pool.query(
-                `UPDATE tabela_precos SET preco_entregar=$1, preco_coletar=$2, venda_ref=$3, validade=$4,
-                        comissao=$5, pis_cofins=$6, fidc=$7, icms=$8, frete_coleta=$9
-                 WHERE id=$10 RETURNING *`,
+                `UPDATE tabela_precos SET preco_entregar=?, preco_coletar=?, venda_ref=?, validade=?,
+                        comissao=?, pis_cofins=?, fidc=?, icms=?, frete_coleta=?
+                 WHERE id=?`,
                 [preco_entregar, preco_coletar, venda_ref, validade, comissao || 0, pis_cofins || 0, fidc || 0, icms || 0, frete_coleta || 0, id]
             );
             await atualizarDataUltimaModificacaoPrecos();
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             if (aplicar_todos && validade) {
                 memStore.tabela_precos.forEach(p => p.validade = validade);
@@ -1968,7 +1967,7 @@ app.delete('/api/tabela-precos/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM tabela_precos WHERE id=$1', [id]);
+            await pool.query('DELETE FROM tabela_precos WHERE id=?', [id]);
             await atualizarDataUltimaModificacaoPrecos();
         } else {
             memStore.tabela_precos = memStore.tabela_precos.filter(x => x.id !== id);
@@ -1990,7 +1989,7 @@ app.get('/api/tabela-precos-residuos', async (req, res) => {
                 JOIN materiais_catalogo mc ON tp.material_id = mc.id
                 ORDER BY mc.categoria ASC, mc.nome ASC
             `);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         const data = memStore.tabela_precos_residuos.map(p => {
             const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
@@ -2004,7 +2003,7 @@ app.post('/api/tabela-precos-residuos', async (req, res) => {
     try {
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_residuos SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_residuos SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_residuos.forEach(p => p.validade = validade);
@@ -2012,10 +2011,10 @@ app.post('/api/tabela-precos-residuos', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_residuos (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                 VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_residuos.push(newP);
@@ -2028,7 +2027,7 @@ app.put('/api/tabela-precos-residuos-validade', async (req, res) => {
         const { validade } = req.body;
         if (!validade) return res.status(400).json({ error: 'Data de validade obrigatória.' });
         if (dbAvailable) {
-            await pool.query('UPDATE tabela_precos_residuos SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_residuos SET validade = ?', [validade]);
             return res.json({ success: true, validade });
         }
         memStore.tabela_precos_residuos.forEach(p => p.validade = validade);
@@ -2041,18 +2040,18 @@ app.put('/api/tabela-precos-residuos/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_residuos SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_residuos SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_residuos.forEach(p => p.validade = validade);
         }
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE tabela_precos_residuos SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
-                 pis_cofins=$7, fidc=$8, icms=$9, frete_coleta=$10 WHERE id=$11 RETURNING *`,
+                `UPDATE tabela_precos_residuos SET material_id=?, preco_entregar=?, preco_coletar=?, venda_ref=?, validade=?, comissao=?,
+                 pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const idx = memStore.tabela_precos_residuos.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -2064,7 +2063,7 @@ app.put('/api/tabela-precos-residuos/:id', async (req, res) => {
 app.delete('/api/tabela-precos-residuos/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_residuos WHERE id=$1', [id]); }
+        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_residuos WHERE id=?', [id]); }
         else { memStore.tabela_precos_residuos = memStore.tabela_precos_residuos.filter(x => x.id !== id); }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Erro ao deletar preço de resíduo.' }); }
@@ -2080,7 +2079,7 @@ app.get('/api/tabela-precos-ligas', async (req, res) => {
                 JOIN materiais_catalogo mc ON tp.material_id = mc.id
                 ORDER BY mc.categoria ASC, mc.nome ASC
             `);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         const data = memStore.tabela_precos_ligas.map(p => {
             const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
@@ -2094,7 +2093,7 @@ app.post('/api/tabela-precos-ligas', async (req, res) => {
     try {
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_ligas SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_ligas SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_ligas.forEach(p => p.validade = validade);
@@ -2102,10 +2101,10 @@ app.post('/api/tabela-precos-ligas', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_ligas (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                 VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_ligas.push(newP);
@@ -2118,7 +2117,7 @@ app.put('/api/tabela-precos-ligas-validade', async (req, res) => {
         const { validade } = req.body;
         if (!validade) return res.status(400).json({ error: 'Data de validade obrigatória.' });
         if (dbAvailable) {
-            await pool.query('UPDATE tabela_precos_ligas SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_ligas SET validade = ?', [validade]);
             return res.json({ success: true, validade });
         }
         memStore.tabela_precos_ligas.forEach(p => p.validade = validade);
@@ -2131,18 +2130,18 @@ app.put('/api/tabela-precos-ligas/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_ligas SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_ligas SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_ligas.forEach(p => p.validade = validade);
         }
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE tabela_precos_ligas SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
-                 pis_cofins=$7, fidc=$8, icms=$9, frete_coleta=$10 WHERE id=$11 RETURNING *`,
+                `UPDATE tabela_precos_ligas SET material_id=?, preco_entregar=?, preco_coletar=?, venda_ref=?, validade=?, comissao=?,
+                 pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const idx = memStore.tabela_precos_ligas.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -2154,7 +2153,7 @@ app.put('/api/tabela-precos-ligas/:id', async (req, res) => {
 app.delete('/api/tabela-precos-ligas/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_ligas WHERE id=$1', [id]); }
+        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_ligas WHERE id=?', [id]); }
         else { memStore.tabela_precos_ligas = memStore.tabela_precos_ligas.filter(x => x.id !== id); }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Erro ao deletar preço de liga.' }); }
@@ -2170,7 +2169,7 @@ app.get('/api/tabela-precos-volume', async (req, res) => {
                 JOIN materiais_catalogo mc ON tp.material_id = mc.id
                 ORDER BY mc.categoria ASC, mc.nome ASC
             `);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         const data = memStore.tabela_precos_volume.map(p => {
             const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
@@ -2184,7 +2183,7 @@ app.post('/api/tabela-precos-volume', async (req, res) => {
     try {
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_volume SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_volume SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_volume.forEach(p => p.validade = validade);
@@ -2192,10 +2191,10 @@ app.post('/api/tabela-precos-volume', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_volume (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                 VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_volume.push(newP);
@@ -2208,7 +2207,7 @@ app.put('/api/tabela-precos-volume-validade', async (req, res) => {
         const { validade } = req.body;
         if (!validade) return res.status(400).json({ error: 'Data de validade obrigatória.' });
         if (dbAvailable) {
-            await pool.query('UPDATE tabela_precos_volume SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_volume SET validade = ?', [validade]);
             return res.json({ success: true, validade });
         }
         memStore.tabela_precos_volume.forEach(p => p.validade = validade);
@@ -2221,18 +2220,18 @@ app.put('/api/tabela-precos-volume/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_volume SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_volume SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_volume.forEach(p => p.validade = validade);
         }
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE tabela_precos_volume SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
-                 pis_cofins=$7, fidc=$8, icms=$9, frete_coleta=$10 WHERE id=$11 RETURNING *`,
+                `UPDATE tabela_precos_volume SET material_id=?, preco_entregar=?, preco_coletar=?, venda_ref=?, validade=?, comissao=?,
+                 pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const idx = memStore.tabela_precos_volume.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -2244,7 +2243,7 @@ app.put('/api/tabela-precos-volume/:id', async (req, res) => {
 app.delete('/api/tabela-precos-volume/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_volume WHERE id=$1', [id]); }
+        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_volume WHERE id=?', [id]); }
         else { memStore.tabela_precos_volume = memStore.tabela_precos_volume.filter(x => x.id !== id); }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Erro ao deletar preço de volume.' }); }
@@ -2260,7 +2259,7 @@ app.get('/api/tabela-precos-fundicao', async (req, res) => {
                 JOIN materiais_catalogo mc ON tp.material_id = mc.id
                 ORDER BY mc.categoria ASC, mc.nome ASC
             `);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         const data = memStore.tabela_precos_fundicao.map(p => {
             const mc = memStore.materiais_catalogo.find(x => x.id === p.material_id);
@@ -2274,7 +2273,7 @@ app.post('/api/tabela-precos-fundicao', async (req, res) => {
     try {
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_fundicao SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_fundicao SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_fundicao.forEach(p => p.validade = validade);
@@ -2282,10 +2281,10 @@ app.post('/api/tabela-precos-fundicao', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO tabela_precos_fundicao (material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+                 VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_fundicao.push(newP);
@@ -2298,7 +2297,7 @@ app.put('/api/tabela-precos-fundicao-validade', async (req, res) => {
         const { validade } = req.body;
         if (!validade) return res.status(400).json({ error: 'Data de validade obrigatória.' });
         if (dbAvailable) {
-            await pool.query('UPDATE tabela_precos_fundicao SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_fundicao SET validade = ?', [validade]);
             return res.json({ success: true, validade });
         }
         memStore.tabela_precos_fundicao.forEach(p => p.validade = validade);
@@ -2311,18 +2310,18 @@ app.put('/api/tabela-precos-fundicao/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         const { aplicar_todos,  material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao, pis_cofins, fidc, icms, frete_coleta  } = req.body;
         if (dbAvailable && aplicar_todos && validade) {
-            await pool.query('UPDATE tabela_precos_fundicao SET validade = $1', [validade]);
+            await pool.query('UPDATE tabela_precos_fundicao SET validade = ?', [validade]);
         }
         if (!dbAvailable && aplicar_todos && validade) {
             memStore.tabela_precos_fundicao.forEach(p => p.validade = validade);
         }
         if (dbAvailable) {
             const result = await pool.query(
-                `UPDATE tabela_precos_fundicao SET material_id=$1, preco_entregar=$2, preco_coletar=$3, venda_ref=$4, validade=$5, comissao=$6,
-                 pis_cofins=$7, fidc=$8, icms=$9, frete_coleta=$10 WHERE id=$11 RETURNING *`,
+                `UPDATE tabela_precos_fundicao SET material_id=?, preco_entregar=?, preco_coletar=?, venda_ref=?, validade=?, comissao=?,
+                 pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const idx = memStore.tabela_precos_fundicao.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -2334,7 +2333,7 @@ app.put('/api/tabela-precos-fundicao/:id', async (req, res) => {
 app.delete('/api/tabela-precos-fundicao/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_fundicao WHERE id=$1', [id]); }
+        if (dbAvailable) { await pool.query('DELETE FROM tabela_precos_fundicao WHERE id=?', [id]); }
         else { memStore.tabela_precos_fundicao = memStore.tabela_precos_fundicao.filter(x => x.id !== id); }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Erro ao deletar preço de fundição.' }); }
@@ -2350,7 +2349,7 @@ app.get('/api/amostras', async (req, res) => {
                 LEFT JOIN fornecedores f ON a.fornecedor_id = f.id
                 ORDER BY a.data DESC, a.id DESC
             `);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         const data = memStore.amostras.map(a => {
             const f = memStore.fornecedores.find(x => x.id === a.fornecedor_id);
@@ -2373,7 +2372,7 @@ app.get('/api/amostras/:id', async (req, res) => {
         let componentes;
 
         if (dbAvailable) {
-            const aRes = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id = f.id WHERE a.id=$1', [id]);
+            const aRes = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id = f.id WHERE a.id=?', [id]);
             if (aRes.rows.length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
             amostra = aRes.rows[0];
 
@@ -2381,7 +2380,7 @@ app.get('/api/amostras/:id', async (req, res) => {
                 SELECT ca.*, mc.nome as material_nome, mc.categoria as material_categoria
                 FROM componentes_amostra ca
                 LEFT JOIN materiais_catalogo mc ON ca.material_id = mc.id
-                WHERE ca.amostra_id=$1
+                WHERE ca.amostra_id=?
             `, [id]);
             componentes = cRes.rows;
         } else {
@@ -2411,10 +2410,10 @@ app.post('/api/amostras', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO amostras (numero_amostra, nome_material, data, fornecedor_id, responsavel, representante, peso_inicial, status, observacoes, foto_original)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, 'Em Análise', $8, $9) RETURNING *`,
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 'Em Análise', ?, ?)`,
                 [numero_amostra, nome_material || '', data, fornecedor_id, responsavel, representante || '', peso_inicial, observacoes, foto_original || '']
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             const newA = { id: nextId++, numero_amostra, nome_material: nome_material || '', data, fornecedor_id: parseInt(fornecedor_id), responsavel, representante: representante || '', peso_inicial: parseFloat(peso_inicial), status: 'Em Análise', observacoes, foto_original: foto_original || '' };
             memStore.amostras.push(newA);
@@ -2432,21 +2431,21 @@ app.post('/api/amostras/:id/componentes', async (req, res) => {
 
         if (dbAvailable) {
             // Delete old components
-            await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=$1', [amostra_id]);
+            await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=?', [amostra_id]);
             
             // Insert new components with foto and dificuldade
             for (const c of componentes) {
                 await pool.query(
                     `INSERT INTO componentes_amostra (amostra_id, material_id, peso, percentual, observacoes, foto, dificuldade)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
                     [amostra_id, c.material_id, c.peso, c.percentual, c.observacoes, c.foto || '', c.dificuldade || 'Fácil']
                 );
             }
             // Update sample info: tempo, parecer and status
             await pool.query(
                 `UPDATE amostras 
-                 SET tempo_desmonte = $1, parecer_tecnico = $2, status = 'Aguardando Decisão de Compra', tecnico_analise = $4 
-                 WHERE id = $3`,
+                 SET tempo_desmonte = ?, parecer_tecnico = ?, status = 'Aguardando Decisão de Compra', tecnico_analise = ? 
+                 WHERE id = ?`,
                 [parseInt(tempo_desmonte) || 0, parecer_tecnico || '', amostra_id, tecnico_analise || '']
             );
         } else {
@@ -2485,7 +2484,7 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
         const { status } = req.body;
 
         if (dbAvailable) {
-            const currentA = await pool.query('SELECT status FROM amostras WHERE id=$1', [id]);
+            const currentA = await pool.query('SELECT status FROM amostras WHERE id=?', [id]);
             if (currentA.rows.length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
             const currStatus = currentA.rows[0].status;
 
@@ -2496,26 +2495,26 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
                 return res.status(400).json({ error: 'A amostra precisa estar Liberada para Produção antes de ser processada.' });
             }
 
-            await pool.query('UPDATE amostras SET status=$1 WHERE id=$2', [status, id]);
+            await pool.query('UPDATE amostras SET status=? WHERE id=?', [status, id]);
             
             // Se for "Processado", efetua a movimentação de estoque
             if (status === 'Processado') {
-                const cRes = await pool.query('SELECT * FROM componentes_amostra WHERE amostra_id=$1', [id]);
+                const cRes = await pool.query('SELECT * FROM componentes_amostra WHERE amostra_id=?', [id]);
                 const compList = cRes.rows;
-                const aRes = await pool.query('SELECT * FROM amostras WHERE id=$1', [id]);
+                const aRes = await pool.query('SELECT * FROM amostras WHERE id=?', [id]);
                 const amostra = aRes.rows[0];
 
                 for (const c of compList) {
                     // Update estoque
                     await pool.query(
-                        `INSERT INTO estoque (material_id, saldo) VALUES ($1, $2)
+                        `INSERT INTO estoque (material_id, saldo) VALUES (?, ?)
                          ON CONFLICT (material_id) DO UPDATE SET saldo = estoque.saldo + EXCLUDED.saldo`,
                         [c.material_id, c.peso]
                     );
                     // Log movimentação
                     await pool.query(
                         `INSERT INTO movimentacoes_estoque (material_id, tipo, quantidade, motivo)
-                         VALUES ($1, 'ENTRADA', $2, $3)`,
+                         VALUES (?, 'ENTRADA', ?, ?)`,
                         [c.material_id, c.peso, `Processamento da amostra ${amostra.numero_amostra}`]
                     );
                 }
@@ -2571,7 +2570,7 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
 
         // Checkup de segurança: verifica se a amostra passou pela etapa de desmonte do laboratório
         if (dbAvailable) {
-            const compCheck = await pool.query('SELECT COUNT(*) as total FROM componentes_amostra WHERE amostra_id=$1', [id]);
+            const compCheck = await pool.query('SELECT COUNT(*) as total FROM componentes_amostra WHERE amostra_id=?', [id]);
             const totalComp = parseInt(compCheck.rows[0]?.total || 0);
             if (totalComp === 0) {
                 return res.status(400).json({ error: 'Amostra sem desmonte concluído! Cadastre os componentes desmontados no laboratório antes da decisão de compra.' });
@@ -2588,10 +2587,10 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
         if (dbAvailable) {
             await pool.query(
                 `UPDATE amostras 
-                 SET decisao_diretoria=$1, motivo_reprovacao=$2, status=$3, data_decisao=NOW(),
-                     preco_compra_entregar=$4, preco_compra_coletar=$5, preco_validade=$6, autorizado_por=$7,
-                     obs_diretoria=$8, admin_aprovacao=$10
-                 WHERE id=$9`,
+                 SET decisao_diretoria=?, motivo_reprovacao=?, status=?, data_decisao=NOW(),
+                     preco_compra_entregar=?, preco_compra_coletar=?, preco_validade=?, autorizado_por=?,
+                     obs_diretoria=?, admin_aprovacao=?
+                 WHERE id=?`,
                 [
                     decisao_diretoria, 
                     motivo_reprovacao || '', 
@@ -2639,8 +2638,8 @@ app.delete('/api/amostras/:id', async (req, res) => {
         }
 
         if (dbAvailable) {
-            await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=$1', [id]);
-            await pool.query('DELETE FROM amostras WHERE id=$1', [id]);
+            await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=?', [id]);
+            await pool.query('DELETE FROM amostras WHERE id=?', [id]);
         } else {
             memStore.componentes_amostra = memStore.componentes_amostra.filter(x => x.amostra_id !== id);
             memStore.amostras = memStore.amostras.filter(x => x.id !== id);
@@ -2657,8 +2656,8 @@ app.get('/api/amostras/:id/fotos', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            const r = await pool.query('SELECT id, amostra_id, tipo, COALESCE(etapa, \'Recebimento\') as etapa, componente_idx, mimetype, nome, criado_em FROM fotos_amostra WHERE amostra_id=$1 ORDER BY criado_em ASC', [id]);
-            return res.json(r.rows);
+            const r = await pool.query('SELECT id, amostra_id, tipo, COALESCE(etapa, \'Recebimento\') as etapa, componente_idx, mimetype, nome, criado_em FROM fotos_amostra WHERE amostra_id=? ORDER BY criado_em ASC', [id]);
+            return res.json(r[0]);
         }
         const fotos = (memStore.fotos_amostra || []).filter(f => f.amostra_id === id)
             .map(f => ({ id: f.id, amostra_id: f.amostra_id, tipo: f.tipo, etapa: f.etapa || 'Recebimento', componente_idx: f.componente_idx ?? null, mimetype: f.mimetype, nome: f.nome, criado_em: f.criado_em }));
@@ -2671,10 +2670,10 @@ app.get('/api/amostras/:id/fotos/:fotoId/img', async (req, res) => {
         const id     = parseInt(req.params.id);
         const fotoId = parseInt(req.params.fotoId);
         if (dbAvailable) {
-            const r = await pool.query('SELECT data_b64, mimetype FROM fotos_amostra WHERE id=$1 AND amostra_id=$2', [fotoId, id]);
-            if (!r.rows[0]) return res.status(404).send('Foto não encontrada');
-            const buf = Buffer.from(r.rows[0].data_b64, 'base64');
-            res.set('Content-Type', r.rows[0].mimetype);
+            const r = await pool.query('SELECT data_b64, mimetype FROM fotos_amostra WHERE id=? AND amostra_id=?', [fotoId, id]);
+            if (!r[0][0]) return res.status(404).send('Foto não encontrada');
+            const buf = Buffer.from(r[0][0].data_b64, 'base64');
+            res.set('Content-Type', r[0][0].mimetype);
             res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
             res.set('Content-Length', buf.length);
             return res.send(buf);
@@ -2704,10 +2703,10 @@ app.post('/api/amostras/:id/fotos', uploadMemory.array('fotos', 20), async (req,
             const nome     = file.originalname;
             if (dbAvailable) {
                 const r = await pool.query(
-                    'INSERT INTO fotos_amostra (amostra_id, tipo, etapa, componente_idx, data_b64, mimetype, nome) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, amostra_id, tipo, etapa, componente_idx, mimetype, nome, criado_em',
+                    'INSERT INTO fotos_amostra (amostra_id, tipo, etapa, componente_idx, data_b64, mimetype, nome) VALUES (?,?,?,?,?,?,?), amostra_id, tipo, etapa, componente_idx, mimetype, nome, criado_em',
                     [id, tipo, etapa, componenteIdx, b64, mimetype, nome]
                 );
-                inseridas.push(r.rows[0]);
+                inseridas.push(r[0][0]);
             } else {
                 const f = { id: nextId++, amostra_id: id, tipo, etapa, componente_idx: componenteIdx, data_b64: b64, mimetype, nome, criado_em: new Date().toISOString() };
                 if (!memStore.fotos_amostra) memStore.fotos_amostra = [];
@@ -2724,7 +2723,7 @@ app.delete('/api/amostras/:id/fotos/:fotoId', async (req, res) => {
         const id     = parseInt(req.params.id);
         const fotoId = parseInt(req.params.fotoId);
         if (dbAvailable) {
-            await pool.query('DELETE FROM fotos_amostra WHERE id=$1 AND amostra_id=$2', [fotoId, id]);
+            await pool.query('DELETE FROM fotos_amostra WHERE id=? AND amostra_id=?', [fotoId, id]);
         } else {
             memStore.fotos_amostra = (memStore.fotos_amostra || []).filter(f => !(f.id === fotoId && f.amostra_id === id));
         }
@@ -2740,10 +2739,10 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
         // Buscar dados da amostra
         let amostra, componentes, fornecedor;
         if (dbAvailable) {
-            const ar = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id=f.id WHERE a.id=$1', [id]);
-            amostra = ar.rows[0];
-            const cr = await pool.query('SELECT ca.*, mc.nome as material_nome FROM componentes_amostra ca LEFT JOIN materiais_catalogo mc ON ca.material_id=mc.id WHERE ca.amostra_id=$1', [id]);
-            componentes = cr.rows;
+            const ar = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id=f.id WHERE a.id=?', [id]);
+            amostra = ar[0][0];
+            const cr = await pool.query('SELECT ca.*, mc.nome as material_nome FROM componentes_amostra ca LEFT JOIN materiais_catalogo mc ON ca.material_id=mc.id WHERE ca.amostra_id=?', [id]);
+            componentes = cr[0];
         } else {
             amostra = memStore.amostras.find(a => a.id === id);
             if (!amostra) return res.status(404).json({ error: 'Amostra não encontrada' });
@@ -2793,7 +2792,7 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
         let destinatarios = [];
         if (dbAvailable) {
             const dr = await pool.query('SELECT email FROM lme_destinatarios');
-            destinatarios = dr.rows.map(r => r.email);
+            destinatarios = dr[0].map(r => r.email);
         } else {
             destinatarios = (memStore.lme_destinatarios || []).map(d => d.email);
         }
@@ -2802,7 +2801,7 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
         const settingsObj = {};
         if (dbAvailable) {
             const sr = await pool.query('SELECT key, value FROM settings');
-            sr.rows.forEach(r => { settingsObj[r.key] = r.value; });
+            sr[0].forEach(r => { settingsObj[r.key] = r.value; });
         } else {
             Object.assign(settingsObj, memStore.settings || {});
         }
@@ -2843,7 +2842,7 @@ async function registrarAuditLog(usuario, acao, detalhe, amostraId = null, req =
         const usr = usuario || 'Sistema';
         if (dbAvailable) {
             await pool.query(
-                `INSERT INTO audit_logs (usuario, acao, detalhe, amostra_id, ip) VALUES ($1, $2, $3, $4, $5)`,
+                `INSERT INTO audit_logs (usuario, acao, detalhe, amostra_id, ip) VALUES (?, ?, ?, ?, ?)`,
                 [usr, acao, detalhe || '', amostraId, ip]
             );
         } else {
@@ -2926,7 +2925,7 @@ app.get('/api/planejamento-compras', async (req, res) => {
                 LEFT JOIN amostras a ON lc.amostra_id = a.id
                 ORDER BY lc.id DESC
             `);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         
         const data = memStore.lotes_compra.map(lc => {
@@ -2954,15 +2953,15 @@ app.post('/api/planejamento-compras', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `INSERT INTO lotes_compra (amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao, fidc, mes, cliente, prazo_recebimento_dias, forma_pagamento, simulacoes_historico)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [amostra_id, fornecedor_id, produto, peso_comprado, preco_compra, percentual_rendimento, material_id, preco_venda_material, comissao || 2.0, fidc || 2.3, mes, cliente, prazo_recebimento_dias || 30, forma_pagamento, simulacoes_historico ? JSON.stringify(simulacoes_historico) : '[]']
             );
             
             if (amostra_id) {
                 // Se vinculou a uma amostra, avança o status dela
-                await pool.query("UPDATE amostras SET status = 'Aguardando Liberação PCP' WHERE id = $1 AND status = 'Aguardando Precificação'", [amostra_id]);
+                await pool.query("UPDATE amostras SET status = 'Aguardando Liberação PCP' WHERE id = ? AND status = 'Aguardando Precificação'", [amostra_id]);
             }
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         } else {
             const newL = {
                 id: nextId++,
@@ -3026,13 +3025,13 @@ app.get('/api/planejamento/compras', async (req, res) => {
         `;
         const params = [];
         if (tipo) {
-            query += ` WHERE pc.tipo_planejamento = $1 `;
+            query += ` WHERE pc.tipo_planejamento = ? `;
             params.push(tipo);
         }
         query += ` ORDER BY pc.id DESC `;
 
         const r = await pool.query(query, params);
-        res.json(r.rows);
+        res.json(r[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3073,7 +3072,7 @@ app.post('/api/planejamento/compras', async (req, res) => {
 
         const r = await pool.query(`
             INSERT INTO planejamento_compras (tipo_planejamento, material_id, fornecedor_id, quantidade_necessaria, quantidade_realizada_kg, ponto_pedido_kg, lead_time_dias, preco_estimado, custo_total_estimado, custo_total_realizado, mes_referencia, status, observacoes)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             tipoFinal,
             material_id ? parseInt(material_id) : null,
@@ -3090,7 +3089,7 @@ app.post('/api/planejamento/compras', async (req, res) => {
             observacoes || ''
         ]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3112,10 +3111,10 @@ app.put('/api/planejamento/compras/:id/realizado', async (req, res) => {
 
         const r = await pool.query(`
             UPDATE planejamento_compras SET
-                quantidade_realizada_kg = COALESCE($1, quantidade_realizada_kg),
-                custo_total_realizado = COALESCE($2, custo_total_realizado),
-                status = COALESCE($3, status)
-            WHERE id = $4 RETURNING *
+                quantidade_realizada_kg = COALESCE(?, quantidade_realizada_kg),
+                custo_total_realizado = COALESCE(?, custo_total_realizado),
+                status = COALESCE(?, status)
+            WHERE id = ?
         `, [
             quantidade_realizada_kg !== undefined ? parseFloat(quantidade_realizada_kg) : null,
             custo_total_realizado !== undefined ? parseFloat(custo_total_realizado) : null,
@@ -3123,7 +3122,7 @@ app.put('/api/planejamento/compras/:id/realizado', async (req, res) => {
             id
         ]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3136,7 +3135,7 @@ app.delete('/api/planejamento/compras/:id', async (req, res) => {
             memStore.planejamento_compras = (memStore.planejamento_compras || []).filter(x => x.id !== id);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM planejamento_compras WHERE id = $1', [id]);
+        await pool.query('DELETE FROM planejamento_compras WHERE id = ?', [id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -3154,10 +3153,10 @@ app.get('/api/planejamento/producao-insumos', async (req, res) => {
             const pl = await pool.query('SELECT * FROM planejamento_producao_insumos ORDER BY id DESC');
             const result = await Promise.all(pl.rows.map(async p => {
                 const linhas = await pool.query(
-                    'SELECT * FROM planejamento_producao_linhas WHERE planejamento_id=$1 ORDER BY id', [p.id]);
+                    'SELECT * FROM planejamento_producao_linhas WHERE planejamento_id=? ORDER BY id', [p.id]);
                 const lWithMovs = await Promise.all(linhas.rows.map(async l => {
                     const movs = await pool.query(
-                        'SELECT * FROM planejamento_producao_movimentacoes WHERE linha_id=$1 ORDER BY data_movimentacao', [l.id]);
+                        'SELECT * FROM planejamento_producao_movimentacoes WHERE linha_id=? ORDER BY data_movimentacao', [l.id]);
                     return { ...l, movimentacoes: movs.rows };
                 }));
                 return { ...p, linhas: lWithMovs };
@@ -3199,7 +3198,7 @@ app.post('/api/planejamento/producao-insumos', async (req, res) => {
                 (periodo, produto_id, produto_nome, meta_faturamento_rs, preco_venda_produto_rs,
                  qtd_produto_necessaria, custo_total_projetado_rs, margem_projetada_pct,
                  prazo_compra_ate, prazo_venda_ate, status)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)
             `, [
                 periodo||new Date().toISOString().slice(0,7),
                 produto_id ? parseInt(produto_id) : null, produto_nome||'',
@@ -3208,7 +3207,7 @@ app.post('/api/planejamento/producao-insumos', async (req, res) => {
                 parseFloat(margem_projetada_pct||0),
                 prazo_compra_ate||null, prazo_venda_ate||null, status||'Ativo'
             ]);
-            const planejamento = r.rows[0];
+            const planejamento = r[0][0];
 
             const linhasResult = [];
             if (Array.isArray(linhas)) {
@@ -3217,7 +3216,7 @@ app.post('/api/planejamento/producao-insumos', async (req, res) => {
                         INSERT INTO planejamento_producao_linhas
                         (planejamento_id, insumo_produto_id, insumo_nome, coeficiente_pct,
                          qtd_necessaria, preco_compra_tabela, preco_compra_simulado, preco_venda_tabela, custo_total_insumo)
-                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *
+                        VALUES (?,?,?,?,?,?,?,?,?)
                     `, [
                         planejamento.id,
                         l.insumo_produto_id ? parseInt(l.insumo_produto_id) : null,
@@ -3226,7 +3225,7 @@ app.post('/api/planejamento/producao-insumos', async (req, res) => {
                         parseFloat(l.preco_compra_simulado||0), parseFloat(l.preco_venda_tabela||0),
                         parseFloat(l.custo_total_insumo||0)
                     ]);
-                    linhasResult.push({ ...lr.rows[0], movimentacoes: [] });
+                    linhasResult.push({ ...lr[0][0], movimentacoes: [] });
                 }
             }
             return res.json({ ...planejamento, linhas: linhasResult });
@@ -3286,10 +3285,10 @@ app.post('/api/planejamento/producao-insumos/:planId/linhas/:linhaId/movimentaca
             const r = await pool.query(`
                 INSERT INTO planejamento_producao_movimentacoes
                 (linha_id, planejamento_id, tipo, quantidade, preco_unitario, valor_total, data_movimentacao, obs)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *
+                VALUES (?,?,?,?,?,?,?,?)
             `, [linhaId, planId, tipo.toUpperCase(), parseFloat(quantidade||0),
                 parseFloat(preco_unitario||0), valorTotal, datamov, obs||'']);
-            return res.json(r.rows[0]);
+            return res.json(r[0][0]);
         }
     } catch (err) {
         console.warn('⚠️ Erro de banco no POST movimentacao. Acionando fallback local:', err.message);
@@ -3315,7 +3314,7 @@ app.delete('/api/planejamento/producao-insumos/:planId/linhas/:linhaId/movimenta
             memStore.planejamento_producao_movimentacoes = (memStore.planejamento_producao_movimentacoes||[]).filter(m => m.id !== movId);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM planejamento_producao_movimentacoes WHERE id=$1', [movId]);
+        await pool.query('DELETE FROM planejamento_producao_movimentacoes WHERE id=?', [movId]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -3331,7 +3330,7 @@ app.delete('/api/planejamento/producao-insumos/:id', async (req, res) => {
             memStore.planejamento_producao_insumos = (memStore.planejamento_producao_insumos||[]).filter(x => x.id !== id);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM planejamento_producao_insumos WHERE id=$1', [id]);
+        await pool.query('DELETE FROM planejamento_producao_insumos WHERE id=?', [id]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -3360,7 +3359,7 @@ app.get('/api/planejamento-estrategico', async (req, res) => {
                 ORDER BY pe.mes DESC, mc.nome ASC
             `;
             const result = await pool.query(queryStr);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
     } catch (err) {
         console.warn('⚠️ Erro de banco no GET planejamento-estrategico, usando memStore:', err.message);
@@ -3418,7 +3417,7 @@ app.post('/api/planejamento-estrategico', async (req, res) => {
                     mes, material_id, qtd_conservador, qtd_moderado, qtd_agressivo, qtd_realizado, 
                     margem_alvo, valor_compra_realizado, valor_venda_realizado
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (mes, material_id) DO UPDATE
                 SET qtd_conservador = EXCLUDED.qtd_conservador,
                     qtd_moderado = EXCLUDED.qtd_moderado,
@@ -3427,10 +3426,9 @@ app.post('/api/planejamento-estrategico', async (req, res) => {
                     margem_alvo = EXCLUDED.margem_alvo,
                     valor_compra_realizado = EXCLUDED.valor_compra_realizado,
                     valor_venda_realizado = EXCLUDED.valor_venda_realizado
-                RETURNING *
             `;
             const r = await pool.query(queryStr, [mesStr, matId, qCons, qMod, qAgr, qReal, mAlvo, valCompraReal, valVendaReal]);
-            return res.json(r.rows[0]);
+            return res.json(r[0][0]);
         }
     } catch (err) {
         console.warn('⚠️ Erro de banco no POST planejamento-estrategico, usando memStore:', err.message);
@@ -3465,7 +3463,7 @@ app.delete('/api/planejamento-estrategico/:id', async (req, res) => {
     let useDb = dbAvailable && pool;
     try {
         if (useDb) {
-            await pool.query('DELETE FROM planejamento_estrategico WHERE id = $1', [id]);
+            await pool.query('DELETE FROM planejamento_estrategico WHERE id = ?', [id]);
             return res.json({ success: true });
         }
     } catch (err) {
@@ -3501,7 +3499,7 @@ app.get('/api/planejamento-estrategicov3', async (req, res) => {
                 ORDER BY pe.mes DESC, mc.nome ASC
             `;
             const result = await pool.query(queryStr);
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
     } catch (err) {
         console.warn('⚠️ Erro de banco no GET planejamento-estrategicov3, usando memStore:', err.message);
@@ -3554,17 +3552,16 @@ app.post('/api/planejamento-estrategicov3', async (req, res) => {
                 INSERT INTO planejamento_estrategicov3 (
                     mes, material_id, meta_faturamento, margem_desejada, operacao, qtd_realizado, valor_venda_realizado
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (mes, material_id) DO UPDATE
                 SET meta_faturamento = EXCLUDED.meta_faturamento,
                     margem_desejada = EXCLUDED.margem_desejada,
                     operacao = EXCLUDED.operacao,
                     qtd_realizado = EXCLUDED.qtd_realizado,
                     valor_venda_realizado = EXCLUDED.valor_venda_realizado
-                RETURNING *
             `;
             const r = await pool.query(queryStr, [mesStr, matId, mFat, mMargem, op, qReal, valVendaReal]);
-            return res.json(r.rows[0]);
+            return res.json(r[0][0]);
         }
     } catch (err) {
         console.warn('⚠️ Erro de banco no POST planejamento-estrategicov3, usando memStore:', err.message);
@@ -3597,7 +3594,7 @@ app.delete('/api/planejamento-estrategicov3/:id', async (req, res) => {
     let useDb = dbAvailable && pool;
     try {
         if (useDb) {
-            await pool.query('DELETE FROM planejamento_estrategicov3 WHERE id = $1', [id]);
+            await pool.query('DELETE FROM planejamento_estrategicov3 WHERE id = ?', [id]);
             return res.json({ success: true });
         }
     } catch (err) {
@@ -3640,14 +3637,14 @@ app.post('/api/estrategiav3_planos', async (req, res) => {
             await client.query('BEGIN');
             const planoRes = await client.query(`
                 INSERT INTO estrategiav3_planos (titulo, data_inicial, data_final, frente, meta_faturamento, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct)
-                VALUES ($1, $2, $3, $4, $5, COALESCE($6, 80), COALESCE($7, 100), COALESCE($8, 120)) RETURNING id
+                VALUES (?, ?, ?, ?, ?, COALESCE(?, 80), COALESCE(?, 100), COALESCE(?, 120))
             `, [titulo, data_inicial, data_final, frente, meta_faturamento, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct]);
             const planoId = planoRes.rows[0].id;
 
             for (let item of mix) {
                 await client.query(`
                     INSERT INTO estrategiav3_mix (plano_id, material_id, fracao_pct, volume_necessario, faturamento_alvo, investimento_necessario)
-                    VALUES ($1, $2, $3, $4, $5, $6)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 `, [planoId, item.material_id, item.fracao_pct, item.volume_necessario, item.faturamento_alvo, item.investimento_necessario]);
             }
             await client.query('COMMIT');
@@ -3668,7 +3665,7 @@ app.delete('/api/estrategiav3_planos/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     try {
         if (!dbAvailable || !pool) throw new Error('DB not available');
-        await pool.query('DELETE FROM estrategiav3_planos WHERE id = $1', [id]);
+        await pool.query('DELETE FROM estrategiav3_planos WHERE id = ?', [id]);
         res.json({ success: true });
     } catch (err) {
         console.error('⚠️ Erro DELETE estrategiav3_planos', err);
@@ -3681,7 +3678,7 @@ app.put('/api/estrategiav3_planos/:id/status', async (req, res) => {
     const { status } = req.body;
     try {
         if (!dbAvailable || !pool) throw new Error('DB not available');
-        await pool.query('UPDATE estrategiav3_planos SET status = $1 WHERE id = $2', [status, id]);
+        await pool.query('UPDATE estrategiav3_planos SET status = ? WHERE id = ?', [status, id]);
         res.json({ success: true });
     } catch (err) {
         console.error('⚠️ Erro PUT STATUS', err);
@@ -3696,12 +3693,12 @@ app.put('/api/estrategiav3_planos/:id/resultado_real', async (req, res) => {
         if (!dbAvailable || !pool) throw new Error('DB not available');
         await pool.query(`
             UPDATE estrategiav3_planos 
-            SET faturamento_realizado = $1, 
-                investimento_realizado = $2, 
-                volume_realizado = $3, 
-                observacoes = $4,
+            SET faturamento_realizado = ?, 
+                investimento_realizado = ?, 
+                volume_realizado = ?, 
+                observacoes = ?,
                 status = 'CONCLUIDO'
-            WHERE id = $5
+            WHERE id = ?
         `, [faturamento_realizado, investimento_realizado, volume_realizado, observacoes, id]);
         res.json({ success: true });
     } catch (err) {
@@ -3716,7 +3713,7 @@ app.put('/api/estrategiav3_mix/:id/realizado', async (req, res) => {
     try {
         if (!dbAvailable || !pool) throw new Error('DB not available');
         await pool.query(`
-            UPDATE estrategiav3_mix SET faturamento_realizado = $1 WHERE id = $2
+            UPDATE estrategiav3_mix SET faturamento_realizado = ? WHERE id = ?
         `, [faturamento_realizado, id]);
         res.json({ success: true });
     } catch (err) {
@@ -3758,7 +3755,7 @@ app.get('/api/planejamento/comercial-revenda', async (req, res) => {
             LEFT JOIN (SELECT planejamento_id, SUM(quantidade_kg) AS total_kg, SUM(valor_total) AS total_rs FROM planejamento_comercial_transacoes WHERE tipo='VENDA'  GROUP BY planejamento_id) v ON v.planejamento_id = p.id
             ORDER BY p.id DESC
         `);
-        res.json(r.rows);
+        res.json(r[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3772,8 +3769,8 @@ app.get('/api/planejamento/comercial-revenda/:id/transacoes', async (req, res) =
             const trans = (memStore.planejamento_comercial_transacoes || []).filter(t => t.planejamento_id === id);
             return res.json(trans);
         }
-        const r = await pool.query('SELECT * FROM planejamento_comercial_transacoes WHERE planejamento_id=$1 ORDER BY data_transacao ASC, id ASC', [id]);
-        res.json(r.rows);
+        const r = await pool.query('SELECT * FROM planejamento_comercial_transacoes WHERE planejamento_id=? ORDER BY data_transacao ASC, id ASC', [id]);
+        res.json(r[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3795,10 +3792,10 @@ app.post('/api/planejamento/comercial-transacao', async (req, res) => {
             return res.json(item);
         }
         const r = await pool.query(
-            `INSERT INTO planejamento_comercial_transacoes (planejamento_id,tipo,quantidade_kg,preco_unitario,valor_total,data_transacao,observacoes) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+            `INSERT INTO planejamento_comercial_transacoes (planejamento_id,tipo,quantidade_kg,preco_unitario,valor_total,data_transacao,observacoes) VALUES(?,?,?,?,?,?,?)`,
             [pid, tipo.toUpperCase(), qtd, preco, total, dataStr, observacoes||'']
         );
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3812,7 +3809,7 @@ app.delete('/api/planejamento/comercial-transacao/:id', async (req, res) => {
             memStore.planejamento_comercial_transacoes = (memStore.planejamento_comercial_transacoes||[]).filter(t => t.id !== id);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM planejamento_comercial_transacoes WHERE id=$1', [id]);
+        await pool.query('DELETE FROM planejamento_comercial_transacoes WHERE id=?', [id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -3871,7 +3868,7 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
                 preco_compra_estimado, preco_venda_estimado,
                 preco_compra_realizado, preco_venda_realizado, venda_realizada_kg,
                 prazo_compra_ate, prazo_venda_ate
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         `, [
             mes_referencia || new Date().toISOString().slice(0, 7),
             produto_id ? parseInt(produto_id) : null, produto_nome || 'Produto Comercial',
@@ -3885,7 +3882,7 @@ app.post('/api/planejamento/comercial-revenda', async (req, res) => {
             prazo_compra_ate || null, prazo_venda_ate || null
         ]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3918,13 +3915,13 @@ app.put('/api/planejamento/comercial-revenda/:id/realizado', async (req, res) =>
 
         const r = await pool.query(`
             UPDATE planejamento_comercial_revenda SET
-                compra_realizada_kg = COALESCE($1, compra_realizada_kg),
-                venda_realizada_rs = COALESCE($2, venda_realizada_rs),
-                venda_realizada_kg = COALESCE($3, venda_realizada_kg),
-                preco_compra_realizado = COALESCE($4, preco_compra_realizado),
-                preco_venda_realizado = COALESCE($5, preco_venda_realizado),
-                status = COALESCE($6, status)
-            WHERE id = $7 RETURNING *
+                compra_realizada_kg = COALESCE(?, compra_realizada_kg),
+                venda_realizada_rs = COALESCE(?, venda_realizada_rs),
+                venda_realizada_kg = COALESCE(?, venda_realizada_kg),
+                preco_compra_realizado = COALESCE(?, preco_compra_realizado),
+                preco_venda_realizado = COALESCE(?, preco_venda_realizado),
+                status = COALESCE(?, status)
+            WHERE id = ?
         `, [
             compra_realizada_kg !== undefined ? parseFloat(compra_realizada_kg) : null,
             venda_realizada_rs !== undefined ? parseFloat(venda_realizada_rs) : null,
@@ -3935,7 +3932,7 @@ app.put('/api/planejamento/comercial-revenda/:id/realizado', async (req, res) =>
             id
         ]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3948,7 +3945,7 @@ app.delete('/api/planejamento/comercial-revenda/:id', async (req, res) => {
             memStore.planejamento_comercial_revenda = (memStore.planejamento_comercial_revenda || []).filter(x => x.id !== id);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM planejamento_comercial_revenda WHERE id = $1', [id]);
+        await pool.query('DELETE FROM planejamento_comercial_revenda WHERE id = ?', [id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -3967,7 +3964,7 @@ app.get('/api/planejamento/parametros-prazos', async (req, res) => {
             LEFT JOIN materiais_catalogo mc ON p.material_id = mc.id
             ORDER BY p.id DESC
         `);
-        res.json(r.rows);
+        res.json(r[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -3999,7 +3996,7 @@ app.post('/api/planejamento/parametros-prazos', async (req, res) => {
 
         const r = await pool.query(`
             INSERT INTO parametros_estoque_prazos (material_id, lead_time_compra_dias, prazo_entrega_dias, prazo_producao_dias, estoque_minimo_kg, estoque_seguranca_kg, prazo_permanencia_dias)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (material_id) DO UPDATE SET
                 lead_time_compra_dias = EXCLUDED.lead_time_compra_dias,
                 prazo_entrega_dias = EXCLUDED.prazo_entrega_dias,
@@ -4008,14 +4005,13 @@ app.post('/api/planejamento/parametros-prazos', async (req, res) => {
                 estoque_seguranca_kg = EXCLUDED.estoque_seguranca_kg,
                 prazo_permanencia_dias = EXCLUDED.prazo_permanencia_dias,
                 atualizado_em = NOW()
-            RETURNING *
         `, [
             matId, parseInt(lead_time_compra_dias || 7), parseInt(prazo_entrega_dias || 15),
             parseInt(prazo_producao_dias || 5), parseFloat(estoque_minimo_kg || 0),
             parseFloat(estoque_seguranca_kg || 0), parseInt(prazo_permanencia_dias || 30)
         ]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4041,14 +4037,14 @@ app.get('/api/planejamento/cenarios/configuracao', async (req, res) => {
         }
 
         const r = await pool.query('SELECT * FROM configuracao_cenarios_planejamento ORDER BY id ASC LIMIT 1');
-        if (r.rows.length === 0) {
+        if (r[0].length === 0) {
             const ins = await pool.query(`
                 INSERT INTO configuracao_cenarios_planejamento (percentual_conservador, percentual_moderado, percentual_agressivo, cenario_foco, meta_base_padrao_rs)
-                VALUES (80.00, 100.00, 120.00, 'AGRESSIVO', 1000000.00) RETURNING *
+                VALUES (80.00, 100.00, 120.00, 'AGRESSIVO', 1000000.00)
             `);
             return res.json(ins.rows[0]);
         }
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4079,7 +4075,7 @@ app.post('/api/planejamento/cenarios/configuracao', async (req, res) => {
 
         const r = await pool.query(`
             INSERT INTO configuracao_cenarios_planejamento (id, percentual_conservador, percentual_moderado, percentual_agressivo, cenario_foco, meta_base_padrao_rs)
-            VALUES (1, $1, $2, $3, $4, $5)
+            VALUES (1, ?, ?, ?, ?, ?)
             ON CONFLICT (id) DO UPDATE SET
                 percentual_conservador = EXCLUDED.percentual_conservador,
                 percentual_moderado = EXCLUDED.percentual_moderado,
@@ -4087,10 +4083,9 @@ app.post('/api/planejamento/cenarios/configuracao', async (req, res) => {
                 cenario_foco = EXCLUDED.cenario_foco,
                 meta_base_padrao_rs = EXCLUDED.meta_base_padrao_rs,
                 atualizado_em = NOW()
-            RETURNING *
         `, [pCons, pMod, pAgr, cFoco, mBase]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4158,7 +4153,7 @@ app.get('/api/planejamento/industrial/equipamentos', async (req, res) => {
             return res.json((memStore.equipamentos_industriais || []).sort((a, b) => a.id - b.id));
         }
         const r = await pool.query('SELECT * FROM equipamentos_industriais ORDER BY id ASC');
-        res.json(r.rows);
+        res.json(r[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4188,10 +4183,10 @@ app.post('/api/planejamento/industrial/equipamentos', async (req, res) => {
 
         const r = await pool.query(`
             INSERT INTO equipamentos_industriais (nome_equipamento, codigo_tag, setor, capacidade_nominal_kgh, disponibilidade_horas_dia, tempo_setup_horas, eficiencia_oee_pct, status, observacoes)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [nome_equipamento, codigo_tag, setor || 'Processamento', capacidade_nominal_kgh || 1000, disponibilidade_horas_dia || 16, tempo_setup_horas || 1.0, eficiencia_oee_pct || 85, status || 'Operacional', observacoes]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4222,12 +4217,12 @@ app.put('/api/planejamento/industrial/equipamentos/:id', async (req, res) => {
 
         const r = await pool.query(`
             UPDATE equipamentos_industriais SET
-                nome_equipamento = $1, codigo_tag = $2, setor = $3, capacidade_nominal_kgh = $4,
-                disponibilidade_horas_dia = $5, tempo_setup_horas = $6, eficiencia_oee_pct = $7, status = $8, observacoes = $9
-            WHERE id = $10 RETURNING *
+                nome_equipamento = ?, codigo_tag = ?, setor = ?, capacidade_nominal_kgh = ?,
+                disponibilidade_horas_dia = ?, tempo_setup_horas = ?, eficiencia_oee_pct = ?, status = ?, observacoes = ?
+            WHERE id = ?
         `, [nome_equipamento, codigo_tag, setor, capacidade_nominal_kgh, disponibilidade_horas_dia, tempo_setup_horas, eficiencia_oee_pct, status, observacoes, id]);
 
-        res.json(r.rows[0]);
+        res.json(r[0][0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4240,7 +4235,7 @@ app.delete('/api/planejamento/industrial/equipamentos/:id', async (req, res) => 
             memStore.equipamentos_industriais = (memStore.equipamentos_industriais || []).filter(x => x.id !== id);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM equipamentos_industriais WHERE id = $1', [id]);
+        await pool.query('DELETE FROM equipamentos_industriais WHERE id = ?', [id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -4274,7 +4269,7 @@ app.get('/api/planejamento/producao/ops', async (req, res) => {
                 SELECT e.*, eq.nome_equipamento
                 FROM ordens_producao_etapas e
                 LEFT JOIN equipamentos_industriais eq ON e.equipamento_id = eq.id
-                WHERE e.op_id = $1
+                WHERE e.op_id = ?
                 ORDER BY e.ordem ASC
             `, [op.id]);
             op.etapas = etapas.rows;
@@ -4334,7 +4329,7 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
             try {
                 opRes = await client.query(`
                     INSERT INTO ordens_producao (numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     numOpFinal,
                     amostra_id && !isNaN(parseInt(amostra_id)) ? parseInt(amostra_id) : null,
@@ -4354,7 +4349,7 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
                 numOpFinal = 'OP-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-6);
                 opRes = await client.query(`
                     INSERT INTO ordens_producao (numero_op, amostra_id, lote_id, material_entrada, peso_entrada_kg, material_saida_id, peso_saida_estimado_kg, data_inicio_prevista, data_fim_prevista, responsavel_pcp, status, observacoes)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     numOpFinal,
                     amostra_id && !isNaN(parseInt(amostra_id)) ? parseInt(amostra_id) : null,
@@ -4371,7 +4366,7 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
                 ]);
             }
 
-            const createdOp = opRes.rows[0];
+            const createdOp = opRes[0][0];
             const createdEtapas = [];
             if (etapas && Array.isArray(etapas)) {
                 for (let i = 0; i < etapas.length; i++) {
@@ -4379,7 +4374,7 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
                     const eqId = et.equipamento_id && !isNaN(parseInt(et.equipamento_id)) ? parseInt(et.equipamento_id) : null;
                     const etRes = await client.query(`
                         INSERT INTO ordens_producao_etapas (op_id, nome_etapa, ordem, equipamento_id, tempo_estimado_horas, tempo_real_horas, status_etapa, operador_responsavel, observacoes)
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     `, [
                         createdOp.id,
                         et.nome_etapa || `Etapa ${i + 1}`,
@@ -4428,21 +4423,21 @@ app.put('/api/planejamento/producao/ops/:id/etapas', async (req, res) => {
         }
 
         if (status_op) {
-            await pool.query('UPDATE ordens_producao SET status = $1, atualizado_em = NOW() WHERE id = $2', [status_op, opId]);
+            await pool.query('UPDATE ordens_producao SET status = ?, atualizado_em = NOW() WHERE id = ?', [status_op, opId]);
         }
         if (etapa_id) {
             await pool.query(`
                 UPDATE ordens_producao_etapas SET
-                    tempo_real_horas = COALESCE($1, tempo_real_horas),
-                    status_etapa = COALESCE($2, status_etapa),
-                    operador_responsavel = COALESCE($3, operador_responsavel)
-                WHERE id = $4 AND op_id = $5
+                    tempo_real_horas = COALESCE(?, tempo_real_horas),
+                    status_etapa = COALESCE(?, status_etapa),
+                    operador_responsavel = COALESCE(?, operador_responsavel)
+                WHERE id = ? AND op_id = ?
             `, [tempo_real_horas !== undefined ? parseFloat(tempo_real_horas) : null, status_etapa || null, operador_responsavel || null, etapa_id, opId]);
         }
 
-        const opRes = await pool.query('SELECT * FROM ordens_producao WHERE id = $1', [opId]);
-        const etapasRes = await pool.query('SELECT * FROM ordens_producao_etapas WHERE op_id = $1 ORDER BY ordem ASC', [opId]);
-        res.json({ ...opRes.rows[0], etapas: etapasRes.rows });
+        const opRes = await pool.query('SELECT * FROM ordens_producao WHERE id = ?', [opId]);
+        const etapasRes = await pool.query('SELECT * FROM ordens_producao_etapas WHERE op_id = ? ORDER BY ordem ASC', [opId]);
+        res.json({ ...opRes[0][0], etapas: etapasRes[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4455,7 +4450,7 @@ app.delete('/api/planejamento/producao/ops/:id', async (req, res) => {
             memStore.ordens_producao = (memStore.ordens_producao || []).filter(x => x.id !== id);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM ordens_producao WHERE id = $1', [id]);
+        await pool.query('DELETE FROM ordens_producao WHERE id = ?', [id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -4552,7 +4547,7 @@ app.get('/api/solucoes', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM solucoes ORDER BY ordem ASC, criado_em ASC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json([...memStore.solucoes].sort((a, b) => a.ordem - b.ordem));
     } catch (err) {
@@ -4567,10 +4562,10 @@ app.post('/api/solucoes', async (req, res) => {
         if (!nome || !img || !descricao) return res.status(400).json({ error: 'nome, img e descricao são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO solucoes (nome, img, descricao, ordem) VALUES ($1, $2, $3, $4) RETURNING *',
+                'INSERT INTO solucoes (nome, img, descricao, ordem) VALUES (?, ?, ?, ?)',
                 [nome, img, descricao, ordem || 0]
             );
-            return res.status(201).json(result.rows[0]);
+            return res.status(201).json(result[0][0]);
         }
         const item = { id: nextId++, nome, img, descricao, ordem: ordem || 0, criado_em: new Date().toISOString() };
         memStore.solucoes.push(item);
@@ -4587,11 +4582,11 @@ app.put('/api/solucoes/:id', async (req, res) => {
         const { nome, img, descricao, ordem } = req.body;
         if (dbAvailable) {
             const result = await pool.query(
-                'UPDATE solucoes SET nome=$1, img=$2, descricao=$3, ordem=$4 WHERE id=$5 RETURNING *',
+                'UPDATE solucoes SET nome=?, img=?, descricao=?, ordem=? WHERE id=?',
                 [nome, img, descricao, ordem || 0, id]
             );
             if (result.rowCount === 0) return res.status(404).json({ error: 'Solução não encontrada.' });
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const idx = memStore.solucoes.findIndex(s => s.id == id);
         if (idx === -1) return res.status(404).json({ error: 'Solução não encontrada.' });
@@ -4607,7 +4602,7 @@ app.delete('/api/solucoes/:id', async (req, res) => {
     try {
         const { id } = req.params;
         if (dbAvailable) {
-            const result = await pool.query('DELETE FROM solucoes WHERE id=$1', [id]);
+            const result = await pool.query('DELETE FROM solucoes WHERE id=?', [id]);
             if (result.rowCount === 0) return res.status(404).json({ error: 'Solução não encontrada.' });
             return res.json({ success: true });
         }
@@ -4626,7 +4621,7 @@ app.get('/api/materiais', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM materiais ORDER BY criado_em DESC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json([...memStore.materiais]);
     } catch (err) {
@@ -4641,10 +4636,10 @@ app.post('/api/materiais', async (req, res) => {
         if (!nome || !descricao) return res.status(400).json({ error: 'nome e descricao são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO materiais (nome, imagem, descricao, locais) VALUES ($1, $2, $3, $4) RETURNING *',
+                'INSERT INTO materiais (nome, imagem, descricao, locais) VALUES (?, ?, ?, ?)',
                 [nome, imagem || null, descricao, JSON.stringify(locais || [])]
             );
-            return res.status(201).json(result.rows[0]);
+            return res.status(201).json(result[0][0]);
         }
         const item = { id: nextId++, nome, imagem: imagem || null, descricao, locais: locais || [], criado_em: new Date().toISOString() };
         memStore.materiais.push(item);
@@ -4659,7 +4654,7 @@ app.delete('/api/materiais/:id', async (req, res) => {
     try {
         const { id } = req.params;
         if (dbAvailable) {
-            const result = await pool.query('DELETE FROM materiais WHERE id=$1', [id]);
+            const result = await pool.query('DELETE FROM materiais WHERE id=?', [id]);
             if (result.rowCount === 0) return res.status(404).json({ error: 'Material não encontrado.' });
             return res.json({ success: true });
         }
@@ -4678,7 +4673,7 @@ app.get('/api/noticias', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM noticias ORDER BY data_pub DESC, criado_em DESC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         res.json([...memStore.noticias]);
     } catch (err) {
@@ -4693,10 +4688,10 @@ app.post('/api/noticias', async (req, res) => {
         if (!titulo) return res.status(400).json({ error: 'titulo é obrigatório.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO noticias (titulo, url, resumo, data_pub, categoria) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                'INSERT INTO noticias (titulo, url, resumo, data_pub, categoria) VALUES (?, ?, ?, ?, ?)',
                 [titulo, url || null, resumo || null, data || null, categoria || null]
             );
-            return res.status(201).json(result.rows[0]);
+            return res.status(201).json(result[0][0]);
         }
         const item = { id: nextId++, titulo, url: url || null, resumo: resumo || null, data_pub: data || null, categoria: categoria || null, criado_em: new Date().toISOString() };
         memStore.noticias.push(item);
@@ -4711,7 +4706,7 @@ app.delete('/api/noticias/:id', async (req, res) => {
     try {
         const { id } = req.params;
         if (dbAvailable) {
-            const result = await pool.query('DELETE FROM noticias WHERE id=$1', [id]);
+            const result = await pool.query('DELETE FROM noticias WHERE id=?', [id]);
             if (result.rowCount === 0) return res.status(404).json({ error: 'Notícia não encontrada.' });
             return res.json({ success: true });
         }
@@ -4785,7 +4780,7 @@ app.get('/api/settings', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM settings');
             const settingsObj = {};
-            result.rows.forEach(row => {
+            result[0].forEach(row => {
                 settingsObj[row.key] = row.value;
             });
             return res.json(settingsObj);
@@ -4803,7 +4798,7 @@ app.put('/api/settings', async (req, res) => {
         if (dbAvailable) {
             for (const [key, value] of Object.entries(settings)) {
                 await pool.query(
-                    'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+                    'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = ?',
                     [key, String(value)]
                 );
             }
@@ -4822,7 +4817,7 @@ app.get('/api/galeria', async (req, res) => {
     try {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM galeria ORDER BY ordem ASC, criado_em DESC');
-            return res.json(result.rows);
+            return res.json(result[0]);
         }
         const list = [...memStore.galeria].sort((a, b) => a.ordem - b.ordem);
         res.json(list);
@@ -4838,10 +4833,10 @@ app.post('/api/galeria', async (req, res) => {
         if (!url || !titulo) return res.status(400).json({ error: 'url e titulo são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO galeria (url, titulo, ordem) VALUES ($1, $2, $3) RETURNING *',
+                'INSERT INTO galeria (url, titulo, ordem) VALUES (?, ?, ?)',
                 [url, titulo, ordem || 0]
             );
-            return res.status(201).json(result.rows[0]);
+            return res.status(201).json(result[0][0]);
         }
         const item = { id: nextId++, url, titulo, ordem: ordem || 0, criado_em: new Date().toISOString() };
         memStore.galeria.push(item);
@@ -4856,7 +4851,7 @@ app.delete('/api/galeria/:id', async (req, res) => {
     try {
         const { id } = req.params;
         if (dbAvailable) {
-            const result = await pool.query('DELETE FROM galeria WHERE id=$1', [id]);
+            const result = await pool.query('DELETE FROM galeria WHERE id=?', [id]);
             if (result.rowCount === 0) return res.status(404).json({ error: 'Imagem não encontrada.' });
             return res.json({ success: true });
         }
@@ -5218,8 +5213,8 @@ app.get('/api/lme/destinatarios', async (req, res) => {
     try {
         const tipo = req.query.tipo || 'lme';
         if (dbAvailable) {
-            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = $1 ORDER BY nome ASC", [tipo]);
-            return res.json(result.rows);
+            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = ? ORDER BY nome ASC", [tipo]);
+            return res.json(result[0]);
         }
         const filtered = (memStore.lme_destinatarios || []).filter(d => (d.tipo || 'lme') === tipo);
         res.json(filtered.sort((a, b) => a.nome.localeCompare(b.nome)));
@@ -5235,10 +5230,10 @@ app.post('/api/lme/destinatarios', async (req, res) => {
         if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO lme_destinatarios (nome, email, tipo) VALUES ($1, $2, $3) RETURNING *',
+                'INSERT INTO lme_destinatarios (nome, email, tipo) VALUES (?, ?, ?)',
                 [nome, email, tipo]
             );
-            return res.status(201).json(result.rows[0]);
+            return res.status(201).json(result[0][0]);
         }
         if ((memStore.lme_destinatarios || []).some(d => d.email.toLowerCase() === email.toLowerCase() && (d.tipo || 'lme') === tipo)) {
             return res.status(400).json({ error: 'E-mail já cadastrado nesta lista.' });
@@ -5259,11 +5254,11 @@ app.put('/api/lme/destinatarios/:id', async (req, res) => {
         if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
         if (dbAvailable) {
             const result = await pool.query(
-                'UPDATE lme_destinatarios SET nome=$1, email=$2, tipo=$3 WHERE id=$4 RETURNING *',
+                'UPDATE lme_destinatarios SET nome=?, email=?, tipo=? WHERE id=?',
                 [nome, email, tipo, id]
             );
             if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         const idx = memStore.lme_destinatarios.findIndex(d => d.id == id);
         if (idx === -1) return res.status(404).json({ error: 'Destinatário não encontrado.' });
@@ -5279,7 +5274,7 @@ app.delete('/api/lme/destinatarios/:id', async (req, res) => {
     try {
         const { id } = req.params;
         if (dbAvailable) {
-            const result = await pool.query('DELETE FROM lme_destinatarios WHERE id=$1', [id]);
+            const result = await pool.query('DELETE FROM lme_destinatarios WHERE id=?', [id]);
             if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
             return res.json({ success: true });
         }
@@ -5853,7 +5848,7 @@ async function getResendConfig() {
     if (dbAvailable) {
         try {
             const result = await pool.query('SELECT * FROM settings');
-            result.rows.forEach(r => { settings[r.key] = r.value; });
+            result[0].forEach(r => { settings[r.key] = r.value; });
         } catch (e) {
             console.error('Error reading settings from DB:', e);
         }
@@ -6004,7 +5999,7 @@ async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
     let recipients = [];
     if (dbAvailable) {
         const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = 'lme'");
-        recipients = result.rows;
+        recipients = result[0];
     } else {
         recipients = (memStore.lme_destinatarios || []).filter(r => (r.tipo || 'lme') === 'lme');
     }
@@ -6133,8 +6128,8 @@ async function enviarTabelaPrecosEmail(pdfBase64, modo = 'fornecedor', emailDest
         const isCompleta = modo === 'completa';
         const targetTipo = isCompleta ? 'tabela_geral' : 'tabela_fornecedor';
         if (dbAvailable) {
-            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = $1", [targetTipo]);
-            recipients = result.rows;
+            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = ?", [targetTipo]);
+            recipients = result[0];
         } else {
             recipients = (memStore.lme_destinatarios || []).filter(r => (r.tipo || 'lme') === targetTipo);
         }
@@ -6215,7 +6210,7 @@ function startEmailScheduler() {
             const settings = {};
             if (dbAvailable) {
                 const result = await pool.query('SELECT * FROM settings');
-                result.rows.forEach(r => { settings[r.key] = r.value; });
+                result[0].forEach(r => { settings[r.key] = r.value; });
             } else {
                 Object.assign(settings, memStore.settings);
             }
@@ -6693,7 +6688,7 @@ app.get('/api/clientes', async (req, res) => {
             let whereClause = '';
             let params = [];
             if (search) {
-                whereClause = `WHERE LOWER(nome) LIKE $1 OR LOWER(COALESCE(fantasia,'')) LIKE $1 OR LOWER(COALESCE(cnpj,'')) LIKE $1 OR LOWER(COALESCE(cpf,'')) LIKE $1 OR LOWER(COALESCE(email,'')) LIKE $1`;
+                whereClause = `WHERE LOWER(nome) LIKE ? OR LOWER(COALESCE(fantasia,'')) LIKE ? OR LOWER(COALESCE(cnpj,'')) LIKE ? OR LOWER(COALESCE(cpf,'')) LIKE ? OR LOWER(COALESCE(email,'')) LIKE ?`;
                 params.push(`%${search}%`);
             }
 
@@ -6710,13 +6705,13 @@ app.get('/api/clientes', async (req, res) => {
             const result = await pool.query(dataQuery, params);
             if (page) {
                 return res.json({
-                    data: result.rows,
+                    data: result[0],
                     total,
                     page,
                     totalPages: Math.ceil(total / limit)
                 });
             }
-            return res.json(result.rows);
+            return res.json(result[0]);
         } else {
             let list = memStore.clientes || [];
             if (search) {
@@ -6750,9 +6745,9 @@ app.get('/api/clientes/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM clientes WHERE id = $1', [id]);
-            if (result.rows.length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
-            return res.json(result.rows[0]);
+            const result = await pool.query('SELECT * FROM clientes WHERE id = ?', [id]);
+            if (result[0].length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
+            return res.json(result[0][0]);
         }
         res.status(404).json({ error: 'Cliente não encontrado.' });
     } catch (err) {
@@ -6783,15 +6778,14 @@ app.post('/api/clientes', async (req, res) => {
                     endereco, numero, bairro, cidade, uf,
                     pais, cep, tipo_cliente, contato_comercial,
                     contato_financeiro, status, vendedor, dias, filial
-                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
-                RETURNING *`,
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [codigoNum, nome, fantasia, telefone1, telefone2,
                  cnpj, cpf, ie, rg, email,
                  endereco, numero, bairro, cidade, uf,
                  pais || 'BR', cep, tipo_cliente, contato_comercial,
                  contato_financeiro, status || 'ATIVO', vendedor, dias !== undefined && dias !== null ? String(dias).trim() : '0', filial || '01']
             );
-            return res.json(result.rows[0]);
+            return res.json(result[0][0]);
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
     } catch (err) {
@@ -6810,12 +6804,12 @@ app.put('/api/clientes/:id', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query(
                 `UPDATE clientes SET
-                    codigo=$1, nome=$2, fantasia=$3, telefone1=$4, telefone2=$5,
-                    cnpj=$6, cpf=$7, ie=$8, rg=$9, email=$10,
-                    endereco=$11, numero=$12, bairro=$13, cidade=$14, uf=$15,
-                    pais=$16, cep=$17, tipo_cliente=$18, contato_comercial=$19,
-                    contato_financeiro=$20, status=$21, vendedor=$22, dias=$23, filial=$24
-                WHERE id=$25 RETURNING *`,
+                    codigo=?, nome=?, fantasia=?, telefone1=?, telefone2=?,
+                    cnpj=?, cpf=?, ie=?, rg=?, email=?,
+                    endereco=?, numero=?, bairro=?, cidade=?, uf=?,
+                    pais=?, cep=?, tipo_cliente=?, contato_comercial=?,
+                    contato_financeiro=?, status=?, vendedor=?, dias=?, filial=?
+                WHERE id=?`,
                 [codigo, nome, fantasia, telefone1, telefone2,
                  cnpj, cpf, ie, rg, email,
                  endereco, numero, bairro, cidade, uf,
@@ -6823,8 +6817,8 @@ app.put('/api/clientes/:id', async (req, res) => {
                  contato_financeiro, status || 'ATIVO', vendedor, dias !== undefined && dias !== null ? String(dias).trim() : '0', filial,
                  id]
             );
-            if (result.rows.length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
-            return res.json(result.rows[0]);
+            if (result[0].length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
+            return res.json(result[0][0]);
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
     } catch (err) {
@@ -6837,7 +6831,7 @@ app.delete('/api/clientes/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (dbAvailable) {
-            await pool.query('DELETE FROM clientes WHERE id = $1', [id]);
+            await pool.query('DELETE FROM clientes WHERE id = ?', [id]);
             return res.json({ success: true });
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
@@ -6861,8 +6855,8 @@ app.get('/api/pedidos-venda/proximo-numero', async (req, res) => {
             return res.json({ numero: 'PV-' + String(count + 1).padStart(4, '0') });
         }
         const r = await pool.query("SELECT numero FROM pedidos_venda ORDER BY id DESC LIMIT 1");
-        if (r.rows.length === 0) return res.json({ numero: 'PV-0001' });
-        const last = parseInt(r.rows[0].numero.replace('PV-', '')) || 0;
+        if (r[0].length === 0) return res.json({ numero: 'PV-0001' });
+        const last = parseInt(r[0][0].numero.replace('PV-', '')) || 0;
         const next = 'PV-' + String(last + 1).padStart(4, '0');
         return res.json({ numero: next });
     } catch (err) {
@@ -6892,7 +6886,7 @@ app.get('/api/pedidos-venda', async (req, res) => {
             LEFT JOIN clientes c ON c.id = pv.cliente_id
             ORDER BY pv.id DESC
         `);
-        return res.json(r.rows);
+        return res.json(r[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -6922,10 +6916,10 @@ app.get('/api/pedidos-venda/:id', async (req, res) => {
                    c.email AS cliente_email, c.endereco AS cliente_endereco, c.cidade AS cliente_cidade, c.uf AS cliente_uf
             FROM pedidos_venda pv
             LEFT JOIN clientes c ON c.id = pv.cliente_id
-            WHERE pv.id = $1
+            WHERE pv.id = ?
         `, [id]);
         if (pedido.rows.length === 0) return res.status(404).json({ error: 'Pedido não encontrado' });
-        const itens = await pool.query('SELECT * FROM pedidos_venda_itens WHERE pedido_id = $1 ORDER BY id', [id]);
+        const itens = await pool.query('SELECT * FROM pedidos_venda_itens WHERE pedido_id = ? ORDER BY id', [id]);
         return res.json({ ...pedido.rows[0], itens: itens.rows });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -6986,7 +6980,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
                 INSERT INTO pedidos_venda (numero, cliente_id, cliente_nome, data_emissao, data_entrega, status, condicao_pagamento,
                     observacoes, desconto_pct, frete, total_itens, total_geral, criado_por, criado_por_perfil,
                     endereco_entrega, responsavel_recebimento, tipo_frete)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             `, [numero, cid, cliente_nome || '', data_emissao || new Date().toISOString().split('T')[0],
                  data_entrega || null, status || 'Rascunho', condicao_pagamento, observacoes,
                  desc, fr, total_itens, total_geral, criado_por, criado_por_perfil,
@@ -6996,7 +6990,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
             for (const item of itens) {
                 await client.query(`
                     INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
-                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                    VALUES (?,?,?,?,?,?,?,?)
                 `, [pedidoId, item.material_id || null, item.descricao, item.unidade || 'kg',
                      item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
             }
@@ -7058,24 +7052,24 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
         try {
             await client.query('BEGIN');
             await client.query(`
-                UPDATE pedidos_venda SET cliente_id=$1, cliente_nome=$2, data_emissao=$3, data_entrega=$4, status=$5,
-                    condicao_pagamento=$6, observacoes=$7, desconto_pct=$8, frete=$9,
-                    total_itens=$10, total_geral=$11, criado_por_perfil=$12, endereco_entrega=$13,
-                    responsavel_recebimento=$14, tipo_frete=$15, atualizado_em=NOW()
-                WHERE id=$16
+                UPDATE pedidos_venda SET cliente_id=?, cliente_nome=?, data_emissao=?, data_entrega=?, status=?,
+                    condicao_pagamento=?, observacoes=?, desconto_pct=?, frete=?,
+                    total_itens=?, total_geral=?, criado_por_perfil=?, endereco_entrega=?,
+                    responsavel_recebimento=?, tipo_frete=?, atualizado_em=NOW()
+                WHERE id=?
             `, [cid, cliente_nome || '', data_emissao, data_entrega || null, status, condicao_pagamento,
                  observacoes, desc, fr, total_itens, total_geral, criado_por_perfil,
                  endereco_entrega, responsavel_recebimento, tipo_frete, id]);
-            await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = $1', [id]);
+            await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = ?', [id]);
             for (const item of (itens || [])) {
                 await client.query(`
                     INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
-                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+                    VALUES (?,?,?,?,?,?,?,?)
                 `, [id, item.material_id || null, item.descricao, item.unidade || 'kg',
                      item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
             }
             await client.query('COMMIT');
-            const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=$1', [id]);
+            const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=?', [id]);
             res.json(updated.rows[0]);
         } catch (err) {
             await client.query('ROLLBACK');
@@ -7096,7 +7090,7 @@ app.delete('/api/pedidos-venda/:id', async (req, res) => {
             memStore.pedidos_venda = (memStore.pedidos_venda || []).filter(x => x.id !== id);
             return res.json({ success: true });
         }
-        await pool.query('DELETE FROM pedidos_venda WHERE id = $1', [id]);
+        await pool.query('DELETE FROM pedidos_venda WHERE id = ?', [id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
