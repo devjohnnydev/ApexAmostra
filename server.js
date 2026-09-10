@@ -62,22 +62,23 @@ const PORT = process.env.PORT || 3000;
 // ─── SEGURANÇA BÁSICA (HELMET REMOVIDO TEMPORARIAMENTE) ──────────────────────
 // app.use(helmet());
 
-// ─── PostgreSQL Pool (opcional) ──────────────────────────────────────────────
+// ─── MySQL Pool (Hostinger) ───────────────────────────────────────────────────
 let pool = null;
 let dbAvailable = false;
 
-if (process.env.DATABASE_URL) {
+if (process.env.DB_HOST || process.env.DATABASE_URL) {
     const mysql = require('mysql2/promise');
-    pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
-        connectionTimeoutMillis: 15000
+    pool = mysql.createPool({
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT || 3306,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
     });
-
-    pool.on('error', (err, client) => {
-        console.error('❌ Erro inesperado no banco de dados (idle client):', err);
-        // O painel deve continuar funcionando através do dbAvailable fallback
-    });
+    console.log(`🗄️  MySQL pool criado para ${process.env.DB_HOST}/${process.env.DB_NAME}`);
 }
 
 // ─── Proteção contra Crashes & Desligamento Gracioso (Railway) ─────────
