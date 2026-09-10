@@ -4762,8 +4762,7 @@ function parseDate(diaStr, currentYearStr) {
         if (m === undefined) return null;
         
         // Determina o ano. Se currentYearStr não for passado, usa o atual.
-        const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-        let y = currentYearStr ? parseInt(currentYearStr, 10) : new Date(localTimeStr).getFullYear();
+        let y = currentYearStr ? parseInt(currentYearStr, 10) : new Date().getFullYear();
         // Nota: O site pode ter 'Dez' no relatório de 'Jan/2026'.
         // Trataremos isso comparando se m=11 e o mês do relatório é 0.
         return new Date(y, m, d);
@@ -4795,77 +4794,38 @@ function avg(arr) {
     return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
-function getPreviousMonthStr(mesStr) {
-    const parts = mesStr.split('-');
-    if (parts.length !== 2) return null;
-    let m = parseInt(parts[0], 10);
-    let y = parseInt(parts[1], 10);
-    if (m === 1) {
-        m = 12;
-        y = y - 1;
-    } else {
-        m = m - 1;
-    }
-    return `${m}-${y}`;
-}
-
-
-
-async function generateRelatorioSemanas(mes) {
-    // 1. Busca dados do mês atual
-    let targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
-    let html;
+app.get('/api/lme/relatorio-semanal', async (req, res) => {
     try {
-        const response = await axios.get(targetUrl, {
-            timeout: 15000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
+        const mes = req.query.mes; // ex: "6-2026"
+        if (!mes) return res.status(400).json({ error: 'Parâmetro mes obrigatório. Ex: ?mes=6-2026' });
+
+        // 1. Busca dados do mês atual
+        const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+        const { data: html } = await axios.get(targetUrl, { timeout: 15000 });
+        const $ = cheerio.load(html);
+
+        // 2. Extrai opções de meses disponíveis
+        const mesesDisponiveis = [];
+        $('#meslme option').each((i, el) => {
+            mesesDisponiveis.push({ valor: $(el).val(), texto: $(el).text().trim() });
         });
-        html = response.data;
-    } catch (err) {
-        console.warn(`Erro no agendador ao buscar ${targetUrl}, tentando fallback para a home:`, err.message);
-        targetUrl = `https://shockmetais.com.br/lme/`;
-        const response = await axios.get(targetUrl, {
-            timeout: 15000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
-        html = response.data;
-    }
-    const $ = cheerio.load(html);
 
-    // 2. Extrai opções de meses disponíveis
-    const mesesDisponiveis = [];
-    $('#meslme option').each((i, el) => {
-        mesesDisponiveis.push({ valor: $(el).val(), texto: $(el).text().trim() });
-    });
+        const reqYear = mes.split('-')[1];
 
-    let resolvedMes = mes;
-    if (mes === 'atual' && mesesDisponiveis.length > 0) {
-        resolvedMes = mesesDisponiveis[0].valor;
-    }
-
-    const reqParts = resolvedMes.split('-');
-    const reqMonth = parseInt(reqParts[0], 10);
-    const reqYearNum = parseInt(reqParts[1], 10);
-
-    // Helper to extract rows
-    function extractRows($, year) {
-        const rows = [];
+        // 3. Extrai linhas diárias
+        const dailyRows = [];
         $('#boxtabela table tbody tr').each((i, el) => {
             const tds = $(el).find('td');
             if (tds.length < 8) return;
             const isMedia   = $(tds[0]).hasClass('lmemedia');
             const isMensal  = $(tds[0]).hasClass('lmemensal');
-            if (isMedia || isMensal) return;
+            if (isMedia || isMensal) return; // pula médias do site externo
 
             const diaStr = $(tds[0]).text().trim();
-            const dateObj = parseDate(diaStr, year);
+            const dateObj = parseDate(diaStr, reqYear);
             if (!dateObj) return;
 
-            rows.push({
+            dailyRows.push({
                 data:     diaStr,
                 dateObj,
                 cobre:    parseNum($(tds[1]).text()),
@@ -4877,1306 +4837,146 @@ async function generateRelatorioSemanas(mes) {
                 dolar:    parseNum($(tds[7]).text()),
             });
         });
-        return rows;
-    }
 
-    const mainRows = extractRows($, reqYearNum);
+        const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
 
-    // Fetch previous month to get the preceding weeks for historical calculations
-    let dailyRows = [...mainRows];
-    const prevMes = getPreviousMonthStr(mes);
-    if (prevMes) {
-        try {
-            const prevUrl = `https://shockmetais.com.br/lme/${prevMes}`;
-            const { data: prevHtml } = await axios.get(prevUrl, { timeout: 10000 });
-            const $prev = cheerio.load(prevHtml);
-            const prevYearNum = parseInt(prevMes.split('-')[1], 10);
-            const prevRows = extractRows($prev, prevYearNum);
-
-            const existingTimes = new Set(mainRows.map(r => r.dateObj.getTime()));
-            prevRows.forEach(r => {
-                if (!existingTimes.has(r.dateObj.getTime())) {
-                    dailyRows.push(r);
-                }
-            });
-        } catch (err) {
-            console.warn(`Could not fetch previous month ${prevMes}:`, err.message);
-        }
-    }
-
-    // Sort chronologically
-    dailyRows.sort((a, b) => a.dateObj - b.dateObj);
-
-    const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
-
-    // 4. Agrupa por semana
-    const weekMap = new Map();
-    dailyRows.forEach(row => {
-        const wk = weekKey(row.dateObj);
-        if (!weekMap.has(wk)) weekMap.set(wk, []);
-        weekMap.get(wk).push(row);
-    });
-
-    // 5. Pré-calcula 100% LME de cada semana (necessário para semanaAnterior e mediaMensal)
-    const allWeekLME = {}; // wk -> {metal: valor100pct}
-    weekMap.forEach((days, wk) => {
-        const entry = {};
-        METALS.forEach(m => {
-            const mediaMetal = avg(days.map(d => d[m]));
-            const mediaDolar = avg(days.map(d => d.dolar));
-            entry[m] = (mediaMetal !== null && mediaDolar !== null)
-                ? (mediaMetal * mediaDolar) / 1000 : null;
+        // 4. Agrupa por semana
+        const weekMap = new Map();
+        dailyRows.forEach(row => {
+            const wk = weekKey(row.dateObj);
+            if (!weekMap.has(wk)) weekMap.set(wk, []);
+            weekMap.get(wk).push(row);
         });
-        entry.dolar = avg(days.map(d => d.dolar));
-        allWeekLME[wk] = entry;
-    });
 
-    // 6. Monta blocos semanais com todos os cálculos
-    const sortedWeekKeys = [...weekMap.keys()].sort();
-    const weekBlocks = sortedWeekKeys.map((wk, idx) => {
-        const days = weekMap.get(wk);
-        const prevWk = idx > 0 ? sortedWeekKeys[idx - 1] : null;
-        const prevLME = prevWk ? allWeekLME[prevWk] : null;
-        const prevPrevWk = idx > 1 ? sortedWeekKeys[idx - 2] : null;
-
-        // Médias semanais
-        const mediaSemanal = {};
-        METALS.forEach(m => { mediaSemanal[m] = avg(days.map(d => d[m])); });
-        mediaSemanal.dolar = avg(days.map(d => d.dolar));
-
-        // 100% LME = (média_metal * média_dolar) / 1000
-        const lme100 = {};
-        METALS.forEach(m => {
-            lme100[m] = (mediaSemanal[m] !== null && mediaSemanal.dolar !== null)
-                ? (mediaSemanal[m] * mediaSemanal.dolar) / 1000 : null;
-        });
-        lme100.dolar = mediaSemanal.dolar;
-
-        // SEMANA ANTERIOR = 100% LME da semana anterior
-        const semanaAnterior = {};
-        METALS.forEach(m => { semanaAnterior[m] = prevLME ? prevLME[m] : null; });
-        semanaAnterior.dolar = prevLME ? prevLME.dolar : null;
-
-        // OSCILAÇÃO R$ = 100% LME - SEMANA ANTERIOR
-        const oscRS = {};
-        METALS.forEach(m => {
-            oscRS[m] = (lme100[m] !== null && semanaAnterior[m] !== null)
-                ? lme100[m] - semanaAnterior[m] : null;
-        });
-        oscRS.dolar = (lme100.dolar !== null && semanaAnterior.dolar !== null)
-            ? lme100.dolar - semanaAnterior.dolar : null;
-
-        // OSCILAÇÃO % = oscRS / semanaAnterior
-        const oscPct = {};
-        METALS.forEach(m => {
-            oscPct[m] = (oscRS[m] !== null && semanaAnterior[m] !== null && semanaAnterior[m] !== 0)
-                ? oscRS[m] / semanaAnterior[m] : null;
-        });
-        oscPct.dolar = (oscRS.dolar !== null && semanaAnterior.dolar !== null && semanaAnterior.dolar !== 0)
-            ? oscRS.dolar / semanaAnterior.dolar : null;
-
-        // FECHAMENTO % (SEMANA ANTERIOR) = OSCILAÇÃO % da semana anterior
-        const fechamentoPct = {};
-        if (prevPrevWk) {
-            const prevPrevLME = allWeekLME[prevPrevWk];
+        // 5. Calcula média mensal de 100% LME (para usar em cada semana)
+        // Calcula todas as semanas primeiro para ter a média mensal
+        const allWeekLME = {}; // wk -> {metal: valor100pct}
+        weekMap.forEach((days, wk) => {
+            const entry = {};
             METALS.forEach(m => {
-                const osc = (prevLME && prevPrevLME && prevLME[m] !== null && prevPrevLME[m] !== null && prevPrevLME[m] !== 0)
-                    ? (prevLME[m] - prevPrevLME[m]) / prevPrevLME[m] : null;
-                fechamentoPct[m] = osc;
+                const mediaMetal = avg(days.map(d => d[m]));
+                const mediaDolar = avg(days.map(d => d.dolar));
+                entry[m] = (mediaMetal !== null && mediaDolar !== null)
+                    ? (mediaMetal * mediaDolar) / 1000 : null;
             });
-            fechamentoPct.dolar = (prevLME && prevPrevLME && prevLME.dolar !== null && prevPrevLME.dolar !== null && prevPrevLME.dolar !== 0)
-                ? (prevLME.dolar - prevPrevLME.dolar) / prevPrevLME.dolar : null;
-        } else {
-            [...METALS, 'dolar'].forEach(m => { fechamentoPct[m] = null; });
-        }
+            entry.dolar = avg(days.map(d => d.dolar));
+            allWeekLME[wk] = entry;
+        });
 
-        // Formata dias para exibição (pad até 5 dias)
-        const daysDisplay = [];
-        for (let i = 0; i < 5; i++) {
-            daysDisplay.push(days[i] ? {
-                data:     days[i].data,
-                cobre:    days[i].cobre,
-                zinco:    days[i].zinco,
-                aluminio: days[i].aluminio,
-                chumbo:   days[i].chumbo,
-                estanho:  days[i].estanho,
-                niquel:   days[i].niquel,
-                dolar:    days[i].dolar,
-            } : { data: '—', cobre: null, zinco: null, aluminio: null, chumbo: null, estanho: null, niquel: null, dolar: null });
-        }
-
-        const firstDate = days[0].data;
-        const lastDate  = days[days.length - 1].data;
-        const numDias = days.length;
-
-        // Média Mensal: apenas semanas FECHADAS anteriores à atual
-        const mediaMensal = {};
+        // Média mensal de 100% LME por metal
+        const mediaMensalLME = {};
         METALS.forEach(m => {
-            const vals = sortedWeekKeys.slice(0, idx)
-                .map(k => allWeekLME[k][m])
-                .filter(v => v !== null);
-            mediaMensal[m] = vals.length ? avg(vals) : null;
+            const vals = Object.values(allWeekLME).map(e => e[m]).filter(v => v !== null);
+            mediaMensalLME[m] = vals.length ? avg(vals) : null;
         });
-        const prevDailyDolar = sortedWeekKeys.slice(0, idx)
-            .flatMap(k => weekMap.get(k).map(d => d.dolar))
-            .filter(v => v !== null);
-        mediaMensal.dolar = prevDailyDolar.length ? avg(prevDailyDolar) : null;
+        mediaMensalLME.dolar = avg(dailyRows.map(d => d.dolar).filter(v => v !== null));
 
-        return {
-            weekKey: wk,
-            header:  firstDate,
-            lastDay: lastDate,
-            label:   `${firstDate} a ${lastDate}`,
-            numDias,
-            days:    daysDisplay,
-            computed: {
-                'MEDIA SEMANAL':                    mediaSemanal,
-                '100% LME':                         lme100,
-                'SEMANA ANTERIOR':                  semanaAnterior,
-                'FECHAMENTO % ( SEMANA ANTERIOR )': fechamentoPct,
-                'OSCILAÇÃO %':                      oscPct,
-                'OSCILAÇÃO R$':                     oscRS,
-                'MEDIA MENSAL':                     mediaMensal,
+        // 6. Monta blocos semanais com todos os cálculos
+        const sortedWeekKeys = [...weekMap.keys()].sort();
+        const weekBlocks = sortedWeekKeys.map((wk, idx) => {
+            const days = weekMap.get(wk);
+            const prevWk = idx > 0 ? sortedWeekKeys[idx - 1] : null;
+            const prevLME = prevWk ? allWeekLME[prevWk] : null;
+            const prevPrevWk = idx > 1 ? sortedWeekKeys[idx - 2] : null;
+
+            // Médias semanais
+            const mediaSemanal = {};
+            METALS.forEach(m => { mediaSemanal[m] = avg(days.map(d => d[m])); });
+            mediaSemanal.dolar = avg(days.map(d => d.dolar));
+
+            // 100% LME = (média_metal * média_dolar) / 1000
+            const lme100 = {};
+            METALS.forEach(m => {
+                lme100[m] = (mediaSemanal[m] !== null && mediaSemanal.dolar !== null)
+                    ? (mediaSemanal[m] * mediaSemanal.dolar) / 1000 : null;
+            });
+            lme100.dolar = mediaSemanal.dolar;
+
+            // SEMANA ANTERIOR = 100% LME da semana anterior
+            const semanaAnterior = {};
+            METALS.forEach(m => { semanaAnterior[m] = prevLME ? prevLME[m] : null; });
+            semanaAnterior.dolar = prevLME ? prevLME.dolar : null;
+
+            // OSCILAÇÃO R$ = 100% LME - SEMANA ANTERIOR
+            const oscRS = {};
+            METALS.forEach(m => {
+                oscRS[m] = (lme100[m] !== null && semanaAnterior[m] !== null)
+                    ? lme100[m] - semanaAnterior[m] : null;
+            });
+            oscRS.dolar = (lme100.dolar !== null && semanaAnterior.dolar !== null)
+                ? lme100.dolar - semanaAnterior.dolar : null;
+
+            // OSCILAÇÃO % = oscRS / semanaAnterior
+            const oscPct = {};
+            METALS.forEach(m => {
+                oscPct[m] = (oscRS[m] !== null && semanaAnterior[m] !== null && semanaAnterior[m] !== 0)
+                    ? oscRS[m] / semanaAnterior[m] : null;
+            });
+            oscPct.dolar = (oscRS.dolar !== null && semanaAnterior.dolar !== null && semanaAnterior.dolar !== 0)
+                ? oscRS.dolar / semanaAnterior.dolar : null;
+
+            // FECHAMENTO % (SEMANA ANTERIOR) = OSCILAÇÃO % da semana anterior
+            const fechamentoPct = {};
+            if (prevPrevWk) {
+                const prevPrevLME = allWeekLME[prevPrevWk];
+                METALS.forEach(m => {
+                    const osc = (prevLME && prevPrevLME && prevLME[m] !== null && prevPrevLME[m] !== null && prevPrevLME[m] !== 0)
+                        ? (prevLME[m] - prevPrevLME[m]) / prevPrevLME[m] : null;
+                    fechamentoPct[m] = osc;
+                });
+                fechamentoPct.dolar = (prevLME && prevPrevLME && prevLME.dolar !== null && prevPrevLME.dolar !== null && prevPrevLME.dolar !== 0)
+                    ? (prevLME.dolar - prevPrevLME.dolar) / prevPrevLME.dolar : null;
+            } else {
+                [...METALS, 'dolar'].forEach(m => { fechamentoPct[m] = null; });
             }
-        };
-    });
 
-    const filteredBlocks = weekBlocks.filter(block => {
-        const days = weekMap.get(block.weekKey);
-        return days.some(d => {
-            const m = d.dateObj.getMonth() + 1;
-            const y = d.dateObj.getFullYear();
-            return m === reqMonth && y === reqYearNum;
+            // Formata dias para exibição (pad até 5 dias)
+            const daysDisplay = [];
+            for (let i = 0; i < 5; i++) {
+                daysDisplay.push(days[i] ? {
+                    data:     days[i].data,
+                    cobre:    days[i].cobre,
+                    zinco:    days[i].zinco,
+                    aluminio: days[i].aluminio,
+                    chumbo:   days[i].chumbo,
+                    estanho:  days[i].estanho,
+                    niquel:   days[i].niquel,
+                    dolar:    days[i].dolar,
+                } : { data: '—', cobre: null, zinco: null, aluminio: null, chumbo: null, estanho: null, niquel: null, dolar: null });
+            }
+
+            const firstDate = days[0].data;
+            const lastDate  = days[days.length - 1].data;
+
+            return {
+                weekKey: wk,
+                header:  firstDate,
+                lastDay: lastDate,
+                label:   `${firstDate} → ${lastDate}`,
+                days:    daysDisplay,
+                computed: {
+                    'MEDIA SEMANAL':                    mediaSemanal,
+                    '100% LME':                         lme100,
+                    'SEMANA ANTERIOR':                  semanaAnterior,
+                    'FECHAMENTO % ( SEMANA ANTERIOR )': fechamentoPct,
+                    'OSCILAÇÃO %':                      oscPct,
+                    'OSCILAÇÃO R$':                     oscRS,
+                    'MEDIA MENSAL':                     mediaMensalLME,
+                }
+            };
         });
-    });
 
-    return { semanas: filteredBlocks, mesesDisponiveis };
-}
-
-app.get('/api/lme/relatorio-semanal', async (req, res) => {
-    try {
-        const mes = req.query.mes || 'atual';
-
-        const data = await generateRelatorioSemanas(mes);
-        res.json({ semanas: [...data.semanas].reverse(), mesesDisponiveis: data.mesesDisponiveis });
+        res.json({ semanas: weekBlocks.reverse(), mesesDisponiveis });
     } catch (err) {
         console.error('Erro GET /api/lme/relatorio-semanal:', err.message);
         res.status(500).json({ error: 'Erro ao gerar relatório semanal LME: ' + err.message });
     }
 });
 
-// ─── API: LME Destinatários (CRUD) ─────────────────────────────────────────────
-app.get('/api/lme/destinatarios', async (req, res) => {
-    try {
-        const tipo = req.query.tipo || 'lme';
-        if (dbAvailable) {
-            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = ? ORDER BY nome ASC", [tipo]);
-            return res.json(result[0]);
-        }
-        const filtered = (memStore.lme_destinatarios || []).filter(d => (d.tipo || 'lme') === tipo);
-        res.json(filtered.sort((a, b) => a.nome.localeCompare(b.nome)));
-    } catch (err) {
-        console.error('Erro GET /api/lme/destinatarios:', err);
-        res.status(500).json({ error: 'Erro ao buscar destinatários.' });
-    }
-});
-
-app.post('/api/lme/destinatarios', async (req, res) => {
-    try {
-        const { nome, email, tipo = 'lme' } = req.body;
-        if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
-        if (dbAvailable) {
-            const result = await pool.query(
-                'INSERT INTO lme_destinatarios (nome, email, tipo) VALUES (?, ?, ?)',
-                [nome, email, tipo]
-            );
-            return res.status(201).json(result[0][0]);
-        }
-        if ((memStore.lme_destinatarios || []).some(d => d.email.toLowerCase() === email.toLowerCase() && (d.tipo || 'lme') === tipo)) {
-            return res.status(400).json({ error: 'E-mail já cadastrado nesta lista.' });
-        }
-        const item = { id: nextId++, nome, email, tipo, criado_em: new Date().toISOString() };
-        memStore.lme_destinatarios.push(item);
-        res.status(201).json(item);
-    } catch (err) {
-        console.error('Erro POST /api/lme/destinatarios:', err);
-        res.status(500).json({ error: 'Erro ao criar destinatário.' });
-    }
-});
-
-app.put('/api/lme/destinatarios/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nome, email, tipo = 'lme' } = req.body;
-        if (!nome || !email) return res.status(400).json({ error: 'nome e email são obrigatórios.' });
-        if (dbAvailable) {
-            const result = await pool.query(
-                'UPDATE lme_destinatarios SET nome=?, email=?, tipo=? WHERE id=?',
-                [nome, email, tipo, id]
-            );
-            if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
-            return res.json(result[0][0]);
-        }
-        const idx = memStore.lme_destinatarios.findIndex(d => d.id == id);
-        if (idx === -1) return res.status(404).json({ error: 'Destinatário não encontrado.' });
-        Object.assign(memStore.lme_destinatarios[idx], { nome, email, tipo });
-        res.json(memStore.lme_destinatarios[idx]);
-    } catch (err) {
-        console.error('Erro PUT /api/lme/destinatarios:', err);
-        res.status(500).json({ error: 'Erro ao atualizar destinatário.' });
-    }
-});
-
-app.delete('/api/lme/destinatarios/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        if (dbAvailable) {
-            const result = await pool.query('DELETE FROM lme_destinatarios WHERE id=?', [id]);
-            if (result.rowCount === 0) return res.status(404).json({ error: 'Destinatário não encontrado.' });
-            return res.json({ success: true });
-        }
-        const idx = memStore.lme_destinatarios.findIndex(d => d.id == id);
-        if (idx === -1) return res.status(404).json({ error: 'Destinatário não encontrado.' });
-        memStore.lme_destinatarios.splice(idx, 1);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Erro DELETE /api/lme/destinatarios:', err);
-        res.status(500).json({ error: 'Erro ao remover destinatário.' });
-    }
-});
-
-// ─── API: LME Enviar Relatório Manual ──────────────────────────────────────────
-app.post('/api/lme/enviar-email-manual', async (req, res) => {
-    try {
-        const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-        const dObj = new Date(localTimeStr);
-        const month = dObj.getMonth() + 1;
-        const year = dObj.getFullYear();
-        const mes = `${month}-${year}`;
-
-        const data = await generateRelatorioSemanas(mes);
-        if (!data || !data.semanas || data.semanas.length === 0) {
-            return res.status(404).json({ error: 'Nenhuma semana encontrada para enviar.' });
-        }
-
-        const latestWeek = data.semanas[0];
-        const pdfBase64 = req.body && req.body.pdfBase64 ? req.body.pdfBase64 : null;
-
-        await enviarRelatorioEmail(latestWeek, pdfBase64);
-
-        res.json({ success: true, message: 'Relatório enviado com sucesso!' });
-    } catch (err) {
-        console.error('Erro no envio manual de e-mail:', err);
-        res.status(500).json({ error: 'Erro ao enviar e-mail: ' + err.message });
-    }
-});
-
-app.post('/api/tabela-precos/enviar-email', async (req, res) => {
-    try {
-        let pdfBase64 = req.body && req.body.pdfBase64 ? req.body.pdfBase64 : null;
-        const modo = (req.body && req.body.modo) || 'fornecedor';
-        const emailDestino = (req.body && req.body.email) || null;
-        if (!pdfBase64) {
-            console.log(`📄 Gerando PDF da Tabela de Preços (${modo}) via Puppeteer no backend...`);
-            pdfBase64 = await gerarPdfTabelaPrecosViaHeadless(modo);
-        }
-        if (!pdfBase64) {
-            return res.status(500).json({ error: 'Não foi possível obter ou gerar o PDF da tabela de preços.' });
-        }
-        await enviarTabelaPrecosEmail(pdfBase64, modo, emailDestino);
-        const nomeModo = modo === 'completa' ? 'Geral Completa' : 'Fornecedor';
-        res.json({ success: true, message: `Tabela de preços (${nomeModo}) enviada por e-mail com sucesso!` });
-    } catch (err) {
-        console.error('Erro no envio da tabela de preços por e-mail:', err);
-        res.status(500).json({ error: 'Erro ao enviar e-mail: ' + err.message });
-    }
-});
-
-app.post('/api/lme/html-relatorio', (req, res) => {
-    try {
-        const { weekBlock } = req.body;
-        if (!weekBlock) {
-            return res.status(400).json({ error: 'weekBlock is required' });
-        }
-        const html = gerarHtmlRelatorio(weekBlock);
-        res.send(html);
-    } catch (err) {
-        console.error('Error generating HTML report:', err);
-        res.status(500).json({ error: 'Error generating report: ' + err.message });
-    }
-});
-
-// ─── Helpers de Formatação e Envio de E-mail ──────────────────────────────────
-const nodemailer = require('nodemailer');
-
-const fmtUSD = (val) => {
-    if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '—';
-    return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-};
-const fmtBRL = (val, dec = 3) => {
-    if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '—';
-    return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-};
-const fmtPct = (val) => {
-    if (val === null || val === undefined || isNaN(val)) return '—';
-    return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
-};
-const fmtVar = (val, type, textColor = '#000000', dec = 3) => {
-    if (val === null || val === undefined || isNaN(val)) return '—';
-    const num = Number(val);
-    let arrow = '';
-    if (num > 0) {
-        arrow = `<span style="color: #00B050 !important; font-weight: bold; margin-right: 4px;">▲</span>`;
-    } else if (num < 0) {
-        arrow = `<span style="color: #FF0000 !important; font-weight: bold; margin-right: 4px;">▼</span>`;
-    }
-    let txt = '';
-    if (type === 'pct') {
-        txt = (num * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
-    } else {
-        txt = 'R$ ' + Math.abs(num).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-    }
-    return `${arrow}<span style="color: ${textColor} !important;">${txt}</span>`;
-};
-
-function getISOWeek(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-}
-
-function getWeekHeaderInfo(firstDateStr) {
-    const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-    const today = new Date(localTimeStr);
-    const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-    const dateText = `${today.getDate()} de ${monthNames[today.getMonth()]}`;
-    const weekNum = getISOWeek(today);
-    return { dateText, weekNum };
-}
-
-function generateQuickChartUrl(labels, dataAtu, dataAnt, title) {
-    const bgAnt = [];
-    const borderAnt = [];
-    const bgAtu = [];
-    const borderAtu = [];
-
-    for (let i = 0; i < labels.length; i++) {
-        const valAtu = dataAtu[i] || 0;
-        const valAnt = dataAnt[i] || 0;
-        if (valAtu > valAnt) {
-            // Atual foi melhor (Verde), Anterior foi pior (Vermelho)
-            bgAtu.push('#27ae60');
-            borderAtu.push('#1e8449');
-            bgAnt.push('#e74c3c');
-            borderAnt.push('#c0392b');
-        } else {
-            // Atual foi pior (Vermelho), Anterior foi melhor (Verde)
-            bgAtu.push('#e74c3c');
-            borderAtu.push('#c0392b');
-            bgAnt.push('#27ae60');
-            borderAnt.push('#1e8449');
-        }
-    }
-
-    const chartConfig = {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Semana Anterior',
-                    backgroundColor: bgAnt,
-                    borderColor: borderAnt,
-                    borderWidth: 1,
-                    data: dataAnt
-                },
-                {
-                    label: 'Semana Atual',
-                    backgroundColor: bgAtu,
-                    borderColor: borderAtu,
-                    borderWidth: 1,
-                    data: dataAtu
-                }
-            ]
-        },
-        options: {
-            title: {
-                display: true,
-                text: title,
-                fontColor: '#222222',
-                fontSize: 13,
-                fontFamily: 'Calibri'
-            },
-            legend: {
-                display: false
-            },
-            layout: { padding: { top: 90, right: 8, left: 8, bottom: 8 } },
-            plugins: {
-                datalabels: {
-                    display: true,
-                    anchor: 'end',
-                    align: 'top',
-                    rotation: -90,
-                    color: '#111111',
-                    font: {
-                        weight: 'bold',
-                        size: 9
-                    },
-                    formatter: 'datalabels_formatter'
-                }
-            },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
-                        fontColor: '#444',
-                        callback: 'callback_y'
-                    },
-                    gridLines: { color: 'rgba(0,0,0,0.06)' }
-                }],
-                xAxes: [{
-                    ticks: { fontColor: '#222', fontWeight: 'bold' },
-                    gridLines: { display: false }
-                }]
-            }
-        }
-    };
-
-    const configStr = JSON.stringify(chartConfig)
-        .replace('"callback_y"', 'function(v) { return "R$ " + v.toLocaleString("pt-BR", { maximumFractionDigits: 0 }); }')
-        .replace('"datalabels_formatter"', 'function(value, ctx) { var prefix = ctx.dataset.label === "Semana Anterior" ? "Ant: " : "Atu: "; return prefix + "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }); }');
-
-    const encodedConfig = encodeURIComponent(configStr);
-    return `https://quickchart.io/chart?w=500&h=250&bkg=%23ffffff&c=${encodedConfig}`;
-}
-
-function generateKpiCard(metalName, key, comp) {
-    const atual = comp['100% LME']?.[key] || 0;
-    const anterior = comp['SEMANA ANTERIOR']?.[key] || 0;
-    const diff = atual - anterior;
-    const isUp = diff > 0;
-    const isDown = diff < 0;
-    const arrow = isUp ? '▲' : isDown ? '▼' : '–';
-    const color = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
-    const bg = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
-    const border = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
-
-    const fmtR = (val) => {
-        return 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-    };
-
-    return `
-    <div style="display: inline-block; width: 140px; margin: 6px; padding: 10px; border: 1.5px solid ${border}; background-color: ${bg}; border-radius: 6px; text-align: center; vertical-align: top; font-family: Calibri, Arial, sans-serif; box-sizing: border-box;">
-        <div style="font-size: 8pt; font-weight: bold; color: #555; text-transform: uppercase; margin-bottom: 2px;">${metalName}</div>
-        <div style="font-size: 10pt; font-weight: bold; color: ${color}; margin: 4px 0;">
-            ${arrow} ${fmtR(atual)}
-        </div>
-        <div style="font-size: 7.5pt; color: #777;">era ${fmtR(anterior)}</div>
-        <div style="font-size: 7.5pt; font-weight: bold; color: ${color}; margin-top: 2px;">
-            ${isUp ? '+' : isDown ? '-' : ''}${fmtR(Math.abs(diff))}
-        </div>
-    </div>
-    `;
-}
-
-function gerarHtmlRelatorio(weekBlock) {
-    const label = weekBlock.label;
-    const days = weekBlock.days;
-    const comp = weekBlock.computed;
-
-    const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
-    const headerInfo = getWeekHeaderInfo(days[0]?.data);
-
-    const numDias = weekBlock.numDias !== undefined ? weekBlock.numDias : days.filter(d => d.cobre !== null && d.cobre !== undefined && d.cobre !== 'feriado').length;
-
-    const chartGroup1 = generateQuickChartUrl(
-        ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO'],
-        [comp['100% LME'].cobre || 0, comp['100% LME'].zinco || 0, comp['100% LME'].aluminio || 0, comp['100% LME'].chumbo || 0],
-        [comp['SEMANA ANTERIOR'].cobre || 0, comp['SEMANA ANTERIOR'].zinco || 0, comp['SEMANA ANTERIOR'].aluminio || 0, comp['SEMANA ANTERIOR'].chumbo || 0],
-        'Cobre · Zinco · Alumínio · Chumbo'
-    );
-
-    const chartGroup2 = generateQuickChartUrl(
-        ['ESTANHO', 'NÍQUEL'],
-        [comp['100% LME'].estanho || 0, comp['100% LME'].niquel || 0],
-        [comp['SEMANA ANTERIOR'].estanho || 0, comp['SEMANA ANTERIOR'].niquel || 0],
-        'Estanho · Níquel'
-    );
-
-    const logoUrl = 'https://apextechmetais.com.br/assets/img/apexlogo.png';
-
-    const metalColStyles = {
-        cobre: 'background-color: #FF8B9B; color: #000000;',
-        zinco: 'background-color: #E6B8B7; color: #3d1a1a;',
-        aluminio: 'background-color: #BFBFBF; color: #111111;',
-        chumbo: 'background-color: #C9A8E8; color: #2d0060;',
-        estanho: 'background-color: #B5B059; color: #3a3000;',
-        niquel: 'background-color: #FFFFFF; color: #222222; border: 1px solid #ddd;',
-        dolar: 'background-color: #70AD47; color: #1a4000;'
-    };
-
-    let html = `
-    <div id="capture-area" class="capture-area" style="width: 800px; margin: 0 auto; background: #ffffff; padding: 20px; font-family: Calibri, Arial, sans-serif; color: #333333; box-sizing: border-box; border: 1px solid #ddd;">
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-            <tr>
-                <td style="width: 40%; vertical-align: middle; text-align: left; padding: 5px;">
-                    <img src="${logoUrl}" alt="Apextech Metais" style="max-height: 48px; max-width: 100%; display: block;">
-                </td>
-                <td style="width: 60%; vertical-align: middle; padding: 5px;">
-                    <div style="background: #ffff00; border: 2px solid #000000; padding: 10px; text-align: center; font-family: Arial, sans-serif; border-radius: 4px;">
-                        <div style="font-size: 7.5pt; font-weight: bold; color: #000000; letter-spacing: 0.8px; margin-bottom: 2px; text-transform: uppercase;">COTAÇÃO VÁLIDA PARA A SEMANA</div>
-                        <div style="font-size: 13.5pt; font-weight: bold; color: #000000;">${headerInfo.dateText} &mdash; Semana ${headerInfo.weekNum}</div>
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; font-family: Calibri, Arial, sans-serif; border: 1px solid #ddd;">
-            <thead>
-                <tr>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #000000; color: #ffffff;">DATA</th>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #db1f1f; color: #000000;">Cobre U$/t</th>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #e6b8b7; color: #000000;">Zinco U$/t</th>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #bfbfbf; color: #000000;">Alumínio U$/t</th>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #C9A8E8; color: #2d0060;">Chumbo U$/t</th>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #b5b059; color: #000000;">Estanho U$/t</th>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #ffffff; color: #000000;">Níquel U$/t</th>
-                    <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background: #70ad47; color: #000000;">Dólar US$</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    days.forEach(d => {
-        html += `
-            <tr>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000;">${d.data || '—'}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtUSD(d.cobre)}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtUSD(d.zinco)}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtUSD(d.aluminio)}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtUSD(d.chumbo)}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtUSD(d.estanho)}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtUSD(d.niquel)}</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #e2efda; color: #000000;">${fmtBRL(d.dolar, 4)}</td>
-            </tr>
-        `;
-    });
-
-    for (let i = days.length; i < 5; i++) {
-        html += `
-            <tr style="color: #999;">
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #999;">—</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">-</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">-</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">-</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">-</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">-</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">-</td>
-                <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #e2efda; color: #999;">-</td>
-            </tr>
-        `;
-    }
-
-    const mediaLabelText = numDias < 5 ? `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${numDias} dias úteis)</span>` : 'MÉDIA SEMANAL';
-
-    html += `
-        <tr style="background-color: #fde9d9; font-weight: bold; color: #000000;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #fde9d9;">${mediaLabelText}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtUSD(comp['MEDIA SEMANAL'].cobre)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtUSD(comp['MEDIA SEMANAL'].zinco)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtUSD(comp['MEDIA SEMANAL'].aluminio)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtUSD(comp['MEDIA SEMANAL'].chumbo)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtUSD(comp['MEDIA SEMANAL'].estanho)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtUSD(comp['MEDIA SEMANAL'].niquel)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #c6e0b4; color: #000000;">${fmtBRL(comp['MEDIA SEMANAL'].dolar, 4)}</td>
-        </tr>
-        <tr style="background-color: #ffff00; font-weight: bold; color: #000000;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #ffff00;">100% LME</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].cobre)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].zinco)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].aluminio)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].chumbo)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].estanho)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffff00; color: #000000;">${fmtBRL(comp['100% LME'].niquel)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #ffffff; color: #000000;"></td>
-        </tr>
-        <tr style="background-color: #000000; font-weight: bold; color: #ffffff;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #ffffff; background-color: #000000;">SEMANA ANTERIOR</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #000000; color: #ffffff;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
-        </tr>
-        <tr style="background-color: #A6A6A6; font-size: 9pt; color: #000000;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #A6A6A6;">FECHAMENTO % (SEMANA ANTERIOR)</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].cobre, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].zinco, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].aluminio, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].chumbo, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].estanho, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].niquel, 'pct', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; background-color: #A6A6A6; color: #000000;">${fmtVar(comp['FECHAMENTO % ( SEMANA ANTERIOR )'].dolar, 'pct', '#000000')}</td>
-        </tr>
-        <tr style="background-color: #A6A6A6; font-weight: bold; font-size: 9pt; color: #ffffff;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #ffffff; background-color: #A6A6A6;">OSCILAÇÃO %</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].cobre, 'pct', '#ffffff')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].zinco, 'pct', '#ffffff')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].aluminio, 'pct', '#ffffff')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].chumbo, 'pct', '#ffffff')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].estanho, 'pct', '#ffffff')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #0070c0;">${fmtVar(comp['OSCILAÇÃO %'].niquel, 'pct', '#ffffff')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO %'].dolar, 'pct', '#000000')}</td>
-        </tr>
-        <tr style="background-color: #A6A6A6; font-weight: bold; font-size: 9pt; color: #000000;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; color: #000000; background-color: #A6A6A6;">OSCILAÇÃO R$</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6;">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 9pt; background-color: #A6A6A6; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000', 4)}</td>
-        </tr>
-        <tr style="background-color: #fde9d9; font-weight: bold; color: #000000;">
-            <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000; background-color: #fde9d9;">MÉDIA MENSAL</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtBRL(comp['MEDIA MENSAL'].cobre)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtBRL(comp['MEDIA MENSAL'].zinco)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtBRL(comp['MEDIA MENSAL'].aluminio)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtBRL(comp['MEDIA MENSAL'].chumbo)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtBRL(comp['MEDIA MENSAL'].estanho)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtBRL(comp['MEDIA MENSAL'].niquel)}</td>
-            <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color: #c6e0b4; color: #000000;">${fmtBRL(comp['MEDIA MENSAL'].dolar, 4)}</td>
-        </tr>
-                </tbody>
-            </table>
-
-            <div style="font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif;">Tabela Comparativa (R$/kg)</div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; font-family: Calibri, Arial, sans-serif; border: 1px solid #ddd;">
-                <thead>
-                    <tr style="background:#595959; color:#ffffff;">
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#000000; color:#ffffff; width: 120px;">TIPO</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#db1f1f; color:#000000;">Cobre R$/kg</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#e6b8b7; color:#000000;">Zinco R$/kg</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#bfbfbf; color:#000000;">Alumínio R$/kg</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#C9A8E8; color:#2d0060;">Chumbo R$/kg</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#b5b059; color:#000000;">Estanho R$/kg</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#ffffff; color:#000000;">Níquel R$/kg</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#70ad47; color:#000000;">Dólar R$</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="background:#eaeaea; color:#0070c0;">
-                        <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">SEMANA ANTERIOR</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].cobre)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].zinco)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].aluminio)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].chumbo)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].estanho)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].niquel)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color:#0070c0; background-color: #eaeaea;">${fmtBRL(comp['SEMANA ANTERIOR'].dolar, 4)}</td>
-                    </tr>
-                    <tr style="font-weight:bold; color: #000000;">
-                        <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000;">LME ATUAL</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtBRL(comp['100% LME'].cobre)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtBRL(comp['100% LME'].zinco)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtBRL(comp['100% LME'].aluminio)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtBRL(comp['100% LME'].chumbo)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtBRL(comp['100% LME'].estanho)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtBRL(comp['100% LME'].niquel)}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color:#c6e0b4; color: #000000;">${fmtBRL(comp['100% LME'].dolar, 4)}</td>
-                    </tr>
-                    <tr style="font-weight:bold; color: #000000;">
-                        <td style="padding: 8px; text-align: left; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; color: #000000;">Oscilaçao</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.cobre}">${fmtVar(comp['OSCILAÇÃO R$'].cobre, 'brl', '#000000')}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.zinco}">${fmtVar(comp['OSCILAÇÃO R$'].zinco, 'brl', '#000000')}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.aluminio}">${fmtVar(comp['OSCILAÇÃO R$'].aluminio, 'brl', '#000000')}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.chumbo}">${fmtVar(comp['OSCILAÇÃO R$'].chumbo, 'brl', '#000000')}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.estanho}">${fmtVar(comp['OSCILAÇÃO R$'].estanho, 'brl', '#000000')}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${metalColStyles.niquel}">${fmtVar(comp['OSCILAÇÃO R$'].niquel, 'brl', '#000000')}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; background-color:#c6e0b4; color: #000000;">${fmtVar(comp['OSCILAÇÃO R$'].dolar, 'brl', '#000000', 4)}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif;">VALORES BASE DE 90% A 110% X LME DA SEMANA X DOLAR</div>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 10pt; font-family: Calibri, Arial, sans-serif; border: 1px solid #ddd;">
-                <thead>
-                    <tr>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; width:50px; background:#000000; color:#ffffff;">%</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#db1f1f; color:#000000;">COBRE</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#e6b8b7; color:#000000;">ZINCO</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#bfbfbf; color:#000000;">ALUMÍNIO</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#C9A8E8; color:#2d0060;">CHUMBO</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#b5b059; color:#000000;">ESTANHO</th>
-                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 11pt; background:#ffffff; color:#000000;">NÍQUEL</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    for (let p = 90; p <= 110; p++) {
-        let pStyle = '';
-        if (p < 100) {
-            pStyle = 'background-color: #fdecea;';
-        } else if (p === 100) {
-            pStyle = 'background-color: #000000; color: #ffffff;';
-        } else {
-            pStyle = 'background-color: #e9f7f0;';
-        }
-
-        html += `<tr><td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${pStyle}">${p === 100 ? '<strong>100%</strong>' : p + '%'}</td>`;
-        metals.forEach(m => {
-            const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
-            let cellStyle = '';
-            
-            if (p === 100) {
-                cellStyle = 'background-color: #000000; color: #ffffff;';
-            } else {
-                if (m === 'cobre') cellStyle = 'background-color: #ffcccc; color: #000000;';
-                else if (m === 'zinco') cellStyle = 'background-color: #f2dcdd; color: #000000;';
-                else if (m === 'aluminio') cellStyle = 'background-color: #EDE9ED; color: #000000;';
-                else if (m === 'chumbo') cellStyle = 'background-color: #f2f2f2; color: #000000;';
-                else if (m === 'estanho') cellStyle = 'background-color: #d9d4a8; color: #000000;';
-                else if (m === 'niquel') cellStyle = 'background-color: #ffffff; color: #000000;';
-            }
-
-            if (lme === null) {
-                html += `<td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${cellStyle}">-</td>`;
-            } else {
-                const baseVal = lme * (p / 100);
-                html += `<td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 10pt; ${cellStyle}">${fmtBRL(baseVal, 3)}</td>`;
-            }
-        });
-        html += `</tr>`;
-    }
-
-    html += `
-                </tbody>
-            </table>
-
-            <div style="font-size: 11pt; font-weight: bold; margin: 25px 0 10px 0; color: #000; text-transform: uppercase; border-left: 4px solid #db1f1f; padding-left: 8px; font-family: Raleway, Calibri, Arial, sans-serif;">Gráficos de Comparação de Cotações</div>
-            
-            <div style="font-family: Calibri, Arial, sans-serif; font-size: 10pt; margin-bottom: 12px; text-align: center; font-weight: bold;">
-                <span style="display: inline-block; width: 12px; height: 12px; background-color: #27ae60; vertical-align: middle; margin-right: 4px; border-radius: 2px;"></span>
-                <span style="color: #27ae60; margin-right: 15px;">Melhor Desempenho</span>
-                <span style="display: inline-block; width: 12px; height: 12px; background-color: #e74c3c; vertical-align: middle; margin-right: 4px; border-radius: 2px;"></span>
-                <span style="color: #e74c3c;">Pior Desempenho</span>
-            </div>
-            
-            <div style="text-align: center; margin-top: 15px;">
-                <div style="margin-bottom: 25px;">
-                    <img src="${chartGroup1}" width="480" height="240" style="border-radius: 6px; border: 1px solid #ddd; max-width: 100%; display: inline-block;" alt="Cobre, Zinco, Alumínio, Chumbo" />
-                    <div style="margin-top: 10px; text-align: center;">
-                        ${generateKpiCard('Cobre', 'cobre', comp)}
-                        ${generateKpiCard('Zinco', 'zinco', comp)}
-                        ${generateKpiCard('Alumínio', 'aluminio', comp)}
-                        ${generateKpiCard('Chumbo', 'chumbo', comp)}
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 10px;">
-                    <img src="${chartGroup2}" width="480" height="240" style="border-radius: 6px; border: 1px solid #ddd; max-width: 100%; display: inline-block;" alt="Estanho, Níquel" />
-                    <div style="margin-top: 10px; text-align: center;">
-                        ${generateKpiCard('Estanho', 'estanho', comp)}
-                        ${generateKpiCard('Níquel', 'niquel', comp)}
-                    </div>
-                </div>
-            </div>
-
-            <div id="rel-rodape" style="display: none; text-align: center; font-size: 8pt; color: #666; margin-top: 15px; font-family: Calibri, Arial, sans-serif;"></div>
-
-            <div style="background: #f9f9f9; padding: 15px; text-align: center; font-size: 9pt; color: #666; border-top: 1px solid #eee; margin-top: 20px;">
-                <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} &mdash; Apextech Metais</p>
-                <p style="font-size: 8pt; color: #999; margin-top: 8px;">Este e-mail é enviado de forma automática conforme as configurações do painel administrativo.</p>
-            </div>
-        </div>
-    `;
-
-    return html;
-}
-
-async function getResendConfig() {
-    const settings = {};
-    if (dbAvailable) {
-        try {
-            const result = await pool.query('SELECT * FROM settings');
-            result[0].forEach(r => { settings[r.key] = r.value; });
-        } catch (e) {
-            console.error('Error reading settings from DB:', e);
-        }
-    } else {
-        Object.assign(settings, memStore.settings);
-    }
-
-    const apiKey = settings.lme_resend_api_key || process.env.RESEND_API_KEY || 're_gSuwx1Uv_PgBixykLg7UTBDqgGPqc6xD6';
-    const from   = settings.lme_resend_from || process.env.RESEND_FROM || 'josetiago@lme.lat';
-
-    return { apiKey, from };
-}
-
-async function gerarPdfRelatorioViaHeadless(weekBlock) {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: true
-    });
-    try {
-        const page = await browser.newPage();
-        
-        // Mock authentication for the headless browser so admin.js runs initAdmin()
-        await page.evaluateOnNewDocument(() => {
-            sessionStorage.setItem('apex_admin_logged_in', 'true');
-        });
-
-        // Set viewport and go to page
-        const port = process.env.PORT || 3000;
-        await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
-        await page.goto(`http://localhost:${port}/admin.html`, { waitUntil: 'networkidle0', timeout: 30000 });
-        
-        // Wait for the report to be generated on the page
-        await page.evaluate(() => {
-            const overlay = document.getElementById('login-overlay');
-            if (overlay) overlay.style.display = 'none';
-            const dashboard = document.getElementById('admin-dashboard-container');
-            if (dashboard) dashboard.style.display = 'flex';
-            
-            const relatorioSection = document.getElementById('relatorio-diario');
-            if (relatorioSection) {
-                relatorioSection.style.display = 'block';
-                relatorioSection.classList.add('active');
-            }
-            
-            const captureArea = document.getElementById('capture-area');
-            if (captureArea) captureArea.style.display = 'block';
-        });
-
-        // Wait for the report to be populated (the date will stop being "...")
-        await page.waitForFunction(() => {
-            const el = document.getElementById('rel-date-range');
-            return el && el.textContent && el.textContent !== '...';
-        }, { timeout: 30000 });
-
-        // Wait for all images (QuickCharts) to load completely before capturing
-        await page.evaluate(async () => {
-            const images = Array.from(document.querySelectorAll('#capture-area img'));
-            await Promise.all(images.map(img => {
-                if (img.complete) return Promise.resolve();
-                return new Promise(resolve => {
-                    img.onload = resolve;
-                    img.onerror = resolve;
-                });
-            }));
-            // Pequeno delay extra de garantia para renderização de SVG/DOM
-            await new Promise(r => setTimeout(r, 1500));
-        });
-        
-        const base64Pdf = await page.evaluate(async () => {
-            const captureArea = document.getElementById('capture-area');
-            if (!captureArea) return null;
-
-            // Wait for any html2canvas scripts or external assets if needed, but they should be loaded by now.
-            // Correção do Bug do SVG Preto
-            const logoImg = captureArea.querySelector('.rel-logo img');
-            let originalSrc = '';
-            if (logoImg && logoImg.src.endsWith('.svg')) {
-                try {
-                    originalSrc = logoImg.src;
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = logoImg.naturalWidth || 400;
-                    tempCanvas.height = logoImg.naturalHeight || 133;
-                    const tCtx = tempCanvas.getContext('2d');
-                    tCtx.fillStyle = '#ffffff';
-                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
-                    logoImg.src = tempCanvas.toDataURL('image/png');
-                } catch (svgErr) {
-                    console.warn(svgErr);
-                }
-            }
-            
-            // Use html2canvas and jsPDF (which are loaded in admin.html)
-            const canvas = await html2canvas(captureArea, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                useCORS: true,
-                allowTaint: false,
-                scrollY: 0,
-                windowHeight: captureArea.scrollHeight,
-                height: captureArea.scrollHeight,
-                width: captureArea.scrollWidth
-            });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const { jsPDF } = window.jspdf;
-
-            const pdfWidthMm = 210;
-            const pdfPageHeightMm = 297;
-            const imgHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            let heightLeft = imgHeightMm;
-            let position = 0;
-
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
-            heightLeft -= pdfPageHeightMm;
-
-            while (heightLeft > 5) {
-                position -= pdfPageHeightMm;
-                pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm);
-                heightLeft -= pdfPageHeightMm;
-            }
-
-            return pdf.output('datauristring').split(',')[1];
-        });
-        
-        return base64Pdf;
-    } catch (e) {
-        console.error('Erro ao gerar PDF via Puppeteer:', e);
-        return null;
-    } finally {
-        await browser.close();
-    }
-}
-
-async function enviarRelatorioEmail(weekBlock, pdfBase64 = null) {
-    const config = await getResendConfig();
-    if (!config.apiKey) {
-        throw new Error('API Key do Resend não configurada. Preencha a chave no painel.');
-    }
-
-    let recipients = [];
-    if (dbAvailable) {
-        const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = 'lme'");
-        recipients = result[0];
-    } else {
-        recipients = (memStore.lme_destinatarios || []).filter(r => (r.tipo || 'lme') === 'lme');
-    }
-
-    if (recipients.length === 0) {
-        throw new Error('Nenhum destinatário cadastrado.');
-    }
-
-    const emailsList = recipients.map(r => r.email);
-    const label = weekBlock.label;
-
-    let html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-    </head>
-    <body style="background-color: #ffffff; padding: 20px; margin: 0; font-family: Arial, sans-serif; color: #333333;">
-        <p>Olá,</p>
-        <p>Segue em anexo o Relatório Diário LME.</p>
-        <br>
-        <p>Atenciosamente,<br>Apextech Metais</p>
-    </body>
-    </html>
-    `;
-
-    // Parâmetros do e-mail com a data atual no assunto
-    const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-    const localDate = new Date(localTimeStr);
-    const day = String(localDate.getDate()).padStart(2, '0');
-    const month = String(localDate.getMonth() + 1).padStart(2, '0');
-    const year = localDate.getFullYear();
-    const todayDateStr = `${day}/${month}/${year}`;
-
-    const emailPayload = {
-        from: config.from,
-        to: emailsList,
-        subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${todayDateStr}`,
-        html: html,
-        attachments: []
-    };
-
-    // Anexar o PDF gerado pelo cliente ou gerar via Puppeteer
-    let finalPdfBase64 = pdfBase64;
-    
-    if (!finalPdfBase64) {
-        console.log('📄 Gerando PDF via Puppeteer no backend para envio automático...');
-        finalPdfBase64 = await gerarPdfRelatorioViaHeadless(weekBlock);
-    }
-    if (finalPdfBase64) {
-        emailPayload.attachments.push({
-            filename: `Relatorio_LME.pdf`,
-            content: finalPdfBase64
-        });
-        console.log('📎 PDF anexado com sucesso ao e-mail.');
-    } else {
-        console.warn('⚠️ Não foi possível anexar o PDF ao e-mail.');
-    }
-
-    // Send using Resend API via axios POST request
-    const response = await axios.post('https://api.resend.com/emails', emailPayload, {
-        headers: {
-            'Authorization': `Bearer ${config.apiKey}`,
-            'Content-Type': 'application/json'
-        }
-    });
-
-    console.log(`✅ Relatório enviado por e-mail via Resend para [${emailsList.join(', ')}]:`, response.data.id);
-    return response.data;
-}
-
-async function gerarPdfTabelaPrecosViaHeadless(modo = 'fornecedor') {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: true
-    });
-    try {
-        const page = await browser.newPage();
-        
-        // Mock authentication for the headless browser so admin.js runs initAdmin()
-        await page.evaluateOnNewDocument(() => {
-            sessionStorage.setItem('apex_admin_logged_in', 'true');
-        });
-
-        // Set viewport and go to page
-        const port = process.env.PORT || 3000;
-        await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
-        await page.goto(`http://localhost:${port}/admin.html`, { waitUntil: 'networkidle0', timeout: 30000 });
-        
-        // Wait for dashboard and login overlay to hide
-        await page.evaluate(() => {
-            const overlay = document.getElementById('login-overlay');
-            if (overlay) overlay.style.display = 'none';
-            const dashboard = document.getElementById('admin-dashboard-container');
-            if (dashboard) dashboard.style.display = 'flex';
-        });
-
-        // Execute frontend helper that returns base64 PDF
-        const base64Pdf = await page.evaluate(async (m) => {
-            if (window.gerarPdfTabelaPrecosBase64) {
-                return await window.gerarPdfTabelaPrecosBase64(m);
-            }
-            return null;
-        }, modo);
-        
-        return base64Pdf;
-    } catch (e) {
-        console.error('Erro ao gerar PDF da Tabela de Preços via Puppeteer:', e);
-        return null;
-    } finally {
-        await browser.close();
-    }
-}
-
-async function enviarTabelaPrecosEmail(pdfBase64, modo = 'fornecedor', emailDestino = null) {
-    const config = await getResendConfig();
-    if (!config.apiKey) {
-        throw new Error('API Key do Resend não configurada. Preencha a chave no painel.');
-    }
-
-    let emailsList = [];
-    if (emailDestino) {
-        emailsList = [emailDestino];
-    } else {
-        let recipients = [];
-        const isCompleta = modo === 'completa';
-        const targetTipo = isCompleta ? 'tabela_geral' : 'tabela_fornecedor';
-        if (dbAvailable) {
-            const result = await pool.query("SELECT * FROM lme_destinatarios WHERE COALESCE(tipo, 'lme') = ?", [targetTipo]);
-            recipients = result[0];
-        } else {
-            recipients = (memStore.lme_destinatarios || []).filter(r => (r.tipo || 'lme') === targetTipo);
-        }
-
-        if (recipients.length === 0) {
-            throw new Error('Nenhum destinatário cadastrado.');
-        }
-
-        emailsList = recipients.map(r => r.email);
-    }
-
-    // Format today's date for subject and body
-    const spTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-    const localDate = new Date(spTimeStr);
-    const day = String(localDate.getDate()).padStart(2, '0');
-    const month = String(localDate.getMonth() + 1).padStart(2, '0');
-    const year = localDate.getFullYear();
-    const formattedDate = `${day}/${month}/${year}`;
-
-    const isCompleta = modo === 'completa';
-    const tituloTabela = isCompleta ? 'Tabela de Preços Geral Completa' : 'Tabela de Preços (Fornecedor)';
-    const nomeArquivo = isCompleta ? 'Tabela_de_Precos_Geral_Completa.pdf' : 'Tabela_de_Precos_Fornecedor.pdf';
-
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-    </head>
-    <body style="background-color: #ffffff; padding: 20px; margin: 0; font-family: Arial, sans-serif; color: #333333;">
-        <p>Olá,</p>
-        <p>Segue em anexo a <strong>${tituloTabela}</strong> vigente da Apextech Metais.</p>
-        <p>Este documento foi aprovado pelo CEO Jose Tiago.</p>
-        <br>
-        <p>Atenciosamente,<br>Apextech Metais</p>
-    </body>
-    </html>
-    `;
-
-    const emailPayload = {
-        from: config.from,
-        to: emailsList,
-        subject: `📋 ${tituloTabela} - Apextech Metais - ${formattedDate}`,
-        html: html,
-        attachments: []
-    };
-
-    if (pdfBase64) {
-        emailPayload.attachments.push({
-            filename: nomeArquivo,
-            content: pdfBase64
-        });
-        console.log(`📎 PDF (${nomeArquivo}) anexado com sucesso ao e-mail.`);
-    } else {
-        console.warn('⚠️ Não foi possível anexar o PDF da Tabela de Preços.');
-    }
-
-    const response = await axios.post('https://api.resend.com/emails', emailPayload, {
-        headers: {
-            'Authorization': `Bearer ${config.apiKey}`,
-            'Content-Type': 'application/json'
-        }
-    });
-
-    console.log(`✅ ${tituloTabela} enviada por e-mail via Resend para [${emailsList.join(', ')}]:`, response.data.id);
-    return response.data;
-}
-
-// ─── Agendador Automático de E-mails ──────────────────────────────────────────
-let lastSentLmeDate = '';
-let lastSentGeralDate = '';
-let lastSentFornDate = '';
-
-function startEmailScheduler() {
-    console.log('⏰ Inicializando o agendador de e-mails da ApexTech...');
-    setInterval(async () => {
-        try {
-            const settings = {};
-            if (dbAvailable) {
-                const result = await pool.query('SELECT * FROM settings');
-                result[0].forEach(r => { settings[r.key] = r.value; });
-            } else {
-                Object.assign(settings, memStore.settings);
-            }
-
-            const spWeekday = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo", weekday: "short" });
-            const dayMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
-            const currentDayOfWeek = dayMap[spWeekday];
-
-            const formatter = new Intl.DateTimeFormat('pt-BR', {
-                timeZone: 'America/Sao_Paulo',
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', hour12: false
-            });
-            const partsList = formatter.formatToParts(new Date());
-            const spParts = {};
-            partsList.forEach(p => { spParts[p.type] = p.value; });
-
-            const year = spParts.year;
-            const month = spParts.month;
-            const day = spParts.day;
-            const hour = parseInt(spParts.hour, 10);
-            const minute = parseInt(spParts.minute, 10);
-            const currentTimeMins = (hour * 60) + minute;
-            const todayDateStr = `${year}-${month}-${day}`;
-
-            const isDue = (activeKey, timeKey, daysKey) => {
-                if (settings[activeKey] !== 'true') return false;
-                const daysStr = settings[daysKey] !== undefined ? settings[daysKey] : '1,2,3,4,5';
-                const days = daysStr.split(',').map(Number);
-                if (!days.includes(currentDayOfWeek)) return false;
-                const [sHour, sMin] = (settings[timeKey] || '14:00').split(':').map(Number);
-                const sMins = (sHour * 60) + sMin;
-                return currentTimeMins >= sMins && currentTimeMins < sMins + 2;
-            };
-
-            // 1. Disparo Relatório LME
-            if (isDue('lme_envio_ativo', 'lme_envio_horario', 'lme_envio_dias') && lastSentLmeDate !== todayDateStr) {
-                console.log(`⏰ [Agendador] Enviando relatório LME por e-mail...`);
-                const mes = `${parseInt(month, 10)}-${year}`;
-                const data = await generateRelatorioSemanas(mes);
-                if (data && data.semanas && data.semanas.length > 0) {
-                    const latestWeek = data.semanas[0];
-                    const pdfBase64 = await gerarPdfRelatorioViaHeadless();
-                    await enviarRelatorioEmail(latestWeek, pdfBase64);
-                    lastSentLmeDate = todayDateStr;
-                    console.log(`✅ [Agendador] Relatório LME enviado para ${todayDateStr}.`);
-                }
-            }
-
-            // 2. Disparo Tabela Geral Completa
-            if (isDue('tabela_geral_envio_ativo', 'tabela_geral_envio_horario', 'tabela_geral_envio_dias') && lastSentGeralDate !== todayDateStr) {
-                console.log(`⏰ [Agendador] Enviando Tabela Geral Completa por e-mail...`);
-                const pdfBase64 = await gerarPdfTabelaPrecosViaHeadless('completa');
-                await enviarTabelaPrecosEmail(pdfBase64, 'completa');
-                lastSentGeralDate = todayDateStr;
-                console.log(`✅ [Agendador] Tabela Geral Completa enviada para ${todayDateStr}.`);
-            }
-
-            // 3. Disparo Tabela do Fornecedor
-            if (isDue('tabela_fornecedor_envio_ativo', 'tabela_fornecedor_envio_horario', 'tabela_fornecedor_envio_dias') && lastSentFornDate !== todayDateStr) {
-                console.log(`⏰ [Agendador] Enviando Tabela do Fornecedor por e-mail...`);
-                const pdfBase64 = await gerarPdfTabelaPrecosViaHeadless('fornecedor');
-                await enviarTabelaPrecosEmail(pdfBase64, 'fornecedor');
-                lastSentFornDate = todayDateStr;
-                console.log(`✅ [Agendador] Tabela do Fornecedor enviada para ${todayDateStr}.`);
-            }
-
-        } catch (err) {
-            console.error('❌ Erro no agendador automático de e-mails:', err.message);
-        }
-    }, 60000);
-}
-
-// ─── API: LME Disparar E-mail (Endpoint Externo) ─────────────────────────────
-app.post('/api/lme/relatorio-email', async (req, res) => {
-    try {
-        const localTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
-        const dObj = new Date(localTimeStr);
-        const month = dObj.getMonth() + 1;
-        const year = dObj.getFullYear();
-        const mes = `${month}-${year}`;
-
-        const data = await generateRelatorioSemanas(mes);
-        if (!data || !data.semanas || data.semanas.length === 0) {
-            return res.status(404).json({ error: 'Nenhuma semana encontrada para enviar.' });
-        }
-
-        const latestWeek = data.semanas[0];
-        console.log('Gerando PDF via Headless para o endpoint /api/lme/relatorio-email...');
-        const pdfBase64 = await gerarPdfRelatorioViaHeadless();
-        
-        await enviarRelatorioEmail(latestWeek, pdfBase64);
-
-        res.json({ success: true, message: 'Relatório disparado com sucesso via endpoint!' });
-    } catch (err) {
-        console.error('Erro no endpoint de disparo de e-mail:', err);
-        res.status(500).json({ error: 'Erro ao disparar e-mail: ' + err.message });
-    }
-});
-
 // ─── API: LME Meses Disponíveis ───────────────────────────────────────────────
 app.get('/api/lme/meses', async (req, res) => {
     try {
-        const { data: html } = await axios.get(`https://shockmetais.com.br/lme/`, { 
-            timeout: 10000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
+        const { data: html } = await axios.get(`https://shockmetais.com.br/lme/`, { timeout: 10000 });
         const $ = cheerio.load(html);
         const meses = [];
         $('#meslme option').each((i, el) => {
@@ -6203,7 +5003,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         // ── Estilos ──
         const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
         const METAL_LABELS = ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL', 'DÓLAR'];
-        const HDR_COLORS   = ['db1f1f', 'E6B8B7', 'BFBFBF', 'BFBFBF', 'B5B059', 'FFFFFF', '70AD47'];
+        const HDR_COLORS   = ['FF0000', 'E6B8B7', 'A6A6A6', 'D9D9D9', 'B5B059', 'FFFFFF', '70AD47'];
 
         const fontBase = { name: 'Calibri', size: 11 };
         const bold = { ...fontBase, bold: true };
@@ -6269,12 +5069,10 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
                 const v = day[m];
                 c.value     = (v !== null && v !== undefined) ? v : '—';
                 c.font      = fontBase;
-                c.fill      = fill(HDR_COLORS[mi]);
                 c.alignment = centerAlign;
                 c.border    = border;
                 if (typeof v === 'number') {
-                    // Valores diários: US$/tonelada (sem prefixo R$)
-                    c.numFmt = m === 'dolar' ? '0.0000' : '#,##0.00';
+                    c.numFmt = m === 'dolar' ? '0.0000' : 'R$ #,##0.00';
                 }
             });
         }
@@ -6284,21 +5082,18 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         // ── Linhas Computadas (10–19) ──
         const comp = semana.computed || {};
         const COMP_ROWS = [
-            // MEDIA SEMANAL: US$/ton (preço bruto scraped) — sem prefixo R$
-            { lbl: 'MEDIA SEMANAL (US$/t)',            key: 'MEDIA SEMANAL',                    bg: 'E7E6E6', lblFont: bold, fmt: '#,##0.00',      dolFmt: '0.0000'      },
+            { lbl: 'MEDIA SEMANAL',                   key: 'MEDIA SEMANAL',                    bg: 'E7E6E6', lblFont: bold, fmt: 'R$ #,##0.00',   dolFmt: '$ 0.0000'    },
             { space: true },
-            // 100% LME: R$/kg (média_metal × média_dólar / 1000)
-            { lbl: '100% LME (R$/kg)',                 key: '100% LME',                         bg: 'FFFF00', lblFont: bold, fmt: 'R$ #,##0.000',  dolFmt: '0.0000'      },
+            { lbl: '100% LME',                        key: '100% LME',                         bg: 'FFFF00', lblFont: bold, fmt: 'R$ #,##0.00', dolFmt: '$ 0.0000'   },
             { space: true },
-            { lbl: 'SEMANA ANTERIOR (R$/kg)',          key: 'SEMANA ANTERIOR',                  bg: '000000', lblFont: boldWhite, fmt: 'R$ #,##0.000', dolFmt: '$ #,##0.0000' },
-            { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', bg: 'FFFFFF', lblFont: { ...bold, color: {argb:'FF00B050'} }, fmt: '0.00%', dolFmt: '0.00%' },
+            { lbl: 'SEMANA ANTERIOR',                 key: 'SEMANA ANTERIOR',                  bg: '000000', lblFont: boldWhite, fmt: 'R$ #,##0.00', dolFmt: '$ #,##0.0000' },
+            { lbl: 'FECHAMENTO % ( SEMANA ANTERIOR )',  key: 'FECHAMENTO % ( SEMANA ANTERIOR )', bg: 'FFFFFF', lblFont: { ...bold, color: {argb:'FF00B050'} }, fmt: '0.00%', dolFmt: '0.00%'    },
             { space: true },
-            { lbl: 'OSCILAÇÃO %',                     key: 'OSCILAÇÃO %',                      bg: '00B0F0', lblFont: bold, fmt: '0.00%',         dolFmt: '0.00%'       },
+            { lbl: 'OSCILAÇÃO %',                     key: 'OSCILAÇÃO %',                      bg: '00B0F0', lblFont: bold, fmt: '0.00%',      dolFmt: '0.00%'    },
             { space: true },
             { lbl: 'OSCILAÇÃO R$',                    key: 'OSCILAÇÃO R$',                     bg: 'E2EFDA', lblFont: bold, fmt: 'R$ #,##0.0000', dolFmt: '$ #,##0.0000' },
             { space: true },
-            // MEDIA MENSAL: R$/kg (média das semanas fechadas do mês)
-            { lbl: 'MEDIA MENSAL (R$/kg)',             key: 'MEDIA MENSAL',                     bg: 'A6A6A6', lblFont: bold, fmt: 'R$ #,##0.000',  dolFmt: '$ #,##0.00'  },
+            { lbl: 'MEDIA MENSAL',                    key: 'MEDIA MENSAL',                     bg: 'A6A6A6', lblFont: bold, fmt: 'R$ #,##0.00',  dolFmt: '$ #,##0.00' },
         ];
 
         let curRow = 10;
@@ -6320,7 +5115,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
             METALS.forEach((m, mi) => {
                 const c  = r.getCell(mi + 3);
                 const v  = vals[m];
-                c.fill      = fill(HDR_COLORS[mi]);
+                c.fill      = fill(row.bg);
                 c.font      = bold;
                 c.alignment = centerAlign;
                 c.border    = border;
@@ -6358,7 +5153,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         METALS.forEach((_, i) => {
             const c = sumHdr.getCell(i + 3);
             c.value     = METAL_LABELS[i];
-            c.fill      = fill(HDR_COLORS[i]);
+            c.fill      = fill('A6A6A6');
             c.font      = bold;
             c.alignment = centerAlign;
             c.border    = border;
@@ -6381,7 +5176,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
             METALS.forEach((m, mi) => {
                 const c = r.getCell(mi + 3);
                 const v = vals[m];
-                c.fill      = fill(HDR_COLORS[mi]);
+                c.fill      = fill(row.bg);
                 c.font      = fontBase;
                 c.alignment = centerAlign;
                 c.border    = border;
@@ -6407,7 +5202,6 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
         METALS.forEach((m, mi) => {
             const c = oscRow.getCell(mi + 3);
             const v = oscVals[m];
-            c.fill      = fill(HDR_COLORS[mi]);
             c.alignment = centerAlign;
             c.border    = border;
             if (v !== null && v !== undefined) {
@@ -6439,27 +5233,9 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
 app.get('/api/lme/tabela/:mes', async (req, res) => {
     try {
         const mes = req.params.mes;
-        let targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
-        
-        let response;
-        try {
-            response = await axios.get(targetUrl, { 
-                timeout: 10000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                }
-            });
-        } catch (err) {
-            console.warn(`Erro ao buscar ${targetUrl}, tentando fallback para a home:`, err.message);
-            targetUrl = `https://shockmetais.com.br/lme/`;
-            response = await axios.get(targetUrl, {
-                timeout: 10000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                }
-            });
-        }
-        const $ = cheerio.load(response.data);
+        const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+        const { data } = await axios.get(targetUrl);
+        const $ = cheerio.load(data);
         
         const cotacoes = [];
         $('#boxtabela table tbody tr').each((index, element) => {

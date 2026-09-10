@@ -375,9 +375,6 @@ var _listTabelaPrecosEstrategica = [];
                 const cls = v >= 0 ? 'excel-up' : 'excel-down';
                 return `<span class="${cls}">${pct}%</span>`;
             }
-            if (formatType === 'currency_usd') {
-                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
-            }
             if (formatType === 'currency3') {
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
@@ -385,9 +382,9 @@ var _listTabelaPrecosEstrategica = [];
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
             if (formatType === 'dolar') {
-                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
+                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
-            return v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
 
         const renderOscilacao = (v, isDolar) => {
@@ -395,21 +392,20 @@ var _listTabelaPrecosEstrategica = [];
             const isUp = v >= 0;
             const arrow = isUp ? '▲' : '▼';
             const cls = isUp ? 'excel-up' : 'excel-down';
-            // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
-            const prefix = 'R$ ';
-            const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            const prefix = isDolar ? '$ ' : 'R$ ';
+            const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
         };
 
         // Metal column config: key, header text, header CSS class, cell CSS class, default format, dollar format
         const COLS = [
-            { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'currency_usd', dolFmt: null       },
-            { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'currency_usd', dolFmt: null       },
-            { k: 'aluminio', lbl: 'ALUMÍNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'currency_usd', dolFmt: null       },
-            { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'currency_usd', dolFmt: null       },
-            { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'currency_usd', dolFmt: null       },
-            { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
-            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'currency4',    dolFmt: 'currency4' },
+            { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'normal',    dolFmt: null       },
+            { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'normal',    dolFmt: null       },
+            { k: 'aluminio', lbl: 'ALUMÍNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'normal',    dolFmt: null       },
+            { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'normal',    dolFmt: null       },
+            { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'normal',    dolFmt: null       },
+            { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'normal',    dolFmt: null       },
+            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'dolar',     dolFmt: 'dolar'    },
         ];
 
         function visibleCols() {
@@ -426,10 +422,7 @@ var _listTabelaPrecosEstrategica = [];
             const comp = block.computed || {};
 
             const thHeaders = vc.map(c => `<th class="${c.hcls}">${c.lbl}</th>`).join('');
-            const thSummary = vc.map(c => {
-                const suffix = c.k === 'dolar' ? ' (R$)' : ' (R$/kg)';
-                return `<th class="${c.hcls}">${c.lbl}${suffix}</th>`;
-            }).join('');
+            const thSummary = vc.map(c => `<th class="${c.hcls}">${c.lbl}</th>`).join('');
 
             const firstDate = d[0]?.data || headerVal;
             const lastDate  = d[d.length - 1]?.data || '—';
@@ -461,28 +454,23 @@ var _listTabelaPrecosEstrategica = [];
 
             // Computed rows config
             const COMP_ROWS = [
-                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-mensal',         fmt: 'currency_usd', dolFmt: 'dolar'     },
-                { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3',    dolFmt: 'dolar'     },
-                { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3',    dolFmt: 'dolar'     },
-                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',      dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO %',                      key: 'OSCILAÇÃO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',      dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO R$',                     key: 'OSCILAÇÃO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4',    dolFmt: 'dolar'     },
-                { lbl: 'MÉDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3',    dolFmt: 'dolar'     },
+                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-media',         fmt: 'normal',    dolFmt: 'dolar'     },
+                { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3', dolFmt: 'dolar'     },
+                { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',   dolFmt: 'percent'   },
+                { lbl: 'OSCILAÇÃO %',                      key: 'OSCILAÇÃO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',   dolFmt: 'percent'   },
+                { lbl: 'OSCILAÇÃO R$',                     key: 'OSCILAÇÃO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4', dolFmt: 'dolar' },
+                { lbl: 'MÉDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3', dolFmt: 'dolar' },
             ];
 
             COMP_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
                 const isAnterior = row.cls === 'excel-row-anterior';
                 const inlineStyle = isAnterior ? ' style="background-color:#1a1a1a;color:#ffffff;"' : '';
-                // Indicar feriado: se a semana teve menos de 5 dias úteis, mostrar no label da média
-                let lbl = row.lbl;
-                if (row.key === 'MEDIA SEMANAL' && block.numDias !== undefined && block.numDias < 5) {
-                    lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias úteis)</span>`;
-                }
-                const labelTd = `<td class="excel-label-cell"${inlineStyle}>${lbl}</td>`;
+                const labelTd = `<td class="excel-label-cell"${inlineStyle}>${row.lbl}</td>`;
                 const valTds = vc.map(c => {
                     const fmtToUse = c.k === 'dolar' && row.dolFmt ? row.dolFmt : row.fmt;
-                    return `<td class="excel-col-${c.k}">${formatVal(vals[c.k], fmtToUse)}</td>`;
+                    return `<td${inlineStyle}>${formatVal(vals[c.k], fmtToUse)}</td>`;
                 }).join('');
                 html += `<tr class="${row.cls}">${labelTd}${valTds}</tr>`;
             });
@@ -497,27 +485,27 @@ var _listTabelaPrecosEstrategica = [];
                 </tr>
             `;
 
-            // Mini-tabela resumo: SEMANA ANTERIOR e LME ATUAL em R$/kg
+            // Summary rows
             const SUMMARY_ROWS = [
-                { lbl: 'SEMANA ANTERIOR (R$/kg)', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'currency4' },
-                { lbl: 'LME ATUAL (R$/kg)',       key: '100% LME',        fmt: 'currency3', dolFmt: 'currency4' },
+                { lbl: 'SEMANA ANTERIOR', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'LME ATUAL',       key: '100% LME',        fmt: 'currency3', dolFmt: 'dolar' },
             ];
             SUMMARY_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
                 const labelTd = `<td class="excel-label-cell">${row.lbl}</td>`;
                 const valTds = vc.map(c => {
                     const fmtToUse = c.k === 'dolar' && row.dolFmt ? row.dolFmt : row.fmt;
-                    return `<td class="excel-col-${c.k}">${formatVal(vals[c.k], fmtToUse)}</td>`;
+                    return `<td>${formatVal(vals[c.k], fmtToUse)}</td>`;
                 }).join('');
                 html += `<tr class="excel-row-summary">${labelTd}${valTds}</tr>`;
             });
 
             // Oscillation row (with arrows)
             const osc = comp['OSCILAÇÃO R$'] || {};
-            const oscTds = vc.map(c => `<td class="excel-col-${c.k}">${renderOscilacao(osc[c.k], false)}</td>`).join('');
+            const oscTds = vc.map(c => `<td>${renderOscilacao(osc[c.k], c.k === 'dolar')}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
-                    <td class="excel-label-cell" style="font-style:italic;">Oscilação R$/kg</td>
+                    <td class="excel-label-cell" style="font-style:italic;">Oscilação</td>
                     ${oscTds}
                 </tr>
             `;
@@ -564,7 +552,7 @@ var _listTabelaPrecosEstrategica = [];
                 window.URL.revokeObjectURL(url);
             } catch(e) {
                 console.error(e);
-                _apexNotify('Atenção', 'Erro ao baixar Excel: ' + e.message, 'error');
+                alert('Erro ao baixar Excel: ' + e.message);
             } finally {
                 btnDownload.classList.remove('downloading');
             }
@@ -574,13 +562,13 @@ var _listTabelaPrecosEstrategica = [];
         if (btnDownloadPdf) {
             btnDownloadPdf.addEventListener('click', () => {
                 const val = selector.value;
-                if (!val) { _apexNotify('Sistema', 'Selecione uma semana primeiro.', 'info'); return; }
+                if (!val) { alert('Selecione uma semana primeiro.'); return; }
                 const block = excelWeeks.find(b => b.header === val);
                 if (!block) return;
 
                 // Inject/update timestamp into the print area
                 const area = document.getElementById('pdf-print-area');
-                if (!area) { _apexNotify('Sistema', 'Visualize o relatório antes de baixar o PDF.', 'info'); return; }
+                if (!area) { alert('Visualize o relatório antes de baixar o PDF.'); return; }
 
                 const now = new Date();
                 const ts = now.toLocaleString('pt-BR', {
@@ -595,7 +583,7 @@ var _listTabelaPrecosEstrategica = [];
                     tsEl.style.cssText = 'font-size:9pt;color:#555;margin-bottom:8px;text-align:right;font-family:Calibri,sans-serif;border-bottom:1px solid #ccc;padding-bottom:6px;';
                     area.insertBefore(tsEl, area.firstChild);
                 }
-                tsEl.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
+                tsEl.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
 
                 window.print();
             });
@@ -716,12 +704,12 @@ var _listTabelaPrecosEstrategica = [];
 
         // Try to get available months
         try {
-            const res = await fetch(`/api/lme/tabela/atual`);
+            const res = await fetch(`/api/lme/tabela/${currentMes}`);
             if (res.ok) {
                 const data = await res.json();
                 if (data.mesesDisponiveis && data.mesesDisponiveis.length > 0) {
-                    mesSel.innerHTML = data.mesesDisponiveis.map((m, idx) =>
-                        `<option value="${m.valor}" ${idx === 0 ? 'selected' : ''}>${m.texto}</option>`
+                    mesSel.innerHTML = data.mesesDisponiveis.map(m =>
+                        `<option value="${m.valor}" ${m.valor === currentMes ? 'selected' : ''}>${m.texto}</option>`
                     ).join('');
                 } else {
                     mesSel.innerHTML = `<option value="${currentMes}">${now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</option>`;
@@ -1429,7 +1417,7 @@ var _listTabelaPrecosEstrategica = [];
             ">
                 <div style="font-size:0.75rem;color:#aaa;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">${METAL_LABELS[m]}</div>
                 <div style="font-size:1.6rem;color:${color};line-height:1;">${arrow}</div>
-                <div style="font-size:1rem;color:${color};font-weight:700;margin-top:2px;">${sign}${fmtBRL(pct)}%</div>
+                <div style="font-size:1rem;color:${color};font-weight:700;margin-top:2px;">${sign}${pct.toFixed(2)}%</div>
                 <div style="font-size:0.7rem;color:#666;margin-top:3px;">US$ ${fmtPrice(last5[i])}</div>
             </div>`;
         }).join('');
@@ -1785,6 +1773,7 @@ var _listTabelaPrecosEstrategica = [];
     // =========================================================================
     // SETTINGS — Configurar Homepage
     // =========================================================================
+    async function initSettings() {
     async function initSettings() {
         try {
             const res      = await fetch('/api/settings');
@@ -2568,7 +2557,6 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiario() {
         const btnGerar = document.getElementById('btn-gerar-imagem-wpp');
@@ -2576,165 +2564,40 @@ var _listTabelaPrecosEstrategica = [];
         if (!btnGerar) return;
 
         let weeksData = [];
-        let currentSelectedWeek = null;
-        const selectMes = document.getElementById('rel-filter-mes');
-        const selectSemana = document.getElementById('rel-week-selector');
-        const btnVerHistorico = document.getElementById('btn-ver-historico');
 
-        if (btnVerHistorico) {
-            btnVerHistorico.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const originalContent = btnVerHistorico.innerHTML;
-                btnVerHistorico.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
-                btnVerHistorico.disabled = true;
-                try {
-                    await loadRelatorioMeses(true);
-                } finally {
-                    btnVerHistorico.innerHTML = originalContent;
-                    btnVerHistorico.disabled = false;
-                }
-            });
+        try {
+            const resMeses = await fetch('/api/lme/meses');
+            const mesesDisponiveis = await resMeses.json();
+            if (mesesDisponiveis.length === 0) return;
+            const mesToFetch = mesesDisponiveis[0].valor;
+
+            const res = await fetch(`/api/lme/relatorio-semanal?mes=` + mesToFetch);
+            if (!res.ok) return;
+            const data = await res.json();
+            const weeks = data.semanas || [];
+            if (weeks.length === 0) return;
+
+            weeksData = weeks;
+            const week = weeks[0];
+            renderRelatorioDiario(week);
+        } catch(e) {
+            console.error('Erro ao carregar dados do relatorio diario', e);
         }
 
-        async function loadRelatorioMeses(force = false) {
-            try {
-                function gerarMesesFallback() {
-                    const meses = [];
-                    const now = new Date();
-                    for (let i = 0; i < 12; i++) {
-                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                        const ano = d.getFullYear();
-                        const mes = String(d.getMonth() + 1).padStart(2, '0');
-                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-                        meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
-                    }
-                    return meses;
-                }
-
-                let mesesDisponiveis = [];
-                try {
-                    const url = '/api/lme/meses' + (force ? '?_ts=' + Date.now() : '');
-                    const resMeses = await fetch(url);
-                    if (resMeses.ok) {
-                        mesesDisponiveis = await resMeses.json();
-                    }
-                } catch (fetchErr) {
-                    console.warn('Falha ao buscar meses via API, usando fallback:', fetchErr);
-                }
-
-                if (!mesesDisponiveis || mesesDisponiveis.length === 0) {
-                    mesesDisponiveis = gerarMesesFallback();
-                }
-
-                if (selectMes) {
-                    selectMes.innerHTML = mesesDisponiveis.map(m =>
-                        '<option value="' + m.valor + '">' + m.texto + '</option>'
-                    ).join('');
-                    const mesToFetch = mesesDisponiveis[0].valor;
-                    selectMes.value = mesToFetch;
-                    await loadRelatorioSemanas(mesToFetch, force);
-                }
-            } catch (e) {
-                console.error('Erro ao carregar meses do relatório', e);
-            }
-        }
-
-        async function loadRelatorioSemanas(mes, force = false) {
-            if (selectSemana) selectSemana.innerHTML = '<option>Carregando semanas...</option>';
-            try {
-                const url = '/api/lme/relatorio-semanal?mes=' + mes + (force ? '&_ts=' + Date.now() : '');
-                const res = await fetch(url);
-                if (!res.ok) {
-                    if (selectSemana) selectSemana.innerHTML = '<option value="">Erro ao carregar semanas</option>';
-                    return;
-                }
-                const data = await res.json();
-                weeksData = data.semanas || [];
-                if (weeksData.length === 0) {
-                    if (selectSemana) selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
-                    return;
-                }
-
-                if (selectSemana) {
-                    selectSemana.innerHTML = weeksData.map((wk, idx) =>
-                        '<option value="' + idx + '">Semana de ' + (wk.label || 'sem data') + '</option>'
-                    ).join('');
-                    selectSemana.value = 0;
-                }
-                currentSelectedWeek = weeksData[0];
-                renderRelatorioDiario(currentSelectedWeek);
-            } catch (e) {
-                console.error('Erro ao carregar semanas do relatório', e);
-                if (selectSemana) selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
-            }
-        }
-
-        if (selectMes) {
-            selectMes.addEventListener('change', async (e) => {
-                await loadRelatorioSemanas(e.target.value);
-            });
-        }
-
-        if (selectSemana) {
-            selectSemana.addEventListener('change', (e) => {
-                const idx = parseInt(e.target.value, 10);
-                if (!isNaN(idx) && weeksData[idx]) {
-                    currentSelectedWeek = weeksData[idx];
-                    renderRelatorioDiario(currentSelectedWeek);
-                }
-            });
-        }
-
-        await loadRelatorioMeses();
-
-        btnGerar.addEventListener('click', async () => {
+        btnGerar.addEventListener('click', () => {
             const captureArea = document.getElementById('capture-area');
-            // Mostrar rodapé com timestamp
-            const now = new Date();
-            const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                + ' às '
-                + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const rodape = document.getElementById('rel-rodape');
-            if (rodape) {
-                rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
-                rodape.style.display = 'block';
-            }
-
-            // Backup styling to prevent mobile layout distortion
-            const originalWidth = captureArea.style.width;
-            const originalMaxWidth = captureArea.style.maxWidth;
-            captureArea.style.width = '800px';
-            captureArea.style.maxWidth = 'none';
-
-            // Delay to allow DOM layout to update
-            await new Promise(r => setTimeout(r, 100));
-
-            try {
-                const canvas = await html2canvas(captureArea, { 
-                    scale: 2, 
-                    useCORS: true, 
-                    allowTaint: false, 
-                    scrollY: 0, 
-                    windowHeight: captureArea.scrollHeight,
-                    width: 800
-                });
+            html2canvas(captureArea, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = 'Relatorio_LME_ApexTech.png';
                 link.href = imgData;
                 link.click();
-            } finally {
-                // Restore styling
-                captureArea.style.width = originalWidth;
-                captureArea.style.maxWidth = originalMaxWidth;
-                // Ocultar rodapé após download
-                if (rodape) rodape.style.display = 'none';
-            }
+            });
         });
 
         btnCopiar.addEventListener('click', () => {
-            if (!currentSelectedWeek) return;
-            const week = currentSelectedWeek;
+            if (!weeksData || weeksData.length === 0) return;
+            const week = weeksData[0];
             const comp = week.computed || {};
             const d = week.days || [];
             const lastDate = d[d.length - 1]?.data || '';
@@ -2756,9 +2619,9 @@ var _listTabelaPrecosEstrategica = [];
             txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
             navigator.clipboard.writeText(txt).then(() => {
-                _apexNotify('Sistema', 'Resumo copiado para a área de transferência!', 'info');
+                alert('Resumo copiado para a área de transferência!');
             }).catch(err => {
-                _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
+                alert('Erro ao copiar texto.');
                 console.error(err);
             });
         });
@@ -2769,126 +2632,47 @@ var _listTabelaPrecosEstrategica = [];
         if (btnPdf) {
             btnPdf.addEventListener('click', async () => {
                 const captureArea = document.getElementById('capture-area');
-
-                // Mostrar rodapé com timestamp
-                const nowTs = new Date();
-                const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
-                    + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const rodape = document.getElementById('rel-rodape');
-                if (rodape) {
-                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
-                    rodape.style.display = 'block';
-                }
-
+                
                 // Correção do Bug do SVG Preto:
+                // O html2canvas não renderiza SVGs complexos corretamente e eles viram blocos pretos.
+                // Solução: Converter a logo para Base64 PNG nativamente via Canvas antes de gerar o PDF.
                 const logoImg = captureArea.querySelector('.rel-logo img');
                 let originalSrc = '';
                 if (logoImg && logoImg.src.endsWith('.svg')) {
-                    try {
-                        originalSrc = logoImg.src;
-                        const tempCanvas = document.createElement('canvas');
-                        tempCanvas.width = logoImg.naturalWidth || 400;
-                        tempCanvas.height = logoImg.naturalHeight || 133;
-                        const tCtx = tempCanvas.getContext('2d');
-                        tCtx.fillStyle = '#ffffff'; // Fundo branco p/ segurança
-                        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                        tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
-                        logoImg.src = tempCanvas.toDataURL('image/png');
-                    } catch (svgErr) {
-                        console.warn('Erro ao converter logo SVG para PNG (CORS/Taint fallback):', svgErr);
-                        if (originalSrc) {
-                            logoImg.src = originalSrc;
-                            originalSrc = '';
-                        }
-                    }
+                    originalSrc = logoImg.src;
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = logoImg.naturalWidth || 400;
+                    tempCanvas.height = logoImg.naturalHeight || 133;
+                    const tCtx = tempCanvas.getContext('2d');
+                    tCtx.fillStyle = '#ffffff'; // Fundo branco p/ segurança
+                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                    tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                    logoImg.src = tempCanvas.toDataURL('image/png');
                 }
 
-                // Backup styling to prevent mobile layout distortion
-                const originalWidth = captureArea.style.width;
-                const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
-                captureArea.style.maxWidth = 'none';
-
-                // Delay to allow DOM layout to update
-                await new Promise(r => setTimeout(r, 100));
-
                 try {
-                    // Captura a altura TOTAL do conteúdo
-                    const canvas = await html2canvas(captureArea, {
-                        scale: 2,
-                        backgroundColor: '#ffffff',
-                        useCORS: true,
-                        allowTaint: false,
-                        scrollY: 0,
-                        windowHeight: captureArea.scrollHeight,
-                        height: captureArea.scrollHeight,
-                        width: 800
-                    });
+                    const canvas = await html2canvas(captureArea, { scale: 3, backgroundColor: '#ffffff' });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
-
-                    // Calcular dimensões: usar largura A4, mas altura proporcional ao conteúdo total para não quebrar a página
-                    const pdfWidthMm = 210; // A4 largura em mm
-                    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
-
-                    // Criar PDF vertical de página única sem cortes
-                    const pdf = new jsPDF({
-                        orientation: 'portrait',
-                        unit: 'mm',
-                        format: [pdfWidthMm, pdfHeightMm]
-                    });
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
-
-                    // Nome de arquivo dinâmico (ex: relatorio-lme-DD-MM-AAAA.pdf)
-                    let dateStr = '';
-                    if (currentSelectedWeek) {
-                        const week = currentSelectedWeek;
-                        const d = week.days || [];
-                        if (d.length > 0 && d[0].data) {
-                            const parts = d[0].data.split('/');
-                            if (parts.length >= 2) {
-                                const day = parts[0].padStart(2, '0');
-                                const month = parts[1].padStart(2, '0');
-                                let year = parts[2] || '';
-                                if (!year) {
-                                    const filterMes = document.getElementById('rel-filter-mes');
-                                    year = new Date().getFullYear();
-                                    if (filterMes && filterMes.value && filterMes.value.includes('-')) {
-                                        year = filterMes.value.split('-')[1];
-                                    }
-                                }
-                                dateStr = `${day}-${month}-${year}`;
-                            }
-                        }
-                    }
-                    if (!dateStr) {
-                        const now = new Date();
-                        const day = String(now.getDate()).padStart(2, '0');
-                        const month = String(now.getMonth() + 1).padStart(2, '0');
-                        const year = now.getFullYear();
-                        dateStr = `${day}-${month}-${year}`;
-                    }
-                    const filename = `Relatorio_LME.pdf`;
-                    pdf.save(filename);
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.save('Relatorio_LME_ApexTech.pdf');
                 } finally {
                     // Restaura o SVG original após gerar o PDF
                     if (originalSrc) {
                         logoImg.src = originalSrc;
                     }
-                    // Restore styling
-                    captureArea.style.width = originalWidth;
-                    captureArea.style.maxWidth = originalMaxWidth;
-                    // Ocultar rodapé após exportação
-                    if (rodape) rodape.style.display = 'none';
                 }
             });
         }
 
         if (btnExcel) {
             btnExcel.addEventListener('click', async () => {
-                if (!currentSelectedWeek) return;
-                const block = currentSelectedWeek;
+                if (!weeksData || weeksData.length === 0) return;
+                const block = weeksData[0];
                 btnExcel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
                 try {
                     const res = await fetch('/api/lme/gerar-excel', {
@@ -2911,11 +2695,11 @@ var _listTabelaPrecosEstrategica = [];
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        _apexNotify('Atenção', 'Erro ao gerar Excel.', 'error');
+                        alert('Erro ao gerar Excel.');
                     }
                 } catch (err) {
                     console.error(err);
-                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
+                    alert('Erro na conexão com o servidor.');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -2939,29 +2723,42 @@ var _listTabelaPrecosEstrategica = [];
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        // Tentar obter a data da semana a partir do primeiro dia útil dela
-        let referenceDate = new Date();
-        if (d.length > 0 && d[0].data && d[0].data !== '—') {
-            const parts = d[0].data.split('/');
+        let weekNum = '...';
+        let dataTexto = `${firstDate} a ${lastDate}`;
+        
+        if (firstDate) {
+            const ptMonths = { 'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'set': 8, 'out': 9, 'nov': 10, 'dez': 11 };
+            const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+            
+            // Try to get year from filter, otherwise use current year
+            const filterMes = document.getElementById('lme-filter-mes');
+            let year = new Date().getFullYear();
+            if (filterMes && filterMes.value && filterMes.value.includes('-')) {
+                year = parseInt(filterMes.value.split('-')[0]);
+            }
+            
+            const parts = firstDate.split('/');
             if (parts.length >= 2) {
-                const selectMes = document.getElementById('rel-filter-mes');
-                let yr = new Date().getFullYear();
-                if (selectMes && selectMes.value && selectMes.value.includes('-')) {
-                    yr = parseInt(selectMes.value.split('-')[1], 10);
+                const day = parseInt(parts[0]);
+                const monthPart = parts[1].toLowerCase().trim();
+                let monthIndex = 0;
+                
+                if (isNaN(monthPart)) {
+                    monthIndex = ptMonths[monthPart] !== undefined ? ptMonths[monthPart] : 0;
+                } else {
+                    monthIndex = parseInt(monthPart) - 1;
                 }
-                const monthMap = {
-                    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
-                    'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
-                };
-                const monthAbbr = parts[1].toLowerCase().replace('.', '').trim();
-                const monthNum = monthMap[monthAbbr] || parseInt(parts[1], 10) || (new Date().getMonth() + 1);
-                const dayNum = parseInt(parts[0], 10) || 1;
-                referenceDate = new Date(yr, monthNum - 1, dayNum);
+                
+                // If parts has 3, it's DD/MM/YYYY
+                if (parts.length === 3) {
+                    year = parseInt(parts[2]);
+                }
+                
+                const dateObj = new Date(year, monthIndex, day);
+                weekNum = getISOWeek(dateObj);
+                dataTexto = `${day} de ${monthNames[monthIndex]}`;
             }
         }
-        
-        const dataTexto = `${week.label || ''}`;
-        const weekNum = getISOWeek(referenceDate);
         
         document.getElementById('rel-date-range').textContent = dataTexto;
         document.getElementById('rel-week-number').textContent = weekNum;
@@ -2971,72 +2768,23 @@ var _listTabelaPrecosEstrategica = [];
         
         const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
         
-        const formatUsd = (val) => {
+        const formatMoney = (val, isDolar) => {
             if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
-            return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-        };
-        const formatBrl = (val, dec = 3) => {
-            if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
-            return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+            const prefix = isDolar ? '$ ' : 'R$ ';
+            const maxF = isDolar ? 4 : 2;
+            return prefix + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: maxF, maximumFractionDigits: maxF });
         };
         const formatPct = (val) => {
             if (val === null || val === undefined || isNaN(val)) return '-';
-            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
         };
-
-        // Função reutilizável para formatar indicadores de variação
-        function formatVariacaoCell(element, value, type, decimals = 3) {
-            if (!element) return;
-            if (value === null || value === undefined || isNaN(value)) {
-                element.textContent = '-';
-                element.style.setProperty('color', '#000000', 'important');
-                return;
-            }
-            
-            const numVal = Number(value);
-            let formattedText = '';
-            
-            if (type === 'percent') {
-                formattedText = (numVal * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
-            } else if (type === 'currency') {
-                formattedText = 'R$ ' + Math.abs(numVal).toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-            } else {
-                formattedText = numVal.toLocaleString('pt-BR');
-            }
-
-            let arrow = '';
-            if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
-            } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
-            }
-            
-            element.innerHTML = `${arrow}${formattedText}`;
-            element.style.setProperty('color', '#000000', 'important'); // Texto sempre em preto
-        }
-
-        // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias úteis
-        const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
-        if (mediaLabelEl) {
-            if (week.numDias !== undefined && week.numDias < 5) {
-                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
-            } else {
-                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
-            }
-        }
 
         d.forEach(day => {
             if (!day.data) return;
             const tr = document.createElement('tr');
             let colsHtml = `<td class="font-bold rel-label-col">${day.data}</td>`;
             metals.forEach(m => {
-                const val = day[m];
-                const colClass = `rel-col-${m}`;
-                if (m === 'dolar') {
-                    colsHtml += `<td class="${colClass}">${formatBrl(val, 4)}</td>`;
-                } else {
-                    colsHtml += `<td class="${colClass}">${formatUsd(val)}</td>`;
-                }
+                colsHtml += `<td>${formatMoney(day[m], m === 'dolar')}</td>`;
             });
             tr.innerHTML = colsHtml;
             tbody.appendChild(tr);
@@ -3045,84 +2793,33 @@ var _listTabelaPrecosEstrategica = [];
         metals.forEach(m => {
             const isDolar = (m === 'dolar');
             const elMedia = document.getElementById('rel-media-' + m);
-            if (elMedia) {
-                if (isDolar) {
-                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
-                } else {
-                    elMedia.textContent = formatUsd(comp['MEDIA SEMANAL']?.[m]);
-                }
-            }
+            if (elMedia) elMedia.textContent = formatMoney(comp['MEDIA SEMANAL']?.[m], isDolar);
             if (m !== 'dolar') {
                 const elLme = document.getElementById('rel-lme-' + m);
-                if (elLme) elLme.textContent = formatBrl(comp['100% LME']?.[m], 3);
+                if (elLme) elLme.textContent = formatMoney(comp['100% LME']?.[m], isDolar);
             }
             const elAnt = document.getElementById('rel-ant-' + m);
-            if (elAnt) {
-                if (isDolar) {
-                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
-                } else {
-                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
-                }
-            }
+            if (elAnt) elAnt.textContent = formatMoney(comp['SEMANA ANTERIOR']?.[m], isDolar);
             const elFech = document.getElementById('rel-fech-' + m);
-            formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
+            if (elFech) elFech.textContent = formatPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m]);
             const elOscPct = document.getElementById('rel-osc-pct-' + m);
-            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
+            if (elOscPct) elOscPct.textContent = formatPct(comp['OSCILAÇÃO %']?.[m]);
 
             const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+            const isUp = oscRs >= 0;
+            const arrowIcon = isUp ? '<i class="fa-solid fa-arrow-up" style="color:#2ecc71"></i>' : '<i class="fa-solid fa-arrow-down" style="color:#e74c3c"></i>';
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
-            formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
+            if (elOscRs) elOscRs.innerHTML = `${arrowIcon} ${formatMoney(Math.abs(oscRs), isDolar)}`;
 
             const elMensal = document.getElementById('rel-mensal-' + m);
-            if (elMensal) {
-                if (isDolar) {
-                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 4);
-                } else {
-                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
-                }
-            }
+            if (elMensal) elMensal.textContent = formatMoney(comp['MEDIA MENSAL']?.[m], isDolar);
 
             const elCompAnt = document.getElementById('rel-comp-ant-' + m);
-            if (elCompAnt) {
-                if (isDolar) {
-                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
-                } else {
-                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
-                }
-            }
-            
-            // CORREÇÃO CRÍTICA: LME ATUAL é o valor de '100% LME' (R$/kg) da semana em curso, não a média semanal bruta em US$/t!
+            if (elCompAnt) elCompAnt.textContent = formatMoney(comp['SEMANA ANTERIOR']?.[m], isDolar);
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
-            if (elCompAtu) {
-                if (isDolar) {
-                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
-                } else {
-                    elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 3);
-                }
-            }
+            if (elCompAtu) elCompAtu.textContent = formatMoney(comp['MEDIA SEMANAL']?.[m], isDolar);
             const elCompOsc = document.getElementById('rel-comp-osc-' + m);
-            formatVariacaoCell(elCompOsc, oscRs, 'currency', isDolar ? 4 : 3);
-        });
-
-        // Aplica overrides de cores nas linhas específicas por label
-        const summaryRows = document.querySelectorAll('.rel-summary-body tr');
-        summaryRows.forEach(row => {
-            const firstCell = row.cells[0];
-            if (!firstCell) return;
-            const text = firstCell.textContent.trim().toUpperCase();
-
-            // Limpa classes anteriores para evitar duplicar/acumular em re-renders
-            row.classList.remove('row-lme100', 'row-fechamento-anterior', 'row-oscilacao-rs', 'row-semana-anterior');
-
-            if (text.includes("100% LME")) {
-                row.classList.add('row-lme100');
-            } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
-                row.classList.add('row-fechamento-anterior');
-            } else if (text.includes("OSCILAÇÃO R$")) {
-                row.classList.add('row-oscilacao-rs');
-            } else if (text === "SEMANA ANTERIOR") {
-                row.classList.add('row-semana-anterior');
-            }
+            if (elCompOsc) elCompOsc.innerHTML = `${arrowIcon} ${formatMoney(Math.abs(oscRs), isDolar)}`;
         });
 
         renderRelatorioCharts(week);
@@ -3134,7 +2831,7 @@ var _listTabelaPrecosEstrategica = [];
 
         // ── helpers ──────────────────────────────────────────────────────────
         const fmtR = v =>
-            'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         // Plugin inline de rótulos acima das barras
         const datalabelPlugin = {
@@ -3147,21 +2844,12 @@ var _listTabelaPrecosEstrategica = [];
                     meta.data.forEach((bar, idx) => {
                         const val = dataset.data[idx];
                         if (val === 0 || val == null) return;
-                        
+                        const label = fmtR(val);
                         ctx.save();
-                        ctx.font = 'bold 9px Arial';
+                        ctx.font = 'bold 10px Arial';
                         ctx.fillStyle = '#111';
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-                        
-                        // Rotaciona para desenhar verticalmente
-                        ctx.translate(bar.x, bar.y - 6);
-                        ctx.rotate(-Math.PI / 2);
-                        
-                        const prefix = dataset.label === 'Semana Anterior' ? 'Ant: ' : 'Atu: ';
-                        const label = prefix + 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-                        
-                        ctx.fillText(label, 0, 0);
+                        ctx.textAlign = 'center';
+                        ctx.fillText(label, bar.x, bar.y - 5);
                         ctx.restore();
                     });
                 });
@@ -3175,30 +2863,6 @@ var _listTabelaPrecosEstrategica = [];
             // Destruir instância anterior se existir
             const key = '__apexChart_' + canvasId;
             if (window[key]) { window[key].destroy(); }
-
-            const bgAnt = [];
-            const borderAnt = [];
-            const bgAtu = [];
-            const borderAtu = [];
-
-            for (let i = 0; i < labels.length; i++) {
-                const valAtu = dataAtu[i] || 0;
-                const valAnt = dataAnt[i] || 0;
-                if (valAtu > valAnt) {
-                    // Atual foi melhor (Verde), Anterior foi pior (Vermelho)
-                    bgAtu.push('#27ae60');
-                    borderAtu.push('#1e8449');
-                    bgAnt.push('#e74c3c');
-                    borderAnt.push('#c0392b');
-                } else {
-                    // Atual foi pior (Vermelho), Anterior foi melhor (Verde)
-                    bgAtu.push('#e74c3c');
-                    borderAtu.push('#c0392b');
-                    bgAnt.push('#27ae60');
-                    borderAnt.push('#1e8449');
-                }
-            }
-
             window[key] = new Chart(ctx, {
                 type: 'bar',
                 plugins: [datalabelPlugin],
@@ -3208,8 +2872,8 @@ var _listTabelaPrecosEstrategica = [];
                         {
                             label: 'Semana Anterior',
                             data: dataAnt,
-                            backgroundColor: bgAnt,
-                            borderColor: borderAnt,
+                            backgroundColor: '#9e9e9e',
+                            borderColor: '#757575',
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,
@@ -3218,8 +2882,8 @@ var _listTabelaPrecosEstrategica = [];
                         {
                             label: 'Semana Atual',
                             data: dataAtu,
-                            backgroundColor: bgAtu,
-                            borderColor: borderAtu,
+                            backgroundColor: '#0070c0',
+                            borderColor: '#005599',
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,
@@ -3228,10 +2892,9 @@ var _listTabelaPrecosEstrategica = [];
                     ]
                 },
                 options: {
-                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 90, right: 8, left: 8 } },
+                    layout: { padding: { top: 24, right: 8, left: 8 } },
                     plugins: {
                         legend: { display: false },          // legenda feita no HTML
                         tooltip: {
@@ -3306,7 +2969,7 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <div class="rel-card-metal-prev">era ${fmtR(anterior)}</div>
                     <div class="rel-card-metal-diff" style="color:${color};">
-                        ${isUp ? '+' : isDown ? '-' : ''}${fmtR(diff)}
+                        ${isUp ? '+' : isDown ? '' : ''}${fmtR(diff)}
                     </div>
                 </div>`;
             }).join('');
@@ -3332,16 +2995,10 @@ var _listTabelaPrecosEstrategica = [];
             let colsHtml = `<td>${pLabel}</td>`;
 
             metals.forEach(m => {
-                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1ª semana do mês — exibe '-'
-                const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
-                const colClass = `rel-col-${m}`;
-                if (lme === null) {
-                    colsHtml += `<td class="${colClass}">-</td>`;
-                } else {
-                    const baseVal = lme * (p / 100);
-                    const fmt = 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-                    colsHtml += `<td class="${colClass}">${fmt}</td>`;
-                }
+                const lme = comp['SEMANA ANTERIOR']?.[m] || comp['100% LME']?.[m] || 0;
+                const baseVal = lme * (p / 100);
+                const fmt = lme === 0 ? '-' : 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                colsHtml += `<td>${fmt}</td>`;
             });
 
             tr.innerHTML = colsHtml;
@@ -3349,8 +3006,8 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // =========================================================================
-    // HISTÓRICO DO RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
+}); // end DOMContentLoaded
+
     // =========================================================================
     async function initRelatorioDiarioHistorico() {
         const btnVerHistorico = document.getElementById('btn-ver-historico');
