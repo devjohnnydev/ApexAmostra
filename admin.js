@@ -253,22 +253,54 @@ var _listTabelaPrecosEstrategica = [];
         initNoticias();
         initLMEEmailConfig();
         
-        // Apex Gest├úo Inits
-        initApexFornecedores();
-        initApexClientes();
-        initApexMateriais();
-        initApexPrecos();
-        initApexPrecosResiduos();
-        initApexPrecosLigas();
-        initApexPrecosVolume();
-        initApexPrecosFundicao();
-        initApexAmostras();
-        initApexPlanejamento();
-        initApexEstoque();
-        initApexUsuarios();
-        initApexBI();
-        initApexPedidos();
-        switchSimulatedRole(sessionStorage.getItem('apex_user_role') || 'Administrador');
+        // Apex Gestão Inits (Safe Calls)
+        if (typeof initApexFornecedores === 'function') initApexFornecedores();
+        else if (window.initApexFornecedores) window.initApexFornecedores();
+        
+        if (typeof initApexClientes === 'function') initApexClientes();
+        else if (window.initApexClientes) window.initApexClientes();
+        
+        if (typeof initApexMateriais === 'function') initApexMateriais();
+        else if (window.initApexMateriais) window.initApexMateriais();
+        
+        if (typeof initApexPrecos === 'function') initApexPrecos();
+        else if (window.initApexPrecos) window.initApexPrecos();
+        
+        if (typeof initApexPrecosResiduos === 'function') initApexPrecosResiduos();
+        else if (window.initApexPrecosResiduos) window.initApexPrecosResiduos();
+        
+        if (typeof initApexPrecosLigas === 'function') initApexPrecosLigas();
+        else if (window.initApexPrecosLigas) window.initApexPrecosLigas();
+        
+        if (typeof initApexPrecosVolume === 'function') initApexPrecosVolume();
+        else if (window.initApexPrecosVolume) window.initApexPrecosVolume();
+        
+        if (typeof initApexPrecosFundicao === 'function') initApexPrecosFundicao();
+        else if (window.initApexPrecosFundicao) window.initApexPrecosFundicao();
+        
+        if (typeof initApexAmostras === 'function') initApexAmostras();
+        else if (window.initApexAmostras) window.initApexAmostras();
+        
+        if (typeof initApexPlanejamento === 'function') initApexPlanejamento();
+        else if (window.initApexPlanejamento) window.initApexPlanejamento();
+        
+        if (typeof initApexEstoque === 'function') initApexEstoque();
+        else if (window.initApexEstoque) window.initApexEstoque();
+        
+        if (typeof initApexUsuarios === 'function') initApexUsuarios();
+        else if (window.initApexUsuarios) window.initApexUsuarios();
+        
+        if (typeof initApexBI === 'function') initApexBI();
+        else if (window.initApexBI) window.initApexBI();
+        
+        if (typeof initApexPedidos === 'function') initApexPedidos();
+        else if (window.initApexPedidos) window.initApexPedidos();
+        
+        if (window.switchSimulatedRole) {
+            window.switchSimulatedRole(sessionStorage.getItem('apex_user_role') || 'Administrador');
+        } else if (typeof switchSimulatedRole === 'function') {
+            switchSimulatedRole(sessionStorage.getItem('apex_user_role') || 'Administrador');
+        }
     }
 
     // =========================================================================
