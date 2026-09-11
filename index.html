@@ -21,7 +21,7 @@
         /* HERO */
         .home-hero {
             min-height: 92vh;
-            background: linear-gradient(135deg, #0a1a0f 0%, #0d2416 40%, #122d1a 100%);
+            background: linear-gradient(135deg, #050d08 0%, #08160d 40%, #0d2416 100%);
             display: flex;
             align-items: center;
             position: relative;
@@ -86,11 +86,11 @@
         .hero-h1 span { color: #2ad07a; }
         .hero-sub {
             font-family: 'Lato', sans-serif;
-            font-size: 1.05rem;
+            font-size: 1.15rem;
             line-height: 1.7;
-            color: rgba(255,255,255,0.65);
+            color: rgba(255,255,255,0.85);
             margin: 0 0 38px;
-            max-width: 480px;
+            max-width: 520px;
         }
         .hero-ctas {
             display: flex;
@@ -416,14 +416,14 @@
             .hero-right { grid-template-columns: 1fr 1fr; }
             .setores-grid { grid-template-columns: 1fr; }
             .diferenciais-grid { grid-template-columns: 1fr 1fr; }
-            .home-cta .container { grid-template-columns: 1fr; }
+            .home-cta .container, .home-sobre .container { grid-template-columns: 1fr !important; }
             .cta-buttons { flex-direction: row; }
         }
         @media (max-width: 600px) {
             .hero-right { grid-template-columns: 1fr 1fr; }
             .diferenciais-grid { grid-template-columns: 1fr 1fr; }
             .cta-buttons { flex-direction: column; }
-            .home-diferenciais .container, .home-setores .container, .home-cta .container { padding: 0 20px; }
+            .home-diferenciais .container, .home-setores .container, .home-cta .container, .home-sobre .container { padding: 0 20px !important; }
             .hero-inner { padding: 50px 20px; }
         }
 
@@ -466,16 +466,19 @@
             <div class="hero-left">
                 <div class="hero-eyebrow">
                     <i class="fa-solid fa-recycle"></i>
-                    Reciclagem &amp; Sustentabilidade
+                    TECNOLOGIA • RECICLAGEM • ECONOMIA CIRCULAR
                 </div>
-                <h1 class="hero-h1">Transformamos <span>Resíduos</span><br>em Valor Real</h1>
-                <p class="hero-sub">A <strong>ApexTech Metais</strong> é especialista na compra de sucatas de indústrias, construção civil, fios, cabos e conectores — com agilidade, transparência e os melhores preços do mercado.</p>
+                <h1 class="hero-h1">Transformamos Resíduos<br>em <span>Matéria-Prima Estratégica</span></h1>
+                <p class="hero-sub">A <strong>Apextech Metais</strong> compra, processa e valoriza sucatas metálicas, fios, cabos, conectores e resíduos eletroeletrônicos, oferecendo segurança, agilidade e soluções eficientes para fornecedores e indústrias.</p>
                 <div class="hero-ctas">
                     <a href="/servicos.html" class="btn-hero-primary">
-                        <i class="fa-solid fa-bolt"></i> Nossas Soluções
+                        <i class="fa-solid fa-bolt"></i> Solicite uma Cotação
                     </a>
-                    <a href="/contato.html" class="btn-hero-outline">
-                        <i class="fa-solid fa-envelope"></i> Fale Conosco
+                    <a href="/sobre.html" class="btn-hero-outline">
+                        <i class="fa-solid fa-building"></i> Sobre Nós
+                    </a>
+                    <a href="/contato.html" class="btn-hero-outline" style="border-color: transparent;">
+                        Conheça a Apextech
                     </a>
                 </div>
             </div>
@@ -483,23 +486,45 @@
                 <div class="hero-stat-card accent">
                     <div class="stat-icon"><i class="fa-solid fa-industry"></i></div>
                     <div class="stat-number">15+</div>
-                    <div class="stat-label">Anos de mercado em reciclagem de metais</div>
+                    <div class="stat-label">anos — Experiência no mercado de metais</div>
                 </div>
                 <div class="hero-stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-handshake"></i></div>
                     <div class="stat-number">500+</div>
-                    <div class="stat-label">Clientes e parceiros atendidos</div>
+                    <div class="stat-label">parceiros — Relacionamentos comerciais construídos</div>
                 </div>
                 <div class="hero-stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-weight-hanging"></i></div>
-                    <div class="stat-number">1mil+</div>
-                    <div class="stat-label">Toneladas processadas por ano</div>
+                    <div class="stat-number">1.000+</div>
+                    <div class="stat-label">toneladas — Capacidade anual de processamento</div>
                 </div>
                 <div class="hero-stat-card accent">
                     <div class="stat-icon"><i class="fa-solid fa-leaf"></i></div>
                     <div class="stat-number">100%</div>
-                    <div class="stat-label">Comprometimento com a sustentabilidade</div>
+                    <div class="stat-label">comprometida — Com eficiência e responsabilidade</div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOBRE A EMPRESA -->
+    <section class="home-sobre" id="sobre" style="background: #fff; padding: 90px 0;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+            <div class="sobre-text">
+                <div class="section-label" style="color:#2ad07a; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px;">Sobre a Empresa</div>
+                <h2 class="section-title" style="font-family: 'Raleway', sans-serif; font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 800; color: #0d2416; margin: 0 0 24px; line-height: 1.2;">Apextech Metais — transformando resíduos em matérias-primas para o futuro.</h2>
+                
+                <div style="color: #5a7060; font-size: 1.05rem; line-height: 1.7; display: flex; flex-direction: column; gap: 16px;">
+                    <p style="margin:0;">A <strong>Apextech Metais</strong> nasceu com o propósito de transformar resíduos em valor, unindo experiência, tecnologia e responsabilidade em cada etapa da operação.</p>
+                    <p style="margin:0;">Atuamos na compra, no processamento e na valorização de metais não ferrosos, fios, conectores, componentes eletroeletrônicos e placas de circuito. Nossa estrutura industrial utiliza processos modernos de moagem, separação e classificação para garantir eficiência, rastreabilidade e o melhor aproveitamento de cada material.</p>
+                    <p style="margin:0;">Mais do que reciclar, desenvolvemos soluções para reinserir matérias-primas estratégicas na cadeia produtiva, conectando fornecedores, indústria e mercados nacionais e internacionais.</p>
+                    <p style="margin:0;">Construímos relações comerciais sustentadas por valores sólidos: lealdade, transparência, cumprimento dos compromissos e respeito às pessoas. Esses princípios tradicionais orientam uma empresa que olha para o futuro, investe continuamente em inovação e trabalha para elevar o padrão do setor.</p>
+                    <p style="margin:0;">Nossa missão é transformar o que antes era tratado como descarte em oportunidade econômica, ambiental e industrial.</p>
+                    <p style="margin:0; font-weight: 600; color: #0d2416;">Apextech Metais — tecnologia, confiança e valor para construir o ferro-velho do futuro.</p>
+                </div>
+            </div>
+            <div class="sobre-image" style="position: relative;">
+                 <img src="assets/img/img-transformando-residuos.webp" alt="Reciclagem e Tecnologia" style="width: 100%; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
             </div>
         </div>
     </section>
