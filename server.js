@@ -4822,6 +4822,35 @@ function avg(arr) {
     return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
+
+app.get('/api/lme/destinatarios', async (req, res) => {
+    try {
+        const { tipo } = req.query;
+        if (!tipo) return res.status(400).json({ error: 'tipo obrigatorio' });
+        const [rows] = await pool.query('SELECT id, nome, email, tipo FROM lme_destinatarios WHERE tipo = ?', [tipo]);
+        res.json(rows);
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/lme/destinatarios', async (req, res) => {
+    try {
+        const { id, nome, email, tipo } = req.body;
+        if (id) {
+            await pool.query('UPDATE lme_destinatarios SET nome=?, email=?, tipo=? WHERE id=?', [nome, email, tipo, id]);
+        } else {
+            await pool.query('INSERT INTO lme_destinatarios (nome, email, tipo) VALUES (?, ?, ?)', [nome, email, tipo]);
+        }
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/lme/destinatarios/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM lme_destinatarios WHERE id=?', [req.params.id]);
+        res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/lme/relatorio-semanal', async (req, res) => {
     try {
         const mes = req.query.mes; // ex: "6-2026"

@@ -165,6 +165,7 @@ var _listTabelaPrecosEstrategica = [];
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
+            console.log('[Nav] Clicked:', item.dataset.target);
 
             navItems.forEach(nav => nav.classList.remove('active'));
             // Esconde todas as se├º├Áes EXCETO o hist├│rico (que ├® gerenciado internamente pelo bot├úo)
