@@ -1143,7 +1143,7 @@ app.use('/api/audit-logs', requireRole(['Diretoria']));
 // ─── API: Login ───────────────────────────────────────────────────────────────
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // Limite de 5 tentativas de login por IP
+    max: 50, // Limite de 50 tentativas de login por IP
     message: { success: false, error: 'Muitas tentativas de login. Tente novamente em 15 minutos.' }
 });
 
