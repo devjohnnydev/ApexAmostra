@@ -5251,7 +5251,7 @@ app.get('/api/lme/tabela/:mes', async (req, res) => {
     try {
         const mes = req.params.mes;
         const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
-        const { data } = await axios.get(targetUrl);
+        const { data } = await axios.get(targetUrl, { timeout: 15000 });
         const $ = cheerio.load(data);
         
         const cotacoes = [];
@@ -5287,7 +5287,7 @@ app.get('/api/lme/tabela/:mes', async (req, res) => {
 
 app.post('/api/lme/graflme', async (req, res) => {
     try {
-        const response = await axios.post('https://shockmetais.com.br/lme/graflme', new URLSearchParams(req.body), {
+        const response = await axios.post('https://shockmetais.com.br/lme/graflme', new URLSearchParams(req.body), { timeout: 15000,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
         res.json(response.data);
@@ -5299,7 +5299,7 @@ app.post('/api/lme/graflme', async (req, res) => {
 
 app.post('/api/lme/varialme', async (req, res) => {
     try {
-        const response = await axios.post('https://shockmetais.com.br/lme/varialme', new URLSearchParams(req.body), {
+        const response = await axios.post('https://shockmetais.com.br/lme/varialme', new URLSearchParams(req.body), { timeout: 15000,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
         const $ = cheerio.load(response.data);
@@ -5805,4 +5805,4 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 module.exports = { app, initDatabase, pool };
-
+
