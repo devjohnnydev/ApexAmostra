@@ -4138,6 +4138,17 @@ var _listTabelaPrecosEstrategica = [];
     };
 
         function applyRolePermissions() {
+
+        // Controle do novo menu Administrador Master
+        const masterMenu = document.getElementById('nav-item-admin-master');
+        if (masterMenu) {
+            if (currentSimulatedRole === 'Administrador Master' || currentSimulatedRole === 'Root' || rawRole === 'Administrador Master') {
+                masterMenu.style.display = 'flex';
+            } else {
+                masterMenu.style.display = 'none';
+            }
+        }
+
         const rawRole = currentSimulatedRole || '';
         const role = String(rawRole).trim().toLowerCase();
 

@@ -1221,6 +1221,35 @@ app.get('/api/usuarios', async (req, res) => {
     }
 });
 
+// Rota exclusiva para o Administrador Master trocar a senha de um usuário (ou do admin)
+app.put('/api/usuarios/:id/password', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.perfil !== 'Administrador Master') {
+            return res.status(403).json({ error: 'Acesso negado. Apenas o Administrador Master pode alterar senhas por esta via.' });
+        }
+        const userId = req.params.id;
+        const { novaSenha } = req.body;
+        if (!novaSenha) {
+            return res.status(400).json({ error: 'A nova senha é obrigatória.' });
+        }
+        const salt = await require('bcrypt').genSalt(10);
+        const hashedPassword = await require('bcrypt').hash(novaSenha, salt);
+
+        if (typeof dbAvailable !== 'undefined' && dbAvailable) {
+            await pool.query('UPDATE usuarios SET pass = ? WHERE id = ?', [hashedPassword, userId]);
+            return res.json({ message: 'Senha atualizada com sucesso!' });
+        } else {
+            const u = memStore.usuarios.find(x => x.id == userId);
+            if (!u) return res.status(404).json({ error: 'Usuário não encontrado.' });
+            u.pass = hashedPassword;
+            return res.json({ message: 'Senha atualizada com sucesso!' });
+        }
+    } catch (err) {
+        console.error('Erro ao alterar senha:', err);
+        res.status(500).json({ error: 'Erro interno ao alterar a senha.' });
+    }
+});
+
 app.post('/api/usuarios', async (req, res) => {
     try {
         const { user, pass, perfil, nome } = req.body;
