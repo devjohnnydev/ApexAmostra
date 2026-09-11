@@ -1083,7 +1083,6 @@ const requireRole = (allowedRoles) => {
         return res.status(403).json({ error: 'Acesso negado para o seu perfil: ' + req.user.perfil });
     };
 };
-};
 
 // Aplica autenticação em todas as rotas da API
 app.use('/api', authMiddleware);
