@@ -4154,33 +4154,33 @@ var _listTabelaPrecosEstrategica = [];
             if (el) el.style.display = isVisible ? 'flex' : 'none';
         };
 
-        // Tabs Visibility (Apex Gest├úo)
-        setNav('nav-fornecedores', temPermissao('view_fornecedores'));
-        setNav('nav-clientes', temPermissao('view_clientes'));
-        setNav('nav-materiais', temPermissao('view_catalogo'));
-        setNav('nav-precos', temPermissao('view_precos'));
-        setNav('nav-amostras', temPermissao('view_laboratorio'));
-        setNav('nav-planejamento', temPermissao('view_planejamento'));
-        setNav('nav-planejamento-estrategicov3', temPermissao('view_estrategico'));
-        setNav('nav-estoque', temPermissao('view_estoque'));
-        setNav('nav-bi', temPermissao('view_bi'));
-        setNav('nav-usuarios', temPermissao('view_usuarios'));
-        setNav('nav-permissoes', temPermissao('view_permissoes'));
-        setNav('nav-financeiro', temPermissao('view_financeiro'));
-        setNav('nav-pedidos-venda', temPermissao('view_pedidos') || role === 'Administrador');
+        // Tabs Visibility (Apex Gestão)
+        setNav('nav-fornecedores', true);
+        setNav('nav-clientes', true);
+        setNav('nav-materiais', true);
+        setNav('nav-precos', true);
+        setNav('nav-amostras', true);
+        setNav('nav-planejamento', true);
+        setNav('nav-planejamento-estrategicov3', true);
+        setNav('nav-estoque', true);
+        setNav('nav-bi', true);
+        setNav('nav-usuarios', true);
+        setNav('nav-permissoes', true);
+        setNav('nav-financeiro', true);
+        setNav('nav-pedidos-venda', true);
 
-        // Tabs Visibility (LME - como os originais n├úo tem ID, usamos querySelector)
-        setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
-        setNav('.nav-item[data-target="relatorio-diario"]', temPermissao('view_lme'));
+        // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
+        setNav('.nav-item[data-target="dashboard"]', true);
+        setNav('.nav-item[data-target="relatorio-diario"]', true);
         
         // Site Config (Agrupados)
-        setNav('.nav-item[data-target="home-config"]', temPermissao('view_site'));
-        setNav('.nav-item[data-target="galeria-admin"]', temPermissao('view_site'));
-        setNav('.nav-item[data-target="materiais"]', temPermissao('view_site'));
-        setNav('.nav-item[data-target="solucoes"]', temPermissao('view_site'));
-        setNav('.nav-item[data-target="noticias"]', temPermissao('view_site'));
-        setNav('.nav-item[data-target="lme-email-config"]', temPermissao('view_site') || temPermissao('view_lme'));
-        setNav('.nav-item[data-target="tabela-email-config"]', temPermissao('view_site') || temPermissao('view_precos'));
+        setNav('.nav-item[data-target="home-config"]', true);
+        setNav('.nav-item[data-target="galeria-admin"]', true);
+        setNav('.nav-item[data-target="materiais"]', true);
+        setNav('.nav-item[data-target="solucoes"]', true);
+        setNav('.nav-item[data-target="noticias"]', true);
+        setNav('.nav-item[data-target="lme-email-config"]', true);
+        setNav('.nav-item[data-target="tabela-email-config"]', true);
 
         // Oculta a se├º├úo ativa se o usu├írio perdeu acesso a ela e redireciona para a primeira dispon├¡vel
         const activeNav = document.querySelector('.nav-item.active');
