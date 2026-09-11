@@ -187,7 +187,7 @@ var _listTabelaPrecosEstrategica = [];
                     }
                 }
                 target.classList.add('active');
-                target.style.display = 'block';
+                target.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 999999 !important;';
                 // Sempre volta ao topo ao trocar de se├º├úo
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) mainContent.scrollTop = 0;
