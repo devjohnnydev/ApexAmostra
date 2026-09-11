@@ -5782,8 +5782,7 @@ if (process.env.NODE_ENV !== 'test') {
     initDatabase().then(() => {
         app.listen(PORT, () => {
             console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
-            console.log(`📦 Modo de dados: ${dbAvailable ? 'PostgreSQL' : 'Memória (local)'}`);
-            startEmailScheduler();
+            console.log(`📦 Modo de dados: MySQL`);
         });
     });
 }
