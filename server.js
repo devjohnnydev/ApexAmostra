@@ -962,6 +962,23 @@ async function initDatabase() {
             } catch(e) {}
         }
 
+        // Criar usuário admin padrão se a tabela estiver vazia
+        try {
+            const [rows] = await pool.query('SELECT COUNT(*) as total FROM usuarios');
+            if (rows[0].total === 0) {
+                const bcrypt = require('bcryptjs');
+                const salt = await bcrypt.genSalt(10);
+                const hashed = await bcrypt.hash('apex2026', salt);
+                await pool.query(
+                    'INSERT INTO usuarios (`user`, pass, perfil, nome) VALUES (?, ?, ?, ?)',
+                    ['admin', hashed, 'Administrador', 'Admin Apex']
+                );
+                console.log('👤 Usuário admin criado automaticamente (senha: apex2026)');
+            }
+        } catch(e) {
+            console.warn('⚠️ Não foi possível criar admin padrão:', e.message);
+        }
+
         dbAvailable = true;
         console.log('✅ Banco de dados MySQL inicializado com sucesso!');
     } catch (err) {
@@ -1154,7 +1171,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         
         // Buscar usuário (somente o registro, sem comparar senha na query SQL)
         if (dbAvailable) {
-            const result = await pool.query('SELECT * FROM usuarios WHERE "user" = ?', [user]);
+            const result = await pool.query('SELECT * FROM usuarios WHERE `user` = ?', [user]);
             if (result[0].length > 0) {
                 foundUser = result[0][0];
             }
@@ -1186,7 +1203,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 app.get('/api/usuarios', async (req, res) => {
     try {
         if (dbAvailable) {
-            const result = await pool.query('SELECT id, "user", perfil, nome FROM usuarios ORDER BY id ASC');
+            const result = await pool.query('SELECT id, `user`, perfil, nome FROM usuarios ORDER BY id ASC');
             return res.json(result[0]);
         }
         res.json(memStore.usuarios.map(({ id, user, perfil, nome }) => ({ id, user, perfil, nome })));
@@ -1206,10 +1223,10 @@ app.post('/api/usuarios', async (req, res) => {
 
         if (dbAvailable) {
             const result = await pool.query(
-                'INSERT INTO usuarios ("user", pass, perfil, nome) VALUES (?, ?, ?, ?), "user", perfil, nome',
+                'INSERT INTO usuarios (`user`, pass, perfil, nome) VALUES (?, ?, ?, ?)',
                 [user, hashedPassword, perfil, nome]
             );
-            return res.json(result[0][0]);
+            return res.json({ id: result[0].insertId, user, perfil, nome });
         } else {
             const newU = { id: nextId++, user, pass: hashedPassword, perfil, nome };
             memStore.usuarios.push(newU);
