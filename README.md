@@ -1,6 +1,6 @@
 # ApexTech Metais - Enterprise Portal & ERP System
 
-Este é o repositório oficial do portal corporativo e sistema ERP de gestão comercial da **ApexTech Metais**. O projeto evoluiu de uma landing page estática para uma **Plataforma Enterprise completa**, contando com Banco de Dados em Nuvem (PostgreSQL), Cache em Memória, Pipeline de Integração Contínua (CI/CD), Containerização com Docker, e Segurança Avançada (RBAC e Rate Limiting).
+Este é o repositório oficial do portal corporativo e sistema ERP de gestão comercial da **ApexTech Metais**. O projeto evoluiu de uma landing page estática para uma **Plataforma Enterprise completa**, contando com Banco de Dados em Nuvem (MySQL), Cache em Memória, Pipeline de Integração Contínua (CI/CD), Containerização com Docker, e Segurança Avançada (RBAC e Rate Limiting).
 
 ---
 
@@ -14,7 +14,7 @@ O portal foi projetado com uma estética visual premium (Dark Mode) e uma arquit
    - Grade responsiva com efeito 3D Tilt, catálogo dinâmico e tabelas de cotação em tempo real.
 2. **Painel ERP & Administrativo Privado (`/admin.html`)**
    - **Performance Extrema:** Motor de Cache em Memória (`window.ApexCache`) que reduz a latência de trânsito de abas para zero milissegundos.
-   - **Gestão de Clientes & Fornecedores:** Validações de unicidade, cadastros eficientes no banco PostgreSQL e busca inteligente em NFD.
+   - **Gestão de Clientes & Fornecedores:** Validações de unicidade, cadastros eficientes no banco MySQL e busca inteligente em NFD.
    - **Pedidos e Exportações:** Geração de PDFs com marcas d'água corporativas e exportação de planilhas complexas em Excel.
    - **Relatórios Automatizados LME:** Web Scrapers que buscam a cotação oficial em Dólar e agendador automático via CRON para disparos de e-mail pela API Resend.
 
@@ -24,7 +24,7 @@ O portal foi projetado com uma estética visual premium (Dark Mode) e uma arquit
 
 Esta aplicação foi reconstruída sob os padrões mais altos do mercado, adotando as seguintes premissas arquitetônicas:
 
-- **Banco de Dados em Nuvem:** PostgreSQL hospedado no Railway para integridade transacional e acesso seguro a múltiplos nós.
+- **Banco de Dados em Nuvem:** MySQL hospedado no Railway para integridade transacional e acesso seguro a múltiplos nós.
 - **Sistema de Injeção de Dependências:** O backend do `server.js` é modularizado com rotas independentes na pasta `/src/routes`, simplificando a manutenção.
 - **Containerização Total (Docker):** O projeto dispõe de `Dockerfile` e `docker-compose.yml`, permitindo rodar a API, Banco de Dados e Frontend localmente com o comando universal `docker-compose up`.
 
@@ -43,7 +43,7 @@ Esta aplicação foi reconstruída sob os padrões mais altos do mercado, adotan
 ## 🛠️ Tecnologias e Bibliotecas
 
 **Backend (API & Infra):**
-- Node.js (Express), pg (PostgreSQL pooling), Jest, Supertest, Helmet, express-rate-limit, Winston, JSONWebToken, bcryptjs, Puppeteer, ExcelJS, Docker.
+- Node.js (Express), mysql2 (MySQL pooling), Jest, Supertest, Helmet, express-rate-limit, Winston, JSONWebToken, bcryptjs, Puppeteer, ExcelJS, Docker.
 
 **Frontend:**
 - Vanilla JavaScript com Modularização Avançada, HTML5, CSS3 Variables, Chart.js, jsPDF.
@@ -63,7 +63,7 @@ docker-compose up
 ```
 
 ### Opção 2: Método Tradicional
-Pré-requisitos: Node.js (18+) e PostgreSQL local/nuvem.
+Pré-requisitos: Node.js (18+) e MySQL local/nuvem.
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/devjohnnydev/ApexAmostra.git
@@ -74,7 +74,7 @@ npm install
 
 # 3. Configure as Variáveis no arquivo .env
 # PORT=3000
-# DATABASE_URL=postgres://usuario:senha@host:5432/apextech
+# DB_HOST=localhost`n# DB_USER=usuario`n# DB_PASSWORD=senha`n# DB_NAME=apextech
 # JWT_SECRET=chave_segura_aqui
 
 # 4. Inicie o sistema e rode a suíte de Testes

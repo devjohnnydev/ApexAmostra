@@ -2,17 +2,18 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15-alpine
+    image: mysql:8.0
     container_name: apextech_db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: apex_local_password
-      POSTGRES_DB: apextech
+      MYSQL_ROOT_PASSWORD: apex_local_password
+      MYSQL_DATABASE: apextech
+      MYSQL_USER: apextech_user
+      MYSQL_PASSWORD: apextech_password
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - apextech_pgdata:/var/lib/postgresql/data
+      - apextech_mysqldata:/var/lib/mysql
 
   api:
     build: 
@@ -24,7 +25,11 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - DATABASE_URL=postgresql://postgres:apex_local_password@db:5432/apextech
+      - DB_HOST=db
+      - DB_USER=apextech_user
+      - DB_PASSWORD=apextech_password
+      - DB_NAME=apextech
+      - DB_PORT=3306
       - JWT_SECRET=apextech_secret_key_2026_safe
       - NODE_ENV=production
     depends_on:
@@ -33,4 +38,4 @@ services:
       - ./logs:/usr/src/app/logs
 
 volumes:
-  apextech_pgdata:
+  apextech_mysqldata:

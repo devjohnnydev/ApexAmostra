@@ -5,7 +5,7 @@ module.exports = function(pool, dbAvailable, memStore) {
 
     // Utilitário simples para executar query apenas se tiver banco (fallback ignorado no PCP pois é módulo novo e exige DB)
     const runQuery = async (sql, params = []) => {
-        if (!pool) throw new Error("O módulo PCP requer conexão com o banco de dados (PostgreSQL não configurado).");
+        if (!pool) throw new Error("O módulo PCP requer conexão com o banco de dados (MySQL não configurado).");
         return await pool.query(sql, params);
     };
 
