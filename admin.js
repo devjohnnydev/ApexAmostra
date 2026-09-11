@@ -1,4 +1,4 @@
-var _listMetasEstrategicas = [];
+﻿var _listMetasEstrategicas = [];
 var _listTabelaPrecosEstrategica = [];
 
 // DOMContentLoaded wrapper removed
@@ -9,7 +9,7 @@ var _listTabelaPrecosEstrategica = [];
         return null;
     };
 
-    // ─── TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) ──────────────────────────────
+    // ÔöÇÔöÇÔöÇ TOGGLE MENU LATERAL RECOLH├ìVEL (DESKTOP) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     window.toggleDesktopSidebar = function(forceState) {
         const container = document.getElementById('admin-dashboard-container');
         const icon = document.getElementById('sidebar-toggle-icon');
@@ -41,7 +41,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // Restaurar preferência do menu ao carregar
+    // Restaurar prefer├¬ncia do menu ao carregar
     try {
         const prefCollapsed = localStorage.getItem('apex_sidebar_collapsed') === 'true';
         if (prefCollapsed) {
@@ -49,14 +49,14 @@ var _listTabelaPrecosEstrategica = [];
         }
     } catch(e) {}
 
-    // ─── Utilitário global: formata número no padrão brasileiro com 2 casas ───
+    // ÔöÇÔöÇÔöÇ Utilit├írio global: formata n├║mero no padr├úo brasileiro com 2 casas ÔöÇÔöÇÔöÇ
     window.fmtBRL = function(val) {
         const n = parseFloat(val);
         if (isNaN(n)) return '0,00';
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
-    // ─── SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) ────────
+    // ÔöÇÔöÇÔöÇ SISTEMA DE NOTIFICA├ç├âO GLASSMORPHISM (substitui alert nativo) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     // Tipos: 'success' | 'error' | 'info' | 'warning'
     window._apexNotify = function(titulo, mensagem, tipo) {
         tipo = tipo || 'info';
@@ -67,10 +67,10 @@ var _listTabelaPrecosEstrategica = [];
         if (!overlay) { _apexNotify('Sistema', titulo + (mensagem ? '\n' + mensagem : ''), 'info'); return; }
 
         const configs = {
-            success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
-            error:   { icon:'❌', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
-            warning: { icon:'⚠️', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
-            info:    { icon:'ℹ️', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
+            success: { icon:'Ô£à', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
+            error:   { icon:'ÔØî', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            warning: { icon:'ÔÜá´©Å', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
+            info:    { icon:'Ôä╣´©Å', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
         };
         const cfg = configs[tipo] || configs.info;
 
@@ -95,7 +95,7 @@ var _listTabelaPrecosEstrategica = [];
     document.getElementById('_apex_notify_overlay')?.addEventListener('click', function(e) {
         if (e.target === this) window._apexNotifyClose();
     });
-    // ─────────────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 
     window.formatarDataSemFuso = function(dStr) {
@@ -112,7 +112,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ─── Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ───
+    // ÔöÇÔöÇÔöÇ Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ÔöÇÔöÇÔöÇ
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' || e.keyCode === 27) {
             const drop = document.getElementById('pedido-cliente-dropdown');
@@ -138,7 +138,7 @@ var _listTabelaPrecosEstrategica = [];
             document.getElementById('modal-preco-volume')?.remove();
             document.getElementById('modal-preco-fundicao')?.remove();
 
-            // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produção
+            // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produ├º├úo
             document.querySelectorAll('.fullscreen-overlay').forEach(modal => {
                 if (modal.id !== 'modal-planejamento-producao') {
                     modal.style.display = 'none';
@@ -149,16 +149,16 @@ var _listTabelaPrecosEstrategica = [];
 
     let globalRolePermissions = {};
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     // LOGIN
-    // ─────────────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 
 
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // NAVEGAÇÃO
-    // ─────────────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    // NAVEGA├ç├âO
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     const navItems = document.querySelectorAll('.nav-item[data-target]');
     const sections = document.querySelectorAll('.view-section');
 
@@ -167,7 +167,7 @@ var _listTabelaPrecosEstrategica = [];
             e.preventDefault();
 
             navItems.forEach(nav => nav.classList.remove('active'));
-            // Esconde todas as seções EXCETO o histórico (que é gerenciado internamente pelo botão)
+            // Esconde todas as se├º├Áes EXCETO o hist├│rico (que ├® gerenciado internamente pelo bot├úo)
             sections.forEach(sec => {
                 if (sec.id !== 'relatorio-diario-historico') {
                     sec.classList.remove('active');
@@ -187,7 +187,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
                 target.classList.add('active');
                 target.style.display = 'block';
-                // Sempre volta ao topo ao trocar de seção
+                // Sempre volta ao topo ao trocar de se├º├úo
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) mainContent.scrollTop = 0;
                 if (item.dataset.target === 'permissoes-view' && window.carregarPermissoesView) {
@@ -228,9 +228,9 @@ var _listTabelaPrecosEstrategica = [];
         });
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     // INIT ADMIN
-    // ─────────────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     async function initAdmin() {
         try {
             const res = await fetch('/api/settings');
@@ -239,7 +239,7 @@ var _listTabelaPrecosEstrategica = [];
                 globalRolePermissions = JSON.parse(settings.role_permissions);
             }
         } catch (e) {
-            console.error('Erro ao buscar permissões:', e);
+            console.error('Erro ao buscar permiss├Áes:', e);
         }
 
         initLMEDashboard();
@@ -253,7 +253,7 @@ var _listTabelaPrecosEstrategica = [];
         initNoticias();
         initLMEEmailConfig();
         
-        // Apex Gestão Inits
+        // Apex Gest├úo Inits
         initApexFornecedores();
         initApexClientes();
         initApexMateriais();
@@ -291,12 +291,12 @@ var _listTabelaPrecosEstrategica = [];
 
         if (!selector || !preview) return;
 
-        const MONTH_NAMES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        const MONTH_NAMES = ['','Janeiro','Fevereiro','Mar├ºo','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         let excelWeeks = [];
         let activeMetals = new Set(['cobre','zinco','aluminio','chumbo','estanho','niquel','dolar']);
         let allMetalsOn = true;
 
-        // ─── HELPERS ────────────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ HELPERS ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function showLoading() {
             if (loadingDiv)  { loadingDiv.style.display  = 'flex'; }
             if (errorDiv)    { errorDiv.style.display    = 'none'; }
@@ -314,7 +314,7 @@ var _listTabelaPrecosEstrategica = [];
             if (previewWrap) { previewWrap.style.display = 'block'; }
         }
 
-        // ─── LOAD DATA ──────────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ LOAD DATA ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         async function loadWeeks(mesOverride = null) {
             showLoading();
             try {
@@ -332,7 +332,7 @@ var _listTabelaPrecosEstrategica = [];
                         mesToFetch = mesesDisponiveis[0].valor;
                         filterMes.value = mesToFetch;
                     } else {
-                        throw new Error('Nenhum mês disponível na LME.');
+                        throw new Error('Nenhum m├¬s dispon├¡vel na LME.');
                     }
                 }
 
@@ -345,7 +345,7 @@ var _listTabelaPrecosEstrategica = [];
                 
                 if (excelWeeks.length === 0) {
                     selector.innerHTML = '<option value="">Nenhuma semana encontrada</option>';
-                    showError('Nenhuma semana encontrada neste mês.');
+                    showError('Nenhuma semana encontrada neste m├¬s.');
                     if (countNum) countNum.textContent = '0';
                     return;
                 }
@@ -353,8 +353,8 @@ var _listTabelaPrecosEstrategica = [];
                 if (countNum) countNum.textContent = excelWeeks.length;
                 
                 selector.innerHTML = excelWeeks.map(w => {
-                    const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '—';
-                    return `<option value="${w.header}">Semana ${w.header} → ${lastDay}</option>`;
+                    const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : 'ÔÇö';
+                    return `<option value="${w.header}">Semana ${w.header} ÔåÆ ${lastDay}</option>`;
                 }).join('');
 
                 renderPreview(excelWeeks[0].header);
@@ -364,9 +364,9 @@ var _listTabelaPrecosEstrategica = [];
             }
         }
 
-        // ─── RENDER PREVIEW TABLE ────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ RENDER PREVIEW TABLE ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         const formatVal = (v, formatType) => {
-            if (v === null || v === undefined) return '—';
+            if (v === null || v === undefined) return 'ÔÇö';
             if (v === 'feriado') return '<span class="excel-feriado">feriado</span>';
             if (typeof v === 'string') return v;
 
@@ -375,6 +375,9 @@ var _listTabelaPrecosEstrategica = [];
                 const cls = v >= 0 ? 'excel-up' : 'excel-down';
                 return `<span class="${cls}">${pct}%</span>`;
             }
+            if (formatType === 'currency_usd') {
+                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
+            }
             if (formatType === 'currency3') {
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}`;
             }
@@ -382,30 +385,31 @@ var _listTabelaPrecosEstrategica = [];
                 return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
             if (formatType === 'dolar') {
-                return `$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
+                return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
             }
-            return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return v.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         };
 
         const renderOscilacao = (v, isDolar) => {
-            if (v === null || v === undefined || typeof v === 'string') return '—';
+            if (v === null || v === undefined || typeof v === 'string') return 'ÔÇö';
             const isUp = v >= 0;
-            const arrow = isUp ? '▲' : '▼';
+            const arrow = isUp ? 'Ôû▓' : 'Ôû╝';
             const cls = isUp ? 'excel-up' : 'excel-down';
-            const prefix = isDolar ? '$ ' : 'R$ ';
-            const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+            // OSCILA├ç├âO R$ ├® a varia├º├úo convertida em reais brasileiros
+            const prefix = 'R$ ';
+            const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
         };
 
         // Metal column config: key, header text, header CSS class, cell CSS class, default format, dollar format
         const COLS = [
-            { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'normal',    dolFmt: null       },
-            { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'normal',    dolFmt: null       },
-            { k: 'aluminio', lbl: 'ALUMÍNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'normal',    dolFmt: null       },
-            { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'normal',    dolFmt: null       },
-            { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'normal',    dolFmt: null       },
-            { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'normal',    dolFmt: null       },
-            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'dolar',     dolFmt: 'dolar'    },
+            { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'currency_usd', dolFmt: null       },
+            { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'currency_usd', dolFmt: null       },
+            { k: 'aluminio', lbl: 'ALUM├ìNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'currency_usd', dolFmt: null       },
+            { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'currency_usd', dolFmt: null       },
+            { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'currency_usd', dolFmt: null       },
+            { k: 'niquel',   lbl: 'N├ìQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
+            { k: 'dolar',    lbl: 'D├ôLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'currency4',    dolFmt: 'currency4' },
         ];
 
         function visibleCols() {
@@ -422,10 +426,13 @@ var _listTabelaPrecosEstrategica = [];
             const comp = block.computed || {};
 
             const thHeaders = vc.map(c => `<th class="${c.hcls}">${c.lbl}</th>`).join('');
-            const thSummary = vc.map(c => `<th class="${c.hcls}">${c.lbl}</th>`).join('');
+            const thSummary = vc.map(c => {
+                const suffix = c.k === 'dolar' ? ' (R$)' : ' (R$/kg)';
+                return `<th class="${c.hcls}">${c.lbl}${suffix}</th>`;
+            }).join('');
 
             const firstDate = d[0]?.data || headerVal;
-            const lastDate  = d[d.length - 1]?.data || '—';
+            const lastDate  = d[d.length - 1]?.data || 'ÔÇö';
             const monthName = filterMes.options[filterMes.selectedIndex]?.text || '';
 
             let html = `
@@ -447,30 +454,35 @@ var _listTabelaPrecosEstrategica = [];
                 const day = d[i] || {};
                 const isFeriado = vc.every(c => day[c.k] === 'feriado' || day[c.k] === null);
                 const rowCls = isFeriado ? ' class="excel-row-feriado"' : '';
-                const dateTd = `<td class="excel-date-cell">${day.data || '—'}</td>`;
+                const dateTd = `<td class="excel-date-cell">${day.data || 'ÔÇö'}</td>`;
                 const valTds = vc.map(c => `<td class="${c.ccls}">${formatVal(day[c.k], c.fmt)}</td>`).join('');
                 html += `<tr${rowCls}>${dateTd}${valTds}</tr>`;
             }
 
             // Computed rows config
             const COMP_ROWS = [
-                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-media',         fmt: 'normal',    dolFmt: 'dolar'     },
-                { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3', dolFmt: 'dolar'     },
-                { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3', dolFmt: 'dolar' },
-                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',   dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO %',                      key: 'OSCILAÇÃO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',   dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO R$',                     key: 'OSCILAÇÃO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4', dolFmt: 'dolar' },
-                { lbl: 'MÉDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'M├ëDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-mensal',         fmt: 'currency_usd', dolFmt: 'dolar'     },
+                { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3',    dolFmt: 'dolar'     },
+                { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3',    dolFmt: 'dolar'     },
+                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',      dolFmt: 'percent'   },
+                { lbl: 'OSCILA├ç├âO %',                      key: 'OSCILA├ç├âO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',      dolFmt: 'percent'   },
+                { lbl: 'OSCILA├ç├âO R$',                     key: 'OSCILA├ç├âO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4',    dolFmt: 'dolar'     },
+                { lbl: 'M├ëDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3',    dolFmt: 'dolar'     },
             ];
 
             COMP_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
                 const isAnterior = row.cls === 'excel-row-anterior';
                 const inlineStyle = isAnterior ? ' style="background-color:#1a1a1a;color:#ffffff;"' : '';
-                const labelTd = `<td class="excel-label-cell"${inlineStyle}>${row.lbl}</td>`;
+                // Indicar feriado: se a semana teve menos de 5 dias ├║teis, mostrar no label da m├®dia
+                let lbl = row.lbl;
+                if (row.key === 'MEDIA SEMANAL' && block.numDias !== undefined && block.numDias < 5) {
+                    lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias ├║teis)</span>`;
+                }
+                const labelTd = `<td class="excel-label-cell"${inlineStyle}>${lbl}</td>`;
                 const valTds = vc.map(c => {
                     const fmtToUse = c.k === 'dolar' && row.dolFmt ? row.dolFmt : row.fmt;
-                    return `<td${inlineStyle}>${formatVal(vals[c.k], fmtToUse)}</td>`;
+                    return `<td class="excel-col-${c.k}">${formatVal(vals[c.k], fmtToUse)}</td>`;
                 }).join('');
                 html += `<tr class="${row.cls}">${labelTd}${valTds}</tr>`;
             });
@@ -485,27 +497,27 @@ var _listTabelaPrecosEstrategica = [];
                 </tr>
             `;
 
-            // Summary rows
+            // Mini-tabela resumo: SEMANA ANTERIOR e LME ATUAL em R$/kg
             const SUMMARY_ROWS = [
-                { lbl: 'SEMANA ANTERIOR', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'dolar' },
-                { lbl: 'LME ATUAL',       key: '100% LME',        fmt: 'currency3', dolFmt: 'dolar' },
+                { lbl: 'SEMANA ANTERIOR (R$/kg)', key: 'SEMANA ANTERIOR', fmt: 'currency3', dolFmt: 'currency4' },
+                { lbl: 'LME ATUAL (R$/kg)',       key: '100% LME',        fmt: 'currency3', dolFmt: 'currency4' },
             ];
             SUMMARY_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
                 const labelTd = `<td class="excel-label-cell">${row.lbl}</td>`;
                 const valTds = vc.map(c => {
                     const fmtToUse = c.k === 'dolar' && row.dolFmt ? row.dolFmt : row.fmt;
-                    return `<td>${formatVal(vals[c.k], fmtToUse)}</td>`;
+                    return `<td class="excel-col-${c.k}">${formatVal(vals[c.k], fmtToUse)}</td>`;
                 }).join('');
                 html += `<tr class="excel-row-summary">${labelTd}${valTds}</tr>`;
             });
 
             // Oscillation row (with arrows)
-            const osc = comp['OSCILAÇÃO R$'] || {};
-            const oscTds = vc.map(c => `<td>${renderOscilacao(osc[c.k], c.k === 'dolar')}</td>`).join('');
+            const osc = comp['OSCILA├ç├âO R$'] || {};
+            const oscTds = vc.map(c => `<td class="excel-col-${c.k}">${renderOscilacao(osc[c.k], false)}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
-                    <td class="excel-label-cell" style="font-style:italic;">Oscilação</td>
+                    <td class="excel-label-cell" style="font-style:italic;">Oscila├º├úo R$/kg</td>
                     ${oscTds}
                 </tr>
             `;
@@ -515,7 +527,7 @@ var _listTabelaPrecosEstrategica = [];
             showTable();
         }
 
-        // ─── EVENT LISTENERS ─────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ EVENT LISTENERS ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         filterMes.addEventListener('change', () => {
             loadWeeks(filterMes.value);
         });
@@ -552,23 +564,23 @@ var _listTabelaPrecosEstrategica = [];
                 window.URL.revokeObjectURL(url);
             } catch(e) {
                 console.error(e);
-                alert('Erro ao baixar Excel: ' + e.message);
+                _apexNotify('Aten├º├úo', 'Erro ao baixar Excel: ' + e.message, 'error');
             } finally {
                 btnDownload.classList.remove('downloading');
             }
         });
 
-        // ── PDF Download ──
+        // ÔöÇÔöÇ PDF Download ÔöÇÔöÇ
         if (btnDownloadPdf) {
             btnDownloadPdf.addEventListener('click', () => {
                 const val = selector.value;
-                if (!val) { alert('Selecione uma semana primeiro.'); return; }
+                if (!val) { _apexNotify('Sistema', 'Selecione uma semana primeiro.', 'info'); return; }
                 const block = excelWeeks.find(b => b.header === val);
                 if (!block) return;
 
                 // Inject/update timestamp into the print area
                 const area = document.getElementById('pdf-print-area');
-                if (!area) { alert('Visualize o relatório antes de baixar o PDF.'); return; }
+                if (!area) { _apexNotify('Sistema', 'Visualize o relat├│rio antes de baixar o PDF.', 'info'); return; }
 
                 const now = new Date();
                 const ts = now.toLocaleString('pt-BR', {
@@ -583,7 +595,7 @@ var _listTabelaPrecosEstrategica = [];
                     tsEl.style.cssText = 'font-size:9pt;color:#555;margin-bottom:8px;text-align:right;font-family:Calibri,sans-serif;border-bottom:1px solid #ccc;padding-bottom:6px;';
                     area.insertBefore(tsEl, area.firstChild);
                 }
-                tsEl.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
+                tsEl.textContent = `Relat├│rio gerado em: ${ts} ÔÇö ApexTech Metais`;
 
                 window.print();
             });
@@ -625,18 +637,18 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // ─── INITIAL LOAD ────────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ INITIAL LOAD ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         await loadWeeks();
     }
 
     // =========================================================================
-    // LME DASHBOARD — 20 ANALYSES
+    // LME DASHBOARD ÔÇö 20 ANALYSES
     // =========================================================================
 
     const METALS = ['cobre', 'aluminio', 'zinco', 'chumbo', 'estanho', 'niquel'];
     const METAL_LABELS = {
-        cobre: 'Cobre', aluminio: 'Alumínio', zinco: 'Zinco',
-        chumbo: 'Chumbo', estanho: 'Estanho', niquel: 'Níquel'
+        cobre: 'Cobre', aluminio: 'Alum├¡nio', zinco: 'Zinco',
+        chumbo: 'Chumbo', estanho: 'Estanho', niquel: 'N├¡quel'
     };
     const METAL_COLORS = {
         cobre: '#e07b39', aluminio: '#7eb3d5', zinco: '#a8c5a0',
@@ -650,15 +662,15 @@ var _listTabelaPrecosEstrategica = [];
     let currentStats = null;
 
     function parsePrice(str) {
-        if (!str || str === '—' || str === '-' || str.trim() === '') return null;
-        // Brazilian format: "9.234,56" → 9234.56
+        if (!str || str === 'ÔÇö' || str === '-' || str.trim() === '') return null;
+        // Brazilian format: "9.234,56" ÔåÆ 9234.56
         const cleaned = str.replace(/\./g, '').replace(',', '.');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
     }
 
     function fmtPrice(val, dec = 2) {
-        if (val === null || val === undefined || isNaN(val)) return '—';
+        if (val === null || val === undefined || isNaN(val)) return 'ÔÇö';
         return val.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
     }
 
@@ -694,7 +706,7 @@ var _listTabelaPrecosEstrategica = [];
         return output;
     }
 
-    // ─── Init LME Dashboard ────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇ Init LME Dashboard ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     async function initLMEDashboard() {
         const mesSel   = document.getElementById('mes-selector');
         const btnRefresh = document.getElementById('btn-refresh-lme');
@@ -704,19 +716,19 @@ var _listTabelaPrecosEstrategica = [];
 
         // Try to get available months
         try {
-            const res = await fetch(`/api/lme/tabela/${currentMes}`);
+            const res = await fetch(`/api/lme/tabela/atual`);
             if (res.ok) {
                 const data = await res.json();
                 if (data.mesesDisponiveis && data.mesesDisponiveis.length > 0) {
-                    mesSel.innerHTML = data.mesesDisponiveis.map(m =>
-                        `<option value="${m.valor}" ${m.valor === currentMes ? 'selected' : ''}>${m.texto}</option>`
+                    mesSel.innerHTML = data.mesesDisponiveis.map((m, idx) =>
+                        `<option value="${m.valor}" ${idx === 0 ? 'selected' : ''}>${m.texto}</option>`
                     ).join('');
                 } else {
                     mesSel.innerHTML = `<option value="${currentMes}">${now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</option>`;
                 }
             }
         } catch(e) {
-            mesSel.innerHTML = `<option value="${currentMes}">Mês atual</option>`;
+            mesSel.innerHTML = `<option value="${currentMes}">M├¬s atual</option>`;
         }
 
         // Setup filter bar and fullscreen events
@@ -767,7 +779,7 @@ var _listTabelaPrecosEstrategica = [];
                 
                 // Set title
                 const titleEl = block.querySelector('.analysis-title');
-                fsTitle.innerHTML = titleEl ? titleEl.innerHTML : `Análise ${aid}`;
+                fsTitle.innerHTML = titleEl ? titleEl.innerHTML : `An├ílise ${aid}`;
                 
                 // Clone the chart container / content
                 const contentToClone = block.querySelector('.chart-container, .charts-grid-2, .kpi-grid, .ranking-container, .momentum-grid, .alertas-grid, .canal-container');
@@ -777,7 +789,7 @@ var _listTabelaPrecosEstrategica = [];
                     // but wait, chart.js canvas cannot be easily moved without redrawing. 
                     // Since it's easier, we just temporarily move the elements.
                     
-                    // Salva a referência original
+                    // Salva a refer├¬ncia original
                     const originalParent = contentToClone.parentNode;
                     const originalNextSibling = contentToClone.nextSibling;
                     
@@ -853,7 +865,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ─── Compute Stats ─────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇ Compute Stats ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     function computeStats(data) {
         const stats = {};
         const latest = data[data.length - 1];
@@ -895,7 +907,7 @@ var _listTabelaPrecosEstrategica = [];
             const avgPrev5  = prev5Vals.length ? prev5Vals.reduce((a, b) => a + b, 0) / prev5Vals.length : avg;
             const momentum  = avgPrev5 ? ((avg5 - avgPrev5) / avgPrev5) * 100 : 0;
 
-            // Opportunity Score (0–100)
+            // Opportunity Score (0ÔÇô100)
             const chanScore = (channelPos / 100) * 40;
             const momScore  = Math.max(0, Math.min(1, (momentum + 5) / 10)) * 30;
             const dayScore  = Math.max(0, Math.min(1, (dayChange + 2) / 4)) * 30;
@@ -904,7 +916,7 @@ var _listTabelaPrecosEstrategica = [];
             // Signal
             let signal, signalClass;
             if (channelPos >= 85)      { signal = 'VENDER';   signalClass = 'signal-sell';  }
-            else if (channelPos >= 60) { signal = 'ATENÇÃO';  signalClass = 'signal-watch'; }
+            else if (channelPos >= 60) { signal = 'ATEN├ç├âO';  signalClass = 'signal-watch'; }
             else if (channelPos >= 30) { signal = 'RETER';    signalClass = 'signal-hold';  }
             else                       { signal = 'ACUMULAR'; signalClass = 'signal-buy';   }
 
@@ -918,7 +930,7 @@ var _listTabelaPrecosEstrategica = [];
         return stats;
     }
 
-    // ─── Render All ────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇ Render All ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     function renderAllAnalyses(data, stats) {
         renderKPICards(stats);                         // Nova 01 (Antiga 01)
         renderTrendChart(data, activeMetalFilter);     // Nova 02 (Antiga 05)
@@ -948,13 +960,13 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 01: KPI Cards + Sinalizadores ──
+    // ÔöÇÔöÇ AN├üLISE 01: KPI Cards + Sinalizadores ÔöÇÔöÇ
     function renderKPICards(stats) {
         const container = document.getElementById('kpi-cards');
         if (!container) return;
 
         const icons = { cobre: 'fa-bolt', aluminio: 'fa-layer-group', zinco: 'fa-atom', chumbo: 'fa-weight-hanging', estanho: 'fa-microchip', niquel: 'fa-gem' };
-        const signalIcons = { 'VENDER': 'fa-arrow-up-right-dots', 'ATENÇÃO': 'fa-eye', 'RETER': 'fa-pause', 'ACUMULAR': 'fa-cart-shopping' };
+        const signalIcons = { 'VENDER': 'fa-arrow-up-right-dots', 'ATEN├ç├âO': 'fa-eye', 'RETER': 'fa-pause', 'ACUMULAR': 'fa-cart-shopping' };
 
         container.innerHTML = METALS.map(m => {
             const s = stats[m];
@@ -977,15 +989,15 @@ var _listTabelaPrecosEstrategica = [];
                     <i class="fa-solid ${upIcon}"></i> ${Math.abs(s.dayChange).toFixed(2)}% hoje
                 </div>
                 <div class="kpi-footer">
-                    <span>↓ US$ ${fmtPrice(s.min)}</span>
+                    <span>Ôåô US$ ${fmtPrice(s.min)}</span>
                     <span style="color:#555;">|</span>
-                    <span>↑ US$ ${fmtPrice(s.max)}</span>
+                    <span>Ôåæ US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 02: Noble Basket Index ──
+    // ÔöÇÔöÇ AN├üLISE 02: Noble Basket Index ÔöÇÔöÇ
     function renderNobleBasket(data, stats) {
         const nbiVals = data.map(row => {
             let v = 0, ok = true;
@@ -1044,7 +1056,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ── ANÁLISE 03: Canal de Preços ──
+    // ÔöÇÔöÇ AN├üLISE 03: Canal de Pre├ºos ÔöÇÔöÇ
     function renderChannelBars(stats) {
         const el = document.getElementById('canal-bars');
         if (!el) return;
@@ -1065,15 +1077,15 @@ var _listTabelaPrecosEstrategica = [];
                     <div class="canal-fill" style="width:${pct}%;background:${color};"></div>
                 </div>
                 <div class="canal-labels">
-                    <span>Mín: US$ ${fmtPrice(s.min)}</span>
+                    <span>M├¡n: US$ ${fmtPrice(s.min)}</span>
                     <span><strong>Atual: US$ ${fmtPrice(s.current)}</strong></span>
-                    <span>Máx: US$ ${fmtPrice(s.max)}</span>
+                    <span>M├íx: US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 05: Tendência de Preços ──
+    // ÔöÇÔöÇ AN├üLISE 05: Tend├¬ncia de Pre├ºos ÔöÇÔöÇ
     function renderTrendChart(data, metal) {
         destroyChart('trendChart');
         const ctx = document.getElementById('trendChart');
@@ -1102,7 +1114,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 06: Variação Diária ──
+    // ÔöÇÔöÇ AN├üLISE 06: Varia├º├úo Di├íria ÔöÇÔöÇ
     function renderDailyVariation(stats) {
         destroyChart('varDiariaChart');
         const ctx = document.getElementById('varDiariaChart');
@@ -1114,7 +1126,7 @@ var _listTabelaPrecosEstrategica = [];
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
                     datasets: [{
-                        label: 'Variação Diária (%)',
+                        label: 'Varia├º├úo Di├íria (%)',
                         data: changes,
                         backgroundColor: colors,
                         borderRadius: 6
@@ -1146,7 +1158,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ── ANÁLISE 07: Volatilidade ──
+    // ÔöÇÔöÇ AN├üLISE 07: Volatilidade ÔöÇÔöÇ
     function renderVolatility(stats) {
         destroyChart('volatChart');
         const ctx = document.getElementById('volatChart');
@@ -1179,7 +1191,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 08: Ranking de Performance ──
+    // ÔöÇÔöÇ AN├üLISE 08: Ranking de Performance ÔöÇÔöÇ
     function renderRanking(stats) {
         const el = document.getElementById('ranking-container');
         if (!el) return;
@@ -1189,13 +1201,13 @@ var _listTabelaPrecosEstrategica = [];
             .map(m => ({ m, chg: stats[m].monthChange, s: stats[m] }))
             .sort((a, b) => b.chg - a.chg);
 
-        const medals = ['🥇', '🥈', '🥉'];
+        const medals = ['­ƒÑç', '­ƒÑê', '­ƒÑë'];
         el.innerHTML = ranked.map((item, i) => {
             const isPos = item.chg >= 0;
             const barW  = Math.min(100, Math.abs(item.chg) * 10);
             return `
             <div class="rank-item ${i === 0 ? 'rank-first' : ''}">
-                <span class="rank-pos">${medals[i] || (i + 1) + 'º'}</span>
+                <span class="rank-pos">${medals[i] || (i + 1) + '┬║'}</span>
                 <div class="rank-bar-wrap">
                     <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
                         <strong style="color:${METAL_COLORS[item.m]};font-size:0.95rem;">${METAL_LABELS[item.m]}</strong>
@@ -1206,17 +1218,17 @@ var _listTabelaPrecosEstrategica = [];
                     <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:7px;overflow:hidden;">
                         <div style="height:100%;width:${barW}%;background:${isPos ? '#2AD07A' : '#ff4d4d'};border-radius:4px;transition:width 1s;"></div>
                     </div>
-                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês → Hoje</small>
+                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do m├¬s ÔåÆ Hoje</small>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="color:#aaa;font-size:0.8rem;">US$ ${fmtPrice(item.s.current)}</div>
-                    <div style="color:#555;font-size:0.72rem;">Média: US$ ${fmtPrice(item.s.avg)}</div>
+                    <div style="color:#555;font-size:0.72rem;">M├®dia: US$ ${fmtPrice(item.s.avg)}</div>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 09: Score de Oportunidade ──
+    // ÔöÇÔöÇ AN├üLISE 09: Score de Oportunidade ÔöÇÔöÇ
     function renderOpportunityScore(stats) {
         destroyChart('scoreChart');
         const ctx = document.getElementById('scoreChart');
@@ -1227,7 +1239,7 @@ var _listTabelaPrecosEstrategica = [];
                 type: 'bar',
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
-                    datasets: [{ label: 'Score (0–100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
+                    datasets: [{ label: 'Score (0ÔÇô100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
                 },
                 options: deepMerge(baseChartOpts, { scales: { y: { min: 0, max: 100 } } })
             });
@@ -1240,7 +1252,7 @@ var _listTabelaPrecosEstrategica = [];
                 const s = stats[m];
                 const sc = s.score;
                 const color = sc >= 75 ? '#ff4d4d' : sc >= 55 ? '#ff9900' : sc >= 35 ? '#ffcc00' : '#2AD07A';
-                const label = sc >= 75 ? '🔴 VENDER AGORA' : sc >= 55 ? '🟠 ATENÇÃO' : sc >= 35 ? '🟡 RETER' : '🟢 ACUMULAR';
+                const label = sc >= 75 ? '­ƒö┤ VENDER AGORA' : sc >= 55 ? '­ƒƒá ATEN├ç├âO' : sc >= 35 ? '­ƒƒí RETER' : '­ƒƒó ACUMULAR';
                 return `
                 <div class="score-item">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1256,7 +1268,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ── ANÁLISE 05: Semana Atual vs Anterior ──
+    // ÔöÇÔöÇ AN├üLISE 05: Semana Atual vs Anterior ÔöÇÔöÇ
     function renderWeekComparison(stats) {
         destroyChart('semanaChart');
         const ctx = document.getElementById('semanaChart');
@@ -1391,7 +1403,7 @@ var _listTabelaPrecosEstrategica = [];
             })
         });
 
-        // ── Render directional badges below the chart ──
+        // ÔöÇÔöÇ Render directional badges below the chart ÔöÇÔöÇ
         const badges = document.getElementById('semana-badges');
         if (!badges) return;
         badges.innerHTML = METALS.map((m, i) => {
@@ -1399,7 +1411,7 @@ var _listTabelaPrecosEstrategica = [];
             const diff   = last5[i] - prev5[i];
             const pct    = prev5[i] ? ((diff / prev5[i]) * 100) : 0;
             const isUp   = diff >= 0;
-            const arrow  = isUp ? '▲' : '▼';
+            const arrow  = isUp ? 'Ôû▓' : 'Ôû╝';
             const color  = isUp ? '#2AD07A' : '#ff4d4d';
             const bgClr  = isUp ? 'rgba(42,208,122,0.12)' : 'rgba(255,77,77,0.12)';
             const border = isUp ? 'rgba(42,208,122,0.4)' : 'rgba(255,77,77,0.4)';
@@ -1417,13 +1429,13 @@ var _listTabelaPrecosEstrategica = [];
             ">
                 <div style="font-size:0.75rem;color:#aaa;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">${METAL_LABELS[m]}</div>
                 <div style="font-size:1.6rem;color:${color};line-height:1;">${arrow}</div>
-                <div style="font-size:1rem;color:${color};font-weight:700;margin-top:2px;">${sign}${pct.toFixed(2)}%</div>
+                <div style="font-size:1rem;color:${color};font-weight:700;margin-top:2px;">${sign}${fmtBRL(pct)}%</div>
                 <div style="font-size:0.7rem;color:#666;margin-top:3px;">US$ ${fmtPrice(last5[i])}</div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 11: Melhor Dia da Semana ──
+    // ÔöÇÔöÇ AN├üLISE 11: Melhor Dia da Semana ÔöÇÔöÇ
     function renderBestDayOfWeek(data) {
         destroyChart('diaSemanaChart');
         const ctx = document.getElementById('diaSemanaChart');
@@ -1434,7 +1446,7 @@ var _listTabelaPrecosEstrategica = [];
         const [mesN, anoN] = mesVal.split('-').map(Number);
 
         const dow = { 'Seg': { sum: 0, cnt: 0 }, 'Ter': { sum: 0, cnt: 0 }, 'Qua': { sum: 0, cnt: 0 }, 'Qui': { sum: 0, cnt: 0 }, 'Sex': { sum: 0, cnt: 0 } };
-        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S├íb'];
 
         data.forEach(row => {
             const d = parseInt(row.dia);
@@ -1453,7 +1465,7 @@ var _listTabelaPrecosEstrategica = [];
             type: 'bar',
             data: {
                 labels: workDays,
-                datasets: [{ label: 'Média do Cobre (US$/t)', data: avgs, backgroundColor: colors, borderRadius: 8 }]
+                datasets: [{ label: 'M├®dia do Cobre (US$/t)', data: avgs, backgroundColor: colors, borderRadius: 8 }]
             },
             options: deepMerge(baseChartOpts, {
                 plugins: { tooltip: { callbacks: { label: ctx => `US$ ${fmtPrice(ctx.raw)}/t` } } }
@@ -1461,7 +1473,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 12: Momentum ──
+    // ÔöÇÔöÇ AN├üLISE 12: Momentum ÔöÇÔöÇ
     function renderMomentum(stats) {
         const el = document.getElementById('momentum-grid');
         if (!el) return;
@@ -1473,7 +1485,7 @@ var _listTabelaPrecosEstrategica = [];
             const up    = mom >= 0;
             const color = up ? '#2AD07A' : '#ff4d4d';
             const icon  = up ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-            const label = Math.abs(mom) > 2 ? (up ? 'Alta Expressiva' : 'Queda Expressiva') : Math.abs(mom) > 0.5 ? (up ? 'Leve Alta' : 'Leve Queda') : 'Estável';
+            const label = Math.abs(mom) > 2 ? (up ? 'Alta Expressiva' : 'Queda Expressiva') : Math.abs(mom) > 0.5 ? (up ? 'Leve Alta' : 'Leve Queda') : 'Est├ível';
             return `
             <div class="momentum-card">
                 <div style="color:${METAL_COLORS[m]};font-weight:700;font-size:0.9rem;margin-bottom:10px;">${METAL_LABELS[m]}</div>
@@ -1488,7 +1500,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ── ANÁLISE 13: Dólar ──
+    // ÔöÇÔöÇ AN├üLISE 13: D├│lar ÔöÇÔöÇ
     function renderDolarChart(data) {
         destroyChart('dolarChart');
         const ctx = document.getElementById('dolarChart');
@@ -1496,7 +1508,7 @@ var _listTabelaPrecosEstrategica = [];
 
         const dolarRows = data.filter(r => r.dolar !== null);
         if (!dolarRows.length) {
-            ctx.closest('.chart-container').innerHTML = '<p style="color:#666;text-align:center;padding:40px 20px;">Dados do câmbio não disponíveis neste período.</p>';
+            ctx.closest('.chart-container').innerHTML = '<p style="color:#666;text-align:center;padding:40px 20px;">Dados do c├ómbio n├úo dispon├¡veis neste per├¡odo.</p>';
             return;
         }
 
@@ -1505,7 +1517,7 @@ var _listTabelaPrecosEstrategica = [];
             data: {
                 labels: dolarRows.map(r => r.dia),
                 datasets: [{
-                    label: 'Dólar (BRL/USD)',
+                    label: 'D├│lar (BRL/USD)',
                     data: dolarRows.map(r => r.dolar),
                     borderColor: '#f5c518',
                     backgroundColor: 'rgba(245,197,24,0.08)',
@@ -1518,7 +1530,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 14: SMA-5 ──
+    // ÔöÇÔöÇ AN├üLISE 14: SMA-5 ÔöÇÔöÇ
     function renderSMAChart(data, stats) {
         destroyChart('smaChart');
         const ctx = document.getElementById('smaChart');
@@ -1551,7 +1563,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 15: Preço Atual vs. Média Mensal ──
+    // ÔöÇÔöÇ AN├üLISE 15: Pre├ºo Atual vs. M├®dia Mensal ÔöÇÔöÇ
     function renderVsMedia(stats) {
         destroyChart('vsMediaChart');
         const ctx = document.getElementById('vsMediaChart');
@@ -1567,15 +1579,15 @@ var _listTabelaPrecosEstrategica = [];
             data: {
                 labels: METALS.map(m => METAL_LABELS[m]),
                 datasets: [
-                    { label: 'Preço Atual', data: currents, backgroundColor: curColors, borderRadius: 5 },
-                    { label: 'Média Mensal', data: avgs, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, borderColor: 'rgba(255,255,255,0.25)', borderWidth: 1 }
+                    { label: 'Pre├ºo Atual', data: currents, backgroundColor: curColors, borderRadius: 5 },
+                    { label: 'M├®dia Mensal', data: avgs, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, borderColor: 'rgba(255,255,255,0.25)', borderWidth: 1 }
                 ]
             },
             options: { ...baseChartOpts }
         });
     }
 
-    // ── ANÁLISE 16: Índice de Risco (Polar Area) ──
+    // ÔöÇÔöÇ AN├üLISE 16: ├ìndice de Risco (Polar Area) ÔöÇÔöÇ
     function renderRiskChart(stats) {
         destroyChart('riscoChart');
         const ctx = document.getElementById('riscoChart');
@@ -1609,7 +1621,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 17: Radar Comparativo ──
+    // ÔöÇÔöÇ AN├üLISE 17: Radar Comparativo ÔöÇÔöÇ
     function renderRadar(stats) {
         destroyChart('radarChart');
         const ctx = document.getElementById('radarChart');
@@ -1655,7 +1667,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 18: Z-Score ──
+    // ÔöÇÔöÇ AN├üLISE 18: Z-Score ÔöÇÔöÇ
     function renderZscore(stats) {
         const el = document.getElementById('zscore-container');
         if (!el) return;
@@ -1667,7 +1679,7 @@ var _listTabelaPrecosEstrategica = [];
             const z = s.zscore;
             const color = z > 1 ? '#ff4d4d' : z > 0 ? '#ffcc00' : z > -1 ? '#ff9900' : '#2AD07A';
             const pct   = Math.max(0, Math.min(100, 50 + z * 25)); // Center=50%, 1 std = 25%
-            const label = z > 1.5 ? 'Muito acima da média — VENDER' : z > 0.5 ? 'Acima da média — Momento favorável' : z < -1.5 ? 'Muito abaixo da média — ACUMULAR' : z < -0.5 ? 'Abaixo da média — Aguardar' : 'Na média — Neutro';
+            const label = z > 1.5 ? 'Muito acima da m├®dia ÔÇö VENDER' : z > 0.5 ? 'Acima da m├®dia ÔÇö Momento favor├ível' : z < -1.5 ? 'Muito abaixo da m├®dia ÔÇö ACUMULAR' : z < -0.5 ? 'Abaixo da m├®dia ÔÇö Aguardar' : 'Na m├®dia ÔÇö Neutro';
             return `
             <div class="zscore-item">
                 <div class="zscore-name" style="color:${METAL_COLORS[m]};">${METAL_LABELS[m]}</div>
@@ -1681,12 +1693,12 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <small style="color:#555;font-size:0.72rem;margin-top:5px;display:block;">${label}</small>
                 </div>
-                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}σ</div>
+                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}¤â</div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 19: Alertas de Preço ──
+    // ÔöÇÔöÇ AN├üLISE 19: Alertas de Pre├ºo ÔöÇÔöÇ
     function renderAlerts(stats) {
         const el = document.getElementById('alertas-grid');
         if (!el) return;
@@ -1702,13 +1714,13 @@ var _listTabelaPrecosEstrategica = [];
             <div class="alerta-card ${triggered ? 'alerta-triggered' : ''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <strong style="color:${METAL_COLORS[m]};font-size:0.95rem;">${METAL_LABELS[m]}</strong>
-                    ${triggered ? '<span class="badge-triggered">🔔 ALERTA!</span>' : ''}
+                    ${triggered ? '<span class="badge-triggered">­ƒöö ALERTA!</span>' : ''}
                 </div>
                 <p style="font-size:0.82rem;color:#888;margin-bottom:10px;">Atual: <strong style="color:#ddd;">US$ ${fmtPrice(s.current)}</strong></p>
                 ${alertVal ? `<p style="font-size:0.78rem;color:#666;margin-bottom:10px;">Alvo: US$ ${fmtPrice(alertVal)} | Gap: ${((s.current - alertVal) / alertVal * 100).toFixed(1)}%</p>` : ''}
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input type="number" class="alert-input" data-metal="${m}"
-                        value="${alertVal || ''}" placeholder="Preço alvo (US$)" step="10"
+                        value="${alertVal || ''}" placeholder="Pre├ºo alvo (US$)" step="10"
                         style="flex:1;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:inherit;">
                     <button class="btn-set-alert" data-metal="${m}"
                         style="padding:8px 12px;background:${METAL_COLORS[m]}33;color:${METAL_COLORS[m]};border:1px solid ${METAL_COLORS[m]}55;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.82rem;white-space:nowrap;transition:all 0.2s;">
@@ -1730,7 +1742,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 20: Resumo Executivo ──
+    // ÔöÇÔöÇ AN├üLISE 20: Resumo Executivo ÔöÇÔöÇ
     function renderResumo(stats) {
         const el = document.getElementById('resumo-executivo');
         if (!el) return;
@@ -1739,9 +1751,9 @@ var _listTabelaPrecosEstrategica = [];
 
         const groups = {
             'VENDER':   { items: [], color: '#ff4d4d',  icon: 'fa-arrow-up-right-dots', label: 'VENDER AGORA' },
-            'ATENÇÃO':  { items: [], color: '#ff9900',  icon: 'fa-eye',                 label: 'ATENÇÃO — Perto do Topo' },
-            'RETER':    { items: [], color: '#ffcc00',  icon: 'fa-pause',               label: 'RETER — Aguardar Alta' },
-            'ACUMULAR': { items: [], color: '#2AD07A',  icon: 'fa-cart-shopping',       label: 'ACUMULAR — Preço em Baixa' }
+            'ATEN├ç├âO':  { items: [], color: '#ff9900',  icon: 'fa-eye',                 label: 'ATEN├ç├âO ÔÇö Perto do Topo' },
+            'RETER':    { items: [], color: '#ffcc00',  icon: 'fa-pause',               label: 'RETER ÔÇö Aguardar Alta' },
+            'ACUMULAR': { items: [], color: '#2AD07A',  icon: 'fa-cart-shopping',       label: 'ACUMULAR ÔÇö Pre├ºo em Baixa' }
         };
         sorted.forEach(x => { if (groups[x.s.signal]) groups[x.s.signal].items.push(x); });
 
@@ -1762,7 +1774,7 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                         <div style="text-align:right;">
                             <div style="color:#ddd;font-size:0.85rem;">US$ ${fmtPrice(x.s.current)}</div>
-                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} · Canal: ${x.s.channelPos.toFixed(0)}%</div>
+                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} ┬À Canal: ${x.s.channelPos.toFixed(0)}%</div>
                         </div>
                     </div>`).join('')}
                 </div>
@@ -1771,9 +1783,8 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // SETTINGS — Configurar Homepage
+    // SETTINGS ÔÇö Configurar Homepage
     // =========================================================================
-    async function initSettings() {
     async function initSettings() {
         try {
             const res      = await fetch('/api/settings');
@@ -1784,10 +1795,10 @@ var _listTabelaPrecosEstrategica = [];
                 toggle.checked = settings[key] !== 'false';
             });
         } catch(e) {
-            console.warn('Não foi possível carregar settings:', e);
+            console.warn('N├úo foi poss├¡vel carregar settings:', e);
         }
 
-        // Configuração Local - Painel Admin
+        // Configura├º├úo Local - Painel Admin
         const toggleLME = document.getElementById('toggle-relatorio-lme');
         const navLME = document.querySelector('a.nav-item[data-target="lme-excel-report"]');
         
@@ -1828,7 +1839,7 @@ var _listTabelaPrecosEstrategica = [];
                     });
 
                     if (res.ok) {
-                        msgEl.textContent = '✅ Configurações salvas!';
+                        msgEl.textContent = 'Ô£à Configura├º├Áes salvas!';
                         msgEl.style.color = '#2AD07A';
                         msgEl.style.display = 'block';
                         setTimeout(() => msgEl.style.display = 'none', 5000);
@@ -1836,7 +1847,7 @@ var _listTabelaPrecosEstrategica = [];
                         throw new Error('API error');
                     }
                 } catch(e) {
-                    msgEl.textContent = '❌ Erro ao salvar. Tente novamente.';
+                    msgEl.textContent = 'ÔØî Erro ao salvar. Tente novamente.';
                     msgEl.style.color = '#ff4d4d';
                     msgEl.style.display = 'block';
                 }
@@ -1885,7 +1896,7 @@ var _listTabelaPrecosEstrategica = [];
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao adicionar foto. Verifique os dados.', 'error');
+                    _apexNotify('Aten├º├úo', 'ÔØî Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -1986,8 +1997,8 @@ var _listTabelaPrecosEstrategica = [];
             div.className   = 'location-item';
             div.innerHTML   = `
                 <button type="button" class="btn-remove-loc"><i class="fa-solid fa-xmark"></i></button>
-                <div class="form-group"><label>Título do Local</label><input type="text" class="loc-title" required placeholder="Ex: Indústria"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>Descrição</label><textarea class="loc-desc" rows="2" required placeholder="Descrição detalhada..."></textarea></div>`;
+                <div class="form-group"><label>T├¡tulo do Local</label><input type="text" class="loc-title" required placeholder="Ex: Ind├║stria"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>Descri├º├úo</label><textarea class="loc-desc" rows="2" required placeholder="Descri├º├úo detalhada..."></textarea></div>`;
             div.querySelector('.btn-remove-loc').addEventListener('click', () => div.remove());
             if (locationsWrapper) locationsWrapper.appendChild(div);
         }
@@ -2019,9 +2030,9 @@ var _listTabelaPrecosEstrategica = [];
                     if (locationsWrapper) locationsWrapper.innerHTML = '';
                     createLocationField();
                     renderMateriais();
-                    _apexNotify('Sistema', '✅ Material cadastrado com sucesso!', 'info');
+                    _apexNotify('Sistema', 'Ô£à Material cadastrado com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao salvar material.', 'error');
+                    _apexNotify('Aten├º├úo', 'ÔØî Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2030,7 +2041,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // SOLUÇÕES
+    // SOLU├ç├òES
     // =========================================================================
     function initSolucoes() {
         const formSolucao      = document.getElementById('form-solucao');
@@ -2050,7 +2061,7 @@ var _listTabelaPrecosEstrategica = [];
                 solucoesAdminList.innerHTML = '';
 
                 if (!items.length) {
-                    solucoesAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma solução cadastrada.</p>';
+                    solucoesAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma solu├º├úo cadastrada.</p>';
                     return;
                 }
 
@@ -2091,13 +2102,13 @@ var _listTabelaPrecosEstrategica = [];
 
                 solucoesAdminList.querySelectorAll('.btn-delete-solucao').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover esta solução?')) return;
+                        if (!confirm('Remover esta solu├º├úo?')) return;
                         await fetch(`/api/solucoes/${btn.dataset.id}`, { method: 'DELETE' });
                         renderSolucoesAdmin();
                     });
                 });
             } catch(err) {
-                solucoesAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar soluções.</p>';
+                solucoesAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar solu├º├Áes.</p>';
             }
         }
 
@@ -2122,9 +2133,9 @@ var _listTabelaPrecosEstrategica = [];
                     solIdInput.value = '';
                     if (btnCancelSolucao) btnCancelSolucao.style.display = 'none';
                     renderSolucoesAdmin();
-                    _apexNotify('Sistema', '✅ Solução salva com sucesso!', 'info');
+                    _apexNotify('Sistema', 'Ô£à Solu├º├úo salva com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao salvar a solução.', 'error');
+                    _apexNotify('Aten├º├úo', 'ÔØî Erro ao salvar a solu├º├úo.', 'error');
                 }
             });
         }
@@ -2141,7 +2152,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // NOTÍCIAS
+    // NOT├ìCIAS
     // =========================================================================
     function initNoticias() {
         const formNoticia       = document.getElementById('form-noticia');
@@ -2156,14 +2167,14 @@ var _listTabelaPrecosEstrategica = [];
                 noticiasAdminList.innerHTML = '';
 
                 if (!items.length) {
-                    noticiasAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma notícia publicada ainda.</p>';
+                    noticiasAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma not├¡cia publicada ainda.</p>';
                     return;
                 }
 
                 items.forEach(n => {
                     const div   = document.createElement('div');
                     div.className = 'noticia-admin-item';
-                    const dataF = n.data_pub ? new Date(n.data_pub + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+                    const dataF = n.data_pub ? new Date(n.data_pub + 'T12:00:00').toLocaleDateString('pt-BR') : 'ÔÇö';
                     div.innerHTML = `
                         <div class="noticia-admin-info">
                             ${n.categoria ? `<span class="noticia-admin-cat">${n.categoria}</span>` : ''}
@@ -2177,13 +2188,13 @@ var _listTabelaPrecosEstrategica = [];
 
                 noticiasAdminList.querySelectorAll('.btn-delete-noticia').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover esta notícia?')) return;
+                        if (!confirm('Remover esta not├¡cia?')) return;
                         await fetch(`/api/noticias/${btn.dataset.id}`, { method: 'DELETE' });
                         renderNoticiasAdmin();
                     });
                 });
             } catch(err) {
-                noticiasAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar notícias.</p>';
+                noticiasAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar not├¡cias.</p>';
             }
         }
 
@@ -2210,9 +2221,9 @@ var _listTabelaPrecosEstrategica = [];
                     const dEl = document.getElementById('not-data');
                     if (dEl) dEl.value = new Date().toISOString().split('T')[0];
                     renderNoticiasAdmin();
-                    _apexNotify('Sistema', '✅ Notícia publicada!', 'info');
+                    _apexNotify('Sistema', 'Ô£à Not├¡cia publicada!', 'info');
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao publicar notícia.', 'error');
+                    _apexNotify('Aten├º├úo', 'ÔØî Erro ao publicar not├¡cia.', 'error');
                 }
             });
         }
@@ -2221,7 +2232,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // CONFIGURAÇÃO DE E-MAIL LME E TABELAS DE PREÇOS
+    // CONFIGURA├ç├âO DE E-MAIL LME E TABELAS DE PRE├çOS
     // =========================================================================
     async function initLMEEmailConfig() {
         const schedAtivo    = document.getElementById('sched-ativo');
@@ -2256,7 +2267,7 @@ var _listTabelaPrecosEstrategica = [];
         const btnCancelDest = document.getElementById('btn-cancel-destinatario');
         const listDest      = document.getElementById('lme-destinatarios-list');
 
-        // ─── 1. MÓDULO LME ──────────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ 1. M├ôDULO LME ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         async function loadConfigLME() {
             try {
                 const res = await fetch('/api/settings');
@@ -2274,7 +2285,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 loadDestinatariosLME();
             } catch (err) {
-                console.error('Erro ao carregar configurações LME:', err);
+                console.error('Erro ao carregar configura├º├Áes LME:', err);
             }
         }
 
@@ -2286,7 +2297,7 @@ var _listTabelaPrecosEstrategica = [];
                 listDest.innerHTML = '';
 
                 if (!items.length) {
-                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário LME cadastrado.</td></tr>';
+                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinat├írio LME cadastrado.</td></tr>';
                     return;
                 }
 
@@ -2306,7 +2317,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 listDest.querySelectorAll('.btn-delete-dest').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover este destinatário LME?')) return;
+                        if (!confirm('Remover este destinat├írio LME?')) return;
                         await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
                         loadDestinatariosLME();
                     });
@@ -2317,7 +2328,7 @@ var _listTabelaPrecosEstrategica = [];
                         destId.value = btn.dataset.id;
                         destNome.value = btn.dataset.nome;
                         destEmail.value = btn.dataset.email;
-                        if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário LME';
+                        if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinat├írio LME';
                         if (btnCancelDest) btnCancelDest.style.display = 'inline-block';
                         destNome.focus();
                     });
@@ -2337,7 +2348,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_envio_dias: selectedDias
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', '✅ Agendamento LME salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'Ô£à Agendamento LME salvo com sucesso!', 'info');
             });
         }
 
@@ -2349,7 +2360,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_resend_from:    resendFrom.value.trim()
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', '✅ Resend API salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'Ô£à Resend API salvo com sucesso!', 'info');
             });
         }
 
@@ -2365,7 +2376,7 @@ var _listTabelaPrecosEstrategica = [];
                     const result = await res.json();
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório enviado!');
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relat├│rio enviado!');
                     } else {
                         testEmailMsg.style.color = '#ff4d4d';
                         testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro.');
@@ -2391,7 +2402,7 @@ var _listTabelaPrecosEstrategica = [];
                 if (res.ok) {
                     destId.value = ''; destNome.value = ''; destEmail.value = '';
                     if (btnCancelDest) btnCancelDest.style.display = 'none';
-                    if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
+                    if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat├írio LME';
                     loadDestinatariosLME();
                 }
             });
@@ -2401,11 +2412,11 @@ var _listTabelaPrecosEstrategica = [];
             btnCancelDest.addEventListener('click', () => {
                 destId.value = ''; destNome.value = ''; destEmail.value = '';
                 btnCancelDest.style.display = 'none';
-                if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
+                if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat├írio LME';
             });
         }
 
-        // ─── 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ──────────
+        // ÔöÇÔöÇÔöÇ 2. M├ôDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         async function loadConfigTabelas() {
             try {
                 const res = await fetch('/api/settings');
@@ -2432,7 +2443,7 @@ var _listTabelaPrecosEstrategica = [];
                 loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
                 loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
             } catch (err) {
-                console.error('Erro ao carregar configurações de tabelas:', err);
+                console.error('Erro ao carregar configura├º├Áes de tabelas:', err);
             }
         }
 
@@ -2445,7 +2456,7 @@ var _listTabelaPrecosEstrategica = [];
                 listEl.innerHTML = '';
 
                 if (!items.length) {
-                    listEl.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:12px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
+                    listEl.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:12px; color:#aaa;">Nenhum destinat├írio cadastrado.</td></tr>';
                     return;
                 }
 
@@ -2465,7 +2476,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 listEl.querySelectorAll('.btn-del-tb-dest').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover destinatário?')) return;
+                        if (!confirm('Remover destinat├írio?')) return;
                         await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
                         loadDestinatariosTabela(tipo, listId, inputId, inputNome, inputEmail, titleId);
                     });
@@ -2476,7 +2487,7 @@ var _listTabelaPrecosEstrategica = [];
                         document.getElementById(inputId).value = btn.dataset.id;
                         document.getElementById(inputNome).value = btn.dataset.nome;
                         document.getElementById(inputEmail).value = btn.dataset.email;
-                        document.getElementById(titleId).innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
+                        document.getElementById(titleId).innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinat├írio';
                         document.getElementById(inputNome).focus();
                     });
                 });
@@ -2494,7 +2505,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-geral-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-geral-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_geral_envio_ativo: ativo, tabela_geral_envio_horario: horario, tabela_geral_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Geral salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'Ô£à Agendamento da Tabela Geral salvo com sucesso!', 'info');
             });
         }
 
@@ -2512,7 +2523,7 @@ var _listTabelaPrecosEstrategica = [];
                     document.getElementById('dest-geral-id').value = '';
                     document.getElementById('dest-geral-nome').value = '';
                     document.getElementById('dest-geral-email').value = '';
-                    document.getElementById('dest-geral-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
+                    document.getElementById('dest-geral-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat├írio';
                     loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
                 }
             });
@@ -2527,7 +2538,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-forn-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-forn-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_fornecedor_envio_ativo: ativo, tabela_fornecedor_envio_horario: horario, tabela_fornecedor_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'Ô£à Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
             });
         }
 
@@ -2545,18 +2556,19 @@ var _listTabelaPrecosEstrategica = [];
                     document.getElementById('dest-forn-id').value = '';
                     document.getElementById('dest-forn-nome').value = '';
                     document.getElementById('dest-forn-email').value = '';
-                    document.getElementById('dest-forn-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
+                    document.getElementById('dest-forn-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat├írio';
                     loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
                 }
             });
         }
 
-        // Carrega as configurações dos 3 módulos
+        // Carrega as configura├º├Áes dos 3 m├│dulos
         await loadConfigLME();
         await loadConfigTabelas();
     }
 
     // =========================================================================
+    // RELAT├ôRIO DI├üRIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiario() {
         const btnGerar = document.getElementById('btn-gerar-imagem-wpp');
@@ -2564,64 +2576,189 @@ var _listTabelaPrecosEstrategica = [];
         if (!btnGerar) return;
 
         let weeksData = [];
+        let currentSelectedWeek = null;
+        const selectMes = document.getElementById('rel-filter-mes');
+        const selectSemana = document.getElementById('rel-week-selector');
+        const btnVerHistorico = document.getElementById('btn-ver-historico');
 
-        try {
-            const resMeses = await fetch('/api/lme/meses');
-            const mesesDisponiveis = await resMeses.json();
-            if (mesesDisponiveis.length === 0) return;
-            const mesToFetch = mesesDisponiveis[0].valor;
-
-            const res = await fetch(`/api/lme/relatorio-semanal?mes=` + mesToFetch);
-            if (!res.ok) return;
-            const data = await res.json();
-            const weeks = data.semanas || [];
-            if (weeks.length === 0) return;
-
-            weeksData = weeks;
-            const week = weeks[0];
-            renderRelatorioDiario(week);
-        } catch(e) {
-            console.error('Erro ao carregar dados do relatorio diario', e);
+        if (btnVerHistorico) {
+            btnVerHistorico.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const originalContent = btnVerHistorico.innerHTML;
+                btnVerHistorico.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...';
+                btnVerHistorico.disabled = true;
+                try {
+                    await loadRelatorioMeses(true);
+                } finally {
+                    btnVerHistorico.innerHTML = originalContent;
+                    btnVerHistorico.disabled = false;
+                }
+            });
         }
 
-        btnGerar.addEventListener('click', () => {
+        async function loadRelatorioMeses(force = false) {
+            try {
+                function gerarMesesFallback() {
+                    const meses = [];
+                    const now = new Date();
+                    for (let i = 0; i < 12; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const ano = d.getFullYear();
+                        const mes = String(d.getMonth() + 1).padStart(2, '0');
+                        const nomes = ['Janeiro','Fevereiro','Mar├ºo','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
+                    }
+                    return meses;
+                }
+
+                let mesesDisponiveis = [];
+                try {
+                    const url = '/api/lme/meses' + (force ? '?_ts=' + Date.now() : '');
+                    const resMeses = await fetch(url);
+                    if (resMeses.ok) {
+                        mesesDisponiveis = await resMeses.json();
+                    }
+                } catch (fetchErr) {
+                    console.warn('Falha ao buscar meses via API, usando fallback:', fetchErr);
+                }
+
+                if (!mesesDisponiveis || mesesDisponiveis.length === 0) {
+                    mesesDisponiveis = gerarMesesFallback();
+                }
+
+                if (selectMes) {
+                    selectMes.innerHTML = mesesDisponiveis.map(m =>
+                        '<option value="' + m.valor + '">' + m.texto + '</option>'
+                    ).join('');
+                    const mesToFetch = mesesDisponiveis[0].valor;
+                    selectMes.value = mesToFetch;
+                    await loadRelatorioSemanas(mesToFetch, force);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar meses do relat├│rio', e);
+            }
+        }
+
+        async function loadRelatorioSemanas(mes, force = false) {
+            if (selectSemana) selectSemana.innerHTML = '<option>Carregando semanas...</option>';
+            try {
+                const url = '/api/lme/relatorio-semanal?mes=' + mes + (force ? '&_ts=' + Date.now() : '');
+                const res = await fetch(url);
+                if (!res.ok) {
+                    if (selectSemana) selectSemana.innerHTML = '<option value="">Erro ao carregar semanas</option>';
+                    return;
+                }
+                const data = await res.json();
+                weeksData = data.semanas || [];
+                if (weeksData.length === 0) {
+                    if (selectSemana) selectSemana.innerHTML = '<option value="">Nenhuma semana dispon├¡vel</option>';
+                    return;
+                }
+
+                if (selectSemana) {
+                    selectSemana.innerHTML = weeksData.map((wk, idx) =>
+                        '<option value="' + idx + '">Semana de ' + (wk.label || 'sem data') + '</option>'
+                    ).join('');
+                    selectSemana.value = 0;
+                }
+                currentSelectedWeek = weeksData[0];
+                renderRelatorioDiario(currentSelectedWeek);
+            } catch (e) {
+                console.error('Erro ao carregar semanas do relat├│rio', e);
+                if (selectSemana) selectSemana.innerHTML = '<option value="">Erro de conex├úo</option>';
+            }
+        }
+
+        if (selectMes) {
+            selectMes.addEventListener('change', async (e) => {
+                await loadRelatorioSemanas(e.target.value);
+            });
+        }
+
+        if (selectSemana) {
+            selectSemana.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.value, 10);
+                if (!isNaN(idx) && weeksData[idx]) {
+                    currentSelectedWeek = weeksData[idx];
+                    renderRelatorioDiario(currentSelectedWeek);
+                }
+            });
+        }
+
+        await loadRelatorioMeses();
+
+        btnGerar.addEventListener('click', async () => {
             const captureArea = document.getElementById('capture-area');
-            html2canvas(captureArea, { scale: 2 }).then(canvas => {
+            // Mostrar rodap├® com timestamp
+            const now = new Date();
+            const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                + ' ├ás '
+                + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const rodape = document.getElementById('rel-rodape');
+            if (rodape) {
+                rodape.textContent = `Relat├│rio gerado em: ${ts} ÔÇö ApexTech Metais`;
+                rodape.style.display = 'block';
+            }
+
+            // Backup styling to prevent mobile layout distortion
+            const originalWidth = captureArea.style.width;
+            const originalMaxWidth = captureArea.style.maxWidth;
+            captureArea.style.width = '800px';
+            captureArea.style.maxWidth = 'none';
+
+            // Delay to allow DOM layout to update
+            await new Promise(r => setTimeout(r, 100));
+
+            try {
+                const canvas = await html2canvas(captureArea, { 
+                    scale: 2, 
+                    useCORS: true, 
+                    allowTaint: false, 
+                    scrollY: 0, 
+                    windowHeight: captureArea.scrollHeight,
+                    width: 800
+                });
                 const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = 'Relatorio_LME_ApexTech.png';
                 link.href = imgData;
                 link.click();
-            });
+            } finally {
+                // Restore styling
+                captureArea.style.width = originalWidth;
+                captureArea.style.maxWidth = originalMaxWidth;
+                // Ocultar rodap├® ap├│s download
+                if (rodape) rodape.style.display = 'none';
+            }
         });
 
         btnCopiar.addEventListener('click', () => {
-            if (!weeksData || weeksData.length === 0) return;
-            const week = weeksData[0];
+            if (!currentSelectedWeek) return;
+            const week = currentSelectedWeek;
             const comp = week.computed || {};
             const d = week.days || [];
             const lastDate = d[d.length - 1]?.data || '';
-            let txt = `*COTAÇÃO LME - APEXTECH METAIS*\n`;
+            let txt = `*COTA├ç├âO LME - APEXTECH METAIS*\n`;
             txt += `Semana de ${d[0]?.data} a ${lastDate}\n\n`;
-            txt += `*Variação Diária (Grupo 6):*\n`;
+            txt += `*Varia├º├úo Di├íria (Grupo 6):*\n`;
             
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
-                const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                const setinha = osc >= 0 ? '⬆' : '⬇';
+                const osc = comp['OSCILA├ç├âO R$']?.[m] ?? 0;
+                const setinha = osc >= 0 ? 'Ô¼å' : 'Ô¼ç';
                 const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
             });
 
-            const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-            const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
+            const dolarOsc = comp['OSCILA├ç├âO R$']?.['dolar'] ?? 0;
+            const dSetinha = dolarOsc >= 0 ? 'Ô¼å' : 'Ô¼ç';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-            txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
+            txt += `- D├ôLAR: ${dSetinha} ${dMoney}\n`;
 
             navigator.clipboard.writeText(txt).then(() => {
-                alert('Resumo copiado para a área de transferência!');
+                _apexNotify('Sistema', 'Resumo copiado para a ├írea de transfer├¬ncia!', 'info');
             }).catch(err => {
-                alert('Erro ao copiar texto.');
+                _apexNotify('Aten├º├úo', 'Erro ao copiar texto.', 'error');
                 console.error(err);
             });
         });
@@ -2632,47 +2769,126 @@ var _listTabelaPrecosEstrategica = [];
         if (btnPdf) {
             btnPdf.addEventListener('click', async () => {
                 const captureArea = document.getElementById('capture-area');
-                
-                // Correção do Bug do SVG Preto:
-                // O html2canvas não renderiza SVGs complexos corretamente e eles viram blocos pretos.
-                // Solução: Converter a logo para Base64 PNG nativamente via Canvas antes de gerar o PDF.
+
+                // Mostrar rodap├® com timestamp
+                const nowTs = new Date();
+                const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    + ' ├ás '
+                    + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const rodape = document.getElementById('rel-rodape');
+                if (rodape) {
+                    rodape.textContent = `Relat├│rio gerado em: ${tsStr}`;
+                    rodape.style.display = 'block';
+                }
+
+                // Corre├º├úo do Bug do SVG Preto:
                 const logoImg = captureArea.querySelector('.rel-logo img');
                 let originalSrc = '';
                 if (logoImg && logoImg.src.endsWith('.svg')) {
-                    originalSrc = logoImg.src;
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = logoImg.naturalWidth || 400;
-                    tempCanvas.height = logoImg.naturalHeight || 133;
-                    const tCtx = tempCanvas.getContext('2d');
-                    tCtx.fillStyle = '#ffffff'; // Fundo branco p/ segurança
-                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
-                    logoImg.src = tempCanvas.toDataURL('image/png');
+                    try {
+                        originalSrc = logoImg.src;
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = logoImg.naturalWidth || 400;
+                        tempCanvas.height = logoImg.naturalHeight || 133;
+                        const tCtx = tempCanvas.getContext('2d');
+                        tCtx.fillStyle = '#ffffff'; // Fundo branco p/ seguran├ºa
+                        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                        tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                        logoImg.src = tempCanvas.toDataURL('image/png');
+                    } catch (svgErr) {
+                        console.warn('Erro ao converter logo SVG para PNG (CORS/Taint fallback):', svgErr);
+                        if (originalSrc) {
+                            logoImg.src = originalSrc;
+                            originalSrc = '';
+                        }
+                    }
                 }
 
+                // Backup styling to prevent mobile layout distortion
+                const originalWidth = captureArea.style.width;
+                const originalMaxWidth = captureArea.style.maxWidth;
+                captureArea.style.width = '800px';
+                captureArea.style.maxWidth = 'none';
+
+                // Delay to allow DOM layout to update
+                await new Promise(r => setTimeout(r, 100));
+
                 try {
-                    const canvas = await html2canvas(captureArea, { scale: 3, backgroundColor: '#ffffff' });
+                    // Captura a altura TOTAL do conte├║do
+                    const canvas = await html2canvas(captureArea, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        useCORS: true,
+                        allowTaint: false,
+                        scrollY: 0,
+                        windowHeight: captureArea.scrollHeight,
+                        height: captureArea.scrollHeight,
+                        width: 800
+                    });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save('Relatorio_LME_ApexTech.pdf');
+
+                    // Calcular dimens├Áes: usar largura A4, mas altura proporcional ao conte├║do total para n├úo quebrar a p├ígina
+                    const pdfWidthMm = 210; // A4 largura em mm
+                    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+
+                    // Criar PDF vertical de p├ígina ├║nica sem cortes
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: [pdfWidthMm, pdfHeightMm]
+                    });
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+
+                    // Nome de arquivo din├ómico (ex: relatorio-lme-DD-MM-AAAA.pdf)
+                    let dateStr = '';
+                    if (currentSelectedWeek) {
+                        const week = currentSelectedWeek;
+                        const d = week.days || [];
+                        if (d.length > 0 && d[0].data) {
+                            const parts = d[0].data.split('/');
+                            if (parts.length >= 2) {
+                                const day = parts[0].padStart(2, '0');
+                                const month = parts[1].padStart(2, '0');
+                                let year = parts[2] || '';
+                                if (!year) {
+                                    const filterMes = document.getElementById('rel-filter-mes');
+                                    year = new Date().getFullYear();
+                                    if (filterMes && filterMes.value && filterMes.value.includes('-')) {
+                                        year = filterMes.value.split('-')[1];
+                                    }
+                                }
+                                dateStr = `${day}-${month}-${year}`;
+                            }
+                        }
+                    }
+                    if (!dateStr) {
+                        const now = new Date();
+                        const day = String(now.getDate()).padStart(2, '0');
+                        const month = String(now.getMonth() + 1).padStart(2, '0');
+                        const year = now.getFullYear();
+                        dateStr = `${day}-${month}-${year}`;
+                    }
+                    const filename = `Relatorio_LME.pdf`;
+                    pdf.save(filename);
                 } finally {
-                    // Restaura o SVG original após gerar o PDF
+                    // Restaura o SVG original ap├│s gerar o PDF
                     if (originalSrc) {
                         logoImg.src = originalSrc;
                     }
+                    // Restore styling
+                    captureArea.style.width = originalWidth;
+                    captureArea.style.maxWidth = originalMaxWidth;
+                    // Ocultar rodap├® ap├│s exporta├º├úo
+                    if (rodape) rodape.style.display = 'none';
                 }
             });
         }
 
         if (btnExcel) {
             btnExcel.addEventListener('click', async () => {
-                if (!weeksData || weeksData.length === 0) return;
-                const block = weeksData[0];
+                if (!currentSelectedWeek) return;
+                const block = currentSelectedWeek;
                 btnExcel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
                 try {
                     const res = await fetch('/api/lme/gerar-excel', {
@@ -2680,7 +2896,7 @@ var _listTabelaPrecosEstrategica = [];
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             semana: block,
-                            mesLabel: 'Relatório Diário LME'
+                            mesLabel: 'Relat├│rio Di├írio LME'
                         })
                     });
 
@@ -2695,11 +2911,11 @@ var _listTabelaPrecosEstrategica = [];
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        alert('Erro ao gerar Excel.');
+                        _apexNotify('Aten├º├úo', 'Erro ao gerar Excel.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Erro na conexão com o servidor.');
+                    _apexNotify('Aten├º├úo', 'Erro na conex├úo com o servidor.', 'error');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -2723,42 +2939,29 @@ var _listTabelaPrecosEstrategica = [];
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        let weekNum = '...';
-        let dataTexto = `${firstDate} a ${lastDate}`;
-        
-        if (firstDate) {
-            const ptMonths = { 'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'set': 8, 'out': 9, 'nov': 10, 'dez': 11 };
-            const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-            
-            // Try to get year from filter, otherwise use current year
-            const filterMes = document.getElementById('lme-filter-mes');
-            let year = new Date().getFullYear();
-            if (filterMes && filterMes.value && filterMes.value.includes('-')) {
-                year = parseInt(filterMes.value.split('-')[0]);
-            }
-            
-            const parts = firstDate.split('/');
+        // Tentar obter a data da semana a partir do primeiro dia ├║til dela
+        let referenceDate = new Date();
+        if (d.length > 0 && d[0].data && d[0].data !== 'ÔÇö') {
+            const parts = d[0].data.split('/');
             if (parts.length >= 2) {
-                const day = parseInt(parts[0]);
-                const monthPart = parts[1].toLowerCase().trim();
-                let monthIndex = 0;
-                
-                if (isNaN(monthPart)) {
-                    monthIndex = ptMonths[monthPart] !== undefined ? ptMonths[monthPart] : 0;
-                } else {
-                    monthIndex = parseInt(monthPart) - 1;
+                const selectMes = document.getElementById('rel-filter-mes');
+                let yr = new Date().getFullYear();
+                if (selectMes && selectMes.value && selectMes.value.includes('-')) {
+                    yr = parseInt(selectMes.value.split('-')[1], 10);
                 }
-                
-                // If parts has 3, it's DD/MM/YYYY
-                if (parts.length === 3) {
-                    year = parseInt(parts[2]);
-                }
-                
-                const dateObj = new Date(year, monthIndex, day);
-                weekNum = getISOWeek(dateObj);
-                dataTexto = `${day} de ${monthNames[monthIndex]}`;
+                const monthMap = {
+                    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
+                    'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
+                };
+                const monthAbbr = parts[1].toLowerCase().replace('.', '').trim();
+                const monthNum = monthMap[monthAbbr] || parseInt(parts[1], 10) || (new Date().getMonth() + 1);
+                const dayNum = parseInt(parts[0], 10) || 1;
+                referenceDate = new Date(yr, monthNum - 1, dayNum);
             }
         }
+        
+        const dataTexto = `${week.label || ''}`;
+        const weekNum = getISOWeek(referenceDate);
         
         document.getElementById('rel-date-range').textContent = dataTexto;
         document.getElementById('rel-week-number').textContent = weekNum;
@@ -2768,23 +2971,72 @@ var _listTabelaPrecosEstrategica = [];
         
         const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
         
-        const formatMoney = (val, isDolar) => {
+        const formatUsd = (val) => {
             if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
-            const prefix = isDolar ? '$ ' : 'R$ ';
-            const maxF = isDolar ? 4 : 2;
-            return prefix + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: maxF, maximumFractionDigits: maxF });
+            return '$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        };
+        const formatBrl = (val, dec = 3) => {
+            if (val === null || val === undefined || val === 'feriado' || isNaN(val)) return '-';
+            return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
         };
         const formatPct = (val) => {
             if (val === null || val === undefined || isNaN(val)) return '-';
-            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+            return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
         };
+
+        // Fun├º├úo reutiliz├ível para formatar indicadores de varia├º├úo
+        function formatVariacaoCell(element, value, type, decimals = 3) {
+            if (!element) return;
+            if (value === null || value === undefined || isNaN(value)) {
+                element.textContent = '-';
+                element.style.setProperty('color', '#000000', 'important');
+                return;
+            }
+            
+            const numVal = Number(value);
+            let formattedText = '';
+            
+            if (type === 'percent') {
+                formattedText = (numVal * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
+            } else if (type === 'currency') {
+                formattedText = 'R$ ' + Math.abs(numVal).toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            } else {
+                formattedText = numVal.toLocaleString('pt-BR');
+            }
+
+            let arrow = '';
+            if (numVal > 0) {
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">Ôû▓</span>`;
+            } else if (numVal < 0) {
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">Ôû╝</span>`;
+            }
+            
+            element.innerHTML = `${arrow}${formattedText}`;
+            element.style.setProperty('color', '#000000', 'important'); // Texto sempre em preto
+        }
+
+        // Fix 1: Indicar feriado na label da m├®dia semanal se semana teve < 5 dias ├║teis
+        const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
+        if (mediaLabelEl) {
+            if (week.numDias !== undefined && week.numDias < 5) {
+                mediaLabelEl.innerHTML = `M├ëDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias ├║teis)</span>`;
+            } else {
+                mediaLabelEl.textContent = 'M├ëDIA SEMANAL';
+            }
+        }
 
         d.forEach(day => {
             if (!day.data) return;
             const tr = document.createElement('tr');
             let colsHtml = `<td class="font-bold rel-label-col">${day.data}</td>`;
             metals.forEach(m => {
-                colsHtml += `<td>${formatMoney(day[m], m === 'dolar')}</td>`;
+                const val = day[m];
+                const colClass = `rel-col-${m}`;
+                if (m === 'dolar') {
+                    colsHtml += `<td class="${colClass}">${formatBrl(val, 4)}</td>`;
+                } else {
+                    colsHtml += `<td class="${colClass}">${formatUsd(val)}</td>`;
+                }
             });
             tr.innerHTML = colsHtml;
             tbody.appendChild(tr);
@@ -2793,33 +3045,84 @@ var _listTabelaPrecosEstrategica = [];
         metals.forEach(m => {
             const isDolar = (m === 'dolar');
             const elMedia = document.getElementById('rel-media-' + m);
-            if (elMedia) elMedia.textContent = formatMoney(comp['MEDIA SEMANAL']?.[m], isDolar);
+            if (elMedia) {
+                if (isDolar) {
+                    elMedia.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                } else {
+                    elMedia.textContent = formatUsd(comp['MEDIA SEMANAL']?.[m]);
+                }
+            }
             if (m !== 'dolar') {
                 const elLme = document.getElementById('rel-lme-' + m);
-                if (elLme) elLme.textContent = formatMoney(comp['100% LME']?.[m], isDolar);
+                if (elLme) elLme.textContent = formatBrl(comp['100% LME']?.[m], 3);
             }
             const elAnt = document.getElementById('rel-ant-' + m);
-            if (elAnt) elAnt.textContent = formatMoney(comp['SEMANA ANTERIOR']?.[m], isDolar);
+            if (elAnt) {
+                if (isDolar) {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                } else {
+                    elAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                }
+            }
             const elFech = document.getElementById('rel-fech-' + m);
-            if (elFech) elFech.textContent = formatPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m]);
+            formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
             const elOscPct = document.getElementById('rel-osc-pct-' + m);
-            if (elOscPct) elOscPct.textContent = formatPct(comp['OSCILAÇÃO %']?.[m]);
+            formatVariacaoCell(elOscPct, comp['OSCILA├ç├âO %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-            const isUp = oscRs >= 0;
-            const arrowIcon = isUp ? '<i class="fa-solid fa-arrow-up" style="color:#2ecc71"></i>' : '<i class="fa-solid fa-arrow-down" style="color:#e74c3c"></i>';
+            const oscRs = comp['OSCILA├ç├âO R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
-            if (elOscRs) elOscRs.innerHTML = `${arrowIcon} ${formatMoney(Math.abs(oscRs), isDolar)}`;
+            formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
             const elMensal = document.getElementById('rel-mensal-' + m);
-            if (elMensal) elMensal.textContent = formatMoney(comp['MEDIA MENSAL']?.[m], isDolar);
+            if (elMensal) {
+                if (isDolar) {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 4);
+                } else {
+                    elMensal.textContent = formatBrl(comp['MEDIA MENSAL']?.[m], 3);
+                }
+            }
 
             const elCompAnt = document.getElementById('rel-comp-ant-' + m);
-            if (elCompAnt) elCompAnt.textContent = formatMoney(comp['SEMANA ANTERIOR']?.[m], isDolar);
+            if (elCompAnt) {
+                if (isDolar) {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 4);
+                } else {
+                    elCompAnt.textContent = formatBrl(comp['SEMANA ANTERIOR']?.[m], 3);
+                }
+            }
+            
+            // CORRE├ç├âO CR├ìTICA: LME ATUAL ├® o valor de '100% LME' (R$/kg) da semana em curso, n├úo a m├®dia semanal bruta em US$/t!
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
-            if (elCompAtu) elCompAtu.textContent = formatMoney(comp['MEDIA SEMANAL']?.[m], isDolar);
+            if (elCompAtu) {
+                if (isDolar) {
+                    elCompAtu.textContent = formatBrl(comp['MEDIA SEMANAL']?.[m], 4);
+                } else {
+                    elCompAtu.textContent = formatBrl(comp['100% LME']?.[m], 3);
+                }
+            }
             const elCompOsc = document.getElementById('rel-comp-osc-' + m);
-            if (elCompOsc) elCompOsc.innerHTML = `${arrowIcon} ${formatMoney(Math.abs(oscRs), isDolar)}`;
+            formatVariacaoCell(elCompOsc, oscRs, 'currency', isDolar ? 4 : 3);
+        });
+
+        // Aplica overrides de cores nas linhas espec├¡ficas por label
+        const summaryRows = document.querySelectorAll('.rel-summary-body tr');
+        summaryRows.forEach(row => {
+            const firstCell = row.cells[0];
+            if (!firstCell) return;
+            const text = firstCell.textContent.trim().toUpperCase();
+
+            // Limpa classes anteriores para evitar duplicar/acumular em re-renders
+            row.classList.remove('row-lme100', 'row-fechamento-anterior', 'row-oscilacao-rs', 'row-semana-anterior');
+
+            if (text.includes("100% LME")) {
+                row.classList.add('row-lme100');
+            } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
+                row.classList.add('row-fechamento-anterior');
+            } else if (text.includes("OSCILA├ç├âO R$")) {
+                row.classList.add('row-oscilacao-rs');
+            } else if (text === "SEMANA ANTERIOR") {
+                row.classList.add('row-semana-anterior');
+            }
         });
 
         renderRelatorioCharts(week);
@@ -2829,11 +3132,11 @@ var _listTabelaPrecosEstrategica = [];
     function renderRelatorioCharts(week) {
         const comp = week.computed || {};
 
-        // ── helpers ──────────────────────────────────────────────────────────
+        // ÔöÇÔöÇ helpers ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         const fmtR = v =>
-            'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-        // Plugin inline de rótulos acima das barras
+        // Plugin inline de r├│tulos acima das barras
         const datalabelPlugin = {
             id: 'apexBarLabels',
             afterDatasetsDraw(chart) {
@@ -2844,25 +3147,58 @@ var _listTabelaPrecosEstrategica = [];
                     meta.data.forEach((bar, idx) => {
                         const val = dataset.data[idx];
                         if (val === 0 || val == null) return;
-                        const label = fmtR(val);
+                        
                         ctx.save();
-                        ctx.font = 'bold 10px Arial';
+                        ctx.font = 'bold 9px Arial';
                         ctx.fillStyle = '#111';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(label, bar.x, bar.y - 5);
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        
+                        // Rotaciona para desenhar verticalmente
+                        ctx.translate(bar.x, bar.y - 6);
+                        ctx.rotate(-Math.PI / 2);
+                        
+                        const prefix = dataset.label === 'Semana Anterior' ? 'Ant: ' : 'Atu: ';
+                        const label = prefix + 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                        
+                        ctx.fillText(label, 0, 0);
                         ctx.restore();
                     });
                 });
             }
         };
 
-        // ── Configuração comum dos dois gráficos ─────────────────────────────
+        // ÔöÇÔöÇ Configura├º├úo comum dos dois gr├íficos ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function buildBarChart(canvasId, labels, dataAnt, dataAtu) {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
-            // Destruir instância anterior se existir
+            // Destruir inst├óncia anterior se existir
             const key = '__apexChart_' + canvasId;
             if (window[key]) { window[key].destroy(); }
+
+            const bgAnt = [];
+            const borderAnt = [];
+            const bgAtu = [];
+            const borderAtu = [];
+
+            for (let i = 0; i < labels.length; i++) {
+                const valAtu = dataAtu[i] || 0;
+                const valAnt = dataAnt[i] || 0;
+                if (valAtu > valAnt) {
+                    // Atual foi melhor (Verde), Anterior foi pior (Vermelho)
+                    bgAtu.push('#27ae60');
+                    borderAtu.push('#1e8449');
+                    bgAnt.push('#e74c3c');
+                    borderAnt.push('#c0392b');
+                } else {
+                    // Atual foi pior (Vermelho), Anterior foi melhor (Verde)
+                    bgAtu.push('#e74c3c');
+                    borderAtu.push('#c0392b');
+                    bgAnt.push('#27ae60');
+                    borderAnt.push('#1e8449');
+                }
+            }
+
             window[key] = new Chart(ctx, {
                 type: 'bar',
                 plugins: [datalabelPlugin],
@@ -2872,8 +3208,8 @@ var _listTabelaPrecosEstrategica = [];
                         {
                             label: 'Semana Anterior',
                             data: dataAnt,
-                            backgroundColor: '#9e9e9e',
-                            borderColor: '#757575',
+                            backgroundColor: bgAnt,
+                            borderColor: borderAnt,
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,
@@ -2882,8 +3218,8 @@ var _listTabelaPrecosEstrategica = [];
                         {
                             label: 'Semana Atual',
                             data: dataAtu,
-                            backgroundColor: '#0070c0',
-                            borderColor: '#005599',
+                            backgroundColor: bgAtu,
+                            borderColor: borderAtu,
                             borderWidth: 1,
                             borderRadius: 3,
                             barPercentage: 0.75,
@@ -2892,9 +3228,10 @@ var _listTabelaPrecosEstrategica = [];
                     ]
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 24, right: 8, left: 8 } },
+                    layout: { padding: { top: 90, right: 8, left: 8 } },
                     plugins: {
                         legend: { display: false },          // legenda feita no HTML
                         tooltip: {
@@ -2921,11 +3258,11 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // ── Grupo 1: Cobre · Zinco · Alumínio · Chumbo ───────────────────────
+        // ÔöÇÔöÇ Grupo 1: Cobre ┬À Zinco ┬À Alum├¡nio ┬À Chumbo ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
-            { key: 'aluminio', label: 'ALUMÍNIO' },
+            { key: 'aluminio', label: 'ALUM├ìNIO' },
             { key: 'chumbo',   label: 'CHUMBO' }
         ];
         buildBarChart(
@@ -2935,10 +3272,10 @@ var _listTabelaPrecosEstrategica = [];
             group1.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ── Grupo 2: Estanho · Níquel ─────────────────────────────────────────
+        // ÔöÇÔöÇ Grupo 2: Estanho ┬À N├¡quel ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
-            { key: 'niquel',  label: 'NÍQUEL' }
+            { key: 'niquel',  label: 'N├ìQUEL' }
         ];
         buildBarChart(
             'relChartOsc',
@@ -2947,7 +3284,7 @@ var _listTabelaPrecosEstrategica = [];
             group2.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ── Cards de comparação ───────────────────────────────────────────────
+        // ÔöÇÔöÇ Cards de compara├º├úo ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function buildCards(containerId, group) {
             const el = document.getElementById(containerId);
             if (!el) return;
@@ -2957,7 +3294,7 @@ var _listTabelaPrecosEstrategica = [];
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? '↑' : isDown ? '↓' : '–';
+                const arrow    = isUp ? 'Ôåæ' : isDown ? 'Ôåô' : 'ÔÇô';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -2969,7 +3306,7 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <div class="rel-card-metal-prev">era ${fmtR(anterior)}</div>
                     <div class="rel-card-metal-diff" style="color:${color};">
-                        ${isUp ? '+' : isDown ? '' : ''}${fmtR(diff)}
+                        ${isUp ? '+' : isDown ? '-' : ''}${fmtR(diff)}
                     </div>
                 </div>`;
             }).join('');
@@ -2995,10 +3332,16 @@ var _listTabelaPrecosEstrategica = [];
             let colsHtml = `<td>${pLabel}</td>`;
 
             metals.forEach(m => {
-                const lme = comp['SEMANA ANTERIOR']?.[m] || comp['100% LME']?.[m] || 0;
-                const baseVal = lme * (p / 100);
-                const fmt = lme === 0 ? '-' : 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                colsHtml += `<td>${fmt}</td>`;
+                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1┬¬ semana do m├¬s ÔÇö exibe '-'
+                const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
+                const colClass = `rel-col-${m}`;
+                if (lme === null) {
+                    colsHtml += `<td class="${colClass}">-</td>`;
+                } else {
+                    const baseVal = lme * (p / 100);
+                    const fmt = 'R$ ' + baseVal.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+                    colsHtml += `<td class="${colClass}">${fmt}</td>`;
+                }
             });
 
             tr.innerHTML = colsHtml;
@@ -3006,8 +3349,8 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-}); // end DOMContentLoaded
-
+    // =========================================================================
+    // HIST├ôRICO DO RELAT├ôRIO DI├üRIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiarioHistorico() {
         const btnVerHistorico = document.getElementById('btn-ver-historico');
@@ -3038,7 +3381,7 @@ var _listTabelaPrecosEstrategica = [];
 
         async function loadHistoricoMeses() {
             try {
-                // Gera lista de meses dos últimos 12 meses como fallback
+                // Gera lista de meses dos ├║ltimos 12 meses como fallback
                 function gerarMesesFallback() {
                     const meses = [];
                     const now = new Date();
@@ -3046,7 +3389,7 @@ var _listTabelaPrecosEstrategica = [];
                         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                         const ano = d.getFullYear();
                         const mes = String(d.getMonth() + 1).padStart(2, '0');
-                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        const nomes = ['Janeiro','Fevereiro','Mar├ºo','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
                         meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
                     }
                     return meses;
@@ -3075,7 +3418,7 @@ var _listTabelaPrecosEstrategica = [];
                 selectMes.value = mesToFetch;
                 await loadHistoricoSemanas(mesToFetch);
             } catch (e) {
-                console.error('Erro ao carregar meses do histórico', e);
+                console.error('Erro ao carregar meses do hist├│rico', e);
                 selectMes.innerHTML = '<option value="">Erro ao carregar meses</option>';
             }
         }
@@ -3093,7 +3436,7 @@ var _listTabelaPrecosEstrategica = [];
                 const data = await res.json();
                 weeksData = data.semanas || [];
                 if (weeksData.length === 0) {
-                    selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
+                    selectSemana.innerHTML = '<option value="">Nenhuma semana dispon├¡vel</option>';
                     return;
                 }
 
@@ -3105,8 +3448,8 @@ var _listTabelaPrecosEstrategica = [];
                 currentSelectedWeek = weeksData[0];
                 renderRelatorioDiarioHistorico(currentSelectedWeek);
             } catch (e) {
-                console.error('Erro ao carregar semanas do histórico', e);
-                selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
+                console.error('Erro ao carregar semanas do hist├│rico', e);
+                selectSemana.innerHTML = '<option value="">Erro de conex├úo</option>';
             }
         }
 
@@ -3122,18 +3465,18 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
 
-        // Ações de exportação do histórico (usando o capture-area-historico e currentSelectedWeek)
+        // A├º├Áes de exporta├º├úo do hist├│rico (usando o capture-area-historico e currentSelectedWeek)
         if (btnGerar) {
             btnGerar.addEventListener('click', async () => {
                 if (!currentSelectedWeek) return;
                 const captureArea = document.getElementById('capture-area-historico');
                 const now = new Date();
                 const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' ├ás '
                     + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
+                    rodape.textContent = `Relat├│rio gerado em: ${ts} ÔÇö ApexTech Metais`;
                     rodape.style.display = 'block';
                 }
 
@@ -3172,27 +3515,27 @@ var _listTabelaPrecosEstrategica = [];
                 const comp = currentSelectedWeek.computed || {};
                 const d = currentSelectedWeek.days || [];
                 const lastDate = d[d.length - 1]?.data || '';
-                let txt = `*COTAÇÃO LME HISTÓRICO - APEXTECH METAIS*\n`;
+                let txt = `*COTA├ç├âO LME HIST├ôRICO - APEXTECH METAIS*\n`;
                 txt += `Semana de ${d[0]?.data} a ${lastDate}\n\n`;
-                txt += `*Variação Diária (Grupo 6):*\n`;
+                txt += `*Varia├º├úo Di├íria (Grupo 6):*\n`;
                 
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
-                    const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                    const setinha = osc >= 0 ? '⬆' : '⬇';
+                    const osc = comp['OSCILA├ç├âO R$']?.[m] ?? 0;
+                    const setinha = osc >= 0 ? 'Ô¼å' : 'Ô¼ç';
                     const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
                 });
 
-                const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-                const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
+                const dolarOsc = comp['OSCILA├ç├âO R$']?.['dolar'] ?? 0;
+                const dSetinha = dolarOsc >= 0 ? 'Ô¼å' : 'Ô¼ç';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-                txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
+                txt += `- D├ôLAR: ${dSetinha} ${dMoney}\n`;
 
                 navigator.clipboard.writeText(txt).then(() => {
-                    _apexNotify('Sistema', 'Resumo histórico copiado!', 'info');
+                    _apexNotify('Sistema', 'Resumo hist├│rico copiado!', 'info');
                 }).catch(err => {
-                    _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
+                    _apexNotify('Aten├º├úo', 'Erro ao copiar texto.', 'error');
                     console.error(err);
                 });
             });
@@ -3204,11 +3547,11 @@ var _listTabelaPrecosEstrategica = [];
                 const captureArea = document.getElementById('capture-area-historico');
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' ├ás '
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
+                    rodape.textContent = `Relat├│rio gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
@@ -3286,7 +3629,7 @@ var _listTabelaPrecosEstrategica = [];
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             semana: currentSelectedWeek,
-                            mesLabel: 'Relatório Histórico LME'
+                            mesLabel: 'Relat├│rio Hist├│rico LME'
                         })
                     });
 
@@ -3301,11 +3644,11 @@ var _listTabelaPrecosEstrategica = [];
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        _apexNotify('Atenção', 'Erro ao gerar Excel do histórico.', 'error');
+                        _apexNotify('Aten├º├úo', 'Erro ao gerar Excel do hist├│rico.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
+                    _apexNotify('Aten├º├úo', 'Erro na conex├úo com o servidor.', 'error');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -3328,9 +3671,9 @@ var _listTabelaPrecosEstrategica = [];
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        // Tentar obter a data da semana a partir do primeiro dia útil dela
+        // Tentar obter a data da semana a partir do primeiro dia ├║til dela
         let referenceDate = new Date();
-        if (d.length > 0 && d[0].data && d[0].data !== '—') {
+        if (d.length > 0 && d[0].data && d[0].data !== 'ÔÇö') {
             const parts = d[0].data.split('/');
             if (parts.length >= 2) {
                 const selectMes = document.getElementById('rel-hist-filter-mes');
@@ -3349,7 +3692,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         }
         
-        const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+        const monthNames = ["janeiro", "fevereiro", "mar├ºo", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
         const dataTexto = `${week.label}`;
         const weekNum = getISOWeek(referenceDate);
         
@@ -3395,9 +3738,9 @@ var _listTabelaPrecosEstrategica = [];
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">Ôû▓</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">Ôû╝</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
@@ -3407,9 +3750,9 @@ var _listTabelaPrecosEstrategica = [];
         const mediaLabelEl = document.querySelector('#relatorio-diario-historico .rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
             if (week.numDias !== undefined && week.numDias < 5) {
-                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
+                mediaLabelEl.innerHTML = `M├ëDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias ├║teis)</span>`;
             } else {
-                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
+                mediaLabelEl.textContent = 'M├ëDIA SEMANAL';
             }
         }
 
@@ -3455,9 +3798,9 @@ var _listTabelaPrecosEstrategica = [];
             const elFech = document.getElementById('rel-hist-fech-' + m);
             formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
             const elOscPct = document.getElementById('rel-hist-osc-pct-' + m);
-            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
+            formatVariacaoCell(elOscPct, comp['OSCILA├ç├âO %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+            const oscRs = comp['OSCILA├ç├âO R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-hist-osc-rs-' + m);
             formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
@@ -3503,7 +3846,7 @@ var _listTabelaPrecosEstrategica = [];
                 row.classList.add('row-lme100');
             } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
                 row.classList.add('row-fechamento-anterior');
-            } else if (text.includes("OSCILAÇÃO R$")) {
+            } else if (text.includes("OSCILA├ç├âO R$")) {
                 row.classList.add('row-oscilacao-rs');
             } else if (text === "SEMANA ANTERIOR") {
                 row.classList.add('row-semana-anterior');
@@ -3639,7 +3982,7 @@ var _listTabelaPrecosEstrategica = [];
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
-            { key: 'aluminio', label: 'ALUMÍNIO' },
+            { key: 'aluminio', label: 'ALUM├ìNIO' },
             { key: 'chumbo',   label: 'CHUMBO' }
         ];
         buildBarChart(
@@ -3651,7 +3994,7 @@ var _listTabelaPrecosEstrategica = [];
 
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
-            { key: 'niquel',  label: 'NÍQUEL' }
+            { key: 'niquel',  label: 'N├ìQUEL' }
         ];
         buildBarChart(
             'rel-hist-ChartOsc',
@@ -3669,7 +4012,7 @@ var _listTabelaPrecosEstrategica = [];
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? '↑' : isDown ? '↓' : '–';
+                const arrow    = isUp ? 'Ôåæ' : isDown ? 'Ôåô' : 'ÔÇô';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -3724,9 +4067,9 @@ var _listTabelaPrecosEstrategica = [];
     }
 
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÁLISE, FINANCEIRO E ESTOQUE
-    // ─────────────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    // APEX GEST├âO ÔÇö SISTEMA DE PERMISS├òES, AN├üLISE, FINANCEIRO E ESTOQUE
+    // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     let currentSimulatedRole = sessionStorage.getItem('apex_user_role') || 'Administrador';
     let localFornecedores = [];
     let localMateriais = [];
@@ -3735,7 +4078,7 @@ var _listTabelaPrecosEstrategica = [];
     let localPlanejamento = [];
     let activeAmostraIdForDesmonte = null;
 
-    // --- Role Switcher & Permissões ---
+    // --- Role Switcher & Permiss├Áes ---
     window.switchSimulatedRole = function(role) {
         currentSimulatedRole = role;
         sessionStorage.setItem('apex_user_role', role);
@@ -3749,9 +4092,9 @@ var _listTabelaPrecosEstrategica = [];
         
         const mapRoleToBtn = {
             'Administrador': 'sim-admin',
-            'Laboratório': 'sim-lab',
+            'Laborat├│rio': 'sim-lab',
             'Compras': 'sim-compras',
-            'Produção': 'sim-producao',
+            'Produ├º├úo': 'sim-producao',
             'Financeiro': 'sim-financeiro',
             'Diretoria': 'sim-diretoria'
         };
@@ -3764,22 +4107,22 @@ var _listTabelaPrecosEstrategica = [];
     function applyRolePermissions() {
         const role = currentSimulatedRole;
 
-        // Se por acaso as permissões ainda não carregaram ou o role não existir, falha fechado (deny all exceto admin)
+        // Se por acaso as permiss├Áes ainda n├úo carregaram ou o role n├úo existir, falha fechado (deny all exceto admin)
         let permissoes = globalRolePermissions[role] || [];
         if (role === 'Administrador') {
-            // Admin vê tudo.
+            // Admin v├¬ tudo.
             permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios", "view_permissoes", "view_financeiro", "view_pedidos", "view_clientes", "view_estrategico", "view_site"];
         }
 
         const temPermissao = (p) => permissoes.includes(p);
 
-        // Funções auxiliares para esconder/mostrar navegação
+        // Fun├º├Áes auxiliares para esconder/mostrar navega├º├úo
         const setNav = (idOrSelector, isVisible) => {
             const el = document.getElementById(idOrSelector) || document.querySelector(idOrSelector);
             if (el) el.style.display = isVisible ? 'flex' : 'none';
         };
 
-        // Tabs Visibility (Apex Gestão)
+        // Tabs Visibility (Apex Gest├úo)
         setNav('nav-fornecedores', temPermissao('view_fornecedores'));
         setNav('nav-clientes', temPermissao('view_clientes'));
         setNav('nav-materiais', temPermissao('view_catalogo'));
@@ -3794,7 +4137,7 @@ var _listTabelaPrecosEstrategica = [];
         setNav('nav-financeiro', temPermissao('view_financeiro'));
         setNav('nav-pedidos-venda', temPermissao('view_pedidos') || role === 'Administrador');
 
-        // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
+        // Tabs Visibility (LME - como os originais n├úo tem ID, usamos querySelector)
         setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
         setNav('.nav-item[data-target="relatorio-diario"]', temPermissao('view_lme'));
         
@@ -3807,7 +4150,7 @@ var _listTabelaPrecosEstrategica = [];
         setNav('.nav-item[data-target="lme-email-config"]', temPermissao('view_site') || temPermissao('view_lme'));
         setNav('.nav-item[data-target="tabela-email-config"]', temPermissao('view_site') || temPermissao('view_precos'));
 
-        // Oculta a seção ativa se o usuário perdeu acesso a ela e redireciona para a primeira disponível
+        // Oculta a se├º├úo ativa se o usu├írio perdeu acesso a ela e redireciona para a primeira dispon├¡vel
         const activeNav = document.querySelector('.nav-item.active');
         if (activeNav && activeNav.style.display === 'none') {
             activeNav.classList.remove('active');
@@ -3825,17 +4168,17 @@ var _listTabelaPrecosEstrategica = [];
         // Restrito Financeiro (Valores, margens, custos)
         const restritoFin = document.querySelectorAll('.restrito-financeiro');
         restritoFin.forEach(el => {
-            // Alguns elementos podem usar flex ou table-cell ou block, então restauramos o valor limpo '' em vez de fixar
+            // Alguns elementos podem usar flex ou table-cell ou block, ent├úo restauramos o valor limpo '' em vez de fixar
             el.style.display = temPermissao('edit_financeiro') ? '' : 'none';
         });
 
-        // Restrito Produção (PCP)
+        // Restrito Produ├º├úo (PCP)
         const restritoProd = document.querySelectorAll('.restrito-producao');
         restritoProd.forEach(el => {
             el.style.display = temPermissao('edit_producao') ? '' : 'none';
         });
 
-        // Atualiza botões no desmonte se aberto
+        // Atualiza bot├Áes no desmonte se aberto
         if (activeAmostraIdForDesmonte) {
             const amostra = localAmostras.find(x => x.id === activeAmostraIdForDesmonte);
             if (amostra) renderizarBotoesAcoesAmostra(amostra.status);
@@ -3924,7 +4267,7 @@ var _listTabelaPrecosEstrategica = [];
             let amostrasHtml = '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
             if (amostrasForn.length > 0) {
                 amostrasHtml = `<select style="background:#0d1a24; color:#4fc3f7; border:1px solid #1e3a5f; padding:6px; border-radius:6px; font-size:0.85rem; cursor:pointer; min-width:120px;" onchange="if(this.value) window.abrirAmostraPorNumero(this.value); this.value='';">
-                    <option value="">${amostrasForn.length} Amostra(s) ▾</option>
+                    <option value="">${amostrasForn.length} Amostra(s) Ôû¥</option>
                     ${amostrasForn.map(a => `<option value="${a.numero_amostra}">${a.numero_amostra}</option>`).join('')}
                 </select>`;
             }
@@ -3935,7 +4278,7 @@ var _listTabelaPrecosEstrategica = [];
                 : `<button style="background:#1c252e;border:1px solid #334155;color:#64748b;padding:6px 10px;border-radius:6px;cursor:not-allowed;margin-right:4px;" disabled title="Sem e-mail cadastrado"><i class="fa-solid fa-paper-plane"></i> Tabela</button>`;
 
             const tr = document.createElement('tr');
-            tr.title = 'Clique na linha para editar este fornecedor (exceto botões e selects)';
+            tr.title = 'Clique na linha para editar este fornecedor (exceto bot├Áes e selects)';
             tr.style.cursor = 'pointer';
             tr.onclick = (e) => {
                 if (e.target.closest('button') || e.target.closest('select')) return;
@@ -3977,7 +4320,7 @@ var _listTabelaPrecosEstrategica = [];
 
     window.editarFornecedor = function(id) {
         const f = localFornecedores.find(x => x.id === id);
-        if (!f) { _apexNotify('Sistema', 'Fornecedor não encontrado na lista local. Recarregue a página.', 'info'); return; }
+        if (!f) { _apexNotify('Sistema', 'Fornecedor n├úo encontrado na lista local. Recarregue a p├ígina.', 'info'); return; }
         document.getElementById('modal-forn-titulo').textContent = 'Editar Fornecedor';
         document.getElementById('forn-id').value = f.id;
         document.getElementById('forn-codfor').value = f.codfor || '';
@@ -4046,7 +4389,7 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalFornecedor();
             carregarFornecedores();
         } catch (err) {
-            _apexNotify('Atenção', 'Erro ao salvar fornecedor: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao salvar fornecedor: ' + err.message, 'error');
             console.error('Erro ao salvar fornecedor:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Fornecedor'; }
@@ -4063,9 +4406,9 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ═══════════════════════════════════════════════════════════
-    // CLIENTES — CRUD COMPLETO
-    // ═══════════════════════════════════════════════════════════
+    // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    // CLIENTES ÔÇö CRUD COMPLETO
+    // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     let localClientes = [];
 
     window.initApexClientes = async function() {
@@ -4247,7 +4590,7 @@ var _listTabelaPrecosEstrategica = [];
                 window.clienteCadastradoCallback = null;
             }
         } catch (err) {
-            _apexNotify('Atenção', 'Erro ao salvar cliente: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao salvar cliente: ' + err.message, 'error');
             console.error('Erro ao salvar cliente:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Cliente'; }
@@ -4287,7 +4630,7 @@ var _listTabelaPrecosEstrategica = [];
                 const cells = row.querySelectorAll('td');
                 if (cells.length > colIndex) {
                     const text = cells[colIndex].textContent.toLowerCase().trim();
-                    // Conforme solicitado, busca pelas iniciais do termo na coluna específica
+                    // Conforme solicitado, busca pelas iniciais do termo na coluna espec├¡fica
                     match = text.startsWith(search) || text.includes(search);
                 }
             }
@@ -4394,7 +4737,7 @@ var _listTabelaPrecosEstrategica = [];
     window.buscarNcmManual = function() {
         const valor = document.getElementById('mat-ncm').value;
         if (!valor) {
-            _apexNotify('Sistema', 'Digite um termo ou código para buscar.', 'info');
+            _apexNotify('Sistema', 'Digite um termo ou c├│digo para buscar.', 'info');
             return;
         }
         executarBuscaNcm(valor);
@@ -4424,7 +4767,7 @@ var _listTabelaPrecosEstrategica = [];
                 `).join('');
             }
 
-            // Sempre adiciona a opção de usar o valor digitado manualmente
+            // Sempre adiciona a op├º├úo de usar o valor digitado manualmente
             const termoSanitizado = termo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             html += `
                 <div style="padding:10px; cursor:pointer; background:#1a3045; border-top:1px solid #3e7cb1;" 
@@ -4445,7 +4788,7 @@ var _listTabelaPrecosEstrategica = [];
     window.usarNcmManual = function(valor) {
         const input = document.getElementById('mat-ncm');
         if (input) {
-            // Formata o valor manual se parecer com um número de 8 dígitos
+            // Formata o valor manual se parecer com um n├║mero de 8 d├¡gitos
             input.value = formatarCodigoNcm(valor);
         }
         fecharNcmDropdown();
@@ -4585,7 +4928,7 @@ var _listTabelaPrecosEstrategica = [];
             });
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
-                _apexNotify('Atenção', 'Erro ao salvar material: ' + (errData.error || resp.statusText), 'error');
+                _apexNotify('Aten├º├úo', 'Erro ao salvar material: ' + (errData.error || resp.statusText), 'error');
                 return;
             }
             fecharModalMaterial();
@@ -4594,12 +4937,12 @@ var _listTabelaPrecosEstrategica = [];
             if (window.carregarPrecos) await window.carregarPrecos();
         } catch (err) {
             console.error(err);
-            _apexNotify('Atenção', 'Erro de conexão ao salvar material: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro de conex├úo ao salvar material: ' + err.message, 'error');
         }
     };
 
     window.deletarMaterial = async function(id) {
-        if (!confirm('Excluir este material do catálogo? O preço correspondente também será removido.')) return;
+        if (!confirm('Excluir este material do cat├ílogo? O pre├ºo correspondente tamb├®m ser├í removido.')) return;
         try {
             await fetch(`/api/materiais-catalogo/${id}`, { method: 'DELETE' });
             await carregarMateriais();
@@ -4626,7 +4969,7 @@ var _listTabelaPrecosEstrategica = [];
             prcM.innerHTML = '';
             localMateriais.forEach(m => {
                 const c = (m.categoria || '').toUpperCase();
-                if (c.includes('LIGA') || c.includes('RESIDUO') || c.includes('RESÍDUO')) return;
+                if (c.includes('LIGA') || c.includes('RESIDUO') || c.includes('RES├ìDUO')) return;
                 prcM.innerHTML += `<option value="${m.id}">${m.nome} (${m.categoria})</option>`;
             });
         }
@@ -4643,7 +4986,7 @@ var _listTabelaPrecosEstrategica = [];
         const badgesDiv = document.getElementById('mat-categoria-badges');
         if (!matCat) return;
         
-        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        let cats = ["Alum├¡nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat├úo/Bronze", "Zamac", "A├ºo", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try {
                 cats = JSON.parse(settingsPrecos['categorias_materiais']);
@@ -4663,10 +5006,10 @@ var _listTabelaPrecosEstrategica = [];
 
         // Renderiza badges visuais
         if (badgesDiv) {
-            const catsDefault = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+            const catsDefault = ["Alum├¡nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat├úo/Bronze", "Zamac", "A├ºo", "Outros"];
             const corPaleta = {
-                'Alumínio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
-                'Aço': '#7ea374', 'Chumbo': '#7a8a99', 'Latão/Bronze': '#c8a240',
+                'Alum├¡nio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
+                'A├ºo': '#7ea374', 'Chumbo': '#7a8a99', 'Lat├úo/Bronze': '#c8a240',
                 'Zamac': '#8a7ba8', 'Outros': '#6b7280'
             };
             badgesDiv.innerHTML = cats.map(cat => {
@@ -4679,11 +5022,11 @@ var _listTabelaPrecosEstrategica = [];
                         <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
-                        >✎</span>
+                        >Ô£Ä</span>
                         <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
-                        >×</span>
+                        >├ù</span>
                     </span>` : '';
                 return `<button type="button" class="cat-badge-btn"
                     data-cat="${cat}" data-color="${cor}" data-custom="${isCustom}"
@@ -4709,7 +5052,7 @@ var _listTabelaPrecosEstrategica = [];
         const trim = nova.trim();
         if (trim === '') return;
         
-        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        let cats = ["Alum├¡nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat├úo/Bronze", "Zamac", "A├ºo", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -4733,7 +5076,7 @@ var _listTabelaPrecosEstrategica = [];
     window.excluirCategoria = async function(cat) {
         const materiaisDoGrupo = localMateriais.filter(m => m.categoria === cat);
         if (materiaisDoGrupo.length > 0) {
-            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  • ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
+            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  ÔÇó ' + m.nome).join('\n')}\n\nExcluir o grupo tamb├®m remover├í esses materiais e seus pre├ºos. Deseja continuar?`;
             if (!confirm(confirmMsg)) return;
             for (const m of materiaisDoGrupo) {
                 await fetch(`/api/materiais-catalogo/${m.id}`, { method: 'DELETE' });
@@ -4742,7 +5085,7 @@ var _listTabelaPrecosEstrategica = [];
             if (!confirm(`Excluir o grupo "${cat}"?`)) return;
         }
 
-        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        let cats = ["Alum├¡nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat├úo/Bronze", "Zamac", "A├ºo", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -4759,7 +5102,7 @@ var _listTabelaPrecosEstrategica = [];
 
         await carregarMateriais();
         if (window.carregarPrecos) await window.carregarPrecos();
-        // Se o grupo excluído estava selecionado, limpa
+        // Se o grupo exclu├¡do estava selecionado, limpa
         const select = document.getElementById('mat-categoria');
         if (select && select.value === cat) selecionarCategoriaBadge(null);
         popularSeletoresCategorias();
@@ -4771,7 +5114,7 @@ var _listTabelaPrecosEstrategica = [];
         const trim = novoNome.trim();
 
         // Atualiza a lista de categorias
-        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        let cats = ["Alum├¡nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat├úo/Bronze", "Zamac", "A├ºo", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -4867,7 +5210,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // --- 3. TABELA DE PREÇOS ---
+    // --- 3. TABELA DE PRE├çOS ---
     let settingsPrecos = {};
     let visualizacaoTabelaPrecos = 'completa';
 
@@ -4944,7 +5287,7 @@ var _listTabelaPrecosEstrategica = [];
         container.innerHTML = '';
 
         // Agrupar por categorias
-        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        let categorias = ["Alum├¡nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat├úo/Bronze", "Zamac", "A├ºo", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try {
                 categorias = JSON.parse(settingsPrecos['categorias_materiais']);
@@ -4971,35 +5314,35 @@ var _listTabelaPrecosEstrategica = [];
                 <div class="categoria-preco-header" style="background: ${corCategoria};">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span>${cat.toUpperCase()}</span>
-                        <input type="color" value="${corCategoria}" title="Alterar cor do cabeçalho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
+                        <input type="color" value="${corCategoria}" title="Alterar cor do cabe├ºalho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
                     </div>
-                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vigência geral com calendário" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
+                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vig├¬ncia geral com calend├írio" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIG├èNCIA AT├ë: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg. | OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descrição</th>
-                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descri├º├úo</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color: #ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color: #aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">Comiss├úo (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda Líquida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda L├¡quida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro L├¡q. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem L├¡q. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L├¡q. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L├¡q. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A├º├Áes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5057,7 +5400,7 @@ var _listTabelaPrecosEstrategica = [];
                             }).join('')}
                             <tr style="background:#131c26;">
                                 <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
-                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PRE├çO SOBRE AN├üLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5182,18 +5525,18 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalPreco();
             carregarPrecos();
         } catch (err) {
-            _apexNotify('Atenção', 'Erro ao salvar preço: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao salvar pre├ºo: ' + err.message, 'error');
             console.error(err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
-    // ─── Calendário Visual Interativo de Vigência ───
+    // ÔöÇÔöÇÔöÇ Calend├írio Visual Interativo de Vig├¬ncia ÔöÇÔöÇÔöÇ
     let calVigenciaAno = 2026;
     let calVigenciaMes = 6;
     let calVigenciaDataSelecionada = new Date().toISOString().split('T')[0];
-    const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const mesesNomes = ['Janeiro','Fevereiro','Mar├ºo','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
     window.renderCalendarioVigencia = function() {
         const titulo = document.getElementById('cal-vigencia-titulo');
@@ -5292,7 +5635,7 @@ var _listTabelaPrecosEstrategica = [];
     window.salvarVigenciaGeralModal = async function() {
         const novaData = calVigenciaDataSelecionada || document.getElementById('input-vigencia-geral-data').value;
         if (!novaData) {
-            _apexNotify('Sistema', 'Por favor, clique em um dia no calendário.', 'info');
+            _apexNotify('Sistema', 'Por favor, clique em um dia no calend├írio.', 'info');
             return;
         }
         const tipo = window.vigenciaGeralTipoAtual || 'vigente';
@@ -5312,16 +5655,16 @@ var _listTabelaPrecosEstrategica = [];
             });
             if (!res.ok) throw new Error(await res.text());
             fecharModalVigenciaGeral();
-            _apexNotify('Sistema', 'Vigência atualizada para todos os materiais com sucesso!', 'info');
+            _apexNotify('Sistema', 'Vig├¬ncia atualizada para todos os materiais com sucesso!', 'info');
             if (tipo === 'vigente') await carregarPrecos();
             else if (tipo === 'residuo') carregarPrecosResiduos();
             else if (tipo === 'liga') carregarPrecosLigas();
             else if (tipo === 'volume') carregarPrecosVolume();
             else if (tipo === 'fundicao') carregarPrecosFundicao();
         } catch (err) {
-            _apexNotify('Atenção', 'Erro ao atualizar vigência geral: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao atualizar vig├¬ncia geral: ' + err.message, 'error');
         } finally {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência'; }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vig├¬ncia'; }
         }
     };
 
@@ -5330,7 +5673,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.deletarPreco = async function(id) {
-        if (!confirm('Excluir este preço?')) return;
+        if (!confirm('Excluir este pre├ºo?')) return;
         try {
             await fetch(`/api/tabela-precos/${id}`, { method: 'DELETE' });
             carregarPrecos();
@@ -5340,13 +5683,13 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.exportarTabelaPrecosExcel = function() {
-        _apexNotify('Sistema', 'Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
+        _apexNotify('Sistema', 'Tabela de Pre├ºos exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
     };
 
     function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const activeSettings = settings || settingsPrecos || {};
         const isCompleta = modo === 'completa';
-        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
+        let categorias = ["Alum├¡nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat├úo/Bronze", "Zamac", "A├ºo", "Outros"];
         if (activeSettings && activeSettings['categorias_materiais']) {
             try {
                 categorias = JSON.parse(activeSettings['categorias_materiais']);
@@ -5359,9 +5702,9 @@ var _listTabelaPrecosEstrategica = [];
         });
 
 
-        const tituloPdf = isCompleta ? 'Tabela Geral de Preços Vigente (Visão Completa)' : 'Tabela de Preços Vigente';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Pre├ºos Vigente (Vis├úo Completa)' : 'Tabela de Pre├ºos Vigente';
         const maxWidthContainer = '100%';
-        // Marca d'água aplicada diretamente no container (zero elementos extras, zero altura extra)
+        // Marca d'├ígua aplicada diretamente no container (zero elementos extras, zero altura extra)
         const wmStyle = logoBase64
             ? `background-image: url('${logoBase64}'); background-repeat: repeat; background-size: 200px auto; background-position: 0 0;`
             : '';
@@ -5376,19 +5719,19 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                         <div style="text-align: right;">
                             <h1 style="margin: 0; color: #1e4e8c; font-size: ${isCompleta ? '1.6rem' : '1.8rem'}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${tituloPdf}</h1>
-                            <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">Última Atualização: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">├Ültima Atualiza├º├úo: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
 
                     <!-- Diretrizes -->
                     <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                            ⚠️ Diretrizes Gerais de Compra
+                            ÔÜá´©Å Diretrizes Gerais de Compra
                         </h4>
                         <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
-                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
-                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li>Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg.</li>
+                            <li>OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.</li>
+                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PRE├çO SOBRE AN├üLISE (FOTO)</li>
                         </ul>
                     </div>
         `;
@@ -5404,25 +5747,25 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="margin-bottom: 30px; border: 1px solid ${corCategoria}; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background: ${corCategoria}; color: #ffffff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIG├èNCIA AT├ë: ${validadeStr}</span>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; font-size: ${isCompleta ? '0.75rem' : '0.8rem'}; text-align: left;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">Descrição</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Entregar (R$/kg)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Coletar (R$/kg)</th>
+                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">Descri├º├úo</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Pre├ºo Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Comissão (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Comiss├úo (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">PIS/COFINS (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">FIDC (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">ICMS (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Frete Coleta</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #0284c7;">Venda Líq.</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Lucro Líq. Ent.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #0284c7;">Venda L├¡q.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Lucro L├¡q. Ent.</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Margem Ent (%)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Lucro Líq. Col.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Lucro L├¡q. Col.</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">NCM</th>
@@ -5475,7 +5818,7 @@ var _listTabelaPrecosEstrategica = [];
             html += `
                             <tr style="background: #fafafa;">
                                 <td colspan="${isCompleta ? 15 : 4}" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
-                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PRE├çO SOBRE AN├üLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5488,10 +5831,10 @@ var _listTabelaPrecosEstrategica = [];
         html += `
                     <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555;">
                         <div style="font-weight: bold; color: #1e4e8c; font-size: 0.95rem;">
-                            ✅ Aprovado pelo CEO Jose Tiago
+                            Ô£à Aprovado pelo CEO Jose Tiago
                         </div>
                         <div style="text-align: right; color: #888;">
-                            Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
+                            Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}
                         </div>
                     </div>
                 </div>
@@ -5536,10 +5879,10 @@ var _listTabelaPrecosEstrategica = [];
                 });
             }
         } catch(e) {
-            console.warn('Logo watermark não carregou, usando fallback:', e);
+            console.warn('Logo watermark n├úo carregou, usando fallback:', e);
         }
 
-        // Reduz opacidade da logo para 7% (marca d'água sutil) via canvas
+        // Reduz opacidade da logo para 7% (marca d'├ígua sutil) via canvas
         let fadedLogo = null;
         if (logoWatermarkBase64) {
             fadedLogo = await new Promise(resolve => {
@@ -5573,7 +5916,7 @@ var _listTabelaPrecosEstrategica = [];
         try {
             const base64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!base64) {
-                _apexNotify('Atenção', 'Erro ao gerar o PDF da tabela de preços.', 'error');
+                _apexNotify('Aten├º├úo', 'Erro ao gerar o PDF da tabela de pre├ºos.', 'error');
                 return;
             }
             const linkSource = `data:application/pdf;base64,${base64}`;
@@ -5584,7 +5927,7 @@ var _listTabelaPrecosEstrategica = [];
             downloadLink.click();
         } catch (err) {
             console.error(err);
-            _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao exportar PDF: ' + err.message, 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -5614,13 +5957,13 @@ var _listTabelaPrecosEstrategica = [];
             if (btnConfig) btnConfig.disabled = loading;
         };
 
-        const destText = emailDestino ? `para ${emailDestino}` : 'para os destinatários cadastrados';
+        const destText = emailDestino ? `para ${emailDestino}` : 'para os destinat├írios cadastrados';
         setUIState(true, `<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF (${nomeModo}) e enviando ${destText}...`);
 
         try {
             const pdfBase64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!pdfBase64) {
-                throw new Error('Falha ao gerar o PDF da tabela de preços.');
+                throw new Error('Falha ao gerar o PDF da tabela de pre├ºos.');
             }
 
             const res = await fetch('/api/tabela-precos/enviar-email', {
@@ -5631,19 +5974,19 @@ var _listTabelaPrecosEstrategica = [];
 
             const result = await res.json();
             if (res.ok) {
-                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de preços (${nomeModo}) enviada com sucesso!`), '#2AD07A');
-                _apexNotify('Sistema', `✅ Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
+                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de pre├ºos (${nomeModo}) enviada com sucesso!`), '#2AD07A');
+                _apexNotify('Sistema', `Ô£à Tabela de pre├ºos (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
             } else {
                 throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
             }
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            _apexNotify('Atenção', '❌ Erro ao enviar e-mail: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'ÔØî Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
-    // --- 3b. TABELA DE PREÇOS — RESÍDUOS ---
+    // --- 3b. TABELA DE PRE├çOS ÔÇö RES├ìDUOS ---
     let localPrecosResiduos = [];
     let settingsPrecosResiduos = {};
     let visualizacaoResiduos = 'completa';
@@ -5681,7 +6024,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-recycle" style="font-size:2rem; margin-bottom:16px; display:block; color:#2AD07A;"></i>Nenhum resíduo cadastrado ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-recycle" style="font-size:2rem; margin-bottom:16px; display:block; color:#2AD07A;"></i>Nenhum res├¡duo cadastrado ainda. Clique em <strong>Novo Item de Pre├ºo</strong> para come├ºar.</div>';
             return;
         }
 
@@ -5703,34 +6046,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaResiduo('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralResiduo()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIG├èNCIA AT├ë: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg. | OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descrição</th>
-                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descri├º├úo</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss├úo (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L├¡quida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro L├¡q. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem L├¡q. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L├¡q. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L├¡q. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A├º├Áes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5777,7 +6120,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS RES├ìDUOS PRE├çO SOBRE AN├üLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -5807,7 +6150,7 @@ var _listTabelaPrecosEstrategica = [];
         if (idSelect === 'prc-res-material-id') {
             filteredMats = mats.filter(m => {
                 const c = (m.categoria || '').toUpperCase();
-                return c.includes('RESIDUO') || c.includes('RESÍDUO') || c.includes('PLÁSTICO');
+                return c.includes('RESIDUO') || c.includes('RES├ìDUO') || c.includes('PL├üSTICO');
             });
         } else if (idSelect === 'prc-lig-material-id') {
             filteredMats = mats.filter(m => {
@@ -5972,14 +6315,14 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalPrecoResiduo();
             carregarPrecosResiduos();
         } catch(err) {
-            _apexNotify('Atenção', 'Erro ao salvar preço do resíduo: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao salvar pre├ºo do res├¡duo: ' + err.message, 'error');
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
     window.deletarPrecoResiduo = async function(id) {
-        if (!confirm('Excluir este preço de resíduo?')) return;
+        if (!confirm('Excluir este pre├ºo de res├¡duo?')) return;
         try {
             await fetch(`/api/tabela-precos-residuos/${id}`, { method: 'DELETE' });
             carregarPrecosResiduos();
@@ -5991,10 +6334,10 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.exportarTabelaResiduo = function() {
-        _apexNotify('Sistema', 'Tabela de Resíduos exportada com sucesso!', 'info');
+        _apexNotify('Sistema', 'Tabela de Res├¡duos exportada com sucesso!', 'info');
     };
 
-    // --- 3c. TABELA DE PREÇOS — LIGAS ---
+    // --- 3c. TABELA DE PRE├çOS ÔÇö LIGAS ---
     let localPrecosLigas = [];
     let settingsPrecosLigas = {};
     let visualizacaoLigas = 'completa';
@@ -6032,7 +6375,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-atom" style="font-size:2rem; margin-bottom:16px; display:block; color:#4fc3f7;"></i>Nenhuma liga cadastrada ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-atom" style="font-size:2rem; margin-bottom:16px; display:block; color:#4fc3f7;"></i>Nenhuma liga cadastrada ainda. Clique em <strong>Novo Item de Pre├ºo</strong> para come├ºar.</div>';
             return;
         }
 
@@ -6054,34 +6397,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaLiga('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralLiga()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIG├èNCIA AT├ë: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg. | OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descrição</th>
-                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descri├º├úo</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss├úo (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L├¡quida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro L├¡q. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem L├¡q. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L├¡q. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L├¡q. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A├º├Áes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -6128,7 +6471,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS LIGAS PRE├çO SOBRE AN├üLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6298,14 +6641,14 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalPrecoLiga();
             carregarPrecosLigas();
         } catch(err) {
-            _apexNotify('Atenção', 'Erro ao salvar preço da liga: ' + err.message, 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao salvar pre├ºo da liga: ' + err.message, 'error');
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
     window.deletarPrecoLiga = async function(id) {
-        if (!confirm('Excluir este preço de liga?')) return;
+        if (!confirm('Excluir este pre├ºo de liga?')) return;
         try {
             await fetch(`/api/tabela-precos-ligas/${id}`, { method: 'DELETE' });
             carregarPrecosLigas();
@@ -6321,7 +6664,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     // =============================================================================
-    // --- 3c. TABELA DE PREÇOS — VOLUME ---
+    // --- 3c. TABELA DE PRE├çOS ÔÇö VOLUME ---
     // =============================================================================
     let localPrecosVolume = [];
     let settingsPrecosVolume = {};
@@ -6357,7 +6700,7 @@ var _listTabelaPrecosEstrategica = [];
             if (p.material_categoria && !categorias.includes(p.material_categoria)) categorias.push(p.material_categoria);
         });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-boxes-stacked" style="font-size:2rem; margin-bottom:16px; display:block; color:#f97316;"></i>Nenhum item de volume cadastrado ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-boxes-stacked" style="font-size:2rem; margin-bottom:16px; display:block; color:#f97316;"></i>Nenhum item de volume cadastrado ainda. Clique em <strong>Novo Item de Pre├ºo</strong> para come├ºar.</div>';
             return;
         }
         const showCompleta = visualizacaoVolume === 'completa';
@@ -6376,34 +6719,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaVolume('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralVolume()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIG├èNCIA AT├ë: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg. | OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descrição</th>
-                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descri├º├úo</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss├úo (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#f97316;">Lucro Líq. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#f97316;">Margem Líq. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L├¡quida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#f97316;">Lucro L├¡q. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#f97316;">Margem L├¡q. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L├¡q. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L├¡q. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A├º├Áes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -6450,7 +6793,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE VOLUME PRE├çO SOBRE AN├üLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6478,7 +6821,7 @@ var _listTabelaPrecosEstrategica = [];
         <div id="modal-preco-volume" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
             <div style="background:#101a24;border:1px solid #f97316;border-radius:12px;padding:18px 22px 16px;width:540px;max-width:96vw;max-height:92vh;overflow-y:auto;">
                 <h3 style="margin-top:0;border-bottom:1px solid #2d3f52;padding-bottom:8px;color:#fff;font-size:1rem;">
-                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i> Definir Preço — Volume
+                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i> Definir Pre├ºo ÔÇö Volume
                 </h3>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
@@ -6486,37 +6829,37 @@ var _listTabelaPrecosEstrategica = [];
                         <select id="prc-vol-material-id" class="noble-input" onchange="calcularMargemLiquidaModalVolume()"><option value="">Selecione...</option></select>
                     </div>
                     <div class="form-group">
-                        <label style="font-size:0.8rem;">Preço Venda Ref. (R\$/kg) *</label>
+                        <label style="font-size:0.8rem;">Pre├ºo Venda Ref. (R\$/kg) *</label>
                         <input id="prc-vol-venda-ref" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularValoresDeAcordoComPorcentagemVolume()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Preço Entregar (R\$/kg) *</label>
+                        <label>Pre├ºo Entregar (R\$/kg) *</label>
                         <input id="prc-vol-entregar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeEntregarVolume()">
                     </div>
                     <div class="form-group">
-                        <label>Preço Entregar (%)</label>
+                        <label>Pre├ºo Entregar (%)</label>
                         <input id="prc-vol-entregar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 90" oninput="calcularValorDeEntregarVolume()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Preço Coletar (R\$/kg) *</label>
+                        <label>Pre├ºo Coletar (R\$/kg) *</label>
                         <input id="prc-vol-coletar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeColetarVolume()">
                     </div>
                     <div class="form-group">
-                        <label>Preço Coletar (%)</label>
+                        <label>Pre├ºo Coletar (%)</label>
                         <input id="prc-vol-coletar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetarVolume()">
                     </div>
                 </div>
                 <div style="background:#162432;padding:8px 12px;border-radius:8px;border:1px solid #7c3a12;margin-bottom:10px;">
                     <div style="font-weight:bold;color:#f97316;font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                        <i class="fa-solid fa-percent"></i> Composição Fiscal &amp; Deduções (% e R\$/kg)
+                        <i class="fa-solid fa-percent"></i> Composi├º├úo Fiscal &amp; Dedu├º├Áes (% e R\$/kg)
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
                         <div class="form-group">
-                            <label style="font-size:0.75rem;">Comissão (%)</label>
+                            <label style="font-size:0.75rem;">Comiss├úo (%)</label>
                             <input id="prc-vol-comissao" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalVolume()">
                         </div>
                         <div class="form-group">
@@ -6539,15 +6882,15 @@ var _listTabelaPrecosEstrategica = [];
                 </div>
                 <div style="background:#0a1622;padding:8px 12px;border-radius:8px;border-left:4px solid #f97316;margin-bottom:10px;">
                     <div style="font-size:0.8rem;text-transform:uppercase;font-weight:bold;color:#aaa;margin-bottom:6px;">
-                        <i class="fa-solid fa-calculator" style="color:#f97316;"></i> Simulação de Margem Líquida Real
+                        <i class="fa-solid fa-calculator" style="color:#f97316;"></i> Simula├º├úo de Margem L├¡quida Real
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:0.82rem;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1a2a3a;">
                         <div>
-                            <span style="color:#888;">Total Deduções:</span>
+                            <span style="color:#888;">Total Dedu├º├Áes:</span>
                             <div style="color:#ff6b6b;font-weight:bold;" id="prc-vol-live-deducoes">0.00% (R\$ 0,00)</div>
                         </div>
                         <div>
-                            <span style="color:#888;">Venda Líquida:</span>
+                            <span style="color:#888;">Venda L├¡quida:</span>
                             <div style="color:#ffeb3b;font-weight:bold;" id="prc-vol-live-venda-liq">R\$ 0,00/kg</div>
                         </div>
                         <div>
@@ -6557,19 +6900,19 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
                         <div style="background:#0f251d;padding:8px;border-radius:6px;border:1px solid #1a4d36;">
-                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Entrega</span>
+                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L├¡quida Entrega</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#2AD07A;" id="prc-vol-live-margem-ent">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-vol-live-lucro-ent">Lucro: R\$ 0,00/kg</div>
                         </div>
                         <div style="background:#2a1800;padding:8px;border-radius:6px;border:1px solid #7c3a12;">
-                            <span style="color:#ffd4a3;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Coleta</span>
+                            <span style="color:#ffd4a3;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L├¡quida Coleta</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#f97316;" id="prc-vol-live-margem-col">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-vol-live-lucro-col">Lucro: R\$ 0,00/kg</div>
                         </div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:4px;">
-                    <label style="font-size:0.8rem;">Válido Até * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
+                    <label style="font-size:0.8rem;">V├ílido At├® * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
                     <input id="prc-vol-validade" type="date" class="noble-input" value="${validadeDefault}" onchange="atualizarPreviewDataVolume()">
                     <div style="display:flex;justify-content:space-between;align-items:center;background:#162738;padding:8px 12px;border-radius:6px;border:1px solid #7c3a12;margin-top:6px;">
                         <span style="color:#aaa;font-size:0.82rem;">Data Selecionada:</span>
@@ -6683,7 +7026,7 @@ var _listTabelaPrecosEstrategica = [];
             icms:           parseVal(document.getElementById('prc-vol-icms').value),
             frete_coleta:   parseVal(document.getElementById('prc-vol-frete').value)
         };
-        if (!body.material_id || !body.validade) return _apexNotify('Atenção', 'Material e validade são obrigatórios.', 'warning');
+        if (!body.material_id || !body.validade) return _apexNotify('Aten├º├úo', 'Material e validade s├úo obrigat├│rios.', 'warning');
         const btn = document.querySelector('#modal-preco-volume .btn-primary');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
         try {
@@ -6747,10 +7090,10 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.deletarPrecoVolume = async function(id) {
-        if (!confirm('Confirma exclusão deste item de volume?')) return;
+        if (!confirm('Confirma exclus├úo deste item de volume?')) return;
         try {
             await fetch(`/api/tabela-precos-volume/${id}`, { method: 'DELETE' });
-            _apexNotify('Sucesso', 'Item excluído!', 'success');
+            _apexNotify('Sucesso', 'Item exclu├¡do!', 'success');
             window.carregarPrecosVolume();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
     };
@@ -6780,9 +7123,9 @@ var _listTabelaPrecosEstrategica = [];
                     logoBase64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
                 }
             } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, logoBase64, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_volume_');
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, logoBase64, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PRE├çO SOBRE AN├üLISE (FOTO)', 'cor_categoria_volume_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
-            if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
+            if (!base64) return _apexNotify('Aten├º├úo', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
             a.download = isCompleta ? 'Tabela_Volume_Geral.pdf' : 'Tabela_Volume_Fornecedor.pdf'; a.click();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
@@ -6790,7 +7133,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     // =============================================================================
-    // --- 3d. TABELA DE PREÇOS — FUNDIÇÃO ---
+    // --- 3d. TABELA DE PRE├çOS ÔÇö FUNDI├ç├âO ---
     // =============================================================================
     let localPrecosFundicao = [];
     let settingsPrecosFundicao = {};
@@ -6821,7 +7164,7 @@ var _listTabelaPrecosEstrategica = [];
         const categorias = [];
         localPrecosFundicao.forEach(p => { if (p.material_categoria && !categorias.includes(p.material_categoria)) categorias.push(p.material_categoria); });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-fire-flame-curved" style="font-size:2rem; margin-bottom:16px; display:block; color:#ef4444;"></i>Nenhum item de fundição cadastrado ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-fire-flame-curved" style="font-size:2rem; margin-bottom:16px; display:block; color:#ef4444;"></i>Nenhum item de fundi├º├úo cadastrado ainda. Clique em <strong>Novo Item de Pre├ºo</strong> para come├ºar.</div>';
             return;
         }
         const showCompleta = visualizacaoFundicao === 'completa';
@@ -6840,34 +7183,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaFundicao('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralFundicao()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIG├èNCIA AT├ë: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg. | OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descrição</th>
-                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descri├º├úo</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Pre├ºo Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss├úo (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#ef4444;">Lucro Líq. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#ef4444;">Margem Líq. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L├¡quida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#ef4444;">Lucro L├¡q. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#ef4444;">Margem L├¡q. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L├¡q. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L├¡q. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A├º├Áes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -6909,7 +7252,7 @@ var _listTabelaPrecosEstrategica = [];
                                     </tr>
                                 `;
                             }).join('')}
-                            <tr style="background:#131c26;"><td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)</td></tr>
+                            <tr style="background:#131c26;"><td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE FUNDI├ç├âO PRE├çO SOBRE AN├üLISE (FOTO)</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -6936,7 +7279,7 @@ var _listTabelaPrecosEstrategica = [];
         <div id="modal-preco-fundicao" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
             <div style="background:#101a24;border:1px solid #ef4444;border-radius:12px;padding:18px 22px 16px;width:540px;max-width:96vw;max-height:92vh;overflow-y:auto;">
                 <h3 style="margin-top:0;border-bottom:1px solid #2d3f52;padding-bottom:8px;color:#fff;font-size:1rem;">
-                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i> Definir Preço — Fundição
+                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i> Definir Pre├ºo ÔÇö Fundi├º├úo
                 </h3>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
@@ -6944,37 +7287,37 @@ var _listTabelaPrecosEstrategica = [];
                         <select id="prc-fund-material-id" class="noble-input" onchange="calcularMargemLiquidaModalFundicao()"><option value="">Selecione...</option></select>
                     </div>
                     <div class="form-group">
-                        <label style="font-size:0.8rem;">Preço Venda Ref. (R\$/kg) *</label>
+                        <label style="font-size:0.8rem;">Pre├ºo Venda Ref. (R\$/kg) *</label>
                         <input id="prc-fund-venda-ref" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularValoresDeAcordoComPorcentagemFundicao()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Preço Entregar (R\$/kg) *</label>
+                        <label>Pre├ºo Entregar (R\$/kg) *</label>
                         <input id="prc-fund-entregar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeEntregarFundicao()">
                     </div>
                     <div class="form-group">
-                        <label>Preço Entregar (%)</label>
+                        <label>Pre├ºo Entregar (%)</label>
                         <input id="prc-fund-entregar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 90" oninput="calcularValorDeEntregarFundicao()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Preço Coletar (R\$/kg) *</label>
+                        <label>Pre├ºo Coletar (R\$/kg) *</label>
                         <input id="prc-fund-coletar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeColetarFundicao()">
                     </div>
                     <div class="form-group">
-                        <label>Preço Coletar (%)</label>
+                        <label>Pre├ºo Coletar (%)</label>
                         <input id="prc-fund-coletar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetarFundicao()">
                     </div>
                 </div>
                 <div style="background:#162432;padding:8px 12px;border-radius:8px;border:1px solid #7f1d1d;margin-bottom:10px;">
                     <div style="font-weight:bold;color:#ef4444;font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                        <i class="fa-solid fa-percent"></i> Composição Fiscal &amp; Deduções (% e R\$/kg)
+                        <i class="fa-solid fa-percent"></i> Composi├º├úo Fiscal &amp; Dedu├º├Áes (% e R\$/kg)
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
                         <div class="form-group">
-                            <label style="font-size:0.75rem;">Comissão (%)</label>
+                            <label style="font-size:0.75rem;">Comiss├úo (%)</label>
                             <input id="prc-fund-comissao" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalFundicao()">
                         </div>
                         <div class="form-group">
@@ -6997,15 +7340,15 @@ var _listTabelaPrecosEstrategica = [];
                 </div>
                 <div style="background:#0a1622;padding:8px 12px;border-radius:8px;border-left:4px solid #ef4444;margin-bottom:10px;">
                     <div style="font-size:0.8rem;text-transform:uppercase;font-weight:bold;color:#aaa;margin-bottom:6px;">
-                        <i class="fa-solid fa-calculator" style="color:#ef4444;"></i> Simulação de Margem Líquida Real
+                        <i class="fa-solid fa-calculator" style="color:#ef4444;"></i> Simula├º├úo de Margem L├¡quida Real
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:0.82rem;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1a2a3a;">
                         <div>
-                            <span style="color:#888;">Total Deduções:</span>
+                            <span style="color:#888;">Total Dedu├º├Áes:</span>
                             <div style="color:#ff6b6b;font-weight:bold;" id="prc-fund-live-deducoes">0.00% (R\$ 0,00)</div>
                         </div>
                         <div>
-                            <span style="color:#888;">Venda Líquida:</span>
+                            <span style="color:#888;">Venda L├¡quida:</span>
                             <div style="color:#ffeb3b;font-weight:bold;" id="prc-fund-live-venda-liq">R\$ 0,00/kg</div>
                         </div>
                         <div>
@@ -7015,19 +7358,19 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
                         <div style="background:#0f251d;padding:8px;border-radius:6px;border:1px solid #1a4d36;">
-                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Entrega</span>
+                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L├¡quida Entrega</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#2AD07A;" id="prc-fund-live-margem-ent">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-fund-live-lucro-ent">Lucro: R\$ 0,00/kg</div>
                         </div>
                         <div style="background:#250f0f;padding:8px;border-radius:6px;border:1px solid #7f1d1d;">
-                            <span style="color:#fca5a5;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Coleta</span>
+                            <span style="color:#fca5a5;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L├¡quida Coleta</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#ef4444;" id="prc-fund-live-margem-col">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-fund-live-lucro-col">Lucro: R\$ 0,00/kg</div>
                         </div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:4px;">
-                    <label style="font-size:0.8rem;">Válido Até * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
+                    <label style="font-size:0.8rem;">V├ílido At├® * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
                     <input id="prc-fund-validade" type="date" class="noble-input" value="${validadeDefault}" onchange="atualizarPreviewDataFundicao()">
                     <div style="display:flex;justify-content:space-between;align-items:center;background:#162738;padding:8px 12px;border-radius:6px;border:1px solid #7f1d1d;margin-top:6px;">
                         <span style="color:#aaa;font-size:0.82rem;">Data Selecionada:</span>
@@ -7141,14 +7484,14 @@ var _listTabelaPrecosEstrategica = [];
             icms:           parseVal(document.getElementById('prc-fund-icms').value),
             frete_coleta:   parseVal(document.getElementById('prc-fund-frete').value)
         };
-        if (!body.material_id || !body.validade) return _apexNotify('Atenção', 'Material e validade são obrigatórios.', 'warning');
+        if (!body.material_id || !body.validade) return _apexNotify('Aten├º├úo', 'Material e validade s├úo obrigat├│rios.', 'warning');
         const btn = document.querySelector('#modal-preco-fundicao .btn-primary');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
         try {
             const res = await fetch('/api/tabela-precos-fundicao', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error(await res.text());
             document.getElementById('modal-preco-fundicao')?.remove();
-            _apexNotify('Sucesso', 'Item de fundição salvo!', 'success');
+            _apexNotify('Sucesso', 'Item de fundi├º├úo salvo!', 'success');
             window.carregarPrecosFundicao();
         } catch(err) {
             _apexNotify('Erro', err.message, 'error');
@@ -7188,21 +7531,21 @@ var _listTabelaPrecosEstrategica = [];
             const res = await fetch(`/api/tabela-precos-fundicao/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error(await res.text());
             document.getElementById('modal-preco-fundicao')?.remove();
-            _apexNotify('Sucesso', 'Item de fundição atualizado!', 'success');
+            _apexNotify('Sucesso', 'Item de fundi├º├úo atualizado!', 'success');
             window.carregarPrecosFundicao();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
     };
 
     window.deletarPrecoFundicao = async function(id) {
-        if (!confirm('Confirma exclusão deste item de fundição?')) return;
-        try { await fetch(`/api/tabela-precos-fundicao/${id}`, { method: 'DELETE' }); _apexNotify('Sucesso', 'Item excluído!', 'success'); window.carregarPrecosFundicao(); } catch(e) { _apexNotify('Erro', e.message, 'error'); }
+        if (!confirm('Confirma exclus├úo deste item de fundi├º├úo?')) return;
+        try { await fetch(`/api/tabela-precos-fundicao/${id}`, { method: 'DELETE' }); _apexNotify('Sucesso', 'Item exclu├¡do!', 'success'); window.carregarPrecosFundicao(); } catch(e) { _apexNotify('Erro', e.message, 'error'); }
     };
 
     window.alterarValidadeGeralFundicao = async function() {
         abrirModalVigenciaGeral('fundicao');
     };
 
-    window.exportarTabelaFundicao = function() { _apexNotify('Sistema', 'Tabela de Fundição exportada!', 'info'); };
+    window.exportarTabelaFundicao = function() { _apexNotify('Sistema', 'Tabela de Fundi├º├úo exportada!', 'info'); };
 
     window.exportarTabelaFundicaoPdf = async function(modo) {
         const isCompleta = modo === 'completa';
@@ -7215,9 +7558,9 @@ var _listTabelaPrecosEstrategica = [];
             const lastUpdate = settings.tabela_precos_ultima_atualizacao || new Date().toLocaleDateString('pt-BR');
             let logoBase64 = null;
             try { const lr = await fetch('/assets/img/logo%20(2).png'); if (lr.ok) { const blob = await lr.blob(); logoBase64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); }); } } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, logoBase64, modo, 'Fundição', '#ef4444', 'DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_fundicao_');
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, logoBase64, modo, 'Fundi├º├úo', '#ef4444', 'DEMAIS MATERIAIS DE FUNDI├ç├âO PRE├çO SOBRE AN├üLISE (FOTO)', 'cor_categoria_fundicao_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
-            if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
+            if (!base64) return _apexNotify('Aten├º├úo', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
             a.download = isCompleta ? 'Tabela_Fundicao_Geral.pdf' : 'Tabela_Fundicao_Fornecedor.pdf'; a.click();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
@@ -7225,7 +7568,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     // =============================================================================
-    // --- HELPER: Gerador de HTML PDF Genérico (shared por Volume e Fundição) ---
+    // --- HELPER: Gerador de HTML PDF Gen├®rico (shared por Volume e Fundi├º├úo) ---
     // =============================================================================
     function gerarHtmlTabelaGenericaParaPdf(precos, lastUpdate, settings, logoBase64, modo, titulo, corPrimaria, textoRodape, prefixoCor) {
         const isCompleta = modo === 'completa';
@@ -7244,7 +7587,7 @@ var _listTabelaPrecosEstrategica = [];
             return g + '</div>';
         }
 
-        const tituloPdf = isCompleta ? `Tabela Geral — ${titulo} (Visão Completa)` : `Tabela de ${titulo}`;
+        const tituloPdf = isCompleta ? `Tabela Geral ÔÇö ${titulo} (Vis├úo Completa)` : `Tabela de ${titulo}`;
         let html = `<div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background:#fff;width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
             ${gerarGridLogo(logoBase64)}
             <div style="position:relative;z-index:1;">
@@ -7252,14 +7595,14 @@ var _listTabelaPrecosEstrategica = [];
                     <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                     <div style="text-align:right;">
                         <h1 style="margin:0;color:${corPrimaria};font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                        <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:${corPrimaria};font-weight:bold;">${lastUpdate}</span></p>
+                        <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">├Ültima Atualiza├º├úo: <span style="color:${corPrimaria};font-weight:bold;">${lastUpdate}</span></p>
                     </div>
                 </div>
                 <div style="background:#f4f7fa;border-left:5px solid ${corPrimaria};border-radius:4px;padding:15px;margin-bottom:30px;">
-                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">⚠️ Diretrizes Gerais de Compra</h4>
+                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">ÔÜá´©Å Diretrizes Gerais de Compra</h4>
                     <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
-                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                        <li>Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg.</li>
+                        <li>OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.</li>
                         <li style="font-weight:bold;color:#c0392b;">${textoRodape}</li>
                     </ul>
                 </div>`;
@@ -7271,24 +7614,24 @@ var _listTabelaPrecosEstrategica = [];
             const corCat = (settings && settings[`${prefixoCor}${cat}`]) || corPrimaria;
             html += `<div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCat};border-radius:6px;overflow:hidden;">
                 <div style="background:${corCat};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;">
-                    <span>${cat}</span><span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                    <span>${cat}</span><span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG├èNCIA AT├ë: ${validadeStr}</span>
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                     <thead><tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                        <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
+                        <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri├º├úo</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre├ºo Entregar (R$/kg)</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre├ºo Coletar (R$/kg)</th>
                         ${isCompleta ? `
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss├úo (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L├¡q.</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L├¡q. Ent.</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L├¡q. Col.</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                         ` : ''}
                         <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -7328,8 +7671,8 @@ var _listTabelaPrecosEstrategica = [];
                     </tbody></table></div>`;
         });
         html += `<div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-            <div style="font-weight:bold;color:${corPrimaria};font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
-            <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+            <div style="font-weight:bold;color:${corPrimaria};font-size:0.95rem;">Ô£à Aprovado pelo CEO Jose Tiago</div>
+            <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
         </div></div></div>`;
         return html;
     }
@@ -7368,21 +7711,21 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---
+    // --- 4. AN├üLISE DE AMOSTRAS & LAUDOS ---
     window.initApexAmostras = function() {
         carregarAmostras();
         carregarCotacoesDolarLME();
     };
 
     
-// MODULE_EXTRACTED: // ─── COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) ─────────────────────────────
+// MODULE_EXTRACTED: // ÔöÇÔöÇÔöÇ COTA├ç├òES AO VIVO D├ôLAR & LME (USD / BRL) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
-// ─── MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) ─────────────────────
+// ÔöÇÔöÇÔöÇ MOTOR DE NOTIFICA├ç├òES DO SININHO (DIRETORIA / ADM) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     window.atualizarNotificacoesAprovacao = function() {
         if (!Array.isArray(localAmostras)) return;
 
         const pendentes = localAmostras.filter(a => 
-            a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra'
+            a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decis├úo de Compra'
         );
 
         const count = pendentes.length;
@@ -7413,7 +7756,7 @@ var _listTabelaPrecosEstrategica = [];
 
         if (listEl) {
             if (count === 0) {
-                listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprovação pendente no momento.</div>';
+                listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprova├º├úo pendente no momento.</div>';
             } else {
                 listEl.innerHTML = pendentes.map(p => `
                     <div style="background:#162432; border:1px solid #1e4e8c; border-radius:6px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:all 0.2s;" onclick="abrirAmostraEDesmonte(${p.id})" onmouseover="this.style.borderColor='#2AD07A'" onmouseout="this.style.borderColor='#1e4e8c'" title="Clique para abrir e ver os detalhes desta amostra">
@@ -7446,7 +7789,7 @@ var _listTabelaPrecosEstrategica = [];
         abrirAnaliseDesmonte(id);
     };
 
-    // Polling automático a cada 10 segundos
+    // Polling autom├ítico a cada 10 segundos
     setInterval(() => {
         if (typeof carregarAmostras === 'function') carregarAmostras();
     }, 10000);
@@ -7511,9 +7854,9 @@ var _listTabelaPrecosEstrategica = [];
                 statusBadgeHtml = `<span class="badge-status aprovado-compra-autorizada" style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Aprovado por ${a.autorizado_por || 'Diretoria'} em ${dtDec}. Clique para ver os detalhes.">
                     <i class="fa-solid fa-check-circle"></i> Aprovado por ${a.autorizado_por || 'Diretoria'}${dtDec ? ' (' + dtDec + ')' : ''}
                 </span>`;
-            } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra') {
+            } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decis├úo de Compra') {
                 statusBadgeHtml = `<span class="badge-status aguardando-decisao-de-compra" style="background:rgba(240,180,0,0.15); color:#f0c040; border:1px solid #f0b800; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Clique para analisar e aprovar">
-                    <i class="fa-solid fa-clock"></i> Aguardando Aprovação Diretoria
+                    <i class="fa-solid fa-clock"></i> Aguardando Aprova├º├úo Diretoria
                 </span>`;
             }
 
@@ -7588,19 +7931,19 @@ var _listTabelaPrecosEstrategica = [];
 
     window.deletarAmostra = async function(id) {
         if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-            _apexNotify('Atenção', 'Erro: Apenas o Administrador ou Diretoria podem excluir amostras.', 'error');
+            _apexNotify('Aten├º├úo', 'Erro: Apenas o Administrador ou Diretoria podem excluir amostras.', 'error');
             return;
         }
-        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas análises de componentes?')) return;
+        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas an├ílises de componentes?')) return;
         try {
             const res = await fetch(`/api/amostras/${id}?user_perfil=${currentSimulatedRole}`, { method: 'DELETE' });
             if (res.ok) {
-                _apexNotify('Sistema', 'Amostra excluída com sucesso!', 'info');
+                _apexNotify('Sistema', 'Amostra exclu├¡da com sucesso!', 'info');
                 carregarAmostras();
                 fecharAnaliseDesmonte();
             } else {
                 const data = await res.json();
-                _apexNotify('Atenção', 'Erro ao excluir: ' + (data.error || 'Erro desconhecido.'), 'error');
+                _apexNotify('Aten├º├úo', 'Erro ao excluir: ' + (data.error || 'Erro desconhecido.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -7633,14 +7976,14 @@ var _listTabelaPrecosEstrategica = [];
         const modal = document.getElementById('modal-amostra');
         if (modal) modal.style.display = 'flex';
         if (dataEl) {
-            // Usa horário local (não UTC) para evitar erro de data com fuso -03:00
+            // Usa hor├írio local (n├úo UTC) para evitar erro de data com fuso -03:00
             const hoje = new Date();
             const ano  = hoje.getFullYear();
             const mes  = String(hoje.getMonth() + 1).padStart(2, '0');
             const dia  = String(hoje.getDate()).padStart(2, '0');
             dataEl.value = `${ano}-${mes}-${dia}`;
         }
-        // Limpa fotos acumuladas de sessões anteriores
+        // Limpa fotos acumuladas de sess├Áes anteriores
         if (typeof window._limparFotosRecebimento === 'function') window._limparFotosRecebimento();
     };
 
@@ -7649,7 +7992,7 @@ var _listTabelaPrecosEstrategica = [];
         if (modal) modal.style.display = 'none';
     };
 
-    // ─── FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) ─────────────────
+    // ÔöÇÔöÇÔöÇ FOTOS DO RECEBIMENTO (Etapa 1 ÔÇö M├║ltiplas fotos via arquivo ou webcam) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     let _fotosRecebimento = []; // Array de { base64, blob, nome }
 
     // Limpa o array ao abrir o modal (chamado em abrirModalAmostra)
@@ -7658,7 +8001,7 @@ var _listTabelaPrecosEstrategica = [];
         renderFotosRecebimentoPreview();
     };
 
-    // Adiciona fotos via seleção de arquivo
+    // Adiciona fotos via sele├º├úo de arquivo
     window.adicionarFotosRecebimento = function(input) {
         if (!input.files || input.files.length === 0) return;
         const tasks = Array.from(input.files).map(file => {
@@ -7677,7 +8020,7 @@ var _listTabelaPrecosEstrategica = [];
 
     // Abre a webcam e, ao confirmar, adiciona a foto ao array _fotosRecebimento
     window.abrirWebcamRecebimento = function() {
-        if (!window._WCM) { _apexNotify('Sistema', 'Módulo de webcam não inicializado. Tente recarregar a página.', 'info'); return; }
+        if (!window._WCM) { _apexNotify('Sistema', 'M├│dulo de webcam n├úo inicializado. Tente recarregar a p├ígina.', 'info'); return; }
         window._WCM.abrirParaRecebimento(function(img64, blob) {
             const nome = 'webcam_recebimento_' + Date.now() + '.jpg';
             _fotosRecebimento.push({ base64: img64, blob: blob, nome: nome });
@@ -7686,7 +8029,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
 
-    // Renderiza as miniaturas na galeria do formulário
+    // Renderiza as miniaturas na galeria do formul├írio
     function renderFotosRecebimentoPreview() {
         const container = document.getElementById('amo-fotos-preview');
         if (!container) return;
@@ -7698,7 +8041,7 @@ var _listTabelaPrecosEstrategica = [];
             <div style="position:relative; display:inline-block;">
                 <img src="${f.base64}" style="width:72px; height:72px; object-fit:cover; border-radius:6px; border:2px solid #2AD07A; display:block;" title="${f.nome}">
                 <button type="button" onclick="removerFotoRecebimento(${i})"
-                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">✕</button>
+                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">Ô£ò</button>
             </div>
         `).join('');
     }
@@ -7739,7 +8082,7 @@ var _listTabelaPrecosEstrategica = [];
                 for (const fotoObj of _fotosRecebimento) {
                     let blobToSend;
                     if (fotoObj.base64 && fotoObj.base64.startsWith('data:')) {
-                        // Reconverter do base64 armazenado para garantir bytes íntegros
+                        // Reconverter do base64 armazenado para garantir bytes ├¡ntegros
                         try {
                             const byteStr = atob(fotoObj.base64.split(',')[1]);
                             const mime    = fotoObj.base64.split(',')[0].split(':')[1].split(';')[0];
@@ -7761,7 +8104,7 @@ var _listTabelaPrecosEstrategica = [];
                 });
             }
 
-            // Limpa as fotos após salvar
+            // Limpa as fotos ap├│s salvar
             _fotosRecebimento = [];
             renderFotosRecebimentoPreview();
 
@@ -7773,8 +8116,8 @@ var _listTabelaPrecosEstrategica = [];
     };
 
 
-    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
-    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
+    // ÔöÇÔöÇÔöÇ NAVEGA├ç├âO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    // ÔöÇÔöÇÔöÇ NAVEGA├ç├âO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     window.mudarTelaEtapa = function(etapaNum) {
         const idMap = {
             1: 'tela-etapa-1',
@@ -7788,7 +8131,7 @@ var _listTabelaPrecosEstrategica = [];
         // Etapa 4: acesso restrito
         if (etapaNum === 4) {
             if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                _apexNotify('Sistema', '🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
+                _apexNotify('Sistema', '­ƒöÆ Acesso Restrito ao N├¡vel de Diretoria / Administrador (ERP Security Level).\n\nUsu├írios operacionais do laborat├│rio n├úo possuem permiss├úo para visualizar ou definir pre├ºos estrat├®gicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
@@ -7798,7 +8141,7 @@ var _listTabelaPrecosEstrategica = [];
 
         const el = document.getElementById(targetId);
         if (el) {
-            // Garante que o elemento está visível antes de rolar
+            // Garante que o elemento est├í vis├¡vel antes de rolar
             if (el.style.display === 'none') el.style.display = 'block';
             // Scroll com pequeno offset do topo da janela
             const yOffset = -80;
@@ -7817,13 +8160,13 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ─── ETIQUETA QR CODE FISICA DE LOTE ─────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇ ETIQUETA QR CODE FISICA DE LOTE ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     window.gerarEtiquetaQRAmostra = function(id) {
         const amostra = localAmostras.find(a => a.id === id);
         if (!amostra) return;
 
         document.getElementById('qr-amostra-codigo').textContent = amostra.numero_amostra;
-        document.getElementById('qr-amostra-material').textContent = amostra.nome_material || 'Material Não Especificado';
+        document.getElementById('qr-amostra-material').textContent = amostra.nome_material || 'Material N├úo Especificado';
         document.getElementById('qr-amostra-detalhes').textContent = `Fornecedor: ${amostra.fornecedor_nome} | Peso: ${parseFloat(amostra.peso_inicial).toFixed(3)} kg`;
 
         const qrCanvas = document.createElement('canvas');
@@ -7842,7 +8185,7 @@ var _listTabelaPrecosEstrategica = [];
                 if (!err) document.getElementById('qr-code-img').src = url;
             });
         } else {
-            // Fallback via API rápida de QR Code
+            // Fallback via API r├ípida de QR Code
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payloadText)}`;
         }
 
@@ -7860,7 +8203,7 @@ var _listTabelaPrecosEstrategica = [];
         win.document.close();
     };
 
-    // ─── EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP ───────────────────────────────
+    // ÔöÇÔöÇÔöÇ EXPORTA├ç├âO EM BATCH DE LAUDOS PDF EM ZIP ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     window.exportarLaudosEmLoteZip = async function() {
         const checkboxes = document.querySelectorAll('.chk-amostra-select:checked');
         if (checkboxes.length === 0) {
@@ -7869,14 +8212,14 @@ var _listTabelaPrecosEstrategica = [];
         }
 
         if (typeof JSZip === 'undefined') {
-            _apexNotify('Sistema', 'Biblioteca JSZip não carregada.', 'info');
+            _apexNotify('Sistema', 'Biblioteca JSZip n├úo carregada.', 'info');
             return;
         }
 
         const zip = new JSZip();
         const folder = zip.folder('LAUDOS_APEXTECH');
 
-        _apexNotify('Sistema', `Iniciando geração de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclusão.`, 'info');
+        _apexNotify('Sistema', `Iniciando gera├º├úo de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclus├úo.`, 'info');
 
         for (const chk of checkboxes) {
             const amostraId = parseInt(chk.value);
@@ -7884,13 +8227,13 @@ var _listTabelaPrecosEstrategica = [];
             if (!amostra) continue;
 
             try {
-                // Abre geração temporária
+                // Abre gera├º├úo tempor├íria
                 await window.gerarLaudoPDF(amostraId);
             } catch(e) {
                 console.error(`Erro ao incluir amostra ${amostraId} no ZIP:`, e);
             }
         }
-        _apexNotify('Sistema', 'Geração em lote finalizada com sucesso!', 'info');
+        _apexNotify('Sistema', 'Gera├º├úo em lote finalizada com sucesso!', 'info');
     };
 
     // Detalhes do Desmonte
@@ -7905,11 +8248,11 @@ var _listTabelaPrecosEstrategica = [];
 
             document.getElementById('analise-titulo-amostra').textContent = amostra.numero_amostra;
             const matNomeEl = document.getElementById('analise-material-nome');
-            if (matNomeEl) matNomeEl.textContent = amostra.nome_material || 'Material não informado';
+            if (matNomeEl) matNomeEl.textContent = amostra.nome_material || 'Material n├úo informado';
             document.getElementById('analise-fornecedor-nome').textContent = amostra.fornecedor_nome;
             document.getElementById('analise-peso-inicial').textContent = parseFloat(amostra.peso_inicial).toFixed(3);
 
-            // Atualiza os nós visuais do Stepper de Etapas
+            // Atualiza os n├│s visuais do Stepper de Etapas
             atualizarStepperAmostra(amostra.status, amostra.decisao_diretoria);
 
             componentesActivos = componentes.map((c, idx) => {
@@ -7918,7 +8261,7 @@ var _listTabelaPrecosEstrategica = [];
                     material_id:  c.material_id,
                     peso:         parseFloat(c.peso),
                     percentual:   parseFloat(c.percentual),
-                    dificuldade:  c.dificuldade || 'Fácil',
+                    dificuldade:  c.dificuldade || 'F├ícil',
                     foto:         c.foto || '',
                     fotosUrl:     urls,
                     fotosBase64:  [],
@@ -7927,7 +8270,7 @@ var _listTabelaPrecosEstrategica = [];
                 };
             });
 
-            // Restaurar fotos do banco por componente_idx (garante que fotos anteriores não somem)
+            // Restaurar fotos do banco por componente_idx (garante que fotos anteriores n├úo somem)
             try {
                 const ftRes  = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`);
                 const ftList = await ftRes.json();
@@ -7951,7 +8294,7 @@ var _listTabelaPrecosEstrategica = [];
             } catch(e) { console.warn('Erro ao restaurar fotos dos componentes:', e); }
 
 
-            // Inicializa cronômetro com tempo já salvo (se houver) e inicia a contagem automaticamente
+            // Inicializa cron├┤metro com tempo j├í salvo (se houver) e inicia a contagem automaticamente
             resetCronometro();
             if (amostra.tempo_desmonte) {
                 cronSegundos = parseInt(amostra.tempo_desmonte);
@@ -7961,15 +8304,15 @@ var _listTabelaPrecosEstrategica = [];
                 window.toggleCronometro();
             }
 
-            // Parecer Técnico
+            // Parecer T├®cnico
             document.getElementById('analise-parecer-tecnico').value = amostra.parecer_tecnico || '';
 
-            // Decisão da Diretoria e campos de precificação autorizada
+            // Decis├úo da Diretoria e campos de precifica├º├úo autorizada
             const painelDir = document.getElementById('painel-decisao-diretoria');
             const hContainer = document.getElementById('decisao-historica-container');
             const bannerAutonomia = document.getElementById('banner-autonomia-compra');
             
-            // Popula os inputs de precificação e obs. diretoria
+            // Popula os inputs de precifica├º├úo e obs. diretoria
             document.getElementById('dir-preco-entregar').value = amostra.preco_compra_entregar || '';
             document.getElementById('dir-preco-coletar').value = amostra.preco_compra_coletar || '';
             const defaultDate = new Date();
@@ -8005,7 +8348,7 @@ var _listTabelaPrecosEstrategica = [];
                 tecnicoDiv.style.display = 'none';
             }
 
-            // Exibir banner de autonomia com detalhes explícitos
+            // Exibir banner de autonomia com detalhes expl├¡citos
             if (bannerAutonomia) {
                 if (amostra.decisao_diretoria === 'Aprovado') {
                     bannerAutonomia.style.display = 'flex';
@@ -8038,9 +8381,9 @@ var _listTabelaPrecosEstrategica = [];
         if (btnLiberar) btnLiberar.style.display = 'none';
         if (btnProcessar) btnProcessar.style.display = 'none';
 
-        if (status === 'Aguardando Liberação PCP' || status === 'Aprovado - Compra Autorizada') {
+        if (status === 'Aguardando Libera├º├úo PCP' || status === 'Aprovado - Compra Autorizada') {
             if (btnLiberar) btnLiberar.style.display = '';
-        } else if (status === 'Liberado para Produção') {
+        } else if (status === 'Liberado para Produ├º├úo') {
             if (btnProcessar) btnProcessar.style.display = '';
         }
     }
@@ -8051,7 +8394,7 @@ var _listTabelaPrecosEstrategica = [];
         resetCronometro();
     };
 
-    // Cronômetro
+    // Cron├┤metro
     let cronInterval = null;
     let cronSegundos = 0;
 
@@ -8112,7 +8455,7 @@ var _listTabelaPrecosEstrategica = [];
         const s4 = document.getElementById('step-node-4');
         if (!s1 || !s2 || !s3 || !s4) return;
 
-        // Exibe todas as etapas em uma única página longa de forma contínua
+        // Exibe todas as etapas em uma ├║nica p├ígina longa de forma cont├¡nua
         const t1 = document.getElementById('tela-etapa-1');
         const t2 = document.getElementById('tela-etapa-2');
         const t3 = document.getElementById('tela-etapa-3');
@@ -8125,7 +8468,7 @@ var _listTabelaPrecosEstrategica = [];
             if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
                 t4.style.display = 'block';
             } else {
-                t4.style.display = 'none'; // Segurança ERP para usuários comuns
+                t4.style.display = 'none'; // Seguran├ºa ERP para usu├írios comuns
             }
         }
 
@@ -8146,11 +8489,11 @@ var _listTabelaPrecosEstrategica = [];
             }
         };
 
-        // Etapa 1 sempre concluída após criação do recebimento
+        // Etapa 1 sempre conclu├¡da ap├│s cria├º├úo do recebimento
         setStepState(s1, false, true);
 
-        // Etapa 2: Desmonte (Ativa se Em Análise, Concluída se status for além de Em Análise)
-        if (status === 'Em Análise') {
+        // Etapa 2: Desmonte (Ativa se Em An├ílise, Conclu├¡da se status for al├®m de Em An├ílise)
+        if (status === 'Em An├ílise') {
             setStepState(s2, true, false);
             setStepState(s3, false, false);
             setStepState(s4, false, false);
@@ -8158,10 +8501,10 @@ var _listTabelaPrecosEstrategica = [];
             setStepState(s2, false, true);
             setStepState(s3, true, false);
             
-            if (status === 'Aguardando Decisão de Compra') {
+            if (status === 'Aguardando Decis├úo de Compra') {
                 setStepState(s3, false, true);
                 setStepState(s4, true, false);
-            } else if (decisaoDiretoria === 'Aprovado' || status === 'Aprovado - Compra Autorizada' || status === 'Aguardando Liberação PCP' || status === 'Liberado para Produção' || status === 'Processado') {
+            } else if (decisaoDiretoria === 'Aprovado' || status === 'Aprovado - Compra Autorizada' || status === 'Aguardando Libera├º├úo PCP' || status === 'Liberado para Produ├º├úo' || status === 'Processado') {
                 setStepState(s3, false, true);
                 setStepState(s4, false, true, '#2AD07A');
             } else if (decisaoDiretoria === 'Reprovado') {
@@ -8171,7 +8514,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ─── UPLOAD REAL DE FOTOS ───────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇ UPLOAD REAL DE FOTOS ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     window.uploadFotos = async function(input, tipo, etapa) {
         if (!activeAmostraIdForDesmonte || !input.files || input.files.length === 0) return;
         const spinner = document.getElementById('foto-input-spinner');
@@ -8186,7 +8529,7 @@ var _listTabelaPrecosEstrategica = [];
             if (result.success) {
                 await carregarFotosAmostra(activeAmostraIdForDesmonte);
             } else {
-                _apexNotify('Atenção', 'Erro ao enviar foto: ' + (result.error || 'desconhecido'), 'error');
+                _apexNotify('Aten├º├úo', 'Erro ao enviar foto: ' + (result.error || 'desconhecido'), 'error');
             }
         } catch (err) {
             console.error('uploadFotos:', err);
@@ -8208,7 +8551,7 @@ var _listTabelaPrecosEstrategica = [];
         const gallery     = document.getElementById('fotos-gallery');
         const placeholder = document.getElementById('fotos-placeholder');
         if (!gallery) return;
-        // Remove thumbs anteriores mas mantém placeholder
+        // Remove thumbs anteriores mas mant├®m placeholder
         Array.from(gallery.children).forEach(el => { if (el.id !== 'fotos-placeholder') el.remove(); });
         if (!fotos || fotos.length === 0) {
             if (placeholder) placeholder.style.display = 'block';
@@ -8216,7 +8559,7 @@ var _listTabelaPrecosEstrategica = [];
         }
         if (placeholder) placeholder.style.display = 'none';
 
-        // Ordenação cronológica estrita (Ordem em que foram tiradas: Recebimento -> Desmonte -> Componentes)
+        // Ordena├º├úo cronol├│gica estrita (Ordem em que foram tiradas: Recebimento -> Desmonte -> Componentes)
         const fotosOrdenadas = (fotos || []).slice().sort((a, b) => {
             const timeA = new Date(a.criado_em || 0).getTime() || a.id;
             const timeB = new Date(b.criado_em || 0).getTime() || b.id;
@@ -8231,14 +8574,14 @@ var _listTabelaPrecosEstrategica = [];
             if (etapaTexto.includes('Camada')) {
                 badge.textContent = etapaTexto;
             } else {
-                badge.textContent = `${index + 1}º ${etapaTexto}`;
+                badge.textContent = `${index + 1}┬║ ${etapaTexto}`;
             }
             
             let badgeBg = '#3e7cb1';
             if (etapaTexto === 'Recebimento') badgeBg = '#f0b800';
             else if (etapaTexto === 'Desmonte') badgeBg = '#3e7cb1';
             else if (etapaTexto === 'Viabilidade') badgeBg = '#9c27b0';
-            else if (etapaTexto === 'Aprovação' || etapaTexto === 'Aprovação Adm') badgeBg = '#2AD07A';
+            else if (etapaTexto === 'Aprova├º├úo' || etapaTexto === 'Aprova├º├úo Adm') badgeBg = '#2AD07A';
 
             badge.style.cssText = `position:absolute;top:4px;left:4px;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;background:${badgeBg};color:#000;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.5);`;
             
@@ -8284,12 +8627,12 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     
-// MODULE_EXTRACTED: // ─── CALCULADORA FIDC ────────────────────────────────────────────────────────
+// MODULE_EXTRACTED: // ÔöÇÔöÇÔöÇ CALCULADORA FIDC ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 
-// MODULE_EXTRACTED: // ─── TRILHA DE AUDITORIA ─────────────────────────────────────────────────────
+// MODULE_EXTRACTED: // ÔöÇÔöÇÔöÇ TRILHA DE AUDITORIA ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
-// ─── PRÉVIA VISUAL DO LAUDO ─────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇ PR├ëVIA VISUAL DO LAUDO ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
     const previaLaudoItens = [];
 
     function adicionarPreviaLaudo(idx, imgBase64) {
@@ -8304,7 +8647,7 @@ var _listTabelaPrecosEstrategica = [];
             ts: Date.now(),
             nome: nomeMaterial,
             peso: comp.peso || 0,
-            dificuldade: comp.dificuldade || 'Fácil',
+            dificuldade: comp.dificuldade || 'F├ícil',
             observacoes: comp.observacoes || '',
             img: imgBase64
         };
@@ -8322,14 +8665,14 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="position:relative;">
                     <img src="${item.img}" style="width:100%; height:180px; object-fit:cover; display:block;">
                     <div style="position:absolute; top:8px; left:8px; background:rgba(13,26,36,0.85); border:1px solid #2AD07A; border-radius:20px; padding:2px 10px; font-size:0.72rem; color:#2AD07A; font-weight:bold;">
-                        📸 #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
+                        ­ƒô© #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
                     </div>
                 </div>
                 <div style="padding:12px;">
                     <div style="font-weight:bold; color:#fff; font-size:0.95rem; margin-bottom:6px;">${item.nome}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">⚖ ${parseFloat(item.peso).toFixed(3)} kg</span>
-                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">🔧 ${item.dificuldade}</span>
+                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">ÔÜû ${parseFloat(item.peso).toFixed(3)} kg</span>
+                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">­ƒöº ${item.dificuldade}</span>
                     </div>
                     ${item.observacoes ? `<div style="color:#aaa; font-size:0.8rem; border-top:1px solid #223547; padding-top:8px;">${item.observacoes}</div>` : ''}
                 </div>
@@ -8367,7 +8710,7 @@ var _listTabelaPrecosEstrategica = [];
             material_id: localMateriais[0] ? localMateriais[0].id : null,
             peso: 0.0,
             percentual: 0.0,
-            dificuldade: 'Fácil',
+            dificuldade: 'F├ícil',
             foto: '',
             fotosUrl: [],
             fotosBase64: [],
@@ -8401,7 +8744,7 @@ var _listTabelaPrecosEstrategica = [];
     window.calcularAnaliseAmostra = function() {
         const pesoInicial = parseFloat(document.getElementById('analise-peso-inicial').textContent) || 0.0;
         
-        // Executar cálculo centralizado no ApexEngine
+        // Executar c├ílculo centralizado no ApexEngine
         const resEngine = window.ApexEngine.calcularViabilidadeCompleta({
             pesoBruto: pesoInicial,
             componentes: componentesActivos,
@@ -8422,22 +8765,22 @@ var _listTabelaPrecosEstrategica = [];
         });
 
         if (resEngine.totalPesoRecuperado > pesoInicial) {
-            _apexNotify('Sistema', 'Atenção: A soma do peso dos componentes não pode exceder o peso inicial da amostra!', 'info');
+            _apexNotify('Sistema', 'Aten├º├úo: A soma do peso dos componentes n├úo pode exceder o peso inicial da amostra!', 'info');
         }
 
         document.getElementById('resumo-peso-recuperado').textContent = resEngine.totalPesoRecuperado.toFixed(3);
         document.getElementById('resumo-peso-perda').textContent = resEngine.perdaFisicaKg.toFixed(3);
         document.getElementById('resumo-percentual-perda').textContent = fmtBRL(resEngine.percentualPerda);
 
-        // Formula Química
+        // Formula Qu├¡mica
         const formulaParts = componentesActivos.map(c => {
             const m = localMateriais.find(x => x.id === c.material_id);
             return `${c.percentual.toFixed(1)}% ${m ? m.nome : (c.custom_name || 'Desconhecido')}`;
         });
         if (resEngine.perdaFisicaKg > 0) {
-            formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Resíduos`);
+            formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Res├¡duos`);
         }
-        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' · ');
+        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' ┬À ');
 
         if (window.recalcularFIDC) {
             window.recalcularFIDC();
@@ -8452,7 +8795,7 @@ var _listTabelaPrecosEstrategica = [];
         const totalPesos = componentesActivos.reduce((sum, c) => sum + c.peso, 0);
 
         if (totalPesos > pesoInicial) {
-            _apexNotify('Atenção', 'Erro: A soma do peso dos componentes é maior do que o peso total disponível.', 'error');
+            _apexNotify('Aten├º├úo', 'Erro: A soma do peso dos componentes ├® maior do que o peso total dispon├¡vel.', 'error');
             return;
         }
         
@@ -8467,22 +8810,22 @@ var _listTabelaPrecosEstrategica = [];
                     tecnico_analise: sessionStorage.getItem('apex_logged_user_name') || currentSimulatedRole
                 })
             });
-            // Muda status para sinalizar que precisa de decisão do Diretor
+            // Muda status para sinalizar que precisa de decis├úo do Diretor
             await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Aguardando Decisão de Compra' })
+                body: JSON.stringify({ status: 'Aguardando Decis├úo de Compra' })
             });
-            // Disparo automático de e-mail ao Diretor
+            // Disparo autom├ítico de e-mail ao Diretor
             try {
                 const emailRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/enviar-laudo-email`, { method: 'POST' });
                 const emailData = await emailRes.json();
                 const emailMsg = emailData.enviado
-                    ? `E-mail enviado para ${emailData.destinatarios?.length || 0} destinatário(s).`
-                    : `E-mail não enviado (${emailData.motivo || 'sem config'}).`;
-                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.\n\n' + emailMsg, 'success');
+                    ? `E-mail enviado para ${emailData.destinatarios?.length || 0} destinat├írio(s).`
+                    : `E-mail n├úo enviado (${emailData.motivo || 'sem config'}).`;
+                _apexNotify('An├ílise Salva com Sucesso!', 'A amostra foi enviada para decis├úo de compra pela Diretoria.\n\n' + emailMsg, 'success');
             } catch(e) {
-                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.', 'success');
+                _apexNotify('An├ílise Salva com Sucesso!', 'A amostra foi enviada para decis├úo de compra pela Diretoria.', 'success');
             }
             fecharAnaliseDesmonte();
             carregarAmostras();
@@ -8491,7 +8834,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // Ações Diretoria
+    // A├º├Áes Diretoria
     window.abrirModalReprovacao = function() {
         document.getElementById('reprovacao-motivo-texto').value = '';
         document.getElementById('modal-reprovacao').style.display = 'flex';
@@ -8510,13 +8853,13 @@ var _listTabelaPrecosEstrategica = [];
         const obsDir = (document.getElementById('dir-obs-diretoria') || {}).value || '';
 
         if (decisao === 'Reprovado' && !motivo) {
-            _apexNotify('Sistema', 'Por favor, informe o motivo da reprovação.', 'info');
+            _apexNotify('Sistema', 'Por favor, informe o motivo da reprova├º├úo.', 'info');
             return;
         }
 
         if (decisao === 'Aprovado') {
             if (isNaN(precoEntregar) || isNaN(precoColetar) || !validade) {
-                _apexNotify('Sistema', 'Por favor, preencha os preços autorizados de compra (Entregar e Coletar) e a validade.', 'info');
+                _apexNotify('Sistema', 'Por favor, preencha os pre├ºos autorizados de compra (Entregar e Coletar) e a validade.', 'info');
                 return;
             }
         }
@@ -8538,13 +8881,13 @@ var _listTabelaPrecosEstrategica = [];
             });
             const data = await res.json();
             if (res.ok) {
-                const emoji = decisao === 'Aprovado' ? '✅' : '❌';
-                _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
+                const emoji = decisao === 'Aprovado' ? 'Ô£à' : 'ÔØî';
+                _apexNotify('Sistema', `${emoji} Decis├úo da Diretoria registrada: ${decisao}\n\nEsta decis├úo foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();
                 carregarAmostras();
             } else {
-                _apexNotify('Atenção', 'Erro: ' + (data.error || 'Não foi possível registrar a decisão.'), 'error');
+                _apexNotify('Aten├º├úo', 'Erro: ' + (data.error || 'N├úo foi poss├¡vel registrar a decis├úo.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -8557,9 +8900,9 @@ var _listTabelaPrecosEstrategica = [];
             await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Liberado para Produção' })
+                body: JSON.stringify({ status: 'Liberado para Produ├º├úo' })
             });
-            _apexNotify('Sistema', 'Lote Aprovado e Liberado para Produção/PCP!', 'info');
+            _apexNotify('Sistema', 'Lote Aprovado e Liberado para Produ├º├úo/PCP!', 'info');
             fecharAnaliseDesmonte();
             carregarAmostras();
         } catch (err) {
@@ -8609,7 +8952,7 @@ var _listTabelaPrecosEstrategica = [];
                 if (Array.isArray(ftData)) fotosAmostraList = ftData;
             } catch(e) { console.warn('Erro ao carregar fotos:', e); }
 
-            // Carregar logo do cabeçalho
+            // Carregar logo do cabe├ºalho
             let logoBase64 = null;
             try {
                 const logoRes = await fetch('/assets/img/apexlogo.png');
@@ -8619,9 +8962,9 @@ var _listTabelaPrecosEstrategica = [];
                     reader.onloadend = () => resolve(reader.result);
                     reader.readAsDataURL(logoBlob);
                 });
-            } catch(e) { console.warn('Logo cabeçalho não carregado:', e); }
+            } catch(e) { console.warn('Logo cabe├ºalho n├úo carregado:', e); }
 
-            // Carregar Marca d'Água: logo (2).png
+            // Carregar Marca d'├ügua: logo (2).png
             let watermarkBase64 = null;
             try {
                 const wRes = await fetch('/assets/img/logo (2).png');
@@ -8632,7 +8975,7 @@ var _listTabelaPrecosEstrategica = [];
                     reader.readAsDataURL(wBlob);
                 });
             } catch(e) {
-                console.warn('Watermark logo (2).png não carregado:', e);
+                console.warn('Watermark logo (2).png n├úo carregado:', e);
                 watermarkBase64 = logoBase64;
             }
 
@@ -8664,7 +9007,7 @@ var _listTabelaPrecosEstrategica = [];
                 pdf.setTextColor(140, 210, 160);
                 pdf.text('Tecnologia e Sustentabilidade na Reciclagem de Metais', 60, 289);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('Página ' + pageNum, 195, 289, { align: 'right' });
+                pdf.text('P├ígina ' + pageNum, 195, 289, { align: 'right' });
                 pdf.setFontSize(7);
                 pdf.setTextColor(120, 180, 140);
                 pdf.text('Laudo No. APX-' + (amostra.numero_amostra || '') + '  |  ' + new Date().toLocaleDateString('pt-BR'), 15, 293);
@@ -8698,7 +9041,7 @@ var _listTabelaPrecosEstrategica = [];
                 pdf.setFont('helvetica', 'normal');
                 pdf.setFontSize(8);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('EMISSÃO: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
+                pdf.text('EMISS├âO: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
                 const decStatus = amostra.decisao_diretoria || 'AGUARDANDO';
                 const sc = decStatus === 'Aprovado' ? [42, 208, 122] : decStatus === 'Reprovado' ? [255, 80, 80] : [220, 200, 60];
                 pdf.setTextColor(...sc);
@@ -8722,7 +9065,7 @@ var _listTabelaPrecosEstrategica = [];
 
             let y = 50;
 
-            // ─── SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ─────────
+            // ÔöÇÔöÇÔöÇ SE├ç├âO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -8754,7 +9097,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text('Material Recebido:', 17, y);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(10, 120, 50);
-            pdf.text((amostra.nome_material || 'Material não informado').toUpperCase(), 48, y);
+            pdf.text((amostra.nome_material || 'Material n├úo informado').toUpperCase(), 48, y);
             pdf.setTextColor(50, 50, 50);
 
             pdf.setFont('helvetica', 'bold');
@@ -8766,7 +9109,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setFont('helvetica', 'bold');
             pdf.text('Comprador / Contato:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            // Trunca para não sobrepor o campo Peso Inicial à direita
+            // Trunca para n├úo sobrepor o campo Peso Inicial ├á direita
             const compTel = fcomp + (ftel ? ' (' + ftel + ')' : '');
             pdf.text(pdf.splitTextToSize(compTel, 110)[0], 52, y);
 
@@ -8777,13 +9120,13 @@ var _listTabelaPrecosEstrategica = [];
             y += 6;
 
             pdf.setFont('helvetica', 'bold');
-            pdf.text('Responsável Téc:', 17, y);
+            pdf.text('Respons├ível T├®c:', 17, y);
             pdf.setFont('helvetica', 'normal');
             pdf.text(amostra.responsavel || 'Eng. Roberto', 48, y);
 
             if (fend) {
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Endereço:', 138, y);
+                pdf.text('Endere├ºo:', 138, y);
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(pdf.splitTextToSize(fend, 38)[0], 156, y);
             }
@@ -8791,7 +9134,7 @@ var _listTabelaPrecosEstrategica = [];
 
             if (amostra.observacoes) {
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Observações:', 17, y);
+                pdf.text('Observa├º├Áes:', 17, y);
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(pdf.splitTextToSize(amostra.observacoes, 155)[0], 42, y);
                 y += 6;
@@ -8803,17 +9146,17 @@ var _listTabelaPrecosEstrategica = [];
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ──────────────────────────────────
+            // ÔöÇÔöÇÔöÇ SE├ç├âO 2: REGISTRO FOTOGR├üFICO POR ETAPA E COMPONENTE ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÁFICO POR ETAPA', 17, y + 5.5);
+            pdf.text('RASTREABILIDADE E REGISTRO FOTOGR├üFICO POR ETAPA', 17, y + 5.5);
             y += 12;
 
-            // ── Helper: carrega uma imagem da API e retorna base64 ──
+            // ÔöÇÔöÇ Helper: carrega uma imagem da API e retorna base64 ÔöÇÔöÇ
             async function _loadImgB64(url) {
                 try {
                     const r = await fetch(url);
@@ -8823,7 +9166,7 @@ var _listTabelaPrecosEstrategica = [];
                 } catch(e) { return null; }
             }
 
-            // ── Helper: desenha um bloco de foto no PDF ──
+            // ÔöÇÔöÇ Helper: desenha um bloco de foto no PDF ÔöÇÔöÇ
             function _drawFotoBloco(srcB64, label, bY, bH) {
                 pdf.setFillColor(248, 252, 249);
                 pdf.setDrawColor(13, 36, 22);
@@ -8843,13 +9186,13 @@ var _listTabelaPrecosEstrategica = [];
                 pdf.text(pdf.splitTextToSize(label, 110), 76, bY + 9);
             }
 
-            // ── ETAPA 1 — RECEBIMENTO ──
+            // ÔöÇÔöÇ ETAPA 1 ÔÇö RECEBIMENTO ÔöÇÔöÇ
             {
                 const blocoH = 42;
                 checarNovaPagina(blocoH + 6);
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text('ETAPA 1 — PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
+                pdf.text('ETAPA 1 ÔÇö PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
                 y += 8;
                 checarNovaPagina(blocoH + 4);
 
@@ -8859,7 +9202,7 @@ var _listTabelaPrecosEstrategica = [];
                     (f.componente_idx === null || f.componente_idx === undefined)
                 );
 
-                // Foto principal: foto_original da amostra OU, se vazia, a 1ª foto do banco
+                // Foto principal: foto_original da amostra OU, se vazia, a 1┬¬ foto do banco
                 let fotoOrigFinal = null;
                 if (amostra.foto_original) {
                     fotoOrigFinal = await _loadImgB64(amostra.foto_original).catch(() => amostra.foto_original);
@@ -8873,30 +9216,30 @@ var _listTabelaPrecosEstrategica = [];
                 }
 
                 const infoTextoRec = [
-                    `Produto: ${(amostra.nome_material || 'Não informado').toUpperCase()}`,
-                    `Código: APX-${amostra.numero_amostra || '000'}`,
+                    `Produto: ${(amostra.nome_material || 'N├úo informado').toUpperCase()}`,
+                    `C├│digo: APX-${amostra.numero_amostra || '000'}`,
                     `Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`,
                     `Peso Bruto: ${parseFloat(amostra.peso_inicial || 0).toFixed(3)} kg`,
-                    `Responsável: ${amostra.responsavel || '---'}`,
-                    `Obs: ${(amostra.observacoes || 'Sem observações.').substring(0, 60)}`
+                    `Respons├ível: ${amostra.responsavel || '---'}`,
+                    `Obs: ${(amostra.observacoes || 'Sem observa├º├Áes.').substring(0, 60)}`
                 ].join('\n');
 
                 _drawFotoBloco(fotoOrigFinal, infoTextoRec, y, blocoH);
                 y += blocoH + 4;
 
-                // Fotos adicionais do Recebimento (2ª em diante)
+                // Fotos adicionais do Recebimento (2┬¬ em diante)
                 for (const f of recebimentoExtras) {
                     checarNovaPagina(blocoH + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `Foto Recebimento — ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
+                    if (b64) { _drawFotoBloco(b64, `Foto Recebimento ÔÇö ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
                 }
             }
 
-            // ── ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos ──
+            // ÔöÇÔöÇ ETAPA 2 ÔÇö DESMONTE: uma subse├º├úo por componente com TODAS as suas fotos ÔöÇÔöÇ
             {
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text('ETAPA 2 — DESMONTE FÍSICO & TRIAGEM DE COMPONENTES', 17, y + 4.3);
+                pdf.text('ETAPA 2 ÔÇö DESMONTE F├ìSICO & TRIAGEM DE COMPONENTES', 17, y + 4.3);
                 y += 8;
 
                 // Agrupa fotos por componente_idx
@@ -8907,7 +9250,7 @@ var _listTabelaPrecosEstrategica = [];
                         fotosPorComp[f.componente_idx].push(f);
                     }
                 }
-                // Fotos do Desmonte não vinculadas a componente específico
+                // Fotos do Desmonte n├úo vinculadas a componente espec├¡fico
                 const fotosDesmonteGeral = fotosAmostraList.filter(f =>
                     (f.etapa || 'Desmonte') === 'Desmonte' && (f.componente_idx === null || f.componente_idx === undefined)
                 );
@@ -8918,17 +9261,17 @@ var _listTabelaPrecosEstrategica = [];
                         const nomeComp = comp.material_nome || `Componente ${cIdx + 1}`;
                         const fotasComp = fotosPorComp[cIdx] || [];
                         const blocoH = 42;
-                        // Cabeçalho do componente
+                        // Cabe├ºalho do componente
                         checarNovaPagina(blocoH + 12);
                         pdf.setFillColor(30, 78, 140); pdf.rect(15, y, 180, 5, 'F');
                         pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5);
-                        pdf.text(`COMPONENTE ${cIdx + 1}: ${nomeComp.toUpperCase()} — ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`, 17, y + 3.5);
+                        pdf.text(`COMPONENTE ${cIdx + 1}: ${nomeComp.toUpperCase()} ÔÇö ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`, 17, y + 3.5);
                         y += 7;
 
                         if (fotasComp.length === 0) {
                             // Sem fotos para este componente
                             checarNovaPagina(blocoH + 4);
-                            _drawFotoBloco(null, `${nomeComp} | ${parseFloat(comp.peso).toFixed(3)} kg — ${parseFloat(comp.percentual).toFixed(1)}%\nDificuldade: ${comp.dificuldade || 'Fácil'}\nObs: ${(comp.observacoes || '').substring(0, 60) || 'Sem observações.'}`, y, blocoH);
+                            _drawFotoBloco(null, `${nomeComp} | ${parseFloat(comp.peso).toFixed(3)} kg ÔÇö ${parseFloat(comp.percentual).toFixed(1)}%\nDificuldade: ${comp.dificuldade || 'F├ícil'}\nObs: ${(comp.observacoes || '').substring(0, 60) || 'Sem observa├º├Áes.'}`, y, blocoH);
                             y += blocoH + 4;
                         } else {
                             // Exibe TODAS as fotos do componente
@@ -8937,10 +9280,10 @@ var _listTabelaPrecosEstrategica = [];
                                 checarNovaPagina(blocoH + 4);
                                 const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
                                 const label = [
-                                    `${nomeComp} — Foto ${fIdx + 1}/${fotasComp.length}`,
+                                    `${nomeComp} ÔÇö Foto ${fIdx + 1}/${fotasComp.length}`,
                                     `Peso: ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`,
-                                    `Dificuldade: ${comp.dificuldade || 'Fácil'}`,
-                                    `Obs: ${(comp.observacoes || 'Sem observações.').substring(0, 60)}`
+                                    `Dificuldade: ${comp.dificuldade || 'F├ícil'}`,
+                                    `Obs: ${(comp.observacoes || 'Sem observa├º├Áes.').substring(0, 60)}`
                                 ].join('\n');
                                 _drawFotoBloco(b64, label, y, blocoH);
                                 y += blocoH + 4;
@@ -8948,32 +9291,32 @@ var _listTabelaPrecosEstrategica = [];
                         }
                     }
                 }
-                // Fotos de Desmonte gerais (não vinculadas a componente)
+                // Fotos de Desmonte gerais (n├úo vinculadas a componente)
                 for (const f of fotosDesmonteGeral) {
                     checarNovaPagina(42 + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `Desmonte Geral — ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                    if (b64) { _drawFotoBloco(b64, `Desmonte Geral ÔÇö ${f.nome || 'Foto'}`, y, 42); y += 46; }
                 }
             }
 
-            // ── ETAPA 3 & 4: Viabilidade e Aprovação ──
-            for (const etapaKey of ['Viabilidade', 'Aprovação']) {
+            // ÔöÇÔöÇ ETAPA 3 & 4: Viabilidade e Aprova├º├úo ÔöÇÔöÇ
+            for (const etapaKey of ['Viabilidade', 'Aprova├º├úo']) {
                 const fotasEtapa = fotosAmostraList.filter(f => f.etapa === etapaKey);
                 if (fotasEtapa.length === 0) continue;
                 checarNovaPagina(50);
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text(`ETAPA — ${etapaKey.toUpperCase()}`, 17, y + 4.3);
+                pdf.text(`ETAPA ÔÇö ${etapaKey.toUpperCase()}`, 17, y + 4.3);
                 y += 8;
                 for (const f of fotasEtapa) {
                     checarNovaPagina(42 + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `${etapaKey} — ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                    if (b64) { _drawFotoBloco(b64, `${etapaKey} ÔÇö ${f.nome || 'Foto'}`, y, 42); y += 46; }
                 }
             }
 
 
-            // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
+            // ÔöÇÔöÇÔöÇ SE├ç├âO 3: RESULTADO DA AN├üLISE F├ìSICA E DESMONTE ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             checarNovaPagina(55); // Garante 55mm livres para o bloco completo
 
             pdf.setFillColor(13, 36, 22);
@@ -8981,11 +9324,11 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
+            pdf.text('RESULTADO DA AN├üLISE F├ìSICA E DESMONTE', 17, y + 5.5);
 
-            let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de título
+            let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de t├¡tulo
 
-            // Cabeçalho da Tabela de Componentes (Altura 7mm)
+            // Cabe├ºalho da Tabela de Componentes (Altura 7mm)
             pdf.setFillColor(20, 60, 35);
             pdf.rect(15, tableY, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -8996,7 +9339,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text('Rendimento', 145, tableY + 4.8);
             pdf.text('Dificuldade', 170, tableY + 4.8);
             
-            tableY += 10.0; // Avança 10mm (7mm da caixa + 3mm de margem livre)
+            tableY += 10.0; // Avan├ºa 10mm (7mm da caixa + 3mm de margem livre)
 
             let sumPeso = 0;
             pdf.setFont('helvetica', 'normal');
@@ -9014,7 +9357,7 @@ var _listTabelaPrecosEstrategica = [];
                     pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, tableY + 4.8);
                     pdf.text(fmtBRL(c.percentual) + ' %', 148, tableY + 4.8);
                     if (c.dificuldade) {
-                        const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Média' ? [180,130,0] : [30,130,60];
+                        const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'M├®dia' ? [180,130,0] : [30,130,60];
                         pdf.setTextColor(...dc);
                         pdf.setFontSize(7.5);
                         pdf.text(c.dificuldade, 172, tableY + 4.8);
@@ -9024,7 +9367,7 @@ var _listTabelaPrecosEstrategica = [];
                 });
             }
 
-            // Linha de Perda Física / Resíduos Industriais (Altura 7mm, posicionada 10mm abaixo do cabeçalho)
+            // Linha de Perda F├¡sica / Res├¡duos Industriais (Altura 7mm, posicionada 10mm abaixo do cabe├ºalho)
             const perda = parseFloat(amostra.peso_inicial || 0) - sumPeso;
             const pctPerda = parseFloat(amostra.peso_inicial || 0) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
             
@@ -9033,21 +9376,21 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(180, 40, 40);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('Resíduos Industriais / Perda Física', 18, tableY + 4.8);
+            pdf.text('Res├¡duos Industriais / Perda F├¡sica', 18, tableY + 4.8);
             pdf.text((perda > 0 ? perda : 0).toLocaleString('pt-BR') + ' kg', 110, tableY + 4.8);
             pdf.text(fmtBRL(pctPerda > 0 ? pctPerda : 0) + ' %', 148, tableY + 4.8);
             
             tableY += 12;
             y = tableY; // Atualiza o ponteiro global y com o valor acumulado em tableY
 
-            // Consolidação química
+            // Consolida├º├úo qu├¡mica
             checarNovaPagina(20);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 15, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('COMPOSIÇÃO CONSOLIDADA / FÓRMULA QUÍMICA:', 18, y + 5);
+            pdf.text('COMPOSI├ç├âO CONSOLIDADA / F├ôRMULA QU├ìMICA:', 18, y + 5);
             pdf.setFont('courier', 'normal');
             pdf.setTextColor(170, 255, 200);
             pdf.setFontSize(7.5);
@@ -9055,17 +9398,17 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 11);
             y += 19;
 
-            // ─── SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA ───────────────────
+            // ÔöÇÔöÇÔöÇ SE├ç├âO 4: PARECERES T├ëCNICOS E DECIS├âO DE COMPRA ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             checarNovaPagina(45);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('PARECERES TÉCNICO E DECISÃO DE COMPRA', 17, y + 5);
+            pdf.text('PARECERES T├ëCNICO E DECIS├âO DE COMPRA', 17, y + 5);
             y += 10;
 
-            // Parecer técnico
+            // Parecer t├®cnico
             pdf.setFillColor(235, 248, 240);
             pdf.rect(15, y, 180, 18, 'F');
             pdf.setFillColor(42, 140, 80);
@@ -9076,14 +9419,14 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(10, 70, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text('PARECER TÉCNICO (LABORATÓRIO):', 22, y + 5);
+            pdf.text('PARECER T├ëCNICO (LABORAT├ôRIO):', 22, y + 5);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
-            const pt = amostra.parecer_tecnico || '(sem observações informadas)';
+            const pt = amostra.parecer_tecnico || '(sem observa├º├Áes informadas)';
             pdf.text(pdf.splitTextToSize(pt, 168).slice(0, 2), 22, y + 11);
             y += 22;
 
-            // Decisão diretoria
+            // Decis├úo diretoria
             const decAprovada = amostra.decisao_diretoria === 'Aprovado';
             const isReprov = amostra.decisao_diretoria === 'Reprovado';
             const bgDec = decAprovada ? [235, 252, 240] : isReprov ? [252, 235, 235] : [248, 248, 235];
@@ -9100,7 +9443,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(...txtDec);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('DECISÃO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
+            pdf.text('DECIS├âO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
             pdf.setFontSize(8);
@@ -9112,43 +9455,43 @@ var _listTabelaPrecosEstrategica = [];
             if (amostra.motivo_reprovacao) {
                 pdf.setTextColor(160, 30, 30);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Motivo da Reprovação: ' + amostra.motivo_reprovacao, 22, dy);
+                pdf.text('Motivo da Reprova├º├úo: ' + amostra.motivo_reprovacao, 22, dy);
                 dy += 5;
             }
             if (decAprovada && amostra.preco_compra_entregar) {
                 pdf.setTextColor(10, 100, 40);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Preço Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
+                pdf.text('Pre├ºo Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
                 dy += 5;
             }
             y += 28;
 
-            // ─── SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA ────────
+            // ÔöÇÔöÇÔöÇ SE├ç├âO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETR├öNICA ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
             checarNovaPagina(40);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA', 17, y + 5);
+            pdf.text('ASSINATURAS E RASTREABILIDADE DIGITAL / ELETR├öNICA', 17, y + 5);
             y += 12;
 
             const sigBoxWidth = 85;
             const sigY = y;
 
-            // Assinatura Técnico Executor
+            // Assinatura T├®cnico Executor
             pdf.setDrawColor(42, 140, 80);
             pdf.setLineWidth(0.4);
             pdf.line(17, sigY + 12, 17 + sigBoxWidth, sigY + 12);
             pdf.setTextColor(30, 30, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text((amostra.tecnico_analise || amostra.responsavel || 'Analista de Laboratório').toUpperCase(), 17, sigY + 16);
+            pdf.text((amostra.tecnico_analise || amostra.responsavel || 'Analista de Laborat├│rio').toUpperCase(), 17, sigY + 16);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(100, 100, 100);
             pdf.setFontSize(7);
-            pdf.text('Perfil: Técnico Responsável / Laboratório', 17, sigY + 20);
-            pdf.text('Status Execução: Desmonte e Triagem OK', 17, sigY + 24);
+            pdf.text('Perfil: T├®cnico Respons├ível / Laborat├│rio', 17, sigY + 20);
+            pdf.text('Status Execu├º├úo: Desmonte e Triagem OK', 17, sigY + 24);
 
             // Assinatura Diretoria / Aprovador
             const dirX = 110;
@@ -9162,19 +9505,19 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(100, 100, 100);
             pdf.setFontSize(7);
-            pdf.text('Perfil: Diretoria / Autorização Estratégica', dirX, sigY + 20);
-            pdf.text('Decisão: ' + (amostra.decisao_diretoria || 'Aguardando'), dirX, sigY + 24);
+            pdf.text('Perfil: Diretoria / Autoriza├º├úo Estrat├®gica', dirX, sigY + 20);
+            pdf.text('Decis├úo: ' + (amostra.decisao_diretoria || 'Aguardando'), dirX, sigY + 24);
 
             y += 30;
 
-            // Rodapé final com total de páginas
+            // Rodap├® final com total de p├íginas
             drawFooter(currentPageNum);
 
             pdf.save('LAUDO_APEXTECH_' + (amostra.numero_amostra || 'PDF') + '.pdf');
 
         } catch (err) {
             console.error('Erro ao gerar laudo PDF:', err);
-            _apexNotify('Atenção', 'Erro ao gerar o laudo. Tente novamente.', 'error');
+            _apexNotify('Aten├º├úo', 'Erro ao gerar o laudo. Tente novamente.', 'error');
         }
     };
 
@@ -9201,7 +9544,7 @@ var _listTabelaPrecosEstrategica = [];
             const resEst = await fetch('/api/estoque');
             const { estoque } = await resEst.json();
 
-            // ─── KPIs ───
+            // ÔöÇÔöÇÔöÇ KPIs ÔöÇÔöÇÔöÇ
             let pesoTotal = 0;
             let totalCompra = 0;
             let faturamento = 0;
@@ -9223,7 +9566,7 @@ var _listTabelaPrecosEstrategica = [];
             let totalPesoPerdaAmostras = 0;
             
             amostras.forEach(a => {
-                if (a.status === 'Processado' || a.status === 'Liberado para Produção') {
+                if (a.status === 'Processado' || a.status === 'Liberado para Produ├º├úo') {
                     const weight = parseFloat(a.peso_inicial) || 0;
                     totalPesoOriginalAmostras += weight;
                     
@@ -9244,7 +9587,7 @@ var _listTabelaPrecosEstrategica = [];
             document.getElementById('bi-kpi-margem').textContent = fmtBRL(margemConsolidada) + ' %';
             document.getElementById('bi-kpi-perda').textContent = fmtBRL(taxaPerdaIndustrial) + ' %';
 
-            // ── Gráfico 1: Evolução Mensal ──
+            // ÔöÇÔöÇ Gr├ífico 1: Evolu├º├úo Mensal ÔöÇÔöÇ
             const mesesMap = {};
             planejamento.forEach(p => {
                 const m = p.mes || '2026-07';
@@ -9280,7 +9623,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── Gráfico 2: Composição das Amostras ──
+            // ÔöÇÔöÇ Gr├ífico 2: Composi├º├úo das Amostras ÔöÇÔöÇ
             const compMap = {};
             estoque.forEach(e => {
                 compMap[e.material_nome] = parseFloat(e.saldo) || 0;
@@ -9306,7 +9649,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── Gráfico 3: Ranking de Fornecedores ──
+            // ÔöÇÔöÇ Gr├ífico 3: Ranking de Fornecedores ÔöÇÔöÇ
             const fornMap = {};
             planejamento.forEach(p => {
                 const f = p.fornecedor_nome || 'Desconhecido';
@@ -9342,7 +9685,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── Gráfico 4: Margem de Compra Coleta vs Entrega ──
+            // ÔöÇÔöÇ Gr├ífico 4: Margem de Compra Coleta vs Entrega ÔöÇÔöÇ
             const catMargem = {};
             localPrecos.forEach(p => {
                 const cat = p.material_categoria;
@@ -9377,7 +9720,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── TOP 10 Melhores Produtos (Margem Líquida) ──
+            // ÔöÇÔöÇ TOP 10 Melhores Produtos (Margem L├¡quida) ÔöÇÔöÇ
             const topBody = document.getElementById('bi-top10-table-body');
             if (topBody && localPrecos && localPrecos.length > 0) {
                 const listComMargem = localPrecos.map(p => {
@@ -9420,7 +9763,7 @@ var _listTabelaPrecosEstrategica = [];
 
                     let statusBadge = '<span class="bi-status-badge" style="background:#0d3020; color:#2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Excelente</span>';
                     if (item.margemLiqEnt < 5) {
-                        statusBadge = '<span class="bi-status-badge" style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Atenção/Baixa</span>';
+                        statusBadge = '<span class="bi-status-badge" style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Aten├º├úo/Baixa</span>';
                     } else if (item.margemLiqEnt < 15) {
                         statusBadge = '<span class="bi-status-badge" style="background:#3a2e00; color:#f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Boa</span>';
                     }
@@ -9458,14 +9801,14 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     
-// MODULE_EXTRACTED: // ─── 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ───
+// MODULE_EXTRACTED: // ÔöÇÔöÇÔöÇ 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CEN├üRIOS ÔöÇÔöÇÔöÇ
 
-// MODULE_EXTRACTED: // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ─────────
+// MODULE_EXTRACTED: // ÔöÇÔöÇÔöÇ M├ôDULO DE PLANEJAMENTO ESTRAT├ëGICO V3 (TESTE META FATURAMENTO -> INSUMO) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
     function gerarHtmlTabelaResiduosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
         const activeSettings = settings || settingsPrecosResiduos || {};
-        const tituloPdf = isCompleta ? 'Tabela Geral de Resíduos — Visão Completa' : 'Tabela de Preços — Resíduos';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Res├¡duos ÔÇö Vis├úo Completa' : 'Tabela de Pre├ºos ÔÇö Res├¡duos';
 
         const categorias = [];
         precos.forEach(p => {
@@ -9496,15 +9839,15 @@ var _listTabelaPrecosEstrategica = [];
                         <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                         <div style="text-align:right;">
                             <h1 style="margin:0;color:#1a5c38;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1a5c38;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">├Ültima Atualiza├º├úo: <span style="color:#1a5c38;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
                     <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">⚠️ Diretrizes Gerais de Compra — Resíduos</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">ÔÜá´©Å Diretrizes Gerais de Compra ÔÇö Res├¡duos</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
-                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li>Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg.</li>
+                            <li>OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RES├ìDUOS PRE├çO SOBRE AN├üLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -9518,25 +9861,25 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG├èNCIA AT├ë: ${validadeStr}</span>
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                         <thead>
                             <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri├º├úo</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre├ºo Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss├úo (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L├¡q.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L├¡q. Ent.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L├¡q. Col.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -9582,7 +9925,7 @@ var _listTabelaPrecosEstrategica = [];
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RES├ìDUOS PRE├çO SOBRE AN├üLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -9591,8 +9934,8 @@ var _listTabelaPrecosEstrategica = [];
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">Ô£à Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -9622,7 +9965,7 @@ var _listTabelaPrecosEstrategica = [];
                     reader.readAsDataURL(blob);
                 });
             }
-        } catch(e) { console.warn('Logo watermark não carregou:', e); }
+        } catch(e) { console.warn('Logo watermark n├úo carregou:', e); }
 
         const htmlContent = gerarHtmlTabelaResiduosParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
         return await renderHtmlToPdfBase64(htmlContent, isCompleta);
@@ -9636,12 +9979,12 @@ var _listTabelaPrecosEstrategica = [];
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
         try {
             const base64 = await window.gerarPdfTabelaResiduosBase64(modoPDF);
-            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Resíduos.', 'error'); return; }
+            if (!base64) { _apexNotify('Aten├º├úo', 'Erro ao gerar o PDF de Res├¡duos.', 'error'); return; }
             const link = document.createElement('a');
             link.href = `data:application/pdf;base64,${base64}`;
             link.download = isCompleta ? 'Tabela_Residuos_Completa.pdf' : 'Tabela_Residuos_Fornecedor.pdf';
             link.click();
-        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Resíduos: ' + err.message, 'error'); }
+        } catch(err) { console.error(err); _apexNotify('Aten├º├úo', 'Erro ao exportar PDF Res├¡duos: ' + err.message, 'error'); }
         finally {
             if (btn) {
                 btn.disabled = false;
@@ -9652,12 +9995,12 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ─── PDF LIGAS ────────────────────────────────────────────────────────────────
+    // ÔöÇÔöÇÔöÇ PDF LIGAS ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
     function gerarHtmlTabelaLigasParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
         const activeSettings = settings || settingsPrecosLigas || {};
-        const tituloPdf = isCompleta ? 'Tabela Geral de Ligas Metálicas — Visão Completa' : 'Tabela de Preços — Ligas Metálicas';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Ligas Met├ílicas ÔÇö Vis├úo Completa' : 'Tabela de Pre├ºos ÔÇö Ligas Met├ílicas';
 
         const categorias = [];
         precos.forEach(p => {
@@ -9688,15 +10031,15 @@ var _listTabelaPrecosEstrategica = [];
                         <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                         <div style="text-align:right;">
                             <h1 style="margin:0;color:#1565c0;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1565c0;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">├Ültima Atualiza├º├úo: <span style="color:#1565c0;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
                     <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">⚠️ Diretrizes Gerais de Compra — Ligas</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">ÔÜá´©Å Diretrizes Gerais de Compra ÔÇö Ligas</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
-                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li>Aten├º├úo: Quantidade m├¡nima para entrega 100kg por produto. Caso n├úo atinja a quantidade ser├í descontado R$ 1,00/kg.</li>
+                            <li>OBS: Varia├º├úo de pre├ºo conforme atualiza├º├úo de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PRE├çO SOBRE AN├üLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -9710,25 +10053,25 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG├èNCIA AT├ë: ${validadeStr}</span>
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                         <thead>
                             <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri├º├úo</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre├ºo Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre├ºo Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss├úo (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L├¡q.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L├¡q. Ent.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L├¡q. Col.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -9774,7 +10117,7 @@ var _listTabelaPrecosEstrategica = [];
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PRE├çO SOBRE AN├üLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -9783,8 +10126,8 @@ var _listTabelaPrecosEstrategica = [];
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">Ô£à Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -9814,7 +10157,7 @@ var _listTabelaPrecosEstrategica = [];
                     reader.readAsDataURL(blob);
                 });
             }
-        } catch(e) { console.warn('Logo watermark não carregou:', e); }
+        } catch(e) { console.warn('Logo watermark n├úo carregou:', e); }
 
         const htmlContent = gerarHtmlTabelaLigasParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
         return await renderHtmlToPdfBase64(htmlContent, isCompleta);
@@ -9828,12 +10171,12 @@ var _listTabelaPrecosEstrategica = [];
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
         try {
             const base64 = await window.gerarPdfTabelaLigasBase64(modoPDF);
-            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Ligas.', 'error'); return; }
+            if (!base64) { _apexNotify('Aten├º├úo', 'Erro ao gerar o PDF de Ligas.', 'error'); return; }
             const link = document.createElement('a');
             link.href = `data:application/pdf;base64,${base64}`;
             link.download = isCompleta ? 'Tabela_Ligas_Completa.pdf' : 'Tabela_Ligas_Fornecedor.pdf';
             link.click();
-        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Ligas: ' + err.message, 'error'); }
+        } catch(err) { console.error(err); _apexNotify('Aten├º├úo', 'Erro ao exportar PDF Ligas: ' + err.message, 'error'); }
         finally {
             if (btn) {
                 btn.disabled = false;
