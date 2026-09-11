@@ -1266,8 +1266,8 @@ app.get('/api/fornecedores', async (req, res) => {
                 params.push(`%${search}%`);
             }
 
-            const countResult = await pool.query(`SELECT COUNT(*) FROM fornecedores ${whereClause}`, params);
-            const total = parseInt(countResult.rows[0].count);
+            const [countResult] = await pool.query(`SELECT COUNT(*) as total FROM fornecedores ${whereClause}`, params);
+            const total = parseInt(countResult[0].total);
 
             let dataQuery = `
                 SELECT id, codfor, nome, apelido, fone1, fone2, whatsapp, celular,
@@ -1282,7 +1282,7 @@ app.get('/api/fornecedores', async (req, res) => {
 
             if (page) {
                 const offset = (page - 1) * limit;
-                dataQuery += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+                dataQuery += ` LIMIT ? OFFSET ?`;
                 params.push(limit, offset);
             }
 
@@ -2247,8 +2247,8 @@ app.get('/api/amostras/:id', async (req, res) => {
 
         if (dbAvailable) {
             const aRes = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id = f.id WHERE a.id=?', [id]);
-            if (aRes.rows.length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
-            amostra = aRes.rows[0];
+            if (aRes[0].length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            amostra = aRes[0][0];
 
             const cRes = await pool.query(`
                 SELECT ca.*, mc.nome as material_nome, mc.categoria as material_categoria
@@ -2256,7 +2256,7 @@ app.get('/api/amostras/:id', async (req, res) => {
                 LEFT JOIN materiais_catalogo mc ON ca.material_id = mc.id
                 WHERE ca.amostra_id=?
             `, [id]);
-            componentes = cRes.rows;
+            componentes = cRes[0];
         } else {
             amostra = memStore.amostras.find(x => x.id === id);
             if (!amostra) return res.status(404).json({ error: 'Amostra não encontrada.' });
@@ -2359,8 +2359,8 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
 
         if (dbAvailable) {
             const currentA = await pool.query('SELECT status FROM amostras WHERE id=?', [id]);
-            if (currentA.rows.length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
-            const currStatus = currentA.rows[0].status;
+            if (currentA[0].length === 0) return res.status(404).json({ error: 'Amostra não encontrada.' });
+            const currStatus = currentA[0][0].status;
 
             if (status === 'Liberado para Produção' && currStatus !== 'Aprovado - Compra Autorizada') {
                 return res.status(400).json({ error: 'A amostra precisa estar aprovada (Aprovado - Compra Autorizada) antes de ser liberada para produção.' });
@@ -2374,9 +2374,9 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
             // Se for "Processado", efetua a movimentação de estoque
             if (status === 'Processado') {
                 const cRes = await pool.query('SELECT * FROM componentes_amostra WHERE amostra_id=?', [id]);
-                const compList = cRes.rows;
+                const compList = cRes[0];
                 const aRes = await pool.query('SELECT * FROM amostras WHERE id=?', [id]);
-                const amostra = aRes.rows[0];
+                const amostra = aRes[0][0];
 
                 for (const c of compList) {
                     // Update estoque
@@ -2445,7 +2445,7 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
         // Checkup de segurança: verifica se a amostra passou pela etapa de desmonte do laboratório
         if (dbAvailable) {
             const compCheck = await pool.query('SELECT COUNT(*) as total FROM componentes_amostra WHERE amostra_id=?', [id]);
-            const totalComp = parseInt(compCheck.rows[0]?.total || 0);
+            const totalComp = parseInt(compCheck[0][0]?.total || 0);
             if (totalComp === 0) {
                 return res.status(400).json({ error: 'Amostra sem desmonte concluído! Cadastre os componentes desmontados no laboratório antes da decisão de compra.' });
             }
@@ -3024,14 +3024,14 @@ app.get('/api/planejamento/producao-insumos', async (req, res) => {
     let useDb = dbAvailable && pool;
     try {
         if (useDb) {
-            const pl = await pool.query('SELECT * FROM planejamento_producao_insumos ORDER BY id DESC');
-            const result = await Promise.all(pl.rows.map(async p => {
-                const linhas = await pool.query(
+            const [plRows] = await pool.query('SELECT * FROM planejamento_producao_insumos ORDER BY id DESC');
+            const result = await Promise.all(plRows.map(async p => {
+                const [linhaRows] = await pool.query(
                     'SELECT * FROM planejamento_producao_linhas WHERE planejamento_id=? ORDER BY id', [p.id]);
-                const lWithMovs = await Promise.all(linhas.rows.map(async l => {
-                    const movs = await pool.query(
+                const lWithMovs = await Promise.all(linhaRows.map(async l => {
+                    const [movRows] = await pool.query(
                         'SELECT * FROM planejamento_producao_movimentacoes WHERE linha_id=? ORDER BY data_movimentacao', [l.id]);
-                    return { ...l, movimentacoes: movs.rows };
+                    return { ...l, movimentacoes: movRows };
                 }));
                 return { ...p, linhas: lWithMovs };
             }));
@@ -3484,10 +3484,10 @@ app.delete('/api/planejamento-estrategicov3/:id', async (req, res) => {
 app.get('/api/estrategiav3_planos', async (req, res) => {
     try {
         if (!dbAvailable || !pool) throw new Error('DB not available');
-        const planosRes = await pool.query('SELECT * FROM estrategiav3_planos ORDER BY id DESC');
-        const planos = planosRes.rows;
-        const mixRes = await pool.query('SELECT * FROM estrategiav3_mix');
-        const mix = mixRes.rows;
+        const [planosRes] = await pool.query('SELECT * FROM estrategiav3_planos ORDER BY id DESC');
+        const planos = planosRes;
+        const [mixRes] = await pool.query('SELECT * FROM estrategiav3_mix');
+        const mix = mixRes;
 
         const resultado = planos.map(p => {
             return {
@@ -3513,7 +3513,7 @@ app.post('/api/estrategiav3_planos', async (req, res) => {
                 INSERT INTO estrategiav3_planos (titulo, data_inicial, data_final, frente, meta_faturamento, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct)
                 VALUES (?, ?, ?, ?, ?, COALESCE(?, 80), COALESCE(?, 100), COALESCE(?, 120))
             `, [titulo, data_inicial, data_final, frente, meta_faturamento, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct]);
-            const planoId = planoRes.rows[0].id;
+            const planoId = planoRes[0].insertId;
 
             for (let item of mix) {
                 await client.query(`
@@ -3916,7 +3916,8 @@ app.get('/api/planejamento/cenarios/configuracao', async (req, res) => {
                 INSERT INTO configuracao_cenarios_planejamento (percentual_conservador, percentual_moderado, percentual_agressivo, cenario_foco, meta_base_padrao_rs)
                 VALUES (80.00, 100.00, 120.00, 'AGRESSIVO', 1000000.00)
             `);
-            return res.json(ins.rows[0]);
+            const [inserted] = await pool.query('SELECT * FROM configuracao_cenarios_planejamento ORDER BY id DESC LIMIT 1');
+            return res.json(inserted[0]);
         }
         res.json(r[0][0]);
     } catch (err) {
@@ -4130,7 +4131,7 @@ app.get('/api/planejamento/producao/ops', async (req, res) => {
             return res.json(list.sort((a, b) => b.id - a.id));
         }
 
-        const ops = await pool.query(`
+        const [opsRows] = await pool.query(`
             SELECT op.*, mc.nome as material_saida_nome, a.numero_amostra
             FROM ordens_producao op
             LEFT JOIN materiais_catalogo mc ON op.material_saida_id = mc.id
@@ -4138,7 +4139,7 @@ app.get('/api/planejamento/producao/ops', async (req, res) => {
             ORDER BY op.id DESC
         `);
 
-        for (const op of ops.rows) {
+        for (const op of opsRows) {
             const etapas = await pool.query(`
                 SELECT e.*, eq.nome_equipamento
                 FROM ordens_producao_etapas e
@@ -4146,10 +4147,10 @@ app.get('/api/planejamento/producao/ops', async (req, res) => {
                 WHERE e.op_id = ?
                 ORDER BY e.ordem ASC
             `, [op.id]);
-            op.etapas = etapas.rows;
+            op.etapas = etapas[0];
         }
 
-        res.json(ops.rows);
+        res.json(opsRows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -4260,7 +4261,8 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
                         et.operador_responsavel || '',
                         et.observacoes || ''
                     ]);
-                    createdEtapas.push(etRes.rows[0]);
+                    const [etRows] = await pool.query('SELECT * FROM pcp_etapas WHERE id = ? LIMIT 1', [etRes[0].insertId]);
+                    createdEtapas.push(etRows[0]);
                 }
             }
             await client.query('COMMIT');
@@ -4347,7 +4349,7 @@ app.get('/api/estoque', async (req, res) => {
                 JOIN materiais_catalogo mc ON m.material_id = mc.id
                 ORDER BY m.data DESC LIMIT 100
             `);
-            return res.json({ estoque: eRes.rows, movimentacoes: mRes.rows });
+            return res.json({ estoque: eRes[0], movimentacoes: mRes[0] });
         }
 
         const estoque = memStore.estoque.map(e => {
@@ -5342,13 +5344,13 @@ app.get('/api/clientes', async (req, res) => {
                 params.push(`%${search}%`);
             }
 
-            const countResult = await pool.query(`SELECT COUNT(*) FROM clientes ${whereClause}`, params);
-            const total = parseInt(countResult.rows[0].count);
+            const [countResult] = await pool.query(`SELECT COUNT(*) as total FROM clientes ${whereClause}`, params);
+            const total = parseInt(countResult[0].total);
 
             let dataQuery = `SELECT * FROM clientes ${whereClause} ORDER BY nome ASC`;
             if (page) {
                 const offset = (page - 1) * limit;
-                dataQuery += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+                dataQuery += ` LIMIT ? OFFSET ?`;
                 params.push(limit, offset);
             }
 
@@ -5418,7 +5420,7 @@ app.post('/api/clientes', async (req, res) => {
             let codigoNum = parseInt(codigo);
             if (isNaN(codigoNum) || !codigoNum) {
                 const maxRes = await pool.query('SELECT COALESCE(MAX(codigo), 0) + 1 AS proximo FROM clientes');
-                codigoNum = parseInt(maxRes.rows[0].proximo) || Math.floor(Date.now() % 100000);
+                codigoNum = parseInt(maxRes[0][0]?.proximo) || Math.floor(Date.now() % 100000);
             }
 
             const result = await pool.query(
@@ -5568,9 +5570,9 @@ app.get('/api/pedidos-venda/:id', async (req, res) => {
             LEFT JOIN clientes c ON c.id = pv.cliente_id
             WHERE pv.id = ?
         `, [id]);
-        if (pedido.rows.length === 0) return res.status(404).json({ error: 'Pedido não encontrado' });
+        if (pedido[0].length === 0) return res.status(404).json({ error: 'Pedido não encontrado' });
         const itens = await pool.query('SELECT * FROM pedidos_venda_itens WHERE pedido_id = ? ORDER BY id', [id]);
-        return res.json({ ...pedido.rows[0], itens: itens.rows });
+        return res.json({ ...pedido[0][0], itens: itens[0] });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -5636,7 +5638,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
                  desc, fr, total_itens, total_geral, criado_por, criado_por_perfil,
                  endereco_entrega, responsavel_recebimento, tipo_frete]);
 
-            const pedidoId = pedido.rows[0].id;
+            const pedidoId = pedido[0].insertId;
             for (const item of itens) {
                 await client.query(`
                     INSERT INTO pedidos_venda_itens (pedido_id, material_id, descricao, unidade, quantidade, preco_unitario, desconto_item, total_item)
@@ -5646,7 +5648,8 @@ app.post('/api/pedidos-venda', async (req, res) => {
             }
 
             await client.query('COMMIT');
-            res.json(pedido.rows[0]);
+            const [pedRows] = await pool.query('SELECT * FROM pedidos_venda WHERE id = ? LIMIT 1', [pedidoId]);
+            res.json(pedRows[0]);
         } catch (err) {
             await client.query('ROLLBACK');
             throw err;
@@ -5720,7 +5723,8 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
             }
             await client.query('COMMIT');
             const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=?', [id]);
-            res.json(updated.rows[0]);
+            const [updRows] = await pool.query('SELECT * FROM pedidos_venda WHERE id = ? LIMIT 1', [id]);
+            res.json(updRows[0]);
         } catch (err) {
             await client.query('ROLLBACK');
             throw err;
