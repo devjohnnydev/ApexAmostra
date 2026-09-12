@@ -21,7 +21,7 @@
         /* HERO */
         .home-hero {
             min-height: 92vh;
-            background: linear-gradient(135deg, #050d08 0%, #08160d 40%, #0d2416 100%);
+            background: linear-gradient(135deg, #020604 0%, #050d08 40%, #08160d 100%);
             display: flex;
             align-items: center;
             position: relative;
@@ -32,8 +32,8 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(ellipse 60% 60% at 80% 50%, rgba(42,208,122,0.07) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(42,208,122,0.04) 0%, transparent 60%);
+                radial-gradient(ellipse 60% 60% at 80% 50%, rgba(42,208,122,0.05) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(42,208,122,0.03) 0%, transparent 60%);
         }
         /* Animated grid lines */
         .home-hero::after {
@@ -86,11 +86,11 @@
         .hero-h1 span { color: #2ad07a; }
         .hero-sub {
             font-family: 'Lato', sans-serif;
-            font-size: 1.15rem;
-            line-height: 1.7;
-            color: rgba(255,255,255,0.85);
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.95);
             margin: 0 0 38px;
-            max-width: 520px;
+            max-width: 580px;
         }
         .hero-ctas {
             display: flex;
@@ -177,8 +177,8 @@
             margin-bottom: 4px;
         }
         .stat-label {
-            font-size: 0.82rem;
-            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
             line-height: 1.4;
         }
 
@@ -420,7 +420,10 @@
             .cta-buttons { flex-direction: row; }
         }
         @media (max-width: 600px) {
-            .hero-right { grid-template-columns: 1fr 1fr; }
+            .hero-right { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .hero-stat-card { padding: 20px 14px; }
+            .stat-number { font-size: 1.5rem; }
+            .stat-label { font-size: 0.75rem; }
             .diferenciais-grid { grid-template-columns: 1fr 1fr; }
             .cta-buttons { flex-direction: column; }
             .home-diferenciais .container, .home-setores .container, .home-cta .container, .home-sobre .container { padding: 0 20px !important; }
@@ -472,12 +475,9 @@
                 <p class="hero-sub">A <strong>Apextech Metais</strong> compra, processa e valoriza sucatas metálicas, fios, cabos, conectores e resíduos eletroeletrônicos, oferecendo segurança, agilidade e soluções eficientes para fornecedores e indústrias.</p>
                 <div class="hero-ctas">
                     <a href="/servicos.html" class="btn-hero-primary">
-                        <i class="fa-solid fa-bolt"></i> Solicite uma Cotação
+                        Solicite uma Cotação
                     </a>
                     <a href="/sobre.html" class="btn-hero-outline">
-                        <i class="fa-solid fa-building"></i> Sobre Nós
-                    </a>
-                    <a href="/contato.html" class="btn-hero-outline" style="border-color: transparent;">
                         Conheça a Apextech
                     </a>
                 </div>
