@@ -2729,7 +2729,7 @@ var _listTabelaPrecosEstrategica = [];
                 + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const rodape = document.getElementById('rel-rodape');
             if (rodape) {
-                rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
+                rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
                 rodape.style.display = 'block';
             }
 
@@ -2778,20 +2778,20 @@ var _listTabelaPrecosEstrategica = [];
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
                 const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                const setinha = osc >= 0 ? 'Ô¼å' : 'Ô¼ç';
+                const setinha = osc >= 0 ? '⬆' : '⬇';
                 const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
             });
 
             const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-            const dSetinha = dolarOsc >= 0 ? 'Ô¼å' : 'Ô¼ç';
+            const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
             navigator.clipboard.writeText(txt).then(() => {
-                _apexNotify('Sistema', 'Resumo copiado para a área de transferência!', 'info');
+                alert('Resumo copiado para a área de transferência!');
             }).catch(err => {
-                _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
+                alert('Erro ao copiar texto.');
                 console.error(err);
             });
         });
@@ -2944,11 +2944,11 @@ var _listTabelaPrecosEstrategica = [];
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        _apexNotify('Atenção', 'Erro ao gerar Excel.', 'error');
+                        alert('Erro ao gerar Excel.');
                     }
                 } catch (err) {
                     console.error(err);
-                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
+                    alert('Erro na conexão com o servidor.');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -3509,7 +3509,7 @@ var _listTabelaPrecosEstrategica = [];
                     + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
+                    rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
                     rodape.style.display = 'block';
                 }
 
@@ -3555,20 +3555,20 @@ var _listTabelaPrecosEstrategica = [];
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
                     const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                    const setinha = osc >= 0 ? 'Ô¼å' : 'Ô¼ç';
+                    const setinha = osc >= 0 ? '⬆' : '⬇';
                     const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
                 });
 
                 const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-                const dSetinha = dolarOsc >= 0 ? 'Ô¼å' : 'Ô¼ç';
+                const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
                 txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
                 navigator.clipboard.writeText(txt).then(() => {
-                    _apexNotify('Sistema', 'Resumo histórico copiado!', 'info');
+                    alert('Resumo histórico copiado!');
                 }).catch(err => {
-                    _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
+                    alert('Erro ao copiar texto.');
                     console.error(err);
                 });
             });
@@ -3677,11 +3677,11 @@ var _listTabelaPrecosEstrategica = [];
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        _apexNotify('Atenção', 'Erro ao gerar Excel do histórico.', 'error');
+                        alert('Erro ao gerar Excel do histórico.');
                     }
                 } catch (err) {
                     console.error(err);
-                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
+                    alert('Erro na conexão com o servidor.');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
