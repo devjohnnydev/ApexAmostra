@@ -2777,13 +2777,13 @@ var _listTabelaPrecosEstrategica = [];
             
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
-                const osc = comp['OSCILAÇÃO R]?.[m] ?? 0;
+                const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
                 const setinha = osc >= 0 ? '⬆' : '⬇';
                 const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
             });
 
-            const dolarOsc = comp['OSCILAÇÃO R]?.['dolar'] ?? 0;
+            const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
             const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
@@ -3102,7 +3102,7 @@ var _listTabelaPrecosEstrategica = [];
             const elOscPct = document.getElementById('rel-osc-pct-' + m);
             formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILAÇÃO R]?.[m] ?? 0;
+            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
             formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
@@ -3554,13 +3554,13 @@ var _listTabelaPrecosEstrategica = [];
                 
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
-                    const osc = comp['OSCILAÇÃO R]?.[m] ?? 0;
+                    const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
                     const setinha = osc >= 0 ? '⬆' : '⬇';
                     const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
                 });
 
-                const dolarOsc = comp['OSCILAÇÃO R]?.['dolar'] ?? 0;
+                const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
                 const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
                 txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
@@ -3833,7 +3833,7 @@ var _listTabelaPrecosEstrategica = [];
             const elOscPct = document.getElementById('rel-hist-osc-pct-' + m);
             formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILAÇÃO R]?.[m] ?? 0;
+            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-hist-osc-rs-' + m);
             formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
