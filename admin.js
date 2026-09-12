@@ -426,9 +426,9 @@ var _listTabelaPrecosEstrategica = [];
         const renderOscilacao = (v, isDolar) => {
             if (v === null || v === undefined || typeof v === 'string') return '—';
             const isUp = v >= 0;
-            const arrow = isUp ? 'Ôû▓' : 'Ôû╝';
+            const arrow = isUp ? '\u25B2' : '\u25BC';
             const cls = isUp ? 'excel-up' : 'excel-down';
-            // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
+            // OSCILA\u00C7\u00C3O R$ é a variação convertida em reais brasileiros
             const prefix = 'R$ ';
             const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
@@ -494,23 +494,23 @@ var _listTabelaPrecosEstrategica = [];
 
             // Computed rows config
             const COMP_ROWS = [
-                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-mensal',         fmt: 'currency_usd', dolFmt: 'dolar'     },
+                { lbl: 'M\u00C9DIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-mensal',         fmt: 'currency_usd', dolFmt: 'dolar'     },
                 { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3',    dolFmt: 'dolar'     },
                 { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3',    dolFmt: 'dolar'     },
                 { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',      dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO %',                      key: 'OSCILAÇÃO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',      dolFmt: 'percent'   },
-                { lbl: 'OSCILAÇÃO R$',                     key: 'OSCILAÇÃO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4',    dolFmt: 'dolar'     },
-                { lbl: 'MÉDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3',    dolFmt: 'dolar'     },
+                { lbl: 'OSCILA\u00C7\u00C3O %',                      key: 'OSCILA\u00C7\u00C3O %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',      dolFmt: 'percent'   },
+                { lbl: 'OSCILA\u00C7\u00C3O R$',                     key: 'OSCILA\u00C7\u00C3O R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4',    dolFmt: 'dolar'     },
+                { lbl: 'M\u00C9DIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3',    dolFmt: 'dolar'     },
             ];
 
             COMP_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
                 const isAnterior = row.cls === 'excel-row-anterior';
                 const inlineStyle = isAnterior ? ' style="background-color:#1a1a1a;color:#ffffff;"' : '';
-                // Indicar feriado: se a semana teve menos de 5 dias úteis, mostrar no label da média
+                // Indicar feriado: se a semana teve menos de 5 dias \u00FA\u00FAteis, mostrar no label da média
                 let lbl = row.lbl;
                 if (row.key === 'MEDIA SEMANAL' && block.numDias !== undefined && block.numDias < 5) {
-                    lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias úteis)</span>`;
+                    lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias \u00FA\u00FAteis)</span>`;
                 }
                 const labelTd = `<td class="excel-label-cell"${inlineStyle}>${lbl}</td>`;
                 const valTds = vc.map(c => {
@@ -546,7 +546,7 @@ var _listTabelaPrecosEstrategica = [];
             });
 
             // Oscillation row (with arrows)
-            const osc = comp['OSCILAÇÃO R$'] || {};
+            const osc = comp['OSCILA\u00C7\u00C3O R$'] || {};
             const oscTds = vc.map(c => `<td class="excel-col-${c.k}">${renderOscilacao(osc[c.k], false)}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
@@ -1444,7 +1444,7 @@ var _listTabelaPrecosEstrategica = [];
             const diff   = last5[i] - prev5[i];
             const pct    = prev5[i] ? ((diff / prev5[i]) * 100) : 0;
             const isUp   = diff >= 0;
-            const arrow  = isUp ? 'Ôû▓' : 'Ôû╝';
+            const arrow  = isUp ? '\u25B2' : '\u25BC';
             const color  = isUp ? '#2AD07A' : '#ff4d4d';
             const bgClr  = isUp ? 'rgba(42,208,122,0.12)' : 'rgba(255,77,77,0.12)';
             const border = isUp ? 'rgba(42,208,122,0.4)' : 'rgba(255,77,77,0.4)';
@@ -2601,7 +2601,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
+    // RELAT\u00D3RIO DI\u00C1RIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiario() {
         const btnGerar = document.getElementById('btn-gerar-imagem-wpp');
@@ -2777,14 +2777,14 @@ var _listTabelaPrecosEstrategica = [];
             
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
-                const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                const setinha = osc >= 0 ? '⬆' : '⬇';
+                const osc = comp['OSCILA\u00C7\u00C3O R$']?.[m] ?? 0;
+                const setinha = osc >= 0 ? '\u25B2' : '\u25BC';
                 const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
             });
 
-            const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-            const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
+            const dolarOsc = comp['OSCILA\u00C7\u00C3O R$']?.['dolar'] ?? 0;
+            const dSetinha = dolarOsc >= 0 ? '\u25B2' : '\u25BC';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
@@ -3039,22 +3039,22 @@ var _listTabelaPrecosEstrategica = [];
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">Ôû▓</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">\u25B2</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">Ôû╝</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">\u25BC</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
             element.style.setProperty('color', '#000000', 'important'); // Texto sempre em preto
         }
 
-        // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias úteis
+        // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias \u00FA\u00FAteis
         const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
             if (week.numDias !== undefined && week.numDias < 5) {
-                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
+                mediaLabelEl.innerHTML = `M\u00C9DIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias \u00FA\u00FAteis)</span>`;
             } else {
-                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
+                mediaLabelEl.textContent = 'M\u00C9DIA SEMANAL';
             }
         }
 
@@ -3100,9 +3100,9 @@ var _listTabelaPrecosEstrategica = [];
             const elFech = document.getElementById('rel-fech-' + m);
             formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
             const elOscPct = document.getElementById('rel-osc-pct-' + m);
-            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
+            formatVariacaoCell(elOscPct, comp['OSCILA\u00C7\u00C3O %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+            const oscRs = comp['OSCILA\u00C7\u00C3O R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
             formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
@@ -3151,7 +3151,7 @@ var _listTabelaPrecosEstrategica = [];
                 row.classList.add('row-lme100');
             } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
                 row.classList.add('row-fechamento-anterior');
-            } else if (text.includes("OSCILAÇÃO R$")) {
+            } else if (text.includes("OSCILA\u00C7\u00C3O R$")) {
                 row.classList.add('row-oscilacao-rs');
             } else if (text === "SEMANA ANTERIOR") {
                 row.classList.add('row-semana-anterior');
@@ -3383,7 +3383,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // HISTÓRICO DO RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
+    // HISTÓRICO DO RELAT\u00D3RIO DI\u00C1RIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiarioHistorico() {
         const btnVerHistorico = document.getElementById('btn-ver-historico');
@@ -3554,14 +3554,14 @@ var _listTabelaPrecosEstrategica = [];
                 
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
-                    const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                    const setinha = osc >= 0 ? '⬆' : '⬇';
+                    const osc = comp['OSCILA\u00C7\u00C3O R$']?.[m] ?? 0;
+                    const setinha = osc >= 0 ? '\u25B2' : '\u25BC';
                     const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
                 });
 
-                const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-                const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
+                const dolarOsc = comp['OSCILA\u00C7\u00C3O R$']?.['dolar'] ?? 0;
+                const dSetinha = dolarOsc >= 0 ? '\u25B2' : '\u25BC';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
                 txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
@@ -3771,9 +3771,9 @@ var _listTabelaPrecosEstrategica = [];
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">Ôû▓</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">\u25B2</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">Ôû╝</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">\u25BC</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
@@ -3783,9 +3783,9 @@ var _listTabelaPrecosEstrategica = [];
         const mediaLabelEl = document.querySelector('#relatorio-diario-historico .rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
             if (week.numDias !== undefined && week.numDias < 5) {
-                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
+                mediaLabelEl.innerHTML = `M\u00C9DIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias \u00FA\u00FAteis)</span>`;
             } else {
-                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
+                mediaLabelEl.textContent = 'M\u00C9DIA SEMANAL';
             }
         }
 
@@ -3831,9 +3831,9 @@ var _listTabelaPrecosEstrategica = [];
             const elFech = document.getElementById('rel-hist-fech-' + m);
             formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
             const elOscPct = document.getElementById('rel-hist-osc-pct-' + m);
-            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
+            formatVariacaoCell(elOscPct, comp['OSCILA\u00C7\u00C3O %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+            const oscRs = comp['OSCILA\u00C7\u00C3O R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-hist-osc-rs-' + m);
             formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
@@ -3879,7 +3879,7 @@ var _listTabelaPrecosEstrategica = [];
                 row.classList.add('row-lme100');
             } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
                 row.classList.add('row-fechamento-anterior');
-            } else if (text.includes("OSCILAÇÃO R$")) {
+            } else if (text.includes("OSCILA\u00C7\u00C3O R$")) {
                 row.classList.add('row-oscilacao-rs');
             } else if (text === "SEMANA ANTERIOR") {
                 row.classList.add('row-semana-anterior');
