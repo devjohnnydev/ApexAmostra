@@ -1827,6 +1827,12 @@ var _listTabelaPrecosEstrategica = [];
                 const key     = toggle.dataset.key;
                 toggle.checked = settings[key] !== 'false';
             });
+            document.querySelectorAll('input.banner-url-input[data-key]').forEach(inp => {
+                const key = inp.dataset.key;
+                if (settings[key]) {
+                    inp.value = settings[key];
+                }
+            });
         } catch(e) {
             console.warn('Não foi possível carregar settings:', e);
         }
@@ -1862,6 +1868,9 @@ var _listTabelaPrecosEstrategica = [];
                 const settings = {};
                 document.querySelectorAll('.toggle-switch input[data-key]').forEach(t => {
                     settings[t.dataset.key] = t.checked ? 'true' : 'false';
+                });
+                document.querySelectorAll('input.banner-url-input[data-key]').forEach(inp => {
+                    settings[inp.dataset.key] = inp.value.trim();
                 });
 
                 try {

@@ -287,7 +287,7 @@
       if (bannerData[currentPage]) {
         const bd = bannerData[currentPage];
         const bannerHTML = `
-        <section class="page-top-banner" style="background-image: url('${bd.img}');">
+        <section class="page-top-banner" id="dynamic-page-banner" style="background-image: url('${bd.img}'); transition: background-image 0.5s ease;">
             <div class="page-top-banner-overlay"></div>
             <div class="container">
                 <h1>${bd.title}</h1>
@@ -298,6 +298,23 @@
         if (pageContent) {
            pageContent.insertAdjacentHTML('afterbegin', bannerHTML);
         }
+
+        // Fetch settings and apply custom banner image if it exists
+        fetch('/api/settings')
+            .then(res => {
+                if (res.ok) return res.json();
+                throw new Error('Network response was not ok');
+            })
+            .then(settings => {
+                const customKey = 'banner_' + currentPage.replace('-', '_');
+                if (settings[customKey] && settings[customKey].trim() !== '') {
+                    const bannerEl = document.getElementById('dynamic-page-banner');
+                    if (bannerEl) {
+                        bannerEl.style.backgroundImage = `url('${settings[customKey]}')`;
+                    }
+                }
+            })
+            .catch(err => console.warn('Banner customizado não carregado ou não configurado', err));
       }
     }
 
