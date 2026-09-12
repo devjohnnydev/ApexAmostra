@@ -1222,7 +1222,7 @@ app.get('/api/usuarios', async (req, res) => {
 });
 
 // Rota exclusiva para o Administrador Master trocar a senha de um usuário (ou do admin)
-app.put('/api/usuarios/:id/password', authenticateToken, async (req, res) => {
+app.put('/api/usuarios/:id/password', authMiddleware, async (req, res) => {
     try {
         if (req.user.perfil !== 'Administrador Master') {
             return res.status(403).json({ error: 'Acesso negado. Apenas o Administrador Master pode alterar senhas por esta via.' });
