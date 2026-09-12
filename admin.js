@@ -7163,14 +7163,30 @@ var _listTabelaPrecosEstrategica = [];
             try { const r = await fetch('/api/settings'); settings = await r.json(); } catch(e) {}
             const lastUpdate = settings.tabela_precos_ultima_atualizacao || new Date().toLocaleDateString('pt-BR');
             let logoBase64 = null;
+            let fadedLogo = null;
             try {
                 const lr = await fetch('/assets/img/logo%20(2).png');
                 if (lr.ok) {
                     const blob = await lr.blob();
                     logoBase64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+                    if (logoBase64) {
+                        fadedLogo = await new Promise(resolve => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const c = document.createElement('canvas');
+                                c.width = img.width; c.height = img.height;
+                                const ctx = c.getContext('2d');
+                                ctx.globalAlpha = 0.05;
+                                ctx.drawImage(img, 0, 0);
+                                resolve(c.toDataURL('image/png'));
+                            };
+                            img.onerror = () => resolve(null);
+                            img.src = logoBase64;
+                        });
+                    }
                 }
             } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, logoBase64, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_volume_');
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, fadedLogo, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_volume_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
             if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
@@ -7604,8 +7620,30 @@ var _listTabelaPrecosEstrategica = [];
             try { const r = await fetch('/api/settings'); settings = await r.json(); } catch(e) {}
             const lastUpdate = settings.tabela_precos_ultima_atualizacao || new Date().toLocaleDateString('pt-BR');
             let logoBase64 = null;
-            try { const lr = await fetch('/assets/img/logo%20(2).png'); if (lr.ok) { const blob = await lr.blob(); logoBase64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); }); } } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, logoBase64, modo, 'Fundição', '#ef4444', 'DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_fundicao_');
+            let fadedLogo = null;
+            try { 
+                const lr = await fetch('/assets/img/logo%20(2).png'); 
+                if (lr.ok) { 
+                    const blob = await lr.blob(); 
+                    logoBase64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); }); 
+                    if (logoBase64) {
+                        fadedLogo = await new Promise(resolve => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const c = document.createElement('canvas');
+                                c.width = img.width; c.height = img.height;
+                                const ctx = c.getContext('2d');
+                                ctx.globalAlpha = 0.05;
+                                ctx.drawImage(img, 0, 0);
+                                resolve(c.toDataURL('image/png'));
+                            };
+                            img.onerror = () => resolve(null);
+                            img.src = logoBase64;
+                        });
+                    }
+                } 
+            } catch(e) {}
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, fadedLogo, modo, 'Fundição', '#ef4444', 'DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_fundicao_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
             if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
@@ -7648,7 +7686,7 @@ var _listTabelaPrecosEstrategica = [];
             if (precosCat.length === 0) return;
             const validadeStr = precosCat[0] ? formatarDataSemFuso(precosCat[0].validade) : '-';
             const corCat = (settings && settings[`${prefixoCor}${cat}`]) || corPrimaria;
-            html += `<div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCat};border-radius:6px;overflow:hidden;">
+            html += `<div style="margin-bottom:30px;border:1px solid ${corCat};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                 <div style="background:${corCat};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;">
                     <span>${cat}</span><span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                 </div>
