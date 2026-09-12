@@ -7622,15 +7622,10 @@ var _listTabelaPrecosEstrategica = [];
         const categorias = [];
         precos.forEach(p => { if (p.material_categoria && !categorias.includes(p.material_categoria)) categorias.push(p.material_categoria); });
 
-        function gerarGridLogo(src) {
-            if (!src) return '';
-            // Marca d'agua via CSS background no container externo para evitar espaço em branco
-            return `<style>.wm-container{background-image:url('${src}');background-repeat:repeat;background-size:160px auto;background-position:0 0;}</style>`;
-        }
+        const wmStyle = logoBase64 ? `background-image:url('${logoBase64}');background-repeat:repeat;background-size:200px auto;background-position:0 0;` : '';
 
         const tituloPdf = isCompleta ? `Tabela Geral — ${titulo} (Visão Completa)` : `Tabela de ${titulo}`;
-        let html = `<div class="wm-container" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background:#fff;width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
-            ${gerarGridLogo(logoBase64)}
+        let html = `<div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background-color:#ffffff;${wmStyle}width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
             <div style="position:relative;z-index:1;">
                 <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid ${corPrimaria};padding-bottom:20px;margin-bottom:25px;">
                     <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>

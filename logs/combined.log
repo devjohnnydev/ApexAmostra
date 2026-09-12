@@ -1,0 +1,30 @@
+2026-09-11 14:34:10 [ERROR]: 💥 Erro não tratado (uncaughtException): Error: listen EADDRINUSE: address already in use :::8080
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at app.listen (C:\Users\Professor\Desktop\ApexAmostra\apextech\node_modules\express\lib\application.js:635:24)
+    at C:\Users\Professor\Desktop\ApexAmostra\apextech\server.js:5842:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-09-11 16:51:09 [ERROR]: 💥 Erro não tratado (uncaughtException): Error: listen EADDRINUSE: address already in use :::8080
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at app.listen (C:\Users\Professor\Desktop\ApexAmostra\apextech\node_modules\express\lib\application.js:635:24)
+    at C:\Users\Professor\Desktop\ApexAmostra\apextech\server.js:5842:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-09-11 21:56:15 [ERROR]: 💥 Erro não tratado (uncaughtException): ReferenceError: authenticateToken is not defined
+    at Object.<anonymous> (C:\Users\Professor\Desktop\ApexAmostra\apextech\server.js:1225:39)
+    at Module._compile (node:internal/modules/cjs/loader:1809:14)
+    at Object..js (node:internal/modules/cjs/loader:1940:10)
+    at Module.load (node:internal/modules/cjs/loader:1530:32)
+    at Module._load (node:internal/modules/cjs/loader:1332:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+2026-09-11 21:57:20 [ERROR]: 💥 Erro não tratado (uncaughtException): Error: listen EADDRINUSE: address already in use :::8080
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at app.listen (C:\Users\Professor\Desktop\ApexAmostra\apextech\node_modules\express\lib\application.js:635:24)
+    at C:\Users\Professor\Desktop\ApexAmostra\apextech\server.js:5871:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
