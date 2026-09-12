@@ -1860,6 +1860,29 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
+        // Preview Genérico de Imagens
+        document.querySelectorAll('.preview-trigger').forEach(input => {
+            const updatePreview = () => {
+                const previewId = input.dataset.preview;
+                if (!previewId) return;
+                const previewImg = document.getElementById(previewId);
+                if (!previewImg) return;
+                
+                if (input.value.trim() !== '') {
+                    previewImg.src = input.value;
+                    previewImg.style.display = 'block';
+                } else {
+                    previewImg.style.display = 'none';
+                }
+            };
+            
+            input.addEventListener('input', updatePreview);
+            input.addEventListener('change', updatePreview);
+            
+            // Initial call
+            setTimeout(updatePreview, 500); // Aguarda carregar dados
+        });
+
         // Upload Genérico de Imagens
         document.querySelectorAll('.image-file-input').forEach(fileInput => {
             fileInput.addEventListener('change', async (e) => {
