@@ -940,7 +940,7 @@ var _listTabelaPrecosEstrategica = [];
             const avgPrev5  = prev5Vals.length ? prev5Vals.reduce((a, b) => a + b, 0) / prev5Vals.length : avg;
             const momentum  = avgPrev5 ? ((avg5 - avgPrev5) / avgPrev5) * 100 : 0;
 
-            // Opportunity Score (0ÔÇô100)
+            // Opportunity Score (0\u2013100)
             const chanScore = (channelPos / 100) * 40;
             const momScore  = Math.max(0, Math.min(1, (momentum + 5) / 10)) * 30;
             const dayScore  = Math.max(0, Math.min(1, (dayChange + 2) / 4)) * 30;
@@ -1022,9 +1022,9 @@ var _listTabelaPrecosEstrategica = [];
                     <i class="fa-solid ${upIcon}"></i> ${Math.abs(s.dayChange).toFixed(2)}% hoje
                 </div>
                 <div class="kpi-footer">
-                    <span>Ôåô US$ ${fmtPrice(s.min)}</span>
+                    <span>\u2193 US$ ${fmtPrice(s.min)}</span>
                     <span style="color:#555;">|</span>
-                    <span>Ôåæ US$ ${fmtPrice(s.max)}</span>
+                    <span>\u2191 US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
@@ -1272,7 +1272,7 @@ var _listTabelaPrecosEstrategica = [];
                 type: 'bar',
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
-                    datasets: [{ label: 'Score (0ÔÇô100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
+                    datasets: [{ label: 'Score (0\u2013100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
                 },
                 options: deepMerge(baseChartOpts, { scales: { y: { min: 0, max: 100 } } })
             });
@@ -3327,7 +3327,7 @@ var _listTabelaPrecosEstrategica = [];
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? 'Ôåæ' : isDown ? 'Ôåô' : 'ÔÇô';
+                const arrow    = isUp ? '\u2191' : isDown ? '\u2193' : '\u2013';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -4045,7 +4045,7 @@ var _listTabelaPrecosEstrategica = [];
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? 'Ôåæ' : isDown ? 'Ôåô' : 'ÔÇô';
+                const arrow    = isUp ? '\u2191' : isDown ? '\u2193' : '\u2013';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
