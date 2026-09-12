@@ -4887,7 +4887,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
 
         // 1. Busca dados do mês atual
         const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
-        const { data: html } = await axios.get(targetUrl, { timeout: 15000 });
+        const { data: html } = await axios.get(targetUrl, { timeout: 15000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
         const $ = cheerio.load(html);
 
         // 2. Extrai opções de meses disponíveis
@@ -5062,7 +5062,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
 // ─── API: LME Meses Disponíveis ───────────────────────────────────────────────
 app.get('/api/lme/meses', async (req, res) => {
     try {
-        const { data: html } = await axios.get(`https://shockmetais.com.br/lme/`, { timeout: 10000 });
+        const { data: html } = await axios.get(`https://shockmetais.com.br/lme/`, { timeout: 10000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
         const $ = cheerio.load(html);
         const meses = [];
         $('#meslme option').each((i, el) => {
@@ -5375,7 +5375,7 @@ app.get('/api/lme/tabela/:mes', async (req, res) => {
 app.post('/api/lme/graflme', async (req, res) => {
     try {
         const response = await axios.post('https://shockmetais.com.br/lme/graflme', new URLSearchParams(req.body), {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         });
         res.json(response.data);
     } catch (err) {
@@ -5387,7 +5387,7 @@ app.post('/api/lme/graflme', async (req, res) => {
 app.post('/api/lme/varialme', async (req, res) => {
     try {
         const response = await axios.post('https://shockmetais.com.br/lme/varialme', new URLSearchParams(req.body), {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         });
         const $ = cheerio.load(response.data);
         const variaveis = [];
