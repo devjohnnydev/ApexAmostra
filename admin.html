@@ -1232,13 +1232,23 @@
                 </div>
 
                 <h3 style="margin-top: 40px; margin-bottom: 20px; color: var(--apex-verde); font-size: 1.2rem; border-bottom: 1px solid #333; padding-bottom: 8px;">
-                    <i class="fa-solid fa-image"></i> Personalizar Imagens dos Banners
+                    <i class="fa-solid fa-image"></i> Personalizar Imagens (Banners e Estáticas)
                 </h3>
                 <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px;">
-                    Insira o link (URL) de uma imagem para alterar o fundo do banner de cada página. Se deixar em branco, o sistema usará a imagem padrão.
+                    Insira o link (URL) ou faça o upload de uma imagem para alterar os banners ou imagens estáticas das páginas.
                 </p>
 
                 <div class="settings-grid" style="grid-template-columns: 1fr;">
+                    <div class="setting-card" style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
+                        <label style="color:#fff; font-weight:600;">Imagem: Sobre a Empresa (Exibida na Home e Sobre Nós)</label>
+                        <div style="display:flex; width: 100%; max-width: 600px; gap: 10px;">
+                            <input type="text" data-key="img_sobre_empresa" id="inp_img_sobre_empresa" class="form-input banner-url-input" placeholder="https://exemplo.com/imagem.jpg" style="flex:1; padding: 10px; border-radius: 4px; border: 1px solid var(--apex-border); background: var(--apex-dark); color: #fff;">
+                            <label class="btn-secondary" style="padding: 10px 15px; cursor:pointer; margin:0; display:flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-upload"></i> Subir Foto
+                                <input type="file" class="image-file-input" data-target="inp_img_sobre_empresa" accept="image/*" style="display:none;">
+                            </label>
+                        </div>
+                    </div>
                     <div class="setting-card" style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
                         <label style="color:#fff; font-weight:600;">Banner: Sobre Nós</label>
                         <div style="display:flex; width: 100%; max-width: 600px; gap: 10px;">
@@ -1334,8 +1344,14 @@
                         <form id="form-galeria">
                             <div class="form-group">
                                 <label for="gal-url">URL da Imagem *</label>
-                                <input type="url" id="gal-url" required placeholder="https://exemplo.com/foto.jpg">
-                                <small style="color:#888;font-size:0.78rem;display:block;margin-top:4px;">Links diretos de imagens (.jpg, .png, .webp)</small>
+                                <div style="display:flex; width: 100%; gap: 10px;">
+                                    <input type="text" id="gal-url" required placeholder="https://exemplo.com/foto.jpg" style="flex:1;">
+                                    <label class="btn-secondary" style="padding: 10px 15px; cursor:pointer; margin:0; display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                        <i class="fa-solid fa-upload"></i> Subir Foto
+                                        <input type="file" class="image-file-input" data-target="gal-url" accept="image/*" style="display:none;">
+                                    </label>
+                                </div>
+                                <small style="color:#888;font-size:0.78rem;display:block;margin-top:4px;">Links diretos ou faça upload (.jpg, .png, .webp)</small>
                             </div>
                             <div id="gal-preview" class="gal-preview-wrap" style="display:none;">
                                 <img id="gal-preview-img" src="" alt="Prévia">
@@ -1382,8 +1398,14 @@
                             </div>
                             <div class="form-group">
                                 <label for="mat-image">URL da Imagem do Produto *</label>
-                                <input type="url" id="mat-image" required placeholder="https://exemplo.com/imagem-do-produto.jpg">
-                                <small style="color:#888; font-size:0.78rem; display:block; margin-top:4px;">Insira um link direto para uma imagem (.jpg, .png, .webp, etc.)</small>
+                                <div style="display:flex; width: 100%; gap: 10px;">
+                                    <input type="text" id="mat-image" required placeholder="https://exemplo.com/imagem-do-produto.jpg" style="flex:1;">
+                                    <label class="btn-secondary" style="padding: 10px 15px; cursor:pointer; margin:0; display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                        <i class="fa-solid fa-upload"></i> Subir Foto
+                                        <input type="file" class="image-file-input" data-target="mat-image" accept="image/*" style="display:none;">
+                                    </label>
+                                </div>
+                                <small style="color:#888; font-size:0.78rem; display:block; margin-top:4px;">Insira um link direto ou faça upload (.jpg, .png, .webp, etc.)</small>
                             </div>
                             <div class="form-group">
                                 <label for="mat-desc">Descrição Geral (Aparece na aba)</label>
@@ -1424,7 +1446,13 @@
                             </div>
                             <div class="form-group">
                                 <label for="sol-img">URL do Ícone/Imagem *</label>
-                                <input type="url" id="sol-img" required placeholder="https://exemplo.com/icone.svg">
+                                <div style="display:flex; width: 100%; gap: 10px;">
+                                    <input type="text" id="sol-img" required placeholder="https://exemplo.com/icone.svg" style="flex:1;">
+                                    <label class="btn-secondary" style="padding: 10px 15px; cursor:pointer; margin:0; display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                        <i class="fa-solid fa-upload"></i> Subir Foto
+                                        <input type="file" class="image-file-input" data-target="sol-img" accept="image/*" style="display:none;">
+                                    </label>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="sol-desc">Descrição Completa *</label>

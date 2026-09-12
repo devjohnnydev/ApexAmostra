@@ -1039,6 +1039,15 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
                         }
                     });
                 });
+                });
+            }
+
+            // Atualizar imagens estáticas (Sobre a Empresa)
+            if (settings['img_sobre_empresa'] && settings['img_sobre_empresa'].trim() !== '') {
+                const imgHome = document.getElementById('img-sobre-empresa-home');
+                const imgSobre = document.getElementById('img-sobre-empresa-sobre');
+                if (imgHome) imgHome.src = settings['img_sobre_empresa'];
+                if (imgSobre) imgSobre.src = settings['img_sobre_empresa'];
             }
 
             // Carregar a galeria se estiver ativa

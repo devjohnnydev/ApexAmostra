@@ -1860,31 +1860,35 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // Upload de Imagens dos Banners
-        document.querySelectorAll('.banner-file-input').forEach(fileInput => {
+        // Upload Genérico de Imagens
+        document.querySelectorAll('.image-file-input').forEach(fileInput => {
             fileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
 
                 const targetInputId = e.target.dataset.target;
                 const targetInput = document.getElementById(targetInputId);
-                const originalPlaceholder = targetInput.placeholder;
+                const originalPlaceholder = targetInput ? targetInput.placeholder : '';
 
-                targetInput.placeholder = 'Fazendo upload...';
+                if (targetInput) targetInput.placeholder = 'Fazendo upload...';
                 
                 const formData = new FormData();
-                formData.append('bannerImage', file);
+                formData.append('imageFile', file);
 
                 try {
-                    const res = await fetch('/api/upload-banner', {
+                    const res = await fetch('/api/upload-image', {
                         method: 'POST',
                         body: formData
                     });
                     const data = await res.json();
 
                     if (res.ok && data.url) {
-                        targetInput.value = data.url;
-                        _apexNotify('Sucesso', 'Imagem enviada com sucesso! Lembre-se de salvar as configurações.', 'success');
+                        if (targetInput) {
+                            targetInput.value = data.url;
+                            // Dispara evento input caso o campo tenha algum listener (ex: preview)
+                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                        _apexNotify('Sucesso', 'Imagem enviada com sucesso! Lembre-se de salvar ou adicionar.', 'success');
                     } else {
                         throw new Error(data.error || 'Erro no upload');
                     }
@@ -1892,7 +1896,7 @@ var _listTabelaPrecosEstrategica = [];
                     console.error('Upload falhou:', err);
                     _apexNotify('Atenção', 'Erro ao enviar imagem. Verifique o tamanho (Max 10MB).', 'error');
                 } finally {
-                    targetInput.placeholder = originalPlaceholder;
+                    if (targetInput) targetInput.placeholder = originalPlaceholder;
                     e.target.value = ''; // Reset input
                 }
             });

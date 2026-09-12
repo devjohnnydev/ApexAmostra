@@ -32,19 +32,19 @@ const uploadMemory = multer({
     }
 });
 
-// ─── Multer: armazenamento em disco (fotos de banners) ──────────────────────
-const bannerStorage = multer.diskStorage({
+// ─── Multer: armazenamento em disco genérico (banners, galeria, etc) ────────────
+const diskStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, 'assets', 'img', 'banners'));
+        cb(null, path.join(__dirname, 'assets', 'img', 'uploads'));
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
-        cb(null, 'banner-' + uniqueSuffix + ext);
+        cb(null, 'img-' + uniqueSuffix + ext);
     }
 });
-const uploadBanner = multer({
-    storage: bannerStorage,
+const uploadDisk = multer({
+    storage: diskStorage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB por foto
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) cb(null, true);
@@ -4730,18 +4730,16 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-// ─── Upload de Imagem de Banner ──────────────────────────────────────────────
-app.post('/api/upload-banner', uploadBanner.single('bannerImage'), async (req, res) => {
+// ─── Upload Genérico de Imagens (Banners, Galeria, etc) ──────────────────────
+app.post('/api/upload-image', uploadDisk.single('imageFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'Nenhuma imagem enviada.' });
         }
-        // Retorna a URL da imagem (relativa a assets/img)
-        // O frontend espera URLs começando com / ou assets/
-        const fileUrl = 'assets/img/banners/' + req.file.filename;
+        const fileUrl = 'assets/img/uploads/' + req.file.filename;
         res.json({ url: fileUrl });
     } catch (e) {
-        console.error('Erro no upload do banner:', e);
+        console.error('Erro no upload de imagem:', e);
         res.status(500).json({ error: 'Erro ao processar o upload da imagem.' });
     }
 });
