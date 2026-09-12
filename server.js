@@ -1050,6 +1050,8 @@ app.use(express.static(__dirname, {
 // ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
     const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje'];
+    // Rotas de cotação LME são públicas (usadas na página cotacoes.html sem login)
+    if (req.path.startsWith('/lme/tabela') || req.path.startsWith('/lme/graflme') || req.path.startsWith('/lme/varialme')) return next();
     if (publicRoutes.includes(req.path) || req.path.startsWith('/public')) return next();
     // Rota de imagem de fotos é pública: a tag <img> do HTML não pode enviar JWT
     if (/^\/api\/amostras\/\d+\/fotos\/\d+\/img$/.test(req.path)) return next();
@@ -1154,7 +1156,8 @@ app.get('/api/estrategiav3_mix', requireRole(['Diretoria', 'Compras', 'Financeir
 app.post('/api/estrategiav3_mix', requireRole(['Diretoria']));
 app.put('/api/estrategiav3_mix/:id/realizado', requireRole(['Diretoria']));
 app.delete('/api/estrategiav3_mix/:id', requireRole(['Diretoria']));
-app.use('/api/lme', requireRole(['Diretoria', 'Compras']));
+// Nota: /api/lme/tabela, /api/lme/graflme e /api/lme/varialme são públicas (isentas no authMiddleware).
+// Rotas administrativas do LME (gerar-excel, envio, etc.) continuam exigindo login via authMiddleware.
 app.use('/api/cotacoes', requireRole(['Diretoria', 'Compras']));
 app.use('/api/fornecedores', requireRole(['Diretoria', 'Compras', 'Laboratório', 'Produção']));
 app.use('/api/clientes', requireRole(['Diretoria', 'Comercial']));
