@@ -1860,6 +1860,44 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
+        // Upload de Imagens dos Banners
+        document.querySelectorAll('.banner-file-input').forEach(fileInput => {
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const targetInputId = e.target.dataset.target;
+                const targetInput = document.getElementById(targetInputId);
+                const originalPlaceholder = targetInput.placeholder;
+
+                targetInput.placeholder = 'Fazendo upload...';
+                
+                const formData = new FormData();
+                formData.append('bannerImage', file);
+
+                try {
+                    const res = await fetch('/api/upload-banner', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.url) {
+                        targetInput.value = data.url;
+                        _apexNotify('Sucesso', 'Imagem enviada com sucesso! Lembre-se de salvar as configurações.', 'success');
+                    } else {
+                        throw new Error(data.error || 'Erro no upload');
+                    }
+                } catch(err) {
+                    console.error('Upload falhou:', err);
+                    _apexNotify('Atenção', 'Erro ao enviar imagem. Verifique o tamanho (Max 10MB).', 'error');
+                } finally {
+                    targetInput.placeholder = originalPlaceholder;
+                    e.target.value = ''; // Reset input
+                }
+            });
+        });
+
         const btnSave = document.getElementById('btn-save-settings');
         const msgEl   = document.getElementById('settings-msg');
 

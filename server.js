@@ -32,6 +32,26 @@ const uploadMemory = multer({
     }
 });
 
+// ─── Multer: armazenamento em disco (fotos de banners) ──────────────────────
+const bannerStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, 'assets', 'img', 'banners'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'banner-' + uniqueSuffix + ext);
+    }
+});
+const uploadBanner = multer({
+    storage: bannerStorage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB por foto
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('Apenas imagens são permitidas'), false);
+    }
+});
+
 // Carregar variáveis de ambiente
 dotenv.config();
 
@@ -4710,6 +4730,23 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
+// ─── Upload de Imagem de Banner ──────────────────────────────────────────────
+app.post('/api/upload-banner', uploadBanner.single('bannerImage'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Nenhuma imagem enviada.' });
+        }
+        // Retorna a URL da imagem (relativa a assets/img)
+        // O frontend espera URLs começando com / ou assets/
+        const fileUrl = 'assets/img/banners/' + req.file.filename;
+        res.json({ url: fileUrl });
+    } catch (e) {
+        console.error('Erro no upload do banner:', e);
+        res.status(500).json({ error: 'Erro ao processar o upload da imagem.' });
+    }
+});
+
+// ─── Configurações da Homepage (Settings) ────────────────────────────────────
 app.put('/api/settings', async (req, res) => {
     try {
         const settings = req.body;
