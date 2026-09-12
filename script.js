@@ -1,5 +1,5 @@
 // ============================================================
-// APEX TECH METAIS - JavaScript
+// APEXTECH METAIS - JavaScript
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return `- ${m.nome}: ${m.desc}.${locaisInfo}`;
         }).join('\n');
         
-        const systemPrompt = `Você é o assistente virtual da Apex Tech Metais, uma empresa especializada em compra e reciclagem de resíduos metálicos.
+        const systemPrompt = `Você é o assistente virtual da ApexTech Metais, uma empresa especializada em compra e reciclagem de resíduos metálicos.
 Seu papel é responder dúvidas de clientes sobre os materiais que a empresa compra, onde eles são encontrados, e como funciona o processo de venda.
 A empresa compra normalmente: Sucatas de Indústrias, Resíduos de Conectores, Sucatas de Fios e Cabos, Resíduos de Obras, Disjuntores, Motores Elétricos (Alumínio) e Coolers de Computadores.
 Além disso, a empresa também compra os seguintes materiais cadastrados:
@@ -849,7 +849,7 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
                 lmeCharts[tipoGraf].destroy();
             }
 
-            // Aplicar identidade visual da Apex Tech Metais (verde brilhante em vez de vermelho do original)
+            // Aplicar identidade visual da ApexTech Metais (verde brilhante em vez de vermelho do original)
             if (data.datasets && data.datasets[0]) {
                 data.datasets[0].borderColor = '#2AD07A';
                 data.datasets[0].backgroundColor = 'rgba(42, 208, 122, 0.04)';
@@ -1088,7 +1088,7 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
 
                 div.addEventListener('click', () => {
                     if (typeof openCatalogModal === 'function') {
-                        openCatalogModal(item.url, item.titulo, 'Apex Tech Metais - Galeria de Fotos');
+                        openCatalogModal(item.url, item.titulo, 'ApexTech Metais - Galeria de Fotos');
                     }
                 });
 
@@ -1119,5 +1119,5 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
     // Aplicar configurações da home e carregar galeria
     applyHomepageSettings();
 
-    console.log('🌿 Apex Tech Metais - Carregado com sucesso!');
+    console.log('🌿 ApexTech Metais - Carregado com sucesso!');
 });

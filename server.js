@@ -4886,7 +4886,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
         if (!mes) return res.status(400).json({ error: 'Parâmetro mes obrigatório. Ex: ?mes=6-2026' });
 
         // 1. Busca dados do mês atual
-        const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+        const targetUrl = mes === 'atual' ? 'https://shockmetais.com.br/lme/' : `https://shockmetais.com.br/lme/${mes}`;
         const { data: html } = await axios.get(targetUrl, { timeout: 15000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
         const $ = cheerio.load(html);
 
@@ -5319,27 +5319,9 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
 app.get('/api/lme/tabela/:mes', async (req, res) => {
     try {
         const mes = req.params.mes;
-        let targetUrl = mes === 'atual' ? `https://shockmetais.com.br/lme/` : `https://shockmetais.com.br/lme/${mes}`;
-        
-        let response;
-        try {
-            response = await axios.get(targetUrl, { 
-                timeout: 10000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                }
-            });
-        } catch (err) {
-            console.warn(`Erro ao buscar ${targetUrl}, tentando fallback para a home:`, err.message);
-            targetUrl = `https://shockmetais.com.br/lme/`;
-            response = await axios.get(targetUrl, {
-                timeout: 10000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                }
-            });
-        }
-        const $ = cheerio.load(response.data);
+        const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+        const { data } = await axios.get(targetUrl, { timeout: 15000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
+        const $ = cheerio.load(data);
         
         const cotacoes = [];
         $('#boxtabela table tbody tr').each((index, element) => {
@@ -5374,7 +5356,7 @@ app.get('/api/lme/tabela/:mes', async (req, res) => {
 
 app.post('/api/lme/graflme', async (req, res) => {
     try {
-        const response = await axios.post('https://shockmetais.com.br/lme/graflme', new URLSearchParams(req.body), {
+        const response = await axios.post('https://shockmetais.com.br/lme/graflme', new URLSearchParams(req.body), { timeout: 15000,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         });
         res.json(response.data);
@@ -5386,7 +5368,7 @@ app.post('/api/lme/graflme', async (req, res) => {
 
 app.post('/api/lme/varialme', async (req, res) => {
     try {
-        const response = await axios.post('https://shockmetais.com.br/lme/varialme', new URLSearchParams(req.body), {
+        const response = await axios.post('https://shockmetais.com.br/lme/varialme', new URLSearchParams(req.body), { timeout: 15000,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         });
         const $ = cheerio.load(response.data);
@@ -5413,7 +5395,8 @@ app.post('/api/lme/varialme', async (req, res) => {
     }
 });
 
-// ─── Iniciar servidor ─────────────────────────────────────────────────────────
+
+// ─── CRUD Clientes (com Paginação Server-side) ─────────────────────────────────
 app.get('/api/clientes', async (req, res) => {
     try {
         const page = parseInt(req.query.page);
