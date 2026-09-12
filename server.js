@@ -15,6 +15,7 @@ const jwt       = require('jsonwebtoken');
 const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger    = require('./config/logger');
+const cron      = require('node-cron');
 
 let JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -5079,6 +5080,354 @@ app.get('/api/lme/meses', async (req, res) => {
 });
 
 // ─── API: LME Gerar Excel (Node.js / ExcelJS — sem Python) ───────────────────
+// ─── Função interna: gera Excel LME em Buffer (usada pelo cron e pela rota) ──
+async function gerarExcelLMEBuffer(semana, mesLabel) {
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'ApexTech Metais';
+    const ws = wb.addWorksheet('TABELA LME', { pageSetup: { paperSize: 9, orientation: 'landscape' } });
+
+    const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel', 'dolar'];
+    const METAL_LABELS = ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL', 'DÓLAR'];
+    const HDR_COLORS   = ['FF0000', 'E6B8B7', 'A6A6A6', 'D9D9D9', 'B5B059', 'FFFFFF', '70AD47'];
+
+    const fontBase = { name: 'Calibri', size: 11 };
+    const bold = { ...fontBase, bold: true };
+    const boldWhite = { ...bold, color: { argb: 'FFFFFFFF' } };
+    const centerAlign = { horizontal: 'center', vertical: 'middle' };
+    const leftAlign   = { horizontal: 'left',   vertical: 'middle' };
+    const thin = { style: 'thin', color: { argb: 'FF000000' } };
+    const border = { top: thin, bottom: thin, left: thin, right: thin };
+    function fill(hex) { return { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${hex}` } }; }
+
+    ws.getColumn(1).width = 3;
+    ws.getColumn(2).width = 36;
+    METALS.forEach((_, i) => { ws.getColumn(i + 3).width = 17; });
+
+    ws.mergeCells('B1:I1');
+    const titleCell = ws.getCell('B1');
+    titleCell.value = `COTACAO VALIDA PARA A SEMANA: ${(semana.label || semana.header || '').toUpperCase()}`;
+    titleCell.font  = { name: 'Calibri', size: 16, bold: true, color: { argb: 'FF000000' } };
+    titleCell.fill  = fill('FFFF00');
+    titleCell.alignment = centerAlign;
+    titleCell.border = border;
+    ws.getRow(1).height = 30;
+    ws.getRow(2).height = 10;
+
+    ws.getRow(3).height = 20;
+    const hdrRow = ws.getRow(3);
+    hdrRow.getCell(2).value = 'DATA';
+    hdrRow.getCell(2).fill  = fill('000000');
+    hdrRow.getCell(2).font  = boldWhite;
+    hdrRow.getCell(2).alignment = centerAlign;
+    hdrRow.getCell(2).border = border;
+    METALS.forEach((_, i) => {
+        const c = hdrRow.getCell(i + 3);
+        c.value = METAL_LABELS[i]; c.fill = fill(HDR_COLORS[i]); c.font = bold; c.alignment = centerAlign; c.border = border;
+    });
+
+    const days = semana.days || [];
+    for (let i = 0; i < 5; i++) {
+        const rowNum = 4 + i;
+        ws.getRow(rowNum).height = 18;
+        const r = ws.getRow(rowNum);
+        const day = days[i] || {};
+        r.getCell(2).value = day.data || '—'; r.getCell(2).font = bold; r.getCell(2).alignment = centerAlign; r.getCell(2).border = border;
+        METALS.forEach((m, mi) => {
+            const c = r.getCell(mi + 3);
+            const v = day[m];
+            c.value = (v !== null && v !== undefined) ? v : '—'; c.font = fontBase; c.alignment = centerAlign; c.border = border;
+            if (typeof v === 'number') c.numFmt = m === 'dolar' ? '0.0000' : 'R$ #,##0.00';
+        });
+    }
+    ws.getRow(9).height = 10;
+
+    const comp = semana.computed || {};
+    const COMP_ROWS = [
+        { lbl: 'MEDIA SEMANAL',                   key: 'MEDIA SEMANAL',                    bg: 'E7E6E6', lblFont: bold,      fmt: 'R$ #,##0.00',   dolFmt: '$ 0.0000' },
+        { space: true },
+        { lbl: '100% LME',                        key: '100% LME',                         bg: 'FFFF00', lblFont: bold,      fmt: 'R$ #,##0.00',   dolFmt: '$ 0.0000' },
+        { space: true },
+        { lbl: 'SEMANA ANTERIOR',                 key: 'SEMANA ANTERIOR',                  bg: '000000', lblFont: boldWhite, fmt: 'R$ #,##0.00',   dolFmt: '$ #,##0.0000' },
+        { lbl: 'FECHAMENTO % ( SEMANA ANTERIOR )', key: 'FECHAMENTO % ( SEMANA ANTERIOR )', bg: 'FFFFFF', lblFont: { ...bold, color:{argb:'FF00B050'} }, fmt: '0.00%', dolFmt: '0.00%' },
+        { space: true },
+        { lbl: 'OSCILAÇÃO %',                     key: 'OSCILAÇÃO %',                      bg: '00B0F0', lblFont: bold,      fmt: '0.00%',          dolFmt: '0.00%' },
+        { space: true },
+        { lbl: 'OSCILAÇÃO R$',                    key: 'OSCILAÇÃO R$',                     bg: 'E2EFDA', lblFont: bold,      fmt: 'R$ #,##0.0000',  dolFmt: '$ #,##0.0000' },
+        { space: true },
+        { lbl: 'MEDIA MENSAL',                    key: 'MEDIA MENSAL',                     bg: 'A6A6A6', lblFont: bold,      fmt: 'R$ #,##0.00',   dolFmt: '$ #,##0.00' },
+    ];
+    let curRow = 10;
+    COMP_ROWS.forEach((row) => {
+        if (row.space) { ws.getRow(curRow).height = 8; curRow++; return; }
+        ws.getRow(curRow).height = 20;
+        const r = ws.getRow(curRow);
+        r.getCell(2).value = row.lbl; r.getCell(2).font = row.lblFont; r.getCell(2).fill = fill(row.bg); r.getCell(2).alignment = centerAlign; r.getCell(2).border = border;
+        const vals = comp[row.key] || {};
+        METALS.forEach((m, mi) => {
+            const c = r.getCell(mi + 3);
+            const v = vals[m];
+            c.fill = fill(row.bg); c.font = bold; c.alignment = centerAlign; c.border = border;
+            if (['FECHAMENTO % ( SEMANA ANTERIOR )', 'OSCILAÇÃO %', 'OSCILAÇÃO R$'].includes(row.key) && v !== null && v !== undefined)
+                c.font = { ...bold, color: { argb: v >= 0 ? 'FF00B050' : 'FFFF0000' } };
+            if (row.key === 'OSCILAÇÃO R$' && v !== null && v !== undefined) {
+                const arrow = v >= 0 ? '⬆ ' : '⬇ ';
+                const pre = m === 'dolar' ? '$ ' : 'R$ ';
+                c.value = `${arrow}${v < 0 ? '-' : ''}${pre}${Math.abs(v).toFixed(4).replace('.', ',')}`; c.numFmt = '@';
+            } else if (v !== null && v !== undefined) {
+                c.value = v; c.numFmt = m === 'dolar' ? row.dolFmt : row.fmt;
+            } else { c.value = '—'; }
+        });
+        curRow++;
+    });
+
+    curRow += 2;
+    ws.getRow(curRow).height = 20;
+    const sumHdr = ws.getRow(curRow);
+    sumHdr.getCell(2).value = 'TIPO'; sumHdr.getCell(2).fill = fill('A6A6A6'); sumHdr.getCell(2).font = bold; sumHdr.getCell(2).alignment = centerAlign; sumHdr.getCell(2).border = border;
+    METALS.forEach((_, i) => { const c = sumHdr.getCell(i + 3); c.value = METAL_LABELS[i]; c.fill = fill('A6A6A6'); c.font = bold; c.alignment = centerAlign; c.border = border; });
+    curRow++;
+    [{ lbl: 'SEMANA ANTERIOR', key: 'SEMANA ANTERIOR', fmt: 'R$ #,##0.00', dolFmt: '0.00', bg: 'D9E1F2' },
+     { lbl: 'LME ATUAL',       key: '100% LME',        fmt: 'R$ #,##0.00', dolFmt: '0.00', bg: 'FFF2CC' }].forEach(row => {
+        ws.getRow(curRow).height = 20;
+        const r = ws.getRow(curRow);
+        r.getCell(2).value = row.lbl; r.getCell(2).font = { ...fontBase, italic: true }; r.getCell(2).fill = fill(row.bg); r.getCell(2).alignment = leftAlign; r.getCell(2).border = border;
+        const vals = comp[row.key] || {};
+        METALS.forEach((m, mi) => {
+            const c = r.getCell(mi + 3); const v = vals[m];
+            c.fill = fill(row.bg); c.font = fontBase; c.alignment = centerAlign; c.border = border;
+            if (v !== null && v !== undefined) { c.value = v; c.numFmt = m === 'dolar' ? row.dolFmt : row.fmt; } else c.value = '—';
+        }); curRow++;
+    });
+
+    ws.getRow(curRow).height = 20;
+    const oscRow2 = ws.getRow(curRow);
+    oscRow2.getCell(2).value = 'Oscilacao'; oscRow2.getCell(2).font = { ...bold, italic: true }; oscRow2.getCell(2).alignment = leftAlign; oscRow2.getCell(2).border = border;
+    const oscVals2 = comp['OSCILAÇÃO R$'] || {};
+    METALS.forEach((m, mi) => {
+        const c = oscRow2.getCell(mi + 3); const v = oscVals2[m];
+        c.alignment = centerAlign; c.border = border;
+        if (v !== null && v !== undefined) {
+            const arrow = v >= 0 ? '⬆' : '⬇';
+            const pre = m === 'dolar' ? '$ ' : 'R$ ';
+            c.value = `${arrow} ${v < 0 ? '-' : ''}${pre}${Math.abs(v).toFixed(4).replace('.', ',')}`;
+            c.font = { ...bold, color: { argb: v >= 0 ? 'FF00B050' : 'FFFF0000' } };
+        } else { c.value = '—'; c.font = fontBase; }
+    });
+
+    return wb.xlsx.writeBuffer();
+}
+
+// ─── Função: busca dados e envia relatório LME por e-mail ─────────────────────
+async function disparaEmailLME() {
+    try {
+        console.log('📧 [LME CRON] Iniciando envio automático do relatório LME...');
+
+        // 1. Buscar configurações
+        let settingsObj = {};
+        if (dbAvailable) {
+            const result = await pool.query('SELECT `key`, value FROM settings');
+            result[0].forEach(r => { settingsObj[r.key] = r.value; });
+        } else {
+            settingsObj = memStore.settings || {};
+        }
+
+        const resendKey = settingsObj.lme_resend_api_key || process.env.RESEND_API_KEY || null;
+        const fromEmail = settingsObj.lme_resend_from   || process.env.RESEND_FROM   || 'noreply@apextechmetais.com.br';
+
+        if (!resendKey) {
+            console.warn('⚠️ [LME CRON] Envio cancelado: API Key do Resend não configurada.');
+            return;
+        }
+
+        // 2. Buscar destinatários
+        let destinatarios = [];
+        if (dbAvailable) {
+            const [rows] = await pool.query("SELECT email, nome FROM lme_destinatarios WHERE tipo = 'lme'");
+            destinatarios = rows;
+        } else {
+            destinatarios = (memStore.lme_destinatarios || []).filter(d => !d.tipo || d.tipo === 'lme');
+        }
+        if (destinatarios.length === 0) {
+            console.warn('⚠️ [LME CRON] Envio cancelado: nenhum destinatário cadastrado.');
+            return;
+        }
+
+        // 3. Buscar dados da semana atual via shockmetais
+        const { data: html } = await axios.get('https://shockmetais.com.br/lme/', {
+            timeout: 15000,
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+        });
+        const $ = cheerio.load(html);
+
+        // Helper functions (same as relatorio-semanal route)
+        function parseNum(str) {
+            if (!str || str.trim() === '' || /feriado/i.test(str)) return null;
+            return parseFloat(str.replace(/[^0-9,.\-]/g, '').replace(',', '.')) || null;
+        }
+        function parseDate(str, year) {
+            const m = str.match(/(\d+)\/(\w+)/);
+            if (!m) return null;
+            const months = { Jan:0,Fev:1,Mar:2,Abr:3,Mai:4,Jun:5,Jul:6,Ago:7,Set:8,Out:9,Nov:10,Dez:11 };
+            const mon = months[m[2]];
+            if (mon === undefined) return null;
+            return new Date(Number(year), mon, Number(m[1]));
+        }
+        function weekKey(d) {
+            const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+            return `${tmp.getUTCFullYear()}-W${String(Math.ceil(((tmp - yearStart) / 86400000 + 1) / 7)).padStart(2, '0')}`;
+        }
+        function avg(arr) { const v = arr.filter(x => x !== null && x !== undefined); return v.length ? v.reduce((a,b) => a+b, 0) / v.length : null; }
+
+        const year = String(new Date().getFullYear());
+        const dailyRows = [];
+        $('#boxtabela table tbody tr').each((i, el) => {
+            const tds = $(el).find('td');
+            if (tds.length < 8) return;
+            if ($(tds[0]).hasClass('lmemedia') || $(tds[0]).hasClass('lmemensal')) return;
+            const diaStr = $(tds[0]).text().trim();
+            const dateObj = parseDate(diaStr, year);
+            if (!dateObj) return;
+            dailyRows.push({
+                data: diaStr, dateObj,
+                cobre: parseNum($(tds[1]).text()),    zinco:    parseNum($(tds[2]).text()),
+                aluminio: parseNum($(tds[3]).text()), chumbo:   parseNum($(tds[4]).text()),
+                estanho: parseNum($(tds[5]).text()),  niquel:   parseNum($(tds[6]).text()),
+                dolar: parseNum($(tds[7]).text()),
+            });
+        });
+
+        if (dailyRows.length === 0) {
+            console.warn('⚠️ [LME CRON] Nenhum dado LME encontrado para gerar o relatório.');
+            return;
+        }
+
+        const METALS_CALC = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
+        const weekMap = new Map();
+        dailyRows.forEach(row => {
+            const wk = weekKey(row.dateObj);
+            if (!weekMap.has(wk)) weekMap.set(wk, []);
+            weekMap.get(wk).push(row);
+        });
+
+        const allWeekLME = {};
+        weekMap.forEach((days, wk) => {
+            const entry = {};
+            METALS_CALC.forEach(m => {
+                const mm = avg(days.map(d => d[m]));
+                const md = avg(days.map(d => d.dolar));
+                entry[m] = (mm !== null && md !== null) ? (mm * md) / 1000 : null;
+            });
+            entry.dolar = avg(days.map(d => d.dolar));
+            allWeekLME[wk] = entry;
+        });
+
+        const sortedWeeks = [...weekMap.keys()].sort();
+        // Pegar a semana mais recente
+        const latestWk = sortedWeeks[sortedWeeks.length - 1];
+        const latestDays = weekMap.get(latestWk);
+        const prevWk = sortedWeeks.length > 1 ? sortedWeeks[sortedWeeks.length - 2] : null;
+        const prevPrevWk = sortedWeeks.length > 2 ? sortedWeeks[sortedWeeks.length - 3] : null;
+        const prevLME = prevWk ? allWeekLME[prevWk] : null;
+        const prevPrevLME = prevPrevWk ? allWeekLME[prevPrevWk] : null;
+
+        const mediaSemanal = {};
+        METALS_CALC.forEach(m => { mediaSemanal[m] = avg(latestDays.map(d => d[m])); });
+        mediaSemanal.dolar = avg(latestDays.map(d => d.dolar));
+
+        const lme100 = {};
+        METALS_CALC.forEach(m => {
+            lme100[m] = (mediaSemanal[m] !== null && mediaSemanal.dolar !== null) ? (mediaSemanal[m] * mediaSemanal.dolar) / 1000 : null;
+        });
+        lme100.dolar = mediaSemanal.dolar;
+
+        const semanaAnterior = {};
+        METALS_CALC.forEach(m => { semanaAnterior[m] = prevLME ? prevLME[m] : null; });
+        semanaAnterior.dolar = prevLME ? prevLME.dolar : null;
+
+        const oscRS = {};
+        METALS_CALC.forEach(m => { oscRS[m] = (lme100[m] !== null && semanaAnterior[m] !== null) ? lme100[m] - semanaAnterior[m] : null; });
+        oscRS.dolar = (lme100.dolar !== null && semanaAnterior.dolar !== null) ? lme100.dolar - semanaAnterior.dolar : null;
+
+        const oscPct = {};
+        METALS_CALC.forEach(m => { oscPct[m] = (oscRS[m] !== null && semanaAnterior[m]) ? oscRS[m] / semanaAnterior[m] : null; });
+        oscPct.dolar = (oscRS.dolar !== null && semanaAnterior.dolar) ? oscRS.dolar / semanaAnterior.dolar : null;
+
+        const fechamentoPct = {};
+        METALS_CALC.forEach(m => {
+            fechamentoPct[m] = (prevLME && prevPrevLME && prevLME[m] !== null && prevPrevLME[m]) ? (prevLME[m] - prevPrevLME[m]) / prevPrevLME[m] : null;
+        });
+        fechamentoPct.dolar = (prevLME && prevPrevLME && prevLME.dolar !== null && prevPrevLME.dolar) ? (prevLME.dolar - prevPrevLME.dolar) / prevPrevLME.dolar : null;
+
+        const mediaMensalLME = {};
+        METALS_CALC.forEach(m => {
+            const vals = Object.values(allWeekLME).map(e => e[m]).filter(v => v !== null);
+            mediaMensalLME[m] = vals.length ? avg(vals) : null;
+        });
+        mediaMensalLME.dolar = avg(dailyRows.map(d => d.dolar).filter(v => v !== null));
+
+        const daysDisplay = [];
+        for (let i = 0; i < 5; i++) {
+            daysDisplay.push(latestDays[i] ? { ...latestDays[i] } : { data: '—', cobre: null, zinco: null, aluminio: null, chumbo: null, estanho: null, niquel: null, dolar: null });
+        }
+
+        const firstDate = latestDays[0].data;
+        const lastDate  = latestDays[latestDays.length - 1].data;
+        const semana = {
+            label: `${firstDate} → ${lastDate}`,
+            header: firstDate,
+            days: daysDisplay,
+            computed: {
+                'MEDIA SEMANAL':                    mediaSemanal,
+                '100% LME':                         lme100,
+                'SEMANA ANTERIOR':                  semanaAnterior,
+                'FECHAMENTO % ( SEMANA ANTERIOR )': fechamentoPct,
+                'OSCILAÇÃO %':                      oscPct,
+                'OSCILAÇÃO R$':                     oscRS,
+                'MEDIA MENSAL':                     mediaMensalLME,
+            }
+        };
+
+        // 4. Gerar Excel em Buffer
+        const excelBuffer = await gerarExcelLMEBuffer(semana);
+        const now = new Date();
+        const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+        const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.xlsx`;
+
+        // 5. Enviar via Resend
+        const { Resend } = require('resend');
+        const resend = new Resend(resendKey);
+
+        const emailList = destinatarios.map(d => d.email);
+        await resend.emails.send({
+            from: fromEmail,
+            to: emailList,
+            subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
+            html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+            attachments: [{
+                filename: fileName,
+                content: Buffer.from(excelBuffer).toString('base64'),
+            }],
+        });
+
+        console.log(`✅ [LME CRON] Relatório enviado com sucesso para: ${emailList.join(', ')}`);
+    } catch (err) {
+        console.error('❌ [LME CRON] Erro ao enviar relatório LME:', err.message);
+    }
+}
+
+// ─── Rota: Disparar e-mail LME manualmente (teste) ───────────────────────────
+app.post('/api/lme/enviar-agora', async (req, res) => {
+    try {
+        await disparaEmailLME();
+        res.json({ success: true, message: 'Relatório LME disparado com sucesso.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/lme/gerar-excel', async (req, res) => {
     try {
         const ExcelJS = require('exceljs');
@@ -5870,11 +6219,46 @@ app.get('/api/admin/run-import-fornecedores', (req, res) => {
 app.use('/api/pcp', require('./src/routes/pcp')(pool, dbAvailable, memStore));
 
 if (process.env.NODE_ENV !== 'test') {
-    initDatabase().then(() => {
+    initDatabase().then(async () => {
         app.listen(PORT, () => {
             console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
             console.log(`📦 Modo de dados: MySQL`);
         });
+
+        // ─── CRON: Envio automático do Relatório LME ─────────────────────────────
+        // Verifica a cada minuto se chegou a hora configurada
+        cron.schedule('* * * * *', async () => {
+            try {
+                // Lê configurações atuais do banco
+                let settingsObj = {};
+                if (dbAvailable) {
+                    const result = await pool.query('SELECT `key`, value FROM settings');
+                    result[0].forEach(r => { settingsObj[r.key] = r.value; });
+                } else {
+                    settingsObj = memStore.settings || {};
+                }
+
+                if (settingsObj.lme_envio_ativo !== 'true') return; // Envio desativado
+
+                const horario = settingsObj.lme_envio_horario || '14:00'; // ex: '14:00'
+                const diasAtivos = (settingsObj.lme_envio_dias || '1,2,3,4,5').split(',').map(Number);
+
+                const agora = new Date();
+                const horaAtual = `${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}`;
+                const diaAtual = agora.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
+
+                if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
+                    console.log(`⏰ [LME CRON] Horário de disparo atingido: ${horario} (dia ${diaAtual}). Enviando...`);
+                    await disparaEmailLME();
+                }
+            } catch (err) {
+                console.error('❌ [LME CRON] Erro no cron de verificação:', err.message);
+            }
+        }, {
+            timezone: 'America/Sao_Paulo'
+        });
+
+        console.log('⏰ [LME CRON] Agendador de e-mail LME iniciado (verifica a cada minuto, fuso: America/Sao_Paulo)');
     });
 }
 
