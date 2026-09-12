@@ -5773,7 +5773,7 @@ var _listTabelaPrecosEstrategica = [];
                     <!-- Diretrizes -->
                     <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                            ÔÜá´©Å Diretrizes Gerais de Compra
+                            📋 Diretrizes Gerais de Compra
                         </h4>
                         <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
@@ -5878,10 +5878,10 @@ var _listTabelaPrecosEstrategica = [];
         html += `
                     <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555;">
                         <div style="font-weight: bold; color: #1e4e8c; font-size: 0.95rem;">
-                            Ô£à Aprovado pelo CEO Jose Tiago
+                            ✅ Aprovado pelo CEO Jose Tiago
                         </div>
                         <div style="text-align: right; color: #888;">
-                            Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}
+                            Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}
                         </div>
                     </div>
                 </div>
@@ -7624,18 +7624,12 @@ var _listTabelaPrecosEstrategica = [];
 
         function gerarGridLogo(src) {
             if (!src) return '';
-            const cols = isCompleta ? 6 : 4, rows = 16;
-            let g = '<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">';
-            for (let r = 0; r < rows; r++) {
-                g += '<div style="display:flex;justify-content:space-around;align-items:center;padding:18px 0;">';
-                for (let c = 0; c < cols; c++) g += `<img src="${src}" alt="" style="width:140px;opacity:0.07;transform:rotate(-20deg);display:block;flex-shrink:0;" />`;
-                g += '</div>';
-            }
-            return g + '</div>';
+            // Marca d'agua via CSS background no container externo para evitar espaço em branco
+            return `<style>.wm-container{background-image:url('${src}');background-repeat:repeat;background-size:160px auto;background-position:0 0;}</style>`;
         }
 
         const tituloPdf = isCompleta ? `Tabela Geral — ${titulo} (Visão Completa)` : `Tabela de ${titulo}`;
-        let html = `<div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background:#fff;width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
+        let html = `<div class="wm-container" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background:#fff;width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
             ${gerarGridLogo(logoBase64)}
             <div style="position:relative;z-index:1;">
                 <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid ${corPrimaria};padding-bottom:20px;margin-bottom:25px;">
@@ -7646,7 +7640,7 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                 </div>
                 <div style="background:#f4f7fa;border-left:5px solid ${corPrimaria};border-radius:4px;padding:15px;margin-bottom:30px;">
-                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">ÔÜá´©Å Diretrizes Gerais de Compra</h4>
+                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">📋 Diretrizes Gerais de Compra</h4>
                     <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                         <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                         <li>OBS: Variação de preço conforme atualização de mercado.</li>
@@ -7718,8 +7712,8 @@ var _listTabelaPrecosEstrategica = [];
                     </tbody></table></div>`;
         });
         html += `<div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-            <div style="font-weight:bold;color:${corPrimaria};font-size:0.95rem;">Ô£à Aprovado pelo CEO Jose Tiago</div>
-            <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+            <div style="font-weight:bold;color:${corPrimaria};font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
+            <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
         </div></div></div>`;
         return html;
     }
@@ -9890,7 +9884,7 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                     </div>
                     <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">ÔÜá´©Å Diretrizes Gerais de Compra — Resíduos</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">📋 Diretrizes Gerais de Compra — Resíduos</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
@@ -9981,8 +9975,8 @@ var _listTabelaPrecosEstrategica = [];
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">Ô£à Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -10082,7 +10076,7 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                     </div>
                     <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">ÔÜá´©Å Diretrizes Gerais de Compra — Ligas</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">📋 Diretrizes Gerais de Compra — Ligas</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
@@ -10173,8 +10167,8 @@ var _listTabelaPrecosEstrategica = [];
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">Ô£à Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ÔÇó Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
