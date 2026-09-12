@@ -1104,12 +1104,12 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
             }
 
         } catch (err) {
-            console.error('Erro ao carregar galeria:', err);
-            grid.innerHTML = `
-                <div class="galeria-loading text-center" style="color: #ff4d4d;">
-                    <i class="fa-solid fa-circle-xmark"></i> Erro ao carregar as fotos da galeria.
-                </div>
-            `;
+            console.warn('Erro ao carregar galeria via API:', err);
+            // Fallback para não mostrar erro feio em produção, ocultando a seção:
+            const sectionGaleria = document.getElementById('galeria');
+            if (sectionGaleria) {
+                sectionGaleria.style.display = 'none';
+            }
         }
     }
 
