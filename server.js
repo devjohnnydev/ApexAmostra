@@ -1056,6 +1056,22 @@ app.get('/api/db-test', async (req, res) => {
     }
 });
 
+// Endpoint: Tabelas Geral
+app.get('/api/tabelas-geral', async (req, res) => {
+    try {
+        if (dbAvailable && pool) {
+            const [rows] = await pool.query('SHOW TABLES');
+            const tabelas = rows.map(r => Object.values(r)[0]);
+            res.json({ status: 'ok', source: 'mysql', count: tabelas.length, tabelas });
+        } else {
+            const tabelas = Object.keys(memStore);
+            res.json({ status: 'ok', source: 'memStore', count: tabelas.length, tabelas });
+        }
+    } catch (err) {
+        res.status(500).json({ status: 'error', error: err.message });
+    }
+});
+
 // ─── Arquivos Estáticos ───────────────────────────────────────────────────────
 // Desabilita cache agressivo de arquivos estáticos para que atualizações apareçam instantaneamente
 app.use(express.static(__dirname, {
