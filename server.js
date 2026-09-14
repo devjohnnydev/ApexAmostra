@@ -5408,8 +5408,9 @@ async function disparaEmailLME() {
             settingsObj = memStore.settings || {};
         }
 
-        const resendKey = settingsObj.lme_resend_api_key || process.env.RESEND_API_KEY || null;
-        const fromEmail = settingsObj.lme_resend_from   || process.env.RESEND_FROM   || 'noreply@apextechmetais.com.br';
+        const resendKey = process.env.RESEND_API_KEY || null;
+        const envFrom = process.env.RESEND_FROM || 'noreply@apextechmetais.com.br';
+        const fromEmail = envFrom.includes('<') ? envFrom : `Apextech Metais <${envFrom}>`;
 
         if (!resendKey) {
             console.warn('⚠️ [LME CRON] Envio cancelado: API Key do Resend não configurada.');

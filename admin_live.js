@@ -2215,23 +2215,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const schedHorario  = document.getElementById('sched-horario');
         const formScheduler = document.getElementById('form-scheduler-config');
 
-        const resendApiKey  = document.getElementById('resend-api-key');
-        const resendFrom    = document.getElementById('resend-from');
-        const formResend    = document.getElementById('form-resend-config');
-        const btnToggleKey  = document.getElementById('btn-toggle-resend-key');
-        
-        if (btnToggleKey && resendApiKey) {
-            btnToggleKey.addEventListener('click', () => {
-                if (resendApiKey.type === 'password') {
-                    resendApiKey.type = 'text';
-                    btnToggleKey.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
-                } else {
-                    resendApiKey.type = 'password';
-                    btnToggleKey.innerHTML = '<i class="fa-solid fa-eye"></i>';
-                }
-            });
-        }
-
         const btnEnviarTest = document.getElementById('btn-enviar-teste-lme');
         const testEmailMsg  = document.getElementById('test-email-msg');
 
@@ -2255,9 +2238,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diasStr = settings.lme_envio_dias !== undefined ? settings.lme_envio_dias : '1,2,3,4,5';
                 const diasArr = diasStr.split(',');
                 document.querySelectorAll('.sched-dia').forEach(chk => { chk.checked = diasArr.includes(chk.value); });
-
-                if (resendApiKey) resendApiKey.value = settings.lme_resend_api_key || '';
-                if (resendFrom) resendFrom.value = settings.lme_resend_from || 'josetiago@lme.lat';
 
                 loadDestinatariosLME();
             } catch (err) {
@@ -2328,17 +2308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        if (formResend) {
-            formResend.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const data = {
-                    lme_resend_api_key: resendApiKey.value.trim(),
-                    lme_resend_from:    resendFrom.value.trim()
-                };
-                const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', '✅ Resend API salvo com sucesso!', 'info');
-            });
-        }
+
 
         if (btnEnviarTest) {
             btnEnviarTest.addEventListener('click', async () => {
