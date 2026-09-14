@@ -2723,7 +2723,7 @@ app.post('/api/tabela-precos/enviar-email', async (req, res) => {
         const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, '');
 
         for (const dest of destinatarios) {
-            await resend.emails.send({
+            const sendResult = await resend.emails.send({
                 from: fromEmail,
                 to: dest,
                 subject: `📊 Tabela de Preços (${modo || 'Geral'}) - Apextech Metais`,
@@ -2733,6 +2733,9 @@ app.post('/api/tabela-precos/enviar-email', async (req, res) => {
                     content: base64Data,
                 }],
             });
+            if (sendResult.error) {
+                throw new Error(sendResult.error.message);
+            }
         }
 
         res.json({ success: true, message: 'E-mail enviado com sucesso para ' + destinatarios.length + ' destinatário(s).' });
@@ -2832,12 +2835,15 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
 
 
         for (const dest of destinatarios) {
-            await resend.emails.send({
+            const sendResult = await resend.emails.send({
                 from: fromEmail,
                 to: dest,
                 subject: `[APEXTECH] Análise ${amostra.numero_amostra} — Aguardando Decisão de Compra`,
                 html
             });
+            if (sendResult.error) {
+                throw new Error(sendResult.error.message);
+            }
         }
         console.log(`📧 E-mail de laudo enviado para ${destinatarios.length} destinatário(s).`);
         res.json({ success: true, enviado: true, destinatarios });
@@ -5511,7 +5517,7 @@ async function disparaEmailLME() {
         const resend = new Resend(resendKey);
 
         const emailList = destinatarios.map(d => d.email);
-        await resend.emails.send({
+        const sendResult = await resend.emails.send({
             from: fromEmail,
             to: emailList,
             subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
@@ -5521,6 +5527,10 @@ async function disparaEmailLME() {
                 content: Buffer.from(excelBuffer).toString('base64'),
             }],
         });
+        
+        if (sendResult.error) {
+            throw new Error(sendResult.error.message);
+        }
 
         console.log(`✅ [LME CRON] Relatório enviado com sucesso para: ${emailList.join(', ')}`);
     } catch (err) {
