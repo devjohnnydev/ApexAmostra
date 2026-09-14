@@ -2475,23 +2475,95 @@ var _listTabelaPrecosEstrategica = [];
             btnEnviarTest.addEventListener('click', async () => {
                 testEmailMsg.style.display = 'block';
                 testEmailMsg.style.color = '#fff';
-                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando e-mail...';
+                testEmailMsg.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando PDF e enviando e-mail...';
                 btnEnviarTest.disabled = true;
 
+                const captureArea = document.getElementById('capture-area');
+                if (!captureArea) {
+                    testEmailMsg.style.color = '#ff4d4d';
+                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro: Relatório não carregado.';
+                    btnEnviarTest.disabled = false;
+                    return;
+                }
+
+                // Mostrar rodapé
+                const nowTs = new Date();
+                const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    + ' às ' + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const rodape = document.getElementById('rel-rodape');
+                if (rodape) {
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
+                    rodape.style.display = 'block';
+                }
+
+                const logoImg = captureArea.querySelector('.rel-logo img');
+                let originalSrc = '';
+                if (logoImg && logoImg.src.endsWith('.svg')) {
+                    try {
+                        originalSrc = logoImg.src;
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = logoImg.naturalWidth || 400;
+                        tempCanvas.height = logoImg.naturalHeight || 133;
+                        const tCtx = tempCanvas.getContext('2d');
+                        tCtx.fillStyle = '#ffffff';
+                        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                        tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
+                        logoImg.src = tempCanvas.toDataURL('image/png');
+                    } catch (svgErr) {
+                        console.warn('Erro SVG:', svgErr);
+                        if (originalSrc) { logoImg.src = originalSrc; originalSrc = ''; }
+                    }
+                }
+
+                const originalWidth = captureArea.style.width;
+                const originalMaxWidth = captureArea.style.maxWidth;
+                captureArea.style.width = '800px';
+                captureArea.style.maxWidth = 'none';
+
+                await new Promise(r => setTimeout(r, 100));
+
                 try {
-                    const res = await fetch('/api/lme/enviar-agora', { method: 'POST' });
+                    const canvas = await html2canvas(captureArea, {
+                        scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false,
+                        scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 800
+                    });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const { jsPDF } = window.jspdf;
+                    const pdfWidthMm = 210;
+                    const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
+                    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pdfWidthMm, pdfHeightMm] });
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
+                    
+                    const base64Pdf = btoa(pdf.output());
+
+                    let dataStr = '';
+                    if (currentSelectedWeek && currentSelectedWeek.days && currentSelectedWeek.days.length > 0) {
+                        const dStr = currentSelectedWeek.days[0].data;
+                        if (dStr) dataStr = dStr.replace(/\//g, '-');
+                    }
+
+                    const res = await fetch('/api/lme/enviar-agora-pdf', { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pdfBase64: base64Pdf, dataStr })
+                    });
                     const result = await res.json();
+                    
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório enviado!');
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório PDF enviado!');
                     } else {
                         testEmailMsg.style.color = '#ff4d4d';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro.');
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro ao enviar.');
                     }
                 } catch (err) {
                     testEmailMsg.style.color = '#ff4d4d';
-                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro de rede.';
+                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro: ' + err.message;
                 } finally {
+                    if (originalSrc) logoImg.src = originalSrc;
+                    captureArea.style.width = originalWidth;
+                    captureArea.style.maxWidth = originalMaxWidth;
+                    if (rodape) rodape.style.display = 'none';
                     btnEnviarTest.disabled = false;
                 }
             });
