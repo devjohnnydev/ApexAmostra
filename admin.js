@@ -4213,6 +4213,9 @@ var _listTabelaPrecosEstrategica = [];
 
         function applyRolePermissions() {
 
+        const rawRole = currentSimulatedRole || '';
+        const role = String(rawRole).trim().toLowerCase();
+
         // Controle do novo menu Administrador Master
         const masterMenu = document.getElementById('nav-item-admin-master');
         if (masterMenu) {
@@ -4222,9 +4225,6 @@ var _listTabelaPrecosEstrategica = [];
                 masterMenu.style.display = 'none';
             }
         }
-
-        const rawRole = currentSimulatedRole || '';
-        const role = String(rawRole).trim().toLowerCase();
 
         // Se por acaso as permissoes ainda nao carregaram ou o role nao existir, falha fechado
         let permissoes = globalRolePermissions[rawRole] || [];
