@@ -5594,8 +5594,10 @@ async function disparaEmailLME() {
         }
 
         console.log(`✅ [LME CRON] Relatório enviado com sucesso para: ${emailList.join(', ')}`);
+        return true;
     } catch (err) {
         console.error('❌ [LME CRON] Erro ao enviar relatório LME:', err.message);
+        throw err; // RE-THROW PARA A ROTA PEGAR
     }
 }
 
