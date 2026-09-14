@@ -5334,66 +5334,6 @@ async function gerarExcelLMEBuffer(semana, mesLabel) {
     return wb.xlsx.writeBuffer();
 }
 
-async function gerarPdfLMEBuffer() {
-    const puppeteer = require('puppeteer');
-    const jwt = require('jsonwebtoken');
-    const SECRET_KEY = process.env.JWT_SECRET || 'apex-secret-key-2024';
-    const port = process.env.PORT || 8080; 
-    const url = `http://127.0.0.1:${port}`;
-    
-    const token = jwt.sign({ id: 1, role: 'master' }, SECRET_KEY, { expiresIn: '5m' });
-
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
-    try {
-        const page = await browser.newPage();
-        
-        await page.goto(`${url}/login.html`, { waitUntil: 'domcontentloaded' });
-        await page.evaluate((t) => {
-            localStorage.setItem('token', t);
-            localStorage.setItem('user', JSON.stringify({ id: 1, nome: 'Puppeteer', role: 'master' }));
-        }, token);
-
-        await page.goto(`${url}/admin.html#relatorio-diario`, { waitUntil: 'networkidle0', timeout: 30000 });
-
-        await page.waitForSelector('#capture-area .rel-table-container', { timeout: 15000 });
-        
-        // Wait for chart animations
-        await new Promise(r => setTimeout(r, 2000));
-
-        await page.evaluate(() => {
-            const captureArea = document.getElementById('capture-area');
-            if (captureArea) {
-                captureArea.style.width = '800px';
-                captureArea.style.maxWidth = 'none';
-            }
-        });
-
-        const dimensions = await page.evaluate(() => {
-            const el = document.getElementById('capture-area');
-            return {
-                width: 800,
-                height: el ? el.scrollHeight : 1200
-            };
-        });
-
-        const pdfBuffer = await page.pdf({
-            printBackground: true,
-            width: `${dimensions.width}px`,
-            height: `${dimensions.height}px`,
-            pageRanges: '1',
-            margin: { top: 0, right: 0, bottom: 0, left: 0 }
-        });
-
-        return pdfBuffer;
-    } finally {
-        await browser.close();
-    }
-}
-
 // ─── Função: busca dados e envia relatório LME por e-mail ─────────────────────
 async function disparaEmailLME() {
     try {
@@ -5567,11 +5507,11 @@ async function disparaEmailLME() {
             }
         };
 
-        // 4. Gerar PDF via Puppeteer
-        const pdfBuffer = await gerarPdfLMEBuffer();
+        // 4. Gerar Excel em Buffer (O automático usa Excel devido a limitações do servidor)
+        const excelBuffer = await gerarExcelLMEBuffer(semana);
         const now = new Date();
         const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-        const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.pdf`;
+        const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.xlsx`;
 
         // 5. Enviar via Resend
         const { Resend } = require('resend');
@@ -5585,7 +5525,7 @@ async function disparaEmailLME() {
             html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
             attachments: [{
                 filename: fileName,
-                content: Buffer.from(pdfBuffer).toString('base64'),
+                content: Buffer.from(excelBuffer).toString('base64'),
             }],
         });
         
@@ -5607,6 +5547,52 @@ app.post('/api/lme/enviar-agora', async (req, res) => {
         await disparaEmailLME();
         res.json({ success: true, message: 'Relatório LME disparado com sucesso.' });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
+    try {
+        const { pdfBase64, dataStr } = req.body;
+        if (!pdfBase64) return res.status(400).json({ error: 'PDF não fornecido.' });
+
+        // Buscar destinatários
+        let destinatarios = [];
+        if (dbAvailable) {
+            const [rows] = await pool.query("SELECT email FROM lme_destinatarios WHERE tipo = 'lme'");
+            destinatarios = rows;
+        } else {
+            destinatarios = (memStore.lme_destinatarios || []).filter(d => !d.tipo || d.tipo === 'lme');
+        }
+
+        if (destinatarios.length === 0) return res.status(400).json({ error: 'Nenhum destinatário.' });
+
+        const { Resend } = require('resend');
+        const resendKey = process.env.RESEND_API_KEY || null;
+        if (!resendKey) return res.status(500).json({ error: 'API Key do Resend não configurada.' });
+        
+        const resend = new Resend(resendKey);
+        const envFrom = process.env.RESEND_FROM || 'noreply@apextechmetais.com.br';
+        const fromEmail = envFrom.includes('<') ? envFrom : `Apextech Metais <${envFrom}>`;
+
+        const now = new Date();
+        const dateTitle = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+
+        const sendResult = await resend.emails.send({
+            from: fromEmail,
+            to: destinatarios.map(d => d.email),
+            subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateTitle}`,
+            html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME gerado manualmente hoje.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+            attachments: [{
+                filename: `LME-ApexTech-${dataStr || dateTitle.replace(/\//g,'-')}.pdf`,
+                content: pdfBase64,
+            }],
+        });
+
+        if (sendResult.error) throw new Error(sendResult.error.message);
+        res.json({ success: true, message: 'PDF enviado com sucesso!' });
+    } catch (err) {
+        console.error('❌ [LME PDF] Erro:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
