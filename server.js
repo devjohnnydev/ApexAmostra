@@ -5334,6 +5334,66 @@ async function gerarExcelLMEBuffer(semana, mesLabel) {
     return wb.xlsx.writeBuffer();
 }
 
+async function gerarPdfLMEBuffer() {
+    const puppeteer = require('puppeteer');
+    const jwt = require('jsonwebtoken');
+    const SECRET_KEY = process.env.JWT_SECRET || 'apex-secret-key-2024';
+    const port = process.env.PORT || 8080; 
+    const url = `http://127.0.0.1:${port}`;
+    
+    const token = jwt.sign({ id: 1, role: 'master' }, SECRET_KEY, { expiresIn: '5m' });
+
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    try {
+        const page = await browser.newPage();
+        
+        await page.goto(`${url}/login.html`, { waitUntil: 'domcontentloaded' });
+        await page.evaluate((t) => {
+            localStorage.setItem('token', t);
+            localStorage.setItem('user', JSON.stringify({ id: 1, nome: 'Puppeteer', role: 'master' }));
+        }, token);
+
+        await page.goto(`${url}/admin.html#relatorio-diario`, { waitUntil: 'networkidle0', timeout: 30000 });
+
+        await page.waitForSelector('#capture-area .rel-table-container', { timeout: 15000 });
+        
+        // Wait for chart animations
+        await new Promise(r => setTimeout(r, 2000));
+
+        await page.evaluate(() => {
+            const captureArea = document.getElementById('capture-area');
+            if (captureArea) {
+                captureArea.style.width = '800px';
+                captureArea.style.maxWidth = 'none';
+            }
+        });
+
+        const dimensions = await page.evaluate(() => {
+            const el = document.getElementById('capture-area');
+            return {
+                width: 800,
+                height: el ? el.scrollHeight : 1200
+            };
+        });
+
+        const pdfBuffer = await page.pdf({
+            printBackground: true,
+            width: `${dimensions.width}px`,
+            height: `${dimensions.height}px`,
+            pageRanges: '1',
+            margin: { top: 0, right: 0, bottom: 0, left: 0 }
+        });
+
+        return pdfBuffer;
+    } finally {
+        await browser.close();
+    }
+}
+
 // ─── Função: busca dados e envia relatório LME por e-mail ─────────────────────
 async function disparaEmailLME() {
     try {
@@ -5506,11 +5566,11 @@ async function disparaEmailLME() {
             }
         };
 
-        // 4. Gerar Excel em Buffer
-        const excelBuffer = await gerarExcelLMEBuffer(semana);
+        // 4. Gerar PDF via Puppeteer
+        const pdfBuffer = await gerarPdfLMEBuffer();
         const now = new Date();
         const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-        const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.xlsx`;
+        const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.pdf`;
 
         // 5. Enviar via Resend
         const { Resend } = require('resend');
@@ -5524,7 +5584,7 @@ async function disparaEmailLME() {
             html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
             attachments: [{
                 filename: fileName,
-                content: Buffer.from(excelBuffer).toString('base64'),
+                content: Buffer.from(pdfBuffer).toString('base64'),
             }],
         });
         
