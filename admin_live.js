@@ -2348,7 +2348,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnEnviarTest.disabled = true;
 
                 try {
-                    const res = await fetch('/api/lme/enviar-email-manual', { method: 'POST' });
+                    const res = await fetch('/api/lme/enviar-agora', { method: 'POST' });
                     const result = await res.json();
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';

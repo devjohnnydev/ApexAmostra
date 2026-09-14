@@ -2683,6 +2683,65 @@ app.delete('/api/amostras/:id/fotos/:fotoId', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── API: Enviar Tabela de Preços por E-mail ──────────────────────────────────
+app.post('/api/tabela-precos/enviar-email', async (req, res) => {
+    try {
+        const { pdfBase64, modo, email } = req.body;
+        
+        let settingsObj = {};
+        if (dbAvailable) {
+            const sr = await pool.query('SELECT key, value FROM settings');
+            sr[0].forEach(r => { settingsObj[r.key] = r.value; });
+        } else {
+            Object.assign(settingsObj, memStore.settings || {});
+        }
+        const resendKey = settingsObj.lme_resend_api_key || process.env.RESEND_API_KEY || null;
+        if (!resendKey) {
+             return res.status(500).json({ error: 'Chave API do Resend não configurada.' });
+        }
+        
+        let destinatarios = [];
+        if (email) {
+            destinatarios.push(email);
+        } else {
+            if (dbAvailable) {
+                const dr = await pool.query("SELECT email FROM lme_destinatarios WHERE tipo = 'tabela' OR tipo IS NULL");
+                destinatarios = dr[0].map(r => r.email);
+            } else {
+                destinatarios = (memStore.lme_destinatarios || []).map(d => d.email);
+            }
+        }
+        
+        if (destinatarios.length === 0) {
+            return res.status(400).json({ error: 'Nenhum destinatário encontrado para o envio.' });
+        }
+        
+        const { Resend } = require('resend');
+        const resend = new Resend(resendKey);
+        const fromEmail = settingsObj.lme_resend_from || process.env.RESEND_FROM || 'tabela@apextechmetais.com.br';
+        
+        const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, '');
+
+        for (const dest of destinatarios) {
+            await resend.emails.send({
+                from: fromEmail,
+                to: dest,
+                subject: `📊 Tabela de Preços (${modo || 'Geral'}) - Apextech Metais`,
+                html: `<p>Olá,</p><p>Segue em anexo a Tabela de Preços referente a <strong>${modo || 'Geral'}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+                attachments: [{
+                    filename: `Tabela_Precos_${modo || 'Geral'}.pdf`,
+                    content: base64Data,
+                }],
+            });
+        }
+
+        res.json({ success: true, message: 'E-mail enviado com sucesso para ' + destinatarios.length + ' destinatário(s).' });
+    } catch (err) {
+        console.error('Erro ao enviar tabela de preços por e-mail:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── API: Enviar E-mail do Laudo ao Diretor (disparo após análise técnica) ─────
 app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
     try {
