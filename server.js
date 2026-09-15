@@ -4834,7 +4834,7 @@ app.put('/api/settings', async (req, res) => {
         if (dbAvailable) {
             for (const [key, value] of Object.entries(settings)) {
                 await pool.query(
-                    'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = ?',
+                    'INSERT INTO settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)',
                     [key, String(value)]
                 );
             }
