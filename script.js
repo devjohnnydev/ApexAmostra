@@ -1039,7 +1039,6 @@ Responda de forma curta, amigável e profissional. Use o português do Brasil. N
                         }
                     });
                 });
-                });
             }
 
             // Atualizar imagens estáticas (Sobre a Empresa)
