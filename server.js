@@ -5000,6 +5000,26 @@ app.delete('/api/lme/destinatarios/:id', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ─── Cache em memória para LME (TTL: 10 minutos) ────────────────────────────
+const lmeCache = new Map(); // key -> { data, ts }
+const LME_CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+
+async function fetchLMEWithCache(url) {
+    const now = Date.now();
+    const cached = lmeCache.get(url);
+    if (cached && (now - cached.ts) < LME_CACHE_TTL) {
+        console.log('[LME CACHE] HIT ->', url);
+        return cached.data;
+    }
+    console.log('[LME CACHE] MISS ->', url);
+    const { data } = await axios.get(url, {
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+    });
+    lmeCache.set(url, { data, ts: now });
+    return data;
+}
+
 app.get('/api/lme/relatorio-semanal', async (req, res) => {
     try {
         const mes = req.query.mes; // ex: "6-2026"
@@ -5007,7 +5027,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
 
         // 1. Busca dados do mês atual
         const targetUrl = mes === 'atual' ? 'https://shockmetais.com.br/lme/' : `https://shockmetais.com.br/lme/${mes}`;
-        const { data: html } = await axios.get(targetUrl, { timeout: 15000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
+        const html = await fetchLMEWithCache(targetUrl);
         const $ = cheerio.load(html);
 
         // 2. Extrai opções de meses disponíveis
@@ -5182,7 +5202,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
 // ─── API: LME Meses Disponíveis ───────────────────────────────────────────────
 app.get('/api/lme/meses', async (req, res) => {
     try {
-        const { data: html } = await axios.get(`https://shockmetais.com.br/lme/`, { timeout: 10000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
+        const html = await fetchLMEWithCache('https://shockmetais.com.br/lme/');
         const $ = cheerio.load(html);
         const meses = [];
         $('#meslme option').each((i, el) => {
@@ -5841,8 +5861,8 @@ app.get('/api/lme/tabela/:mes', async (req, res) => {
     try {
         const mes = req.params.mes;
         const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
-        const { data } = await axios.get(targetUrl, { timeout: 15000, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
-        const $ = cheerio.load(data);
+        const html = await fetchLMEWithCache(targetUrl);
+        const $ = cheerio.load(html);
         
         const cotacoes = [];
         $('#boxtabela table tbody tr').each((index, element) => {
