@@ -2552,18 +2552,8 @@ var _listTabelaPrecosEstrategica = [];
                     
                     const base64Pdf = btoa(pdf.output());
 
-                    let dataStr = '';
-                    try {
-                        // Tenta pegar a data do seletor de relatório (escopo externo pode não existir)
-                        const relDays = document.querySelectorAll('.rel-table-container .day-label');
-                        if (relDays && relDays.length > 0) {
-                            dataStr = relDays[0].textContent.trim().replace(/\//g, '-');
-                        }
-                    } catch (_) {}
-                    if (!dataStr) {
-                        const now = new Date();
-                        dataStr = `${String(now.getDate()).padStart(2,'0')}-${String(now.getMonth()+1).padStart(2,'0')}-${now.getFullYear()}`;
-                    }
+                    const now = new Date();
+                    const dataStr = `${String(now.getDate()).padStart(2,'0')}-${String(now.getMonth()+1).padStart(2,'0')}-${now.getFullYear()}`;
 
                     const res = await fetch('/api/lme/enviar-agora-pdf', { 
                         method: 'POST',
