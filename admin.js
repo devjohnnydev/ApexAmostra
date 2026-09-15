@@ -2486,6 +2486,17 @@ var _listTabelaPrecosEstrategica = [];
                     return;
                 }
 
+                // Desocultar todas as divs pai (tabs) temporariamente para o html2canvas conseguir ler o tamanho
+                const hiddenParents = [];
+                let curr = captureArea;
+                while (curr && curr !== document.body) {
+                    if (window.getComputedStyle(curr).display === 'none') {
+                        hiddenParents.push({ el: curr, oldDisplay: curr.style.display });
+                        curr.style.display = 'block';
+                    }
+                    curr = curr.parentElement;
+                }
+
                 // Mostrar rodapé
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -2520,13 +2531,18 @@ var _listTabelaPrecosEstrategica = [];
                 captureArea.style.width = '800px';
                 captureArea.style.maxWidth = 'none';
 
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 150));
 
                 try {
                     const canvas = await html2canvas(captureArea, {
                         scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false,
                         scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 800
                     });
+                    
+                    if (canvas.width === 0 || canvas.height === 0) {
+                        throw new Error('html2canvas gerou imagem 0x0. A aba está oculta?');
+                    }
+
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
                     const pdfWidthMm = 210;
@@ -2560,6 +2576,9 @@ var _listTabelaPrecosEstrategica = [];
                     testEmailMsg.style.color = '#ff4d4d';
                     testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro: ' + err.message;
                 } finally {
+                    // Restaurar abas ocultas
+                    hiddenParents.forEach(item => { item.el.style.display = item.oldDisplay; });
+
                     if (originalSrc) logoImg.src = originalSrc;
                     captureArea.style.width = originalWidth;
                     captureArea.style.maxWidth = originalMaxWidth;
