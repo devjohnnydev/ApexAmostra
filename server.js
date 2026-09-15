@@ -5860,7 +5860,7 @@ app.post('/api/lme/gerar-excel', async (req, res) => {
 app.get('/api/lme/tabela/:mes', async (req, res) => {
     try {
         const mes = req.params.mes;
-        const targetUrl = `https://shockmetais.com.br/lme/${mes}`;
+        const targetUrl = mes === 'atual' ? 'https://shockmetais.com.br/lme/' : `https://shockmetais.com.br/lme/${mes}`;
         const html = await fetchLMEWithCache(targetUrl);
         const $ = cheerio.load(html);
         
