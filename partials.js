@@ -202,7 +202,7 @@
   /* ─── HTML do Chatbot e Widgets Flutuantes ─── */
   const widgetsHTML = `
 <!-- Chatbot Container -->
-<div class="chatbot-container" id="chatbot-container">
+<div class="chatbot-container" id="chatbot-container" style="display: none !important;">
     <div class="chatbot-header">
         <div class="chatbot-avatar">
             <img src="assets/img/avatar.png" alt="IA">
@@ -224,7 +224,7 @@
     </div>
 </div>
 
-<button class="chatbot-toggle" id="chatbot-toggle">
+<button class="chatbot-toggle" id="chatbot-toggle" style="display: none !important;">
     <img src="assets/img/avatar.png" alt="IA" class="toggle-avatar">
 </button>
 
