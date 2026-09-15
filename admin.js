@@ -2553,9 +2553,16 @@ var _listTabelaPrecosEstrategica = [];
                     const base64Pdf = btoa(pdf.output());
 
                     let dataStr = '';
-                    if (currentSelectedWeek && currentSelectedWeek.days && currentSelectedWeek.days.length > 0) {
-                        const dStr = currentSelectedWeek.days[0].data;
-                        if (dStr) dataStr = dStr.replace(/\//g, '-');
+                    try {
+                        // Tenta pegar a data do seletor de relatório (escopo externo pode não existir)
+                        const relDays = document.querySelectorAll('.rel-table-container .day-label');
+                        if (relDays && relDays.length > 0) {
+                            dataStr = relDays[0].textContent.trim().replace(/\//g, '-');
+                        }
+                    } catch (_) {}
+                    if (!dataStr) {
+                        const now = new Date();
+                        dataStr = `${String(now.getDate()).padStart(2,'0')}-${String(now.getMonth()+1).padStart(2,'0')}-${now.getFullYear()}`;
                     }
 
                     const res = await fetch('/api/lme/enviar-agora-pdf', { 
