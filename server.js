@@ -6434,7 +6434,8 @@ if (process.env.NODE_ENV !== 'test') {
                 const horario = settingsObj.lme_envio_horario || '14:00'; // ex: '14:00'
                 const diasAtivos = (settingsObj.lme_envio_dias || '1,2,3,4,5').split(',').map(Number);
 
-                const agora = new Date();
+                const agoraLocal = new Date();
+                const agora = new Date(agoraLocal.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
                 const horaAtual = `${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}`;
                 const diaAtual = agora.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
 
