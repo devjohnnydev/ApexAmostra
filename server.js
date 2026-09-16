@@ -5543,11 +5543,83 @@ async function disparaEmailLME() {
             }
         };
 
-        // 4. Gerar Excel em Buffer (O automático usa Excel devido a limitações do servidor)
-        const excelBuffer = await gerarExcelLMEBuffer(semana);
+        // 4. Gerar PDF via Puppeteer (sempre PDF, nunca Excel)
         const now = new Date();
         const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-        const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.xlsx`;
+        const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.pdf`;
+
+        const fmt = (v, dec=2) => v !== null && v !== undefined ? Number(v).toFixed(dec) : '—';
+        const pct = (v) => v !== null && v !== undefined ? `${(v*100).toFixed(2)}%` : '—';
+        const metals = ['cobre','zinco','aluminio','chumbo','estanho','niquel'];
+        const metalLabels = { cobre:'Cobre', zinco:'Zinco', aluminio:'Alumínio', chumbo:'Chumbo', estanho:'Estanho', niquel:'Níquel' };
+
+        const tableRows = (obj, key, formatter=fmt) => metals.map(m =>
+            `<td>${formatter(obj[key] ? obj[key][m] : null)}</td>`
+        ).join('') + `<td>${formatter(obj[key] ? obj[key].dolar : null)}</td>`;
+
+        const computedKeys = [
+            { label: 'MÉDIA SEMANAL', key: 'MEDIA SEMANAL', fmt: fmt },
+            { label: '100% LME (R$)', key: '100% LME', fmt: fmt },
+            { label: 'SEMANA ANTERIOR', key: 'SEMANA ANTERIOR', fmt: fmt },
+            { label: 'FECHAMENTO %', key: 'FECHAMENTO % ( SEMANA ANTERIOR )', fmt: pct },
+            { label: 'OSCILAÇÃO %', key: 'OSCILAÇÃO %', fmt: pct },
+            { label: 'OSCILAÇÃO R$', key: 'OSCILAÇÃO R$', fmt: fmt },
+            { label: 'MÉDIA MENSAL', key: 'MEDIA MENSAL', fmt: fmt },
+        ];
+
+        const pdfHtml = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10px; color: #222; margin: 20px; }
+  h1 { color: #0a4a2f; font-size: 16px; margin-bottom: 4px; }
+  h2 { color: #0a4a2f; font-size: 12px; margin: 14px 0 4px; }
+  .subtitle { color: #555; font-size: 10px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  th { background: #0a4a2f; color: #fff; padding: 5px 6px; text-align: center; font-size: 9px; }
+  td { border: 1px solid #ccc; padding: 4px 6px; text-align: center; }
+  tr:nth-child(even) td { background: #f5f5f5; }
+  .label-col { text-align: left; font-weight: bold; background: #e8f5ee; }
+  .footer { margin-top: 20px; font-size: 9px; color: #888; border-top: 1px solid #ddd; padding-top: 6px; }
+</style>
+</head>
+<body>
+<h1>📊 Relatório LME – Apextech Metais</h1>
+<div class="subtitle">Semana: <strong>${semana.label}</strong> &nbsp;|&nbsp; Gerado em: <strong>${dateStr}</strong></div>
+
+<h2>Cotações Diárias (US$/t)</h2>
+<table>
+<tr><th>Data</th>${metals.map(m=>`<th>${metalLabels[m]}</th>`).join('')}<th>Dólar</th></tr>
+${semana.days.map(d=>`<tr><td>${d.data}</td>${metals.map(m=>`<td>${fmt(d[m])}</td>`).join('')}<td>${fmt(d.dolar)}</td></tr>`).join('')}
+</table>
+
+<h2>Consolidado Semanal</h2>
+<table>
+<tr><th>Indicador</th>${metals.map(m=>`<th>${metalLabels[m]}</th>`).join('')}<th>Dólar</th></tr>
+${computedKeys.map(ck=>`<tr>
+  <td class="label-col">${ck.label}</td>
+  ${metals.map(m=>`<td>${ck.fmt(semana.computed[ck.key] ? semana.computed[ck.key][m] : null)}</td>`).join('')}
+  <td>${ck.fmt(semana.computed[ck.key] ? semana.computed[ck.key].dolar : null)}</td>
+</tr>`).join('')}
+</table>
+
+<div class="footer">Apextech Metais – Indústria e Comércio de Resíduos Ltda &nbsp;|&nbsp; apextechmetais.com.br</div>
+</body></html>`;
+
+        let pdfBuffer;
+        try {
+            const puppeteer = require('puppeteer');
+            const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'], headless: true });
+            const page = await browser.newPage();
+            await page.setContent(pdfHtml, { waitUntil: 'networkidle0' });
+            pdfBuffer = await page.pdf({ format: 'A4', margin: { top:'15mm', bottom:'15mm', left:'10mm', right:'10mm' }, printBackground: true });
+            await browser.close();
+        } catch(pdfErr) {
+            console.error('❌ [LME CRON] Erro Puppeteer, fallback para Excel:', pdfErr.message);
+            // Fallback para Excel se Puppeteer falhar
+            const excelBuffer = await gerarExcelLMEBuffer(semana);
+            pdfBuffer = excelBuffer;
+            fileName = fileName.replace('.pdf', '.xlsx');
+        }
 
         // 5. Enviar via Resend
         const { Resend } = require('resend');
@@ -5562,7 +5634,7 @@ async function disparaEmailLME() {
             html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
             attachments: [{
                 filename: fileName,
-                content: Buffer.from(excelBuffer).toString('base64'),
+                content: Buffer.from(pdfBuffer).toString('base64'),
             }],
         });
         
