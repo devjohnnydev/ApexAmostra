@@ -156,12 +156,15 @@
 
         <!-- Sidebar -->
         <aside class="sidebar" id="main-sidebar">
-            <div class="sidebar-header" style="position:relative;">
-                <button type="button" id="btn-toggle-desktop-sidebar" onclick="toggleDesktopSidebar()" title="Recolher/Expandir Menu" style="position:absolute; right:10px; top:12px; background:rgba(42,208,122,0.15); border:1px solid rgba(42,208,122,0.4); color:#2AD07A; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; z-index:10;">
-                    <i class="fa-solid fa-chevron-left" id="sidebar-toggle-icon"></i>
-                </button>
-                <img src="assets/img/logo-apextech.svg" alt="ApexTech Metais" class="sidebar-logo" style="max-width:140px; margin-bottom:6px; filter: brightness(0) invert(1); transition: opacity 0.2s;">
-                <p class="sidebar-subtitle" style="color: #555; font-size: 0.78rem; margin-top: 4px;">Painel Administrativo</p>
+            <div class="sidebar-header">
+                <!-- Linha topo: logo + botão toggle lado a lado -->
+                <div class="sidebar-header-top">
+                    <img src="assets/img/logo-apextech.svg" alt="ApexTech Metais" class="sidebar-logo" style="max-width:140px; filter: brightness(0) invert(1); transition: max-width 0.3s ease, opacity 0.2s;">
+                    <button type="button" id="btn-toggle-desktop-sidebar" onclick="toggleDesktopSidebar()" title="Recolher/Expandir Menu" style="flex-shrink:0; background:rgba(42,208,122,0.15); border:1px solid rgba(42,208,122,0.4); color:#2AD07A; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s;">
+                        <i class="fa-solid fa-chevron-left" id="sidebar-toggle-icon"></i>
+                    </button>
+                </div>
+                <p class="sidebar-subtitle" style="color: #555; font-size: 0.78rem; margin-top: 0;">Painel Administrativo</p>
             </div>
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-target="dashboard" data-tooltip="Análises LME">
