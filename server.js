@@ -4833,7 +4833,7 @@ app.post('/api/upload-image', uploadMemory.single('imageFile'), async (req, res)
         }
         const b64 = Buffer.from(req.file.buffer).toString('base64');
         const mimeType = req.file.mimetype;
-        const fileUrl = \`data:\${mimeType};base64,\${b64}\`;
+        const fileUrl = `data:${mimeType};base64,${b64}`;
         res.json({ url: fileUrl });
     } catch (e) {
         console.error('Erro no upload de imagem:', e);
