@@ -5542,7 +5542,8 @@ async function disparaEmailLME() {
         const emailList = destinatarios.map(d => d.email);
         const sendResult = await resend.emails.send({
             from: fromEmail,
-            to: emailList,
+            to: [envFrom],
+            bcc: emailList,
             subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
             html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
             attachments: [{
@@ -5602,7 +5603,8 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
 
         const sendResult = await resend.emails.send({
             from: fromEmail,
-            to: destinatarios.map(d => d.email),
+            to: [envFrom],
+            bcc: destinatarios.map(d => d.email),
             subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateTitle}`,
             html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME gerado manualmente hoje.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
             attachments: [{

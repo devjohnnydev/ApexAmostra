@@ -1,4 +1,4 @@
-var _listMetasEstrategicas = [];
+﻿var _listMetasEstrategicas = [];
 var _listTabelaPrecosEstrategica = [];
 
 // DOMContentLoaded wrapper removed
@@ -9,7 +9,7 @@ var _listTabelaPrecosEstrategica = [];
         return null;
     };
 
-    // ─── TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) ──────────────────────────────
+    // â”€â”€â”€ TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.toggleDesktopSidebar = function(forceState) {
         const container = document.getElementById('admin-dashboard-container');
         const icon = document.getElementById('sidebar-toggle-icon');
@@ -49,14 +49,14 @@ var _listTabelaPrecosEstrategica = [];
         }
     } catch(e) {}
 
-    // ─── Utilitário global: formata número no padrão brasileiro com 2 casas ───
+    // â”€â”€â”€ Utilitário global: formata número no padrão brasileiro com 2 casas â”€â”€â”€
     window.fmtBRL = function(val) {
         const n = parseFloat(val);
         if (isNaN(n)) return '0,00';
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
-    // ─── SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) ────────
+    // â”€â”€â”€ SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) â”€â”€â”€â”€â”€â”€â”€â”€
     // Tipos: 'success' | 'error' | 'info' | 'warning'
     window._apexNotify = function(titulo, mensagem, tipo) {
         tipo = tipo || 'info';
@@ -67,10 +67,10 @@ var _listTabelaPrecosEstrategica = [];
         if (!overlay) { _apexNotify('Sistema', titulo + (mensagem ? '\n' + mensagem : ''), 'info'); return; }
 
         const configs = {
-            success: { icon:'Ô£à', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
-            error:   { icon:'ÔØî', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
-            warning: { icon:'ÔÜá´©Å', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
-            info:    { icon:'Ôä╣´©Å', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
+            success: { icon:'ÔÂ£Ã ', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
+            error:   { icon:'ÔÃ˜î', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            warning: { icon:'ÔÜáÂ´Â©Ã…', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
+            info:    { icon:'ÔÃ¤â•£Â´Â©Ã…', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
         };
         const cfg = configs[tipo] || configs.info;
 
@@ -95,7 +95,7 @@ var _listTabelaPrecosEstrategica = [];
     document.getElementById('_apex_notify_overlay')?.addEventListener('click', function(e) {
         if (e.target === this) window._apexNotifyClose();
     });
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
     window.formatarDataSemFuso = function(dStr) {
@@ -112,7 +112,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ─── Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ───
+    // â”€â”€â”€ Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown â”€â”€â”€
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' || e.keyCode === 27) {
             const drop = document.getElementById('pedido-cliente-dropdown');
@@ -149,16 +149,16 @@ var _listTabelaPrecosEstrategica = [];
 
     let globalRolePermissions = {};
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // LOGIN
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // NAVEGAÇÃO
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const navItems = document.querySelectorAll('.nav-item[data-target]');
     const sections = document.querySelectorAll('.view-section');
 
@@ -229,9 +229,9 @@ var _listTabelaPrecosEstrategica = [];
         });
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // INIT ADMIN
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.initAdmin = async function initAdmin() {
         try {
             const res = await fetch('/api/settings');
@@ -329,7 +329,7 @@ var _listTabelaPrecosEstrategica = [];
         let activeMetals = new Set(['cobre','zinco','aluminio','chumbo','estanho','niquel','dolar']);
         let allMetalsOn = true;
 
-        // ─── HELPERS ────────────────────────────────────────────────────
+        // â”€â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function showLoading() {
             if (loadingDiv)  { loadingDiv.style.display  = 'flex'; }
             if (errorDiv)    { errorDiv.style.display    = 'none'; }
@@ -347,7 +347,7 @@ var _listTabelaPrecosEstrategica = [];
             if (previewWrap) { previewWrap.style.display = 'block'; }
         }
 
-        // ─── LOAD DATA ──────────────────────────────────────────────────
+        // â”€â”€â”€ LOAD DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         async function loadWeeks(mesOverride = null) {
             showLoading();
             try {
@@ -387,7 +387,7 @@ var _listTabelaPrecosEstrategica = [];
                 
                 selector.innerHTML = excelWeeks.map(w => {
                     const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '—';
-                    return `<option value="${w.header}">Semana ${w.header} ÔåÆ ${lastDay}</option>`;
+                    return `<option value="${w.header}">Semana ${w.header} ÔÃ¥Ã† ${lastDay}</option>`;
                 }).join('');
 
                 renderPreview(excelWeeks[0].header);
@@ -397,7 +397,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         }
 
-        // ─── RENDER PREVIEW TABLE ────────────────────────────────────────
+        // â”€â”€â”€ RENDER PREVIEW TABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const formatVal = (v, formatType) => {
             if (v === null || v === undefined) return '—';
             if (v === 'feriado') return '<span class="excel-feriado">feriado</span>';
@@ -560,7 +560,7 @@ var _listTabelaPrecosEstrategica = [];
             showTable();
         }
 
-        // ─── EVENT LISTENERS ─────────────────────────────────────────────
+        // â”€â”€â”€ EVENT LISTENERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         filterMes.addEventListener('change', () => {
             loadWeeks(filterMes.value);
         });
@@ -603,7 +603,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
 
-        // ── PDF Download ──
+        // â”€â”€ PDF Download â”€â”€
         if (btnDownloadPdf) {
             btnDownloadPdf.addEventListener('click', () => {
                 const val = selector.value;
@@ -670,7 +670,7 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // ─── INITIAL LOAD ────────────────────────────────────────────────
+        // â”€â”€â”€ INITIAL LOAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         await loadWeeks();
     }
 
@@ -696,7 +696,7 @@ var _listTabelaPrecosEstrategica = [];
 
     function parsePrice(str) {
         if (!str || str === '—' || str === '-' || str.trim() === '') return null;
-        // Brazilian format: "9.234,56" ÔåÆ 9234.56
+        // Brazilian format: "9.234,56" ÔÃ¥Ã† 9234.56
         const cleaned = str.replace(/\./g, '').replace(',', '.');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
@@ -739,7 +739,7 @@ var _listTabelaPrecosEstrategica = [];
         return output;
     }
 
-    // ─── Init LME Dashboard ────────────────────────────────────────────────────
+    // â”€â”€â”€ Init LME Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function initLMEDashboard() {
         const mesSel   = document.getElementById('mes-selector');
         const btnRefresh = document.getElementById('btn-refresh-lme');
@@ -898,7 +898,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ─── Compute Stats ─────────────────────────────────────────────────────────
+    // â”€â”€â”€ Compute Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function computeStats(data) {
         const stats = {};
         const latest = data[data.length - 1];
@@ -963,7 +963,7 @@ var _listTabelaPrecosEstrategica = [];
         return stats;
     }
 
-    // ─── Render All ────────────────────────────────────────────────────────────
+    // â”€â”€â”€ Render All â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function renderAllAnalyses(data, stats) {
         renderKPICards(stats);                         // Nova 01 (Antiga 01)
         renderTrendChart(data, activeMetalFilter);     // Nova 02 (Antiga 05)
@@ -993,7 +993,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 01: KPI Cards + Sinalizadores ──
+    // â”€â”€ ANÃLISE 01: KPI Cards + Sinalizadores â”€â”€
     function renderKPICards(stats) {
         const container = document.getElementById('kpi-cards');
         if (!container) return;
@@ -1030,7 +1030,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ── ANÁLISE 02: Noble Basket Index ──
+    // â”€â”€ ANÃLISE 02: Noble Basket Index â”€â”€
     function renderNobleBasket(data, stats) {
         const nbiVals = data.map(row => {
             let v = 0, ok = true;
@@ -1089,7 +1089,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ── ANÁLISE 03: Canal de Preços ──
+    // â”€â”€ ANÃLISE 03: Canal de Preços â”€â”€
     function renderChannelBars(stats) {
         const el = document.getElementById('canal-bars');
         if (!el) return;
@@ -1118,7 +1118,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ── ANÁLISE 05: Tendência de Preços ──
+    // â”€â”€ ANÃLISE 05: Tendência de Preços â”€â”€
     function renderTrendChart(data, metal) {
         destroyChart('trendChart');
         const ctx = document.getElementById('trendChart');
@@ -1147,7 +1147,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 06: Variação Diária ──
+    // â”€â”€ ANÃLISE 06: Variação Diária â”€â”€
     function renderDailyVariation(stats) {
         destroyChart('varDiariaChart');
         const ctx = document.getElementById('varDiariaChart');
@@ -1191,7 +1191,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ── ANÁLISE 07: Volatilidade ──
+    // â”€â”€ ANÃLISE 07: Volatilidade â”€â”€
     function renderVolatility(stats) {
         destroyChart('volatChart');
         const ctx = document.getElementById('volatChart');
@@ -1224,7 +1224,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 08: Ranking de Performance ──
+    // â”€â”€ ANÃLISE 08: Ranking de Performance â”€â”€
     function renderRanking(stats) {
         const el = document.getElementById('ranking-container');
         if (!el) return;
@@ -1234,13 +1234,13 @@ var _listTabelaPrecosEstrategica = [];
             .map(m => ({ m, chg: stats[m].monthChange, s: stats[m] }))
             .sort((a, b) => b.chg - a.chg);
 
-        const medals = ['­ƒÑç', '­ƒÑê', '­ƒÑë'];
+        const medals = ['Â­Æ’Ñç', 'Â­Æ’Ñê', 'Â­Æ’ÑÃ«'];
         el.innerHTML = ranked.map((item, i) => {
             const isPos = item.chg >= 0;
             const barW  = Math.min(100, Math.abs(item.chg) * 10);
             return `
             <div class="rank-item ${i === 0 ? 'rank-first' : ''}">
-                <span class="rank-pos">${medals[i] || (i + 1) + '┬║'}</span>
+                <span class="rank-pos">${medals[i] || (i + 1) + 'â”¬â•‘'}</span>
                 <div class="rank-bar-wrap">
                     <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
                         <strong style="color:${METAL_COLORS[item.m]};font-size:0.95rem;">${METAL_LABELS[item.m]}</strong>
@@ -1251,7 +1251,7 @@ var _listTabelaPrecosEstrategica = [];
                     <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:7px;overflow:hidden;">
                         <div style="height:100%;width:${barW}%;background:${isPos ? '#2AD07A' : '#ff4d4d'};border-radius:4px;transition:width 1s;"></div>
                     </div>
-                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês ÔåÆ Hoje</small>
+                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês ÔÃ¥Ã† Hoje</small>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="color:#aaa;font-size:0.8rem;">US$ ${fmtPrice(item.s.current)}</div>
@@ -1261,7 +1261,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ── ANÁLISE 09: Score de Oportunidade ──
+    // â”€â”€ ANÃLISE 09: Score de Oportunidade â”€â”€
     function renderOpportunityScore(stats) {
         destroyChart('scoreChart');
         const ctx = document.getElementById('scoreChart');
@@ -1285,7 +1285,7 @@ var _listTabelaPrecosEstrategica = [];
                 const s = stats[m];
                 const sc = s.score;
                 const color = sc >= 75 ? '#ff4d4d' : sc >= 55 ? '#ff9900' : sc >= 35 ? '#ffcc00' : '#2AD07A';
-                const label = sc >= 75 ? '­ƒö┤ VENDER AGORA' : sc >= 55 ? '­ƒƒá ATENÇÃO' : sc >= 35 ? '­ƒƒí RETER' : '­ƒƒó ACUMULAR';
+                const label = sc >= 75 ? 'Â­Æ’Ã¶â”¤ VENDER AGORA' : sc >= 55 ? 'Â­Æ’Æ’á ATENÇÃO' : sc >= 35 ? 'Â­Æ’Æ’í RETER' : 'Â­Æ’Æ’ó ACUMULAR';
                 return `
                 <div class="score-item">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1301,7 +1301,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ── ANÁLISE 05: Semana Atual vs Anterior ──
+    // â”€â”€ ANÃLISE 05: Semana Atual vs Anterior â”€â”€
     function renderWeekComparison(stats) {
         destroyChart('semanaChart');
         const ctx = document.getElementById('semanaChart');
@@ -1436,7 +1436,7 @@ var _listTabelaPrecosEstrategica = [];
             })
         });
 
-        // ── Render directional badges below the chart ──
+        // â”€â”€ Render directional badges below the chart â”€â”€
         const badges = document.getElementById('semana-badges');
         if (!badges) return;
         badges.innerHTML = METALS.map((m, i) => {
@@ -1468,7 +1468,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ── ANÁLISE 11: Melhor Dia da Semana ──
+    // â”€â”€ ANÃLISE 11: Melhor Dia da Semana â”€â”€
     function renderBestDayOfWeek(data) {
         destroyChart('diaSemanaChart');
         const ctx = document.getElementById('diaSemanaChart');
@@ -1506,7 +1506,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 12: Momentum ──
+    // â”€â”€ ANÃLISE 12: Momentum â”€â”€
     function renderMomentum(stats) {
         const el = document.getElementById('momentum-grid');
         if (!el) return;
@@ -1533,7 +1533,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ── ANÁLISE 13: Dólar ──
+    // â”€â”€ ANÃLISE 13: Dólar â”€â”€
     function renderDolarChart(data) {
         destroyChart('dolarChart');
         const ctx = document.getElementById('dolarChart');
@@ -1563,7 +1563,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 14: SMA-5 ──
+    // â”€â”€ ANÃLISE 14: SMA-5 â”€â”€
     function renderSMAChart(data, stats) {
         destroyChart('smaChart');
         const ctx = document.getElementById('smaChart');
@@ -1596,7 +1596,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 15: Preço Atual vs. Média Mensal ──
+    // â”€â”€ ANÃLISE 15: Preço Atual vs. Média Mensal â”€â”€
     function renderVsMedia(stats) {
         destroyChart('vsMediaChart');
         const ctx = document.getElementById('vsMediaChart');
@@ -1620,7 +1620,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 16: Índice de Risco (Polar Area) ──
+    // â”€â”€ ANÃLISE 16: Índice de Risco (Polar Area) â”€â”€
     function renderRiskChart(stats) {
         destroyChart('riscoChart');
         const ctx = document.getElementById('riscoChart');
@@ -1654,7 +1654,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 17: Radar Comparativo ──
+    // â”€â”€ ANÃLISE 17: Radar Comparativo â”€â”€
     function renderRadar(stats) {
         destroyChart('radarChart');
         const ctx = document.getElementById('radarChart');
@@ -1700,7 +1700,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 18: Z-Score ──
+    // â”€â”€ ANÃLISE 18: Z-Score â”€â”€
     function renderZscore(stats) {
         const el = document.getElementById('zscore-container');
         if (!el) return;
@@ -1726,12 +1726,12 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <small style="color:#555;font-size:0.72rem;margin-top:5px;display:block;">${label}</small>
                 </div>
-                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}¤â</div>
+                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}Â¤â</div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 19: Alertas de Preço ──
+    // â”€â”€ ANÃLISE 19: Alertas de Preço â”€â”€
     function renderAlerts(stats) {
         const el = document.getElementById('alertas-grid');
         if (!el) return;
@@ -1747,7 +1747,7 @@ var _listTabelaPrecosEstrategica = [];
             <div class="alerta-card ${triggered ? 'alerta-triggered' : ''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <strong style="color:${METAL_COLORS[m]};font-size:0.95rem;">${METAL_LABELS[m]}</strong>
-                    ${triggered ? '<span class="badge-triggered">­ƒöö ALERTA!</span>' : ''}
+                    ${triggered ? '<span class="badge-triggered">Â­Æ’Ã¶Ã¶ ALERTA!</span>' : ''}
                 </div>
                 <p style="font-size:0.82rem;color:#888;margin-bottom:10px;">Atual: <strong style="color:#ddd;">US$ ${fmtPrice(s.current)}</strong></p>
                 ${alertVal ? `<p style="font-size:0.78rem;color:#666;margin-bottom:10px;">Alvo: US$ ${fmtPrice(alertVal)} | Gap: ${((s.current - alertVal) / alertVal * 100).toFixed(1)}%</p>` : ''}
@@ -1775,7 +1775,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ── ANÁLISE 20: Resumo Executivo ──
+    // â”€â”€ ANÃLISE 20: Resumo Executivo â”€â”€
     function renderResumo(stats) {
         const el = document.getElementById('resumo-executivo');
         if (!el) return;
@@ -1807,7 +1807,7 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                         <div style="text-align:right;">
                             <div style="color:#ddd;font-size:0.85rem;">US$ ${fmtPrice(x.s.current)}</div>
-                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} ┬À Canal: ${x.s.channelPos.toFixed(0)}%</div>
+                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} â”¬À Canal: ${x.s.channelPos.toFixed(0)}%</div>
                         </div>
                     </div>`).join('')}
                 </div>
@@ -1946,7 +1946,7 @@ var _listTabelaPrecosEstrategica = [];
                     });
 
                     if (res.ok) {
-                        msgEl.textContent = 'Ô£à Configurações salvas!';
+                        msgEl.textContent = 'ÔÂ£Ã  Configurações salvas!';
                         msgEl.style.color = '#2AD07A';
                         msgEl.style.display = 'block';
                         setTimeout(() => msgEl.style.display = 'none', 5000);
@@ -1954,7 +1954,7 @@ var _listTabelaPrecosEstrategica = [];
                         throw new Error('API error');
                     }
                 } catch(e) {
-                    msgEl.textContent = 'ÔØî Erro ao salvar. Tente novamente.';
+                    msgEl.textContent = 'ÔÃ˜î Erro ao salvar. Tente novamente.';
                     msgEl.style.color = '#ff4d4d';
                     msgEl.style.display = 'block';
                 }
@@ -2003,7 +2003,7 @@ var _listTabelaPrecosEstrategica = [];
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    _apexNotify('Atenção', 'ÔØî Erro ao adicionar foto. Verifique os dados.', 'error');
+                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -2137,9 +2137,9 @@ var _listTabelaPrecosEstrategica = [];
                     if (locationsWrapper) locationsWrapper.innerHTML = '';
                     createLocationField();
                     renderMateriais();
-                    _apexNotify('Sistema', 'Ô£à Material cadastrado com sucesso!', 'info');
+                    _apexNotify('Sistema', 'ÔÂ£Ã  Material cadastrado com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'ÔØî Erro ao salvar material.', 'error');
+                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2240,9 +2240,9 @@ var _listTabelaPrecosEstrategica = [];
                     solIdInput.value = '';
                     if (btnCancelSolucao) btnCancelSolucao.style.display = 'none';
                     renderSolucoesAdmin();
-                    _apexNotify('Sistema', 'Ô£à Solução salva com sucesso!', 'info');
+                    _apexNotify('Sistema', 'ÔÂ£Ã  Solução salva com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'ÔØî Erro ao salvar a solução.', 'error');
+                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao salvar a solução.', 'error');
                 }
             });
         }
@@ -2328,9 +2328,9 @@ var _listTabelaPrecosEstrategica = [];
                     const dEl = document.getElementById('not-data');
                     if (dEl) dEl.value = new Date().toISOString().split('T')[0];
                     renderNoticiasAdmin();
-                    _apexNotify('Sistema', 'Ô£à Notícia publicada!', 'info');
+                    _apexNotify('Sistema', 'ÔÂ£Ã  Notícia publicada!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'ÔØî Erro ao publicar notícia.', 'error');
+                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao publicar notícia.', 'error');
                 }
             });
         }
@@ -2374,7 +2374,7 @@ var _listTabelaPrecosEstrategica = [];
         const btnCancelDest = document.getElementById('btn-cancel-destinatario');
         const listDest      = document.getElementById('lme-destinatarios-list');
 
-        // ─── 1. MÓDULO LME ──────────────────────────────────────────────────
+        // â”€â”€â”€ 1. MÓDULO LME â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         async function loadConfigLME() {
             try {
                 const res = await fetch('/api/settings');
@@ -2455,7 +2455,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_envio_dias: selectedDias
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', 'Ô£à Agendamento LME salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Agendamento LME salvo com sucesso!', 'info');
             });
         }
 
@@ -2467,7 +2467,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_resend_from:    resendFrom.value.trim()
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', 'Ô£à Resend API salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Resend API salvo com sucesso!', 'info');
             });
         }
 
@@ -2500,7 +2500,7 @@ var _listTabelaPrecosEstrategica = [];
                 // Mostrar rodapé
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às ' + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    + ' Ã s ' + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
                     rodape.textContent = `Relatório gerado em: ${tsStr}`;
@@ -2611,7 +2611,7 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // ─── 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ──────────
+        // â”€â”€â”€ 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         async function loadConfigTabelas() {
             try {
                 const res = await fetch('/api/settings');
@@ -2700,7 +2700,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-geral-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-geral-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_geral_envio_ativo: ativo, tabela_geral_envio_horario: horario, tabela_geral_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', 'Ô£à Agendamento da Tabela Geral salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Agendamento da Tabela Geral salvo com sucesso!', 'info');
             });
         }
 
@@ -2733,7 +2733,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-forn-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-forn-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_fornecedor_envio_ativo: ativo, tabela_fornecedor_envio_horario: horario, tabela_fornecedor_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', 'Ô£à Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
             });
         }
 
@@ -2887,7 +2887,7 @@ var _listTabelaPrecosEstrategica = [];
             // Mostrar rodapé com timestamp
             const now = new Date();
             const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                + ' às '
+                + ' Ã s '
                 + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const rodape = document.getElementById('rel-rodape');
             if (rodape) {
@@ -2968,7 +2968,7 @@ var _listTabelaPrecosEstrategica = [];
                 // Mostrar rodapé com timestamp
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' Ã s '
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
@@ -3327,7 +3327,7 @@ var _listTabelaPrecosEstrategica = [];
     function renderRelatorioCharts(week) {
         const comp = week.computed || {};
 
-        // ── helpers ──────────────────────────────────────────────────────────
+        // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const fmtR = v =>
             'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
@@ -3363,7 +3363,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         };
 
-        // ── Configuração comum dos dois gráficos ─────────────────────────────
+        // â”€â”€ Configuração comum dos dois gráficos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function buildBarChart(canvasId, labels, dataAnt, dataAtu) {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
@@ -3453,7 +3453,7 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // ── Grupo 1: Cobre ┬À Zinco ┬À Alumínio ┬À Chumbo ───────────────────────
+        // â”€â”€ Grupo 1: Cobre â”¬À Zinco â”¬À Alumínio â”¬À Chumbo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
@@ -3467,7 +3467,7 @@ var _listTabelaPrecosEstrategica = [];
             group1.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ── Grupo 2: Estanho ┬À Níquel ─────────────────────────────────────────
+        // â”€â”€ Grupo 2: Estanho â”¬À Níquel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
             { key: 'niquel',  label: 'NÍQUEL' }
@@ -3479,7 +3479,7 @@ var _listTabelaPrecosEstrategica = [];
             group2.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ── Cards de comparação ───────────────────────────────────────────────
+        // â”€â”€ Cards de comparação â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function buildCards(containerId, group) {
             const el = document.getElementById(containerId);
             if (!el) return;
@@ -3527,7 +3527,7 @@ var _listTabelaPrecosEstrategica = [];
             let colsHtml = `<td>${pLabel}</td>`;
 
             metals.forEach(m => {
-                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1┬¬ semana do mês — exibe '-'
+                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1â”¬Â¬ semana do mês — exibe '-'
                 const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
                 const colClass = `rel-col-${m}`;
                 if (lme === null) {
@@ -3667,7 +3667,7 @@ var _listTabelaPrecosEstrategica = [];
                 const captureArea = document.getElementById('capture-area-historico');
                 const now = new Date();
                 const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' Ã s '
                     + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
@@ -3742,7 +3742,7 @@ var _listTabelaPrecosEstrategica = [];
                 const captureArea = document.getElementById('capture-area-historico');
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' Ã s '
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
@@ -4262,9 +4262,9 @@ var _listTabelaPrecosEstrategica = [];
     }
 
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÁLISE, FINANCEIRO E ESTOQUE
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÃLISE, FINANCEIRO E ESTOQUE
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let currentSimulatedRole = sessionStorage.getItem('apex_user_role') || 'Administrador';
     let localFornecedores = [];
     let localMateriais = [];
@@ -4476,7 +4476,7 @@ var _listTabelaPrecosEstrategica = [];
             let amostrasHtml = '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
             if (amostrasForn.length > 0) {
                 amostrasHtml = `<select style="background:#0d1a24; color:#4fc3f7; border:1px solid #1e3a5f; padding:6px; border-radius:6px; font-size:0.85rem; cursor:pointer; min-width:120px;" onchange="if(this.value) window.abrirAmostraPorNumero(this.value); this.value='';">
-                    <option value="">${amostrasForn.length} Amostra(s) Ôû¥</option>
+                    <option value="">${amostrasForn.length} Amostra(s) ÔûÂ¥</option>
                     ${amostrasForn.map(a => `<option value="${a.numero_amostra}">${a.numero_amostra}</option>`).join('')}
                 </select>`;
             }
@@ -5231,11 +5231,11 @@ var _listTabelaPrecosEstrategica = [];
                         <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
-                        >Ô£Ä</span>
+                        >ÔÂ£Ã„</span>
                         <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
-                        >├ù</span>
+                        >â”œù</span>
                     </span>` : '';
                 return `<button type="button" class="cat-badge-btn"
                     data-cat="${cat}" data-color="${cor}" data-custom="${isCustom}"
@@ -5609,7 +5609,7 @@ var _listTabelaPrecosEstrategica = [];
                             }).join('')}
                             <tr style="background:#131c26;">
                                 <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
-                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÃLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5741,7 +5741,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ─── Calendário Visual Interativo de Vigência ───
+    // â”€â”€â”€ Calendário Visual Interativo de Vigência â”€â”€â”€
     let calVigenciaAno = 2026;
     let calVigenciaMes = 6;
     let calVigenciaDataSelecionada = new Date().toISOString().split('T')[0];
@@ -5935,12 +5935,12 @@ var _listTabelaPrecosEstrategica = [];
                     <!-- Diretrizes -->
                     <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                            📋 Diretrizes Gerais de Compra
+                            ðŸ“‹ Diretrizes Gerais de Compra
                         </h4>
                         <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÃLISE (FOTO)</li>
                         </ul>
                     </div>
         `;
@@ -6027,7 +6027,7 @@ var _listTabelaPrecosEstrategica = [];
             html += `
                             <tr style="background: #fafafa;">
                                 <td colspan="${isCompleta ? 15 : 4}" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
-                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÃLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -6184,14 +6184,14 @@ var _listTabelaPrecosEstrategica = [];
             const result = await res.json();
             if (res.ok) {
                 setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de preços (${nomeModo}) enviada com sucesso!`), '#2AD07A');
-                _apexNotify('Sistema', `Ô£à Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
+                _apexNotify('Sistema', `ÔÂ£Ã  Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
             } else {
                 throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
             }
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            _apexNotify('Atenção', 'ÔØî Erro ao enviar e-mail: ' + err.message, 'error');
+            _apexNotify('Atenção', 'ÔÃ˜î Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
@@ -6329,7 +6329,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS RESÍDUOS PREÇO SOBRE ANÃLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6359,7 +6359,7 @@ var _listTabelaPrecosEstrategica = [];
         if (idSelect === 'prc-res-material-id') {
             filteredMats = mats.filter(m => {
                 const c = (m.categoria || '').toUpperCase();
-                return c.includes('RESIDUO') || c.includes('RESÍDUO') || c.includes('PLÁSTICO');
+                return c.includes('RESIDUO') || c.includes('RESÍDUO') || c.includes('PLÃSTICO');
             });
         } else if (idSelect === 'prc-lig-material-id') {
             filteredMats = mats.filter(m => {
@@ -6680,7 +6680,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS LIGAS PREÇO SOBRE ANÃLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -7002,7 +7002,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÃLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -7348,7 +7348,7 @@ var _listTabelaPrecosEstrategica = [];
                     }
                 }
             } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, fadedLogo, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_volume_');
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, fadedLogo, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÃLISE (FOTO)', 'cor_categoria_volume_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
             if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
@@ -7477,7 +7477,7 @@ var _listTabelaPrecosEstrategica = [];
                                     </tr>
                                 `;
                             }).join('')}
-                            <tr style="background:#131c26;"><td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)</td></tr>
+                            <tr style="background:#131c26;"><td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÃLISE (FOTO)</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -7805,7 +7805,7 @@ var _listTabelaPrecosEstrategica = [];
                     }
                 } 
             } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, fadedLogo, modo, 'Fundição', '#ef4444', 'DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_fundicao_');
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, fadedLogo, modo, 'Fundição', '#ef4444', 'DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÃLISE (FOTO)', 'cor_categoria_fundicao_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
             if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
@@ -7835,7 +7835,7 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                 </div>
                 <div style="background:#f4f7fa;border-left:5px solid ${corPrimaria};border-radius:4px;padding:15px;margin-bottom:30px;">
-                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">📋 Diretrizes Gerais de Compra</h4>
+                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra</h4>
                     <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                         <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                         <li>OBS: Variação de preço conforme atualização de mercado.</li>
@@ -7947,16 +7947,16 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---
+    // --- 4. ANÃLISE DE AMOSTRAS & LAUDOS ---
     window.initApexAmostras = function() {
         carregarAmostras();
         carregarCotacoesDolarLME();
     };
 
     
-// MODULE_EXTRACTED: // ─── COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) ─────────────────────────────
+// MODULE_EXTRACTED: // â”€â”€â”€ COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// ─── MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) ─────────────────────
+// â”€â”€â”€ MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.atualizarNotificacoesAprovacao = function() {
         if (!Array.isArray(localAmostras)) return;
 
@@ -8228,7 +8228,7 @@ var _listTabelaPrecosEstrategica = [];
         if (modal) modal.style.display = 'none';
     };
 
-    // ─── FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) ─────────────────
+    // â”€â”€â”€ FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let _fotosRecebimento = []; // Array de { base64, blob, nome }
 
     // Limpa o array ao abrir o modal (chamado em abrirModalAmostra)
@@ -8277,7 +8277,7 @@ var _listTabelaPrecosEstrategica = [];
             <div style="position:relative; display:inline-block;">
                 <img src="${f.base64}" style="width:72px; height:72px; object-fit:cover; border-radius:6px; border:2px solid #2AD07A; display:block;" title="${f.nome}">
                 <button type="button" onclick="removerFotoRecebimento(${i})"
-                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">Ô£ò</button>
+                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">ÔÂ£ò</button>
             </div>
         `).join('');
     }
@@ -8352,8 +8352,8 @@ var _listTabelaPrecosEstrategica = [];
     };
 
 
-    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
-    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
+    // â”€â”€â”€ NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) â”€â”€â”€â”€â”€â”€
+    // â”€â”€â”€ NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) â”€â”€â”€â”€â”€â”€
     window.mudarTelaEtapa = function(etapaNum) {
         const idMap = {
             1: 'tela-etapa-1',
@@ -8367,7 +8367,7 @@ var _listTabelaPrecosEstrategica = [];
         // Etapa 4: acesso restrito
         if (etapaNum === 4) {
             if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                _apexNotify('Sistema', '­ƒöÆ Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
+                _apexNotify('Sistema', 'Â­Æ’Ã¶Ã† Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
@@ -8396,7 +8396,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ─── ETIQUETA QR CODE FISICA DE LOTE ─────────────────────────────────────────
+    // â”€â”€â”€ ETIQUETA QR CODE FISICA DE LOTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.gerarEtiquetaQRAmostra = function(id) {
         const amostra = localAmostras.find(a => a.id === id);
         if (!amostra) return;
@@ -8439,7 +8439,7 @@ var _listTabelaPrecosEstrategica = [];
         win.document.close();
     };
 
-    // ─── EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP ───────────────────────────────
+    // â”€â”€â”€ EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.exportarLaudosEmLoteZip = async function() {
         const checkboxes = document.querySelectorAll('.chk-amostra-select:checked');
         if (checkboxes.length === 0) {
@@ -8750,7 +8750,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ─── UPLOAD REAL DE FOTOS ───────────────────────────────────────────────────
+    // â”€â”€â”€ UPLOAD REAL DE FOTOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.uploadFotos = async function(input, tipo, etapa) {
         if (!activeAmostraIdForDesmonte || !input.files || input.files.length === 0) return;
         const spinner = document.getElementById('foto-input-spinner');
@@ -8810,7 +8810,7 @@ var _listTabelaPrecosEstrategica = [];
             if (etapaTexto.includes('Camada')) {
                 badge.textContent = etapaTexto;
             } else {
-                badge.textContent = `${index + 1}┬║ ${etapaTexto}`;
+                badge.textContent = `${index + 1}â”¬â•‘ ${etapaTexto}`;
             }
             
             let badgeBg = '#3e7cb1';
@@ -8863,12 +8863,12 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     
-// MODULE_EXTRACTED: // ─── CALCULADORA FIDC ────────────────────────────────────────────────────────
+// MODULE_EXTRACTED: // â”€â”€â”€ CALCULADORA FIDC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
-// MODULE_EXTRACTED: // ─── TRILHA DE AUDITORIA ─────────────────────────────────────────────────────
+// MODULE_EXTRACTED: // â”€â”€â”€ TRILHA DE AUDITORIA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// ─── PRÉVIA VISUAL DO LAUDO ─────────────────────────────────────────────────
+// â”€â”€â”€ PRÉVIA VISUAL DO LAUDO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const previaLaudoItens = [];
 
     function adicionarPreviaLaudo(idx, imgBase64) {
@@ -8901,14 +8901,14 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="position:relative;">
                     <img src="${item.img}" style="width:100%; height:180px; object-fit:cover; display:block;">
                     <div style="position:absolute; top:8px; left:8px; background:rgba(13,26,36,0.85); border:1px solid #2AD07A; border-radius:20px; padding:2px 10px; font-size:0.72rem; color:#2AD07A; font-weight:bold;">
-                        ­ƒô© #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
+                        Â­Æ’ôÂ© #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
                     </div>
                 </div>
                 <div style="padding:12px;">
                     <div style="font-weight:bold; color:#fff; font-size:0.95rem; margin-bottom:6px;">${item.nome}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
                         <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">ÔÜû ${parseFloat(item.peso).toFixed(3)} kg</span>
-                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">­ƒöº ${item.dificuldade}</span>
+                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">Â­Æ’Ã¶Âº ${item.dificuldade}</span>
                     </div>
                     ${item.observacoes ? `<div style="color:#aaa; font-size:0.8rem; border-top:1px solid #223547; padding-top:8px;">${item.observacoes}</div>` : ''}
                 </div>
@@ -9016,7 +9016,7 @@ var _listTabelaPrecosEstrategica = [];
         if (resEngine.perdaFisicaKg > 0) {
             formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Resíduos`);
         }
-        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' ┬À ');
+        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' â”¬À ');
 
         if (window.recalcularFIDC) {
             window.recalcularFIDC();
@@ -9117,7 +9117,7 @@ var _listTabelaPrecosEstrategica = [];
             });
             const data = await res.json();
             if (res.ok) {
-                const emoji = decisao === 'Aprovado' ? 'Ô£à' : 'ÔØî';
+                const emoji = decisao === 'Aprovado' ? 'ÔÂ£Ã ' : 'ÔÃ˜î';
                 _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();
@@ -9200,7 +9200,7 @@ var _listTabelaPrecosEstrategica = [];
                 });
             } catch(e) { console.warn('Logo cabeçalho não carregado:', e); }
 
-            // Carregar Marca d'Água: logo (2).png
+            // Carregar Marca d'Ãgua: logo (2).png
             let watermarkBase64 = null;
             try {
                 const wRes = await fetch('/assets/img/logo (2).png');
@@ -9301,7 +9301,7 @@ var _listTabelaPrecosEstrategica = [];
 
             let y = 50;
 
-            // ─── SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ─────────
+            // â”€â”€â”€ SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE â”€â”€â”€â”€â”€â”€â”€â”€â”€
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -9345,7 +9345,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setFont('helvetica', 'bold');
             pdf.text('Comprador / Contato:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            // Trunca para não sobrepor o campo Peso Inicial à direita
+            // Trunca para não sobrepor o campo Peso Inicial Ã  direita
             const compTel = fcomp + (ftel ? ' (' + ftel + ')' : '');
             pdf.text(pdf.splitTextToSize(compTel, 110)[0], 52, y);
 
@@ -9382,17 +9382,17 @@ var _listTabelaPrecosEstrategica = [];
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ──────────────────────────────────
+            // â”€â”€â”€ SEÇÃO 2: REGISTRO FOTOGRÃFICO POR ETAPA E COMPONENTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÁFICO POR ETAPA', 17, y + 5.5);
+            pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÃFICO POR ETAPA', 17, y + 5.5);
             y += 12;
 
-            // ── Helper: carrega uma imagem da API e retorna base64 ──
+            // â”€â”€ Helper: carrega uma imagem da API e retorna base64 â”€â”€
             async function _loadImgB64(url) {
                 try {
                     const r = await fetch(url);
@@ -9402,7 +9402,7 @@ var _listTabelaPrecosEstrategica = [];
                 } catch(e) { return null; }
             }
 
-            // ── Helper: desenha um bloco de foto no PDF ──
+            // â”€â”€ Helper: desenha um bloco de foto no PDF â”€â”€
             function _drawFotoBloco(srcB64, label, bY, bH) {
                 pdf.setFillColor(248, 252, 249);
                 pdf.setDrawColor(13, 36, 22);
@@ -9422,7 +9422,7 @@ var _listTabelaPrecosEstrategica = [];
                 pdf.text(pdf.splitTextToSize(label, 110), 76, bY + 9);
             }
 
-            // ── ETAPA 1 — RECEBIMENTO ──
+            // â”€â”€ ETAPA 1 — RECEBIMENTO â”€â”€
             {
                 const blocoH = 42;
                 checarNovaPagina(blocoH + 6);
@@ -9438,7 +9438,7 @@ var _listTabelaPrecosEstrategica = [];
                     (f.componente_idx === null || f.componente_idx === undefined)
                 );
 
-                // Foto principal: foto_original da amostra OU, se vazia, a 1┬¬ foto do banco
+                // Foto principal: foto_original da amostra OU, se vazia, a 1â”¬Â¬ foto do banco
                 let fotoOrigFinal = null;
                 if (amostra.foto_original) {
                     fotoOrigFinal = await _loadImgB64(amostra.foto_original).catch(() => amostra.foto_original);
@@ -9463,7 +9463,7 @@ var _listTabelaPrecosEstrategica = [];
                 _drawFotoBloco(fotoOrigFinal, infoTextoRec, y, blocoH);
                 y += blocoH + 4;
 
-                // Fotos adicionais do Recebimento (2┬¬ em diante)
+                // Fotos adicionais do Recebimento (2â”¬Â¬ em diante)
                 for (const f of recebimentoExtras) {
                     checarNovaPagina(blocoH + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
@@ -9471,7 +9471,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             }
 
-            // ── ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos ──
+            // â”€â”€ ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos â”€â”€
             {
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
@@ -9535,7 +9535,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             }
 
-            // ── ETAPA 3 & 4: Viabilidade e Aprovação ──
+            // â”€â”€ ETAPA 3 & 4: Viabilidade e Aprovação â”€â”€
             for (const etapaKey of ['Viabilidade', 'Aprovação']) {
                 const fotasEtapa = fotosAmostraList.filter(f => f.etapa === etapaKey);
                 if (fotasEtapa.length === 0) continue;
@@ -9552,7 +9552,7 @@ var _listTabelaPrecosEstrategica = [];
             }
 
 
-            // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
+            // â”€â”€â”€ SEÇÃO 3: RESULTADO DA ANÃLISE FÍSICA E DESMONTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(55); // Garante 55mm livres para o bloco completo
 
             pdf.setFillColor(13, 36, 22);
@@ -9560,7 +9560,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
+            pdf.text('RESULTADO DA ANÃLISE FÍSICA E DESMONTE', 17, y + 5.5);
 
             let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de título
 
@@ -9634,7 +9634,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 11);
             y += 19;
 
-            // ─── SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA ───────────────────
+            // â”€â”€â”€ SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(45);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
@@ -9702,7 +9702,7 @@ var _listTabelaPrecosEstrategica = [];
             }
             y += 28;
 
-            // ─── SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA ────────
+            // â”€â”€â”€ SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(40);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
@@ -9780,7 +9780,7 @@ var _listTabelaPrecosEstrategica = [];
             const resEst = await fetch('/api/estoque');
             const { estoque } = await resEst.json();
 
-            // ─── KPIs ───
+            // â”€â”€â”€ KPIs â”€â”€â”€
             let pesoTotal = 0;
             let totalCompra = 0;
             let faturamento = 0;
@@ -9823,7 +9823,7 @@ var _listTabelaPrecosEstrategica = [];
             document.getElementById('bi-kpi-margem').textContent = fmtBRL(margemConsolidada) + ' %';
             document.getElementById('bi-kpi-perda').textContent = fmtBRL(taxaPerdaIndustrial) + ' %';
 
-            // ── Gráfico 1: Evolução Mensal ──
+            // â”€â”€ Gráfico 1: Evolução Mensal â”€â”€
             const mesesMap = {};
             planejamento.forEach(p => {
                 const m = p.mes || '2026-07';
@@ -9859,7 +9859,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── Gráfico 2: Composição das Amostras ──
+            // â”€â”€ Gráfico 2: Composição das Amostras â”€â”€
             const compMap = {};
             estoque.forEach(e => {
                 compMap[e.material_nome] = parseFloat(e.saldo) || 0;
@@ -9885,7 +9885,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── Gráfico 3: Ranking de Fornecedores ──
+            // â”€â”€ Gráfico 3: Ranking de Fornecedores â”€â”€
             const fornMap = {};
             planejamento.forEach(p => {
                 const f = p.fornecedor_nome || 'Desconhecido';
@@ -9921,7 +9921,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── Gráfico 4: Margem de Compra Coleta vs Entrega ──
+            // â”€â”€ Gráfico 4: Margem de Compra Coleta vs Entrega â”€â”€
             const catMargem = {};
             localPrecos.forEach(p => {
                 const cat = p.material_categoria;
@@ -9956,7 +9956,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ── TOP 10 Melhores Produtos (Margem Líquida) ──
+            // â”€â”€ TOP 10 Melhores Produtos (Margem Líquida) â”€â”€
             const topBody = document.getElementById('bi-top10-table-body');
             if (topBody && localPrecos && localPrecos.length > 0) {
                 const listComMargem = localPrecos.map(p => {
@@ -10037,9 +10037,9 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     
-// MODULE_EXTRACTED: // ─── 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ───
+// MODULE_EXTRACTED: // â”€â”€â”€ 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÃRIOS â”€â”€â”€
 
-// MODULE_EXTRACTED: // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ─────────
+// MODULE_EXTRACTED: // â”€â”€â”€ MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     function gerarHtmlTabelaResiduosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
@@ -10079,11 +10079,11 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                     </div>
                     <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">📋 Diretrizes Gerais de Compra — Resíduos</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra — Resíduos</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÃLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -10161,7 +10161,7 @@ var _listTabelaPrecosEstrategica = [];
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÃLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -10231,7 +10231,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ─── PDF LIGAS ────────────────────────────────────────────────────────────────
+    // â”€â”€â”€ PDF LIGAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     function gerarHtmlTabelaLigasParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
@@ -10271,11 +10271,11 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                     </div>
                     <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">📋 Diretrizes Gerais de Compra — Ligas</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra — Ligas</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÃLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -10353,7 +10353,7 @@ var _listTabelaPrecosEstrategica = [];
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÃLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>

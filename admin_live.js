@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 
     window.getJsPDFClass = function() {
         if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     };
 
-    // ─── TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) ──────────────────────────────
+    // â”€â”€â”€ TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.toggleDesktopSidebar = function(forceState) {
         const container = document.getElementById('admin-dashboard-container');
         const icon = document.getElementById('sidebar-toggle-icon');
@@ -46,14 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch(e) {}
 
-    // ─── Utilitário global: formata número no padrão brasileiro com 2 casas ───
+    // â”€â”€â”€ Utilitário global: formata número no padrão brasileiro com 2 casas â”€â”€â”€
     window.fmtBRL = function(val) {
         const n = parseFloat(val);
         if (isNaN(n)) return '0,00';
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
-    // ─── SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) ────────
+    // â”€â”€â”€ SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) â”€â”€â”€â”€â”€â”€â”€â”€
     // Tipos: 'success' | 'error' | 'info' | 'warning'
     window._apexNotify = function(titulo, mensagem, tipo) {
         tipo = tipo || 'info';
@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const configs = {
             success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
-            error:   { icon:'❌', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
-            warning: { icon:'⚠️', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
-            info:    { icon:'ℹ️', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
+            error:   { icon:'âŒ', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            warning: { icon:'⚠️ ï¸', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
+            info:    { icon:'â„¹ï¸', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
         };
         const cfg = configs[tipo] || configs.info;
 
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('_apex_notify_overlay')?.addEventListener('click', function(e) {
         if (e.target === this) window._apexNotifyClose();
     });
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
     window.formatarDataSemFuso = function(dStr) {
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ─── Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ───
+    // â”€â”€â”€ Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown â”€â”€â”€
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' || e.keyCode === 27) {
             const drop = document.getElementById('pedido-cliente-dropdown');
@@ -141,16 +141,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let globalRolePermissions = {};
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // LOGIN
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // NAVEGAÇÃO
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const navItems = document.querySelectorAll('.nav-item[data-target]');
     const sections = document.querySelectorAll('.view-section');
 
@@ -208,9 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // INIT ADMIN
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function initAdmin() {
         try {
             const res = await fetch('/api/settings');
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let activeMetals = new Set(['cobre','zinco','aluminio','chumbo','estanho','niquel','dolar']);
         let allMetalsOn = true;
 
-        // ─── HELPERS ────────────────────────────────────────────────────
+        // â”€â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function showLoading() {
             if (loadingDiv)  { loadingDiv.style.display  = 'flex'; }
             if (errorDiv)    { errorDiv.style.display    = 'none'; }
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (previewWrap) { previewWrap.style.display = 'block'; }
         }
 
-        // ─── LOAD DATA ──────────────────────────────────────────────────
+        // â”€â”€â”€ LOAD DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         async function loadWeeks(mesOverride = null) {
             showLoading();
             try {
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 selector.innerHTML = excelWeeks.map(w => {
                     const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '—';
-                    return `<option value="${w.header}">Semana ${w.header} → ${lastDay}</option>`;
+                    return `<option value="${w.header}">Semana ${w.header} â†’ ${lastDay}</option>`;
                 }).join('');
 
                 renderPreview(excelWeeks[0].header);
@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // ─── RENDER PREVIEW TABLE ────────────────────────────────────────
+        // â”€â”€â”€ RENDER PREVIEW TABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const formatVal = (v, formatType) => {
             if (v === null || v === undefined) return '—';
             if (v === 'feriado') return '<span class="excel-feriado">feriado</span>';
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const renderOscilacao = (v, isDolar) => {
             if (v === null || v === undefined || typeof v === 'string') return '—';
             const isUp = v >= 0;
-            const arrow = isUp ? '▲' : '▼';
+            const arrow = isUp ? 'â–²' : 'â–¼';
             const cls = isUp ? 'excel-up' : 'excel-down';
             // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
             const prefix = 'R$ ';
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showTable();
         }
 
-        // ─── EVENT LISTENERS ─────────────────────────────────────────────
+        // â”€â”€â”€ EVENT LISTENERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         filterMes.addEventListener('change', () => {
             loadWeeks(filterMes.value);
         });
@@ -546,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // ── PDF Download ──
+        // â”€â”€ PDF Download â”€â”€
         if (btnDownloadPdf) {
             btnDownloadPdf.addEventListener('click', () => {
                 const val = selector.value;
@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ─── INITIAL LOAD ────────────────────────────────────────────────
+        // â”€â”€â”€ INITIAL LOAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         await loadWeeks();
     }
 
@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function parsePrice(str) {
         if (!str || str === '—' || str === '-' || str.trim() === '') return null;
-        // Brazilian format: "9.234,56" → 9234.56
+        // Brazilian format: "9.234,56" â†’ 9234.56
         const cleaned = str.replace(/\./g, '').replace(',', '.');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
@@ -682,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return output;
     }
 
-    // ─── Init LME Dashboard ────────────────────────────────────────────────────
+    // â”€â”€â”€ Init LME Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function initLMEDashboard() {
         const mesSel   = document.getElementById('mes-selector');
         const btnRefresh = document.getElementById('btn-refresh-lme');
@@ -841,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ─── Compute Stats ─────────────────────────────────────────────────────────
+    // â”€â”€â”€ Compute Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function computeStats(data) {
         const stats = {};
         const latest = data[data.length - 1];
@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const avgPrev5  = prev5Vals.length ? prev5Vals.reduce((a, b) => a + b, 0) / prev5Vals.length : avg;
             const momentum  = avgPrev5 ? ((avg5 - avgPrev5) / avgPrev5) * 100 : 0;
 
-            // Opportunity Score (0–100)
+            // Opportunity Score (0â€“100)
             const chanScore = (channelPos / 100) * 40;
             const momScore  = Math.max(0, Math.min(1, (momentum + 5) / 10)) * 30;
             const dayScore  = Math.max(0, Math.min(1, (dayChange + 2) / 4)) * 30;
@@ -906,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return stats;
     }
 
-    // ─── Render All ────────────────────────────────────────────────────────────
+    // â”€â”€â”€ Render All â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function renderAllAnalyses(data, stats) {
         renderKPICards(stats);                         // Nova 01 (Antiga 01)
         renderTrendChart(data, activeMetalFilter);     // Nova 02 (Antiga 05)
@@ -936,7 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 01: KPI Cards + Sinalizadores ──
+    // â”€â”€ ANÃLISE 01: KPI Cards + Sinalizadores â”€â”€
     function renderKPICards(stats) {
         const container = document.getElementById('kpi-cards');
         if (!container) return;
@@ -965,15 +965,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa-solid ${upIcon}"></i> ${Math.abs(s.dayChange).toFixed(2)}% hoje
                 </div>
                 <div class="kpi-footer">
-                    <span>↓ US$ ${fmtPrice(s.min)}</span>
+                    <span>â†“ US$ ${fmtPrice(s.min)}</span>
                     <span style="color:#555;">|</span>
-                    <span>↑ US$ ${fmtPrice(s.max)}</span>
+                    <span>â†‘ US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 02: Noble Basket Index ──
+    // â”€â”€ ANÃLISE 02: Noble Basket Index â”€â”€
     function renderNobleBasket(data, stats) {
         const nbiVals = data.map(row => {
             let v = 0, ok = true;
@@ -1032,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── ANÁLISE 03: Canal de Preços ──
+    // â”€â”€ ANÃLISE 03: Canal de Preços â”€â”€
     function renderChannelBars(stats) {
         const el = document.getElementById('canal-bars');
         if (!el) return;
@@ -1061,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ── ANÁLISE 05: Tendência de Preços ──
+    // â”€â”€ ANÃLISE 05: Tendência de Preços â”€â”€
     function renderTrendChart(data, metal) {
         destroyChart('trendChart');
         const ctx = document.getElementById('trendChart');
@@ -1090,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 06: Variação Diária ──
+    // â”€â”€ ANÃLISE 06: Variação Diária â”€â”€
     function renderDailyVariation(stats) {
         destroyChart('varDiariaChart');
         const ctx = document.getElementById('varDiariaChart');
@@ -1134,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── ANÁLISE 07: Volatilidade ──
+    // â”€â”€ ANÃLISE 07: Volatilidade â”€â”€
     function renderVolatility(stats) {
         destroyChart('volatChart');
         const ctx = document.getElementById('volatChart');
@@ -1167,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 08: Ranking de Performance ──
+    // â”€â”€ ANÃLISE 08: Ranking de Performance â”€â”€
     function renderRanking(stats) {
         const el = document.getElementById('ranking-container');
         if (!el) return;
@@ -1177,13 +1177,13 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(m => ({ m, chg: stats[m].monthChange, s: stats[m] }))
             .sort((a, b) => b.chg - a.chg);
 
-        const medals = ['🥇', '🥈', '🥉'];
+        const medals = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰'];
         el.innerHTML = ranked.map((item, i) => {
             const isPos = item.chg >= 0;
             const barW  = Math.min(100, Math.abs(item.chg) * 10);
             return `
             <div class="rank-item ${i === 0 ? 'rank-first' : ''}">
-                <span class="rank-pos">${medals[i] || (i + 1) + 'º'}</span>
+                <span class="rank-pos">${medals[i] || (i + 1) + 'Âº'}</span>
                 <div class="rank-bar-wrap">
                     <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
                         <strong style="color:${METAL_COLORS[item.m]};font-size:0.95rem;">${METAL_LABELS[item.m]}</strong>
@@ -1194,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:7px;overflow:hidden;">
                         <div style="height:100%;width:${barW}%;background:${isPos ? '#2AD07A' : '#ff4d4d'};border-radius:4px;transition:width 1s;"></div>
                     </div>
-                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês → Hoje</small>
+                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês â†’ Hoje</small>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="color:#aaa;font-size:0.8rem;">US$ ${fmtPrice(item.s.current)}</div>
@@ -1204,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ── ANÁLISE 09: Score de Oportunidade ──
+    // â”€â”€ ANÃLISE 09: Score de Oportunidade â”€â”€
     function renderOpportunityScore(stats) {
         destroyChart('scoreChart');
         const ctx = document.getElementById('scoreChart');
@@ -1215,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'bar',
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
-                    datasets: [{ label: 'Score (0–100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
+                    datasets: [{ label: 'Score (0â€“100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
                 },
                 options: deepMerge(baseChartOpts, { scales: { y: { min: 0, max: 100 } } })
             });
@@ -1228,7 +1228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const s = stats[m];
                 const sc = s.score;
                 const color = sc >= 75 ? '#ff4d4d' : sc >= 55 ? '#ff9900' : sc >= 35 ? '#ffcc00' : '#2AD07A';
-                const label = sc >= 75 ? '🔴 VENDER AGORA' : sc >= 55 ? '🟠 ATENÇÃO' : sc >= 35 ? '🟡 RETER' : '🟢 ACUMULAR';
+                const label = sc >= 75 ? 'ðŸ”´ VENDER AGORA' : sc >= 55 ? 'ðŸŸ  ATENÇÃO' : sc >= 35 ? 'ðŸŸ¡ RETER' : 'ðŸŸ¢ ACUMULAR';
                 return `
                 <div class="score-item">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1244,7 +1244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── ANÁLISE 05: Semana Atual vs Anterior ──
+    // â”€â”€ ANÃLISE 05: Semana Atual vs Anterior â”€â”€
     function renderWeekComparison(stats) {
         destroyChart('semanaChart');
         const ctx = document.getElementById('semanaChart');
@@ -1379,7 +1379,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         });
 
-        // ── Render directional badges below the chart ──
+        // â”€â”€ Render directional badges below the chart â”€â”€
         const badges = document.getElementById('semana-badges');
         if (!badges) return;
         badges.innerHTML = METALS.map((m, i) => {
@@ -1387,7 +1387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const diff   = last5[i] - prev5[i];
             const pct    = prev5[i] ? ((diff / prev5[i]) * 100) : 0;
             const isUp   = diff >= 0;
-            const arrow  = isUp ? '▲' : '▼';
+            const arrow  = isUp ? 'â–²' : 'â–¼';
             const color  = isUp ? '#2AD07A' : '#ff4d4d';
             const bgClr  = isUp ? 'rgba(42,208,122,0.12)' : 'rgba(255,77,77,0.12)';
             const border = isUp ? 'rgba(42,208,122,0.4)' : 'rgba(255,77,77,0.4)';
@@ -1411,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ── ANÁLISE 11: Melhor Dia da Semana ──
+    // â”€â”€ ANÃLISE 11: Melhor Dia da Semana â”€â”€
     function renderBestDayOfWeek(data) {
         destroyChart('diaSemanaChart');
         const ctx = document.getElementById('diaSemanaChart');
@@ -1449,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 12: Momentum ──
+    // â”€â”€ ANÃLISE 12: Momentum â”€â”€
     function renderMomentum(stats) {
         const el = document.getElementById('momentum-grid');
         if (!el) return;
@@ -1476,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ── ANÁLISE 13: Dólar ──
+    // â”€â”€ ANÃLISE 13: Dólar â”€â”€
     function renderDolarChart(data) {
         destroyChart('dolarChart');
         const ctx = document.getElementById('dolarChart');
@@ -1506,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 14: SMA-5 ──
+    // â”€â”€ ANÃLISE 14: SMA-5 â”€â”€
     function renderSMAChart(data, stats) {
         destroyChart('smaChart');
         const ctx = document.getElementById('smaChart');
@@ -1539,7 +1539,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 15: Preço Atual vs. Média Mensal ──
+    // â”€â”€ ANÃLISE 15: Preço Atual vs. Média Mensal â”€â”€
     function renderVsMedia(stats) {
         destroyChart('vsMediaChart');
         const ctx = document.getElementById('vsMediaChart');
@@ -1563,7 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 16: Índice de Risco (Polar Area) ──
+    // â”€â”€ ANÃLISE 16: Índice de Risco (Polar Area) â”€â”€
     function renderRiskChart(stats) {
         destroyChart('riscoChart');
         const ctx = document.getElementById('riscoChart');
@@ -1597,7 +1597,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 17: Radar Comparativo ──
+    // â”€â”€ ANÃLISE 17: Radar Comparativo â”€â”€
     function renderRadar(stats) {
         destroyChart('radarChart');
         const ctx = document.getElementById('radarChart');
@@ -1643,7 +1643,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 18: Z-Score ──
+    // â”€â”€ ANÃLISE 18: Z-Score â”€â”€
     function renderZscore(stats) {
         const el = document.getElementById('zscore-container');
         if (!el) return;
@@ -1669,12 +1669,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <small style="color:#555;font-size:0.72rem;margin-top:5px;display:block;">${label}</small>
                 </div>
-                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}σ</div>
+                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}Ïƒ</div>
             </div>`;
         }).join('');
     }
 
-    // ── ANÁLISE 19: Alertas de Preço ──
+    // â”€â”€ ANÃLISE 19: Alertas de Preço â”€â”€
     function renderAlerts(stats) {
         const el = document.getElementById('alertas-grid');
         if (!el) return;
@@ -1690,7 +1690,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="alerta-card ${triggered ? 'alerta-triggered' : ''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <strong style="color:${METAL_COLORS[m]};font-size:0.95rem;">${METAL_LABELS[m]}</strong>
-                    ${triggered ? '<span class="badge-triggered">🔔 ALERTA!</span>' : ''}
+                    ${triggered ? '<span class="badge-triggered">ðŸ”” ALERTA!</span>' : ''}
                 </div>
                 <p style="font-size:0.82rem;color:#888;margin-bottom:10px;">Atual: <strong style="color:#ddd;">US$ ${fmtPrice(s.current)}</strong></p>
                 ${alertVal ? `<p style="font-size:0.78rem;color:#666;margin-bottom:10px;">Alvo: US$ ${fmtPrice(alertVal)} | Gap: ${((s.current - alertVal) / alertVal * 100).toFixed(1)}%</p>` : ''}
@@ -1718,7 +1718,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── ANÁLISE 20: Resumo Executivo ──
+    // â”€â”€ ANÃLISE 20: Resumo Executivo â”€â”€
     function renderResumo(stats) {
         const el = document.getElementById('resumo-executivo');
         if (!el) return;
@@ -1750,7 +1750,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div style="text-align:right;">
                             <div style="color:#ddd;font-size:0.85rem;">US$ ${fmtPrice(x.s.current)}</div>
-                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} · Canal: ${x.s.channelPos.toFixed(0)}%</div>
+                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} Â· Canal: ${x.s.channelPos.toFixed(0)}%</div>
                         </div>
                     </div>`).join('')}
                 </div>
@@ -1823,7 +1823,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error('API error');
                     }
                 } catch(e) {
-                    msgEl.textContent = '❌ Erro ao salvar. Tente novamente.';
+                    msgEl.textContent = 'âŒ Erro ao salvar. Tente novamente.';
                     msgEl.style.color = '#ff4d4d';
                     msgEl.style.display = 'block';
                 }
@@ -1872,7 +1872,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao adicionar foto. Verifique os dados.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -2008,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderMateriais();
                     _apexNotify('Sistema', '✅ Material cadastrado com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao salvar material.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2111,7 +2111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderSolucoesAdmin();
                     _apexNotify('Sistema', '✅ Solução salva com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao salvar a solução.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao salvar a solução.', 'error');
                 }
             });
         }
@@ -2199,7 +2199,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderNoticiasAdmin();
                     _apexNotify('Sistema', '✅ Notícia publicada!', 'info');
                 } else {
-                    _apexNotify('Atenção', '❌ Erro ao publicar notícia.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao publicar notícia.', 'error');
                 }
             });
         }
@@ -2226,7 +2226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnCancelDest = document.getElementById('btn-cancel-destinatario');
         const listDest      = document.getElementById('lme-destinatarios-list');
 
-        // ─── 1. MÓDULO LME ──────────────────────────────────────────────────
+        // â”€â”€â”€ 1. MÓDULO LME â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         async function loadConfigLME() {
             try {
                 const res = await fetch('/api/settings');
@@ -2328,7 +2328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Mostrar rodapé
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às ' + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    + ' Ã s ' + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
                     rodape.textContent = `Relatório gerado em: ${tsStr}`;
@@ -2434,7 +2434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ─── 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ──────────
+        // â”€â”€â”€ 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         async function loadConfigTabelas() {
             try {
                 const res = await fetch('/api/settings');
@@ -2586,7 +2586,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
+    // RELATÓRIO DIÃRIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiario() {
         const btnGerar = document.getElementById('btn-gerar-imagem-wpp');
@@ -2710,7 +2710,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Mostrar rodapé com timestamp
             const now = new Date();
             const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                + ' às '
+                + ' Ã s '
                 + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const rodape = document.getElementById('rel-rodape');
             if (rodape) {
@@ -2763,13 +2763,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
                 const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                const setinha = osc >= 0 ? '⬆' : '⬇';
+                const setinha = osc >= 0 ? 'â¬†' : 'â¬‡';
                 const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
             });
 
             const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-            const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
+            const dSetinha = dolarOsc >= 0 ? 'â¬†' : 'â¬‡';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
@@ -2791,7 +2791,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Mostrar rodapé com timestamp
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' Ã s '
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
@@ -3024,9 +3024,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">â–²</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">â–¼</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
@@ -3150,7 +3150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderRelatorioCharts(week) {
         const comp = week.computed || {};
 
-        // ── helpers ──────────────────────────────────────────────────────────
+        // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const fmtR = v =>
             'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
@@ -3186,7 +3186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // ── Configuração comum dos dois gráficos ─────────────────────────────
+        // â”€â”€ Configuração comum dos dois gráficos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function buildBarChart(canvasId, labels, dataAnt, dataAtu) {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
@@ -3276,7 +3276,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ── Grupo 1: Cobre · Zinco · Alumínio · Chumbo ───────────────────────
+        // â”€â”€ Grupo 1: Cobre Â· Zinco Â· Alumínio Â· Chumbo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
@@ -3290,7 +3290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             group1.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ── Grupo 2: Estanho · Níquel ─────────────────────────────────────────
+        // â”€â”€ Grupo 2: Estanho Â· Níquel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
             { key: 'niquel',  label: 'NÍQUEL' }
@@ -3302,7 +3302,7 @@ document.addEventListener('DOMContentLoaded', () => {
             group2.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ── Cards de comparação ───────────────────────────────────────────────
+        // â”€â”€ Cards de comparação â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function buildCards(containerId, group) {
             const el = document.getElementById(containerId);
             if (!el) return;
@@ -3312,7 +3312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? '↑' : isDown ? '↓' : '–';
+                const arrow    = isUp ? 'â†‘' : isDown ? 'â†“' : 'â€“';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -3350,7 +3350,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let colsHtml = `<td>${pLabel}</td>`;
 
             metals.forEach(m => {
-                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1ª semana do mês — exibe '-'
+                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1Âª semana do mês — exibe '-'
                 const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
                 const colClass = `rel-col-${m}`;
                 if (lme === null) {
@@ -3368,7 +3368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // HISTÓRICO DO RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
+    // HISTÓRICO DO RELATÓRIO DIÃRIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiarioHistorico() {
         const btnVerHistorico = document.getElementById('btn-ver-historico');
@@ -3490,7 +3490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const captureArea = document.getElementById('capture-area-historico');
                 const now = new Date();
                 const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' Ã s '
                     + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
@@ -3540,13 +3540,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
                     const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                    const setinha = osc >= 0 ? '⬆' : '⬇';
+                    const setinha = osc >= 0 ? 'â¬†' : 'â¬‡';
                     const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
                 });
 
                 const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-                const dSetinha = dolarOsc >= 0 ? '⬆' : '⬇';
+                const dSetinha = dolarOsc >= 0 ? 'â¬†' : 'â¬‡';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
                 txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
@@ -3565,7 +3565,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const captureArea = document.getElementById('capture-area-historico');
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    + ' às '
+                    + ' Ã s '
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
@@ -3756,9 +3756,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">â–²</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">â–¼</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
@@ -4030,7 +4030,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? '↑' : isDown ? '↓' : '–';
+                const arrow    = isUp ? 'â†‘' : isDown ? 'â†“' : 'â€“';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -4085,9 +4085,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÁLISE, FINANCEIRO E ESTOQUE
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÃLISE, FINANCEIRO E ESTOQUE
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let currentSimulatedRole = sessionStorage.getItem('apex_user_role') || 'Administrador';
     let localFornecedores = [];
     let localMateriais = [];
@@ -4275,7 +4275,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let amostrasHtml = '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
             if (amostrasForn.length > 0) {
                 amostrasHtml = `<select style="background:#0d1a24; color:#4fc3f7; border:1px solid #1e3a5f; padding:6px; border-radius:6px; font-size:0.85rem; cursor:pointer; min-width:120px;" onchange="if(this.value) window.abrirAmostraPorNumero(this.value); this.value='';">
-                    <option value="">${amostrasForn.length} Amostra(s) ▾</option>
+                    <option value="">${amostrasForn.length} Amostra(s) â–¾</option>
                     ${amostrasForn.map(a => `<option value="${a.numero_amostra}">${a.numero_amostra}</option>`).join('')}
                 </select>`;
             }
@@ -4414,9 +4414,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // CLIENTES — CRUD COMPLETO
-    // ═══════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     let localClientes = [];
 
     window.initApexClientes = async function() {
@@ -5033,11 +5033,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
-                        >✎</span>
+                        >âœŽ</span>
                         <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
-                        >×</span>
+                        >Ã—</span>
                     </span>` : '';
                 return `<button type="button" class="cat-badge-btn"
                     data-cat="${cat}" data-color="${cor}" data-custom="${isCustom}"
@@ -5087,7 +5087,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.excluirCategoria = async function(cat) {
         const materiaisDoGrupo = localMateriais.filter(m => m.categoria === cat);
         if (materiaisDoGrupo.length > 0) {
-            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  • ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
+            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  â€¢ ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
             if (!confirm(confirmMsg)) return;
             for (const m of materiaisDoGrupo) {
                 await fetch(`/api/materiais-catalogo/${m.id}`, { method: 'DELETE' });
@@ -5411,7 +5411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }).join('')}
                             <tr style="background:#131c26;">
                                 <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
-                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÃLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5543,7 +5543,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ─── Calendário Visual Interativo de Vigência ───
+    // â”€â”€â”€ Calendário Visual Interativo de Vigência â”€â”€â”€
     let calVigenciaAno = 2026;
     let calVigenciaMes = 6;
     let calVigenciaDataSelecionada = new Date().toISOString().split('T')[0];
@@ -5719,12 +5719,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Diretrizes -->
                     <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                            ⚠️ Diretrizes Gerais de Compra
+                            ⚠️ ï¸ Diretrizes Gerais de Compra
                         </h4>
                         <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÃLISE (FOTO)</li>
                         </ul>
                     </div>
         `;
@@ -5811,7 +5811,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                             <tr style="background: #fafafa;">
                                 <td colspan="${isCompleta ? 15 : 4}" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
-                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÃLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5827,7 +5827,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ✅ Aprovado pelo CEO Jose Tiago
                         </div>
                         <div style="text-align: right; color: #888;">
-                            Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
+                            Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}
                         </div>
                     </div>
                 </div>
@@ -5986,7 +5986,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ─── PDF RESÍDUOS ────────────────────────────────────────────────────────────
+    // â”€â”€â”€ PDF RESÍDUOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     function gerarHtmlTabelaResiduosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
@@ -6026,11 +6026,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">⚠️ Diretrizes Gerais de Compra — Resíduos</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">⚠️ ï¸ Diretrizes Gerais de Compra — Resíduos</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÃLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -6108,7 +6108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÃLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6118,7 +6118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
                         <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -6196,7 +6196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ─── PDF LIGAS ────────────────────────────────────────────────────────────────
+    // â”€â”€â”€ PDF LIGAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     function gerarHtmlTabelaLigasParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
@@ -6236,11 +6236,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">⚠️ Diretrizes Gerais de Compra — Ligas</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">⚠️ ï¸ Diretrizes Gerais de Compra — Ligas</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÃLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -6318,7 +6318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÃLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6328,7 +6328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
                         <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -6451,24 +6451,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            _apexNotify('Atenção', '❌ Erro ao enviar e-mail: ' + err.message, 'error');
+            _apexNotify('Atenção', 'âŒ Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
-    // --- 4. ANÁLISE DE AMOSTRAS & LAUDOS ---
+    // --- 4. ANÃLISE DE AMOSTRAS & LAUDOS ---
     window.initApexAmostras = function() {
         carregarAmostras();
         carregarCotacoesDolarLME();
     };
 
-    // ─── COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) ─────────────────────────────
+    // â”€â”€â”€ COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarCotacoesDolarLME = async function() {
         try {
             const res = await fetch('/api/cotacoes/dolar-lme');
             const data = await res.json();
             if (data && data.dolar) {
                 window.currentDolarRate = data.dolar;
-                console.log(`💵 Cotação Dólar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
+                console.log(`ðŸ’µ Cotação Dólar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
 
                 const alertaEl = document.getElementById('alerta-cotacao-mercado');
                 const alertaTexto = document.getElementById('alerta-cotacao-texto');
@@ -6501,7 +6501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ─── MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) ─────────────────────
+    // â”€â”€â”€ MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.atualizarNotificacoesAprovacao = function() {
         if (!Array.isArray(localAmostras)) return;
 
@@ -6768,7 +6768,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) modal.style.display = 'none';
     };
 
-    // ─── FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) ─────────────────
+    // â”€â”€â”€ FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let _fotosRecebimento = []; // Array de { base64, blob, nome }
 
     // Limpa o array ao abrir o modal (chamado em abrirModalAmostra)
@@ -6817,7 +6817,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="position:relative; display:inline-block;">
                 <img src="${f.base64}" style="width:72px; height:72px; object-fit:cover; border-radius:6px; border:2px solid #2AD07A; display:block;" title="${f.nome}">
                 <button type="button" onclick="removerFotoRecebimento(${i})"
-                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">✕</button>
+                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">âœ•</button>
             </div>
         `).join('');
     }
@@ -6877,8 +6877,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
-    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
+    // â”€â”€â”€ NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) â”€â”€â”€â”€â”€â”€
+    // â”€â”€â”€ NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) â”€â”€â”€â”€â”€â”€
     window.mudarTelaEtapa = function(etapaNum) {
         const idMap = {
             1: 'tela-etapa-1',
@@ -6892,7 +6892,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Etapa 4: acesso restrito
         if (etapaNum === 4) {
             if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                _apexNotify('Sistema', '🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
+                _apexNotify('Sistema', 'ðŸ”’ Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
@@ -6921,7 +6921,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ─── ETIQUETA QR CODE FISICA DE LOTE ─────────────────────────────────────────
+    // â”€â”€â”€ ETIQUETA QR CODE FISICA DE LOTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.gerarEtiquetaQRAmostra = function(id) {
         const amostra = localAmostras.find(a => a.id === id);
         if (!amostra) return;
@@ -6964,7 +6964,7 @@ document.addEventListener('DOMContentLoaded', () => {
         win.document.close();
     };
 
-    // ─── EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP ───────────────────────────────
+    // â”€â”€â”€ EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.exportarLaudosEmLoteZip = async function() {
         const checkboxes = document.querySelectorAll('.chk-amostra-select:checked');
         if (checkboxes.length === 0) {
@@ -7275,7 +7275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ─── UPLOAD REAL DE FOTOS ───────────────────────────────────────────────────
+    // â”€â”€â”€ UPLOAD REAL DE FOTOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.uploadFotos = async function(input, tipo, etapa) {
         if (!activeAmostraIdForDesmonte || !input.files || input.files.length === 0) return;
         const spinner = document.getElementById('foto-input-spinner');
@@ -7332,7 +7332,7 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper.style.cssText = 'position:relative; width:125px; height:100px; border-radius:8px; overflow:hidden; border:2px solid #1e4e8c; flex-shrink:0; background:#0a141d;';
             const badge = document.createElement('span');
             const etapaTexto = foto.etapa || (foto.tipo === 'bruta' ? 'Recebimento' : 'Desmonte');
-            badge.textContent = `${index + 1}º ${etapaTexto}`;
+            badge.textContent = `${index + 1}Âº ${etapaTexto}`;
             
             let badgeBg = '#3e7cb1';
             if (etapaTexto === 'Recebimento') badgeBg = '#f0b800';
@@ -7365,7 +7365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ─── CALCULADORA FIDC ────────────────────────────────────────────────────────
+    // â”€â”€â”€ CALCULADORA FIDC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Cache de precos para o painel
     let fidcPrecosCache = [];
 
@@ -7445,7 +7445,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el('fidc-preco-sugerido-coletar'))    el('fidc-preco-sugerido-coletar').innerHTML   = fmt(precoSugColetar)  + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
     }
 
-    // ─── TRILHA DE AUDITORIA ─────────────────────────────────────────────────────
+    // â”€â”€â”€ TRILHA DE AUDITORIA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirModalAuditLogs = function() {
         const modal = document.getElementById('modal-audit-logs');
         if (modal) modal.style.display = 'flex';
@@ -7482,9 +7482,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // MÓDULO WEBCAM — completamente autocontido, modal criado via JS
-    // ══════════════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     (function() {
         let _stream    = null;   // MediaStream ativo
         let _compIdx   = null;   // índice da linha que pediu a foto
@@ -7497,7 +7497,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let _preview   = null;
         let _onConfirmCallback = null; // callback especial para modos alternativos (ex: Recebimento)
 
-        /* ── Cria o modal no DOM (uma única vez) ── */
+        /* â”€â”€ Cria o modal no DOM (uma única vez) â”€â”€ */
         function _criarModal() {
             if (document.getElementById('_wcm_overlay')) return;
 
@@ -7521,7 +7521,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   </h3>
                   <button id="_wcm_fechar" style="background:#e63946;color:#fff;border:none;
                     border-radius:6px;padding:7px 16px;font-weight:bold;cursor:pointer;font-size:0.9rem;">
-                    ✕ Desligar e Sair
+                    âœ• Desligar e Sair
                   </button>
                 </div>
                 <!-- área de vídeo -->
@@ -7551,7 +7551,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <button id="_wcm_ok" style="display:none;background:#2AD07A;color:#000;border:none;
                       border-radius:8px;padding:10px 26px;font-size:1.05rem;cursor:pointer;font-weight:bold;">
-                      <i class='fa-solid fa-check'></i> ✔ Usar esta Foto
+                      <i class='fa-solid fa-check'></i> âœ” Usar esta Foto
                     </button>
                   </div>
                 </div>
@@ -7570,7 +7570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             o.querySelector('#_wcm_ok').onclick     = _confirmar;
         }
 
-        /* ── Abre o modal e inicia a câmera ── */
+        /* â”€â”€ Abre o modal e inicia a câmera â”€â”€ */
         async function _abrir(compIdx, tipo, etapa) {
             _criarModal();
             _compIdx  = (compIdx !== undefined && compIdx !== null) ? compIdx : null;
@@ -7602,7 +7602,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        /* ── Captura o frame atual para o canvas ── */
+        /* â”€â”€ Captura o frame atual para o canvas â”€â”€ */
         function _capturar() {
             if (!_stream || !_video.srcObject) { _apexNotify('Sistema', 'Câmera não ativa.', 'info'); return; }
 
@@ -7625,7 +7625,7 @@ document.addEventListener('DOMContentLoaded', () => {
             _modal.querySelector('#_wcm_ok').style.display    = 'inline-block';
         }
 
-        /* ── Refaz a foto ── */
+        /* â”€â”€ Refaz a foto â”€â”€ */
         function _refazer() {
             _captured              = null;
             _preview.style.display = 'none';
@@ -7635,7 +7635,7 @@ document.addEventListener('DOMContentLoaded', () => {
             _modal.querySelector('#_wcm_ok').style.display    = 'none';
         }
 
-        /* ── Confirma: insere thumbnail na linha IMEDIATAMENTE ── */
+        /* â”€â”€ Confirma: insere thumbnail na linha IMEDIATAMENTE â”€â”€ */
         async function _confirmar() {
             if (!_captured) { _apexNotify('Sistema', 'Nenhuma foto capturada.', 'info'); return; }
 
@@ -7704,7 +7704,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        /* ── Fecha e desliga a câmera ── */
+        /* â”€â”€ Fecha e desliga a câmera â”€â”€ */
         function _fechar() {
             if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
             if (_video)  { _video.srcObject = null; }
@@ -7712,7 +7712,7 @@ document.addEventListener('DOMContentLoaded', () => {
             _captured = null;
         }
 
-        /* ── HTML do card thumbnail da lista de fotos por linha ── */
+        /* â”€â”€ HTML do card thumbnail da lista de fotos por linha â”€â”€ */
         function _thumbsHtmlList(idx) {
             const comp = componentesActivos[idx];
             if (!comp) return '';
@@ -7729,7 +7729,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   '</div>' +
                   '<button type="button" onclick="_WCM.removerFotoDoComponente(' + idx + ',' + fIdx + ')" title="Remover esta foto" ' +
                     'style="position:absolute; top:-4px; right:-4px; background:#ff4d4d; color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">' +
-                    '✕</button>' +
+                    'âœ•</button>' +
                 '</div>';
             });
 
@@ -7742,7 +7742,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return html;
         }
 
-        /* ── API pública ── */
+        /* â”€â”€ API pública â”€â”€ */
         window._WCM = {
             abrir: function(compIdx) { _abrir(compIdx, 'separada', 'Desmonte'); },
             abrirGeral: function(tipo, etapa) { _compIdx = null; _onConfirmCallback = null; _abrir(null, tipo, etapa); },
@@ -7885,7 +7885,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ─── PRÉVIA VISUAL DO LAUDO ─────────────────────────────────────────────────
+    // â”€â”€â”€ PRÉVIA VISUAL DO LAUDO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const previaLaudoItens = [];
 
     function adicionarPreviaLaudo(idx, imgBase64) {
@@ -7918,14 +7918,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="position:relative;">
                     <img src="${item.img}" style="width:100%; height:180px; object-fit:cover; display:block;">
                     <div style="position:absolute; top:8px; left:8px; background:rgba(13,26,36,0.85); border:1px solid #2AD07A; border-radius:20px; padding:2px 10px; font-size:0.72rem; color:#2AD07A; font-weight:bold;">
-                        📸 #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
+                        ðŸ“¸ #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
                     </div>
                 </div>
                 <div style="padding:12px;">
                     <div style="font-weight:bold; color:#fff; font-size:0.95rem; margin-bottom:6px;">${item.nome}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">⚖ ${parseFloat(item.peso).toFixed(3)} kg</span>
-                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">🔧 ${item.dificuldade}</span>
+                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">⚠️– ${parseFloat(item.peso).toFixed(3)} kg</span>
+                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">ðŸ”§ ${item.dificuldade}</span>
                     </div>
                     ${item.observacoes ? `<div style="color:#aaa; font-size:0.8rem; border-top:1px solid #223547; padding-top:8px;">${item.observacoes}</div>` : ''}
                 </div>
@@ -8033,7 +8033,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resEngine.perdaFisicaKg > 0) {
             formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Resíduos`);
         }
-        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' · ');
+        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' Â· ');
 
         if (window.recalcularFIDC) {
             window.recalcularFIDC();
@@ -8134,7 +8134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             if (res.ok) {
-                const emoji = decisao === 'Aprovado' ? '✅' : '❌';
+                const emoji = decisao === 'Aprovado' ? '✅' : 'âŒ';
                 _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();
@@ -8217,7 +8217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             } catch(e) { console.warn('Logo cabeçalho não carregado:', e); }
 
-            // Carregar Marca d'Água: logo (2).png
+            // Carregar Marca d'Ãgua: logo (2).png
             let watermarkBase64 = null;
             try {
                 const wRes = await fetch('/assets/img/logo (2).png');
@@ -8318,7 +8318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let y = 50;
 
-            // ─── SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ─────────
+            // â”€â”€â”€ SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE â”€â”€â”€â”€â”€â”€â”€â”€â”€
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -8362,7 +8362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setFont('helvetica', 'bold');
             pdf.text('Comprador / Contato:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            // Trunca para não sobrepor o campo Peso Inicial à direita
+            // Trunca para não sobrepor o campo Peso Inicial Ã  direita
             const compTel = fcomp + (ftel ? ' (' + ftel + ')' : '');
             pdf.text(pdf.splitTextToSize(compTel, 110)[0], 52, y);
 
@@ -8399,17 +8399,17 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ──────────────────────────────────
+            // â”€â”€â”€ SEÇÃO 2: REGISTRO FOTOGRÃFICO POR ETAPA E COMPONENTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÁFICO POR ETAPA', 17, y + 5.5);
+            pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÃFICO POR ETAPA', 17, y + 5.5);
             y += 12;
 
-            // ── Helper: carrega uma imagem da API e retorna base64 ──
+            // â”€â”€ Helper: carrega uma imagem da API e retorna base64 â”€â”€
             async function _loadImgB64(url) {
                 try {
                     const r = await fetch(url);
@@ -8419,7 +8419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch(e) { return null; }
             }
 
-            // ── Helper: desenha um bloco de foto no PDF ──
+            // â”€â”€ Helper: desenha um bloco de foto no PDF â”€â”€
             function _drawFotoBloco(srcB64, label, bY, bH) {
                 pdf.setFillColor(248, 252, 249);
                 pdf.setDrawColor(13, 36, 22);
@@ -8439,7 +8439,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.text(pdf.splitTextToSize(label, 110), 76, bY + 9);
             }
 
-            // ── ETAPA 1 — RECEBIMENTO ──
+            // â”€â”€ ETAPA 1 — RECEBIMENTO â”€â”€
             {
                 const blocoH = 42;
                 checarNovaPagina(blocoH + 6);
@@ -8455,7 +8455,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     (f.componente_idx === null || f.componente_idx === undefined)
                 );
 
-                // Foto principal: foto_original da amostra OU, se vazia, a 1ª foto do banco
+                // Foto principal: foto_original da amostra OU, se vazia, a 1Âª foto do banco
                 let fotoOrigFinal = null;
                 if (amostra.foto_original) {
                     fotoOrigFinal = await _loadImgB64(amostra.foto_original).catch(() => amostra.foto_original);
@@ -8480,7 +8480,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 _drawFotoBloco(fotoOrigFinal, infoTextoRec, y, blocoH);
                 y += blocoH + 4;
 
-                // Fotos adicionais do Recebimento (2ª em diante)
+                // Fotos adicionais do Recebimento (2Âª em diante)
                 for (const f of recebimentoExtras) {
                     checarNovaPagina(blocoH + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
@@ -8488,7 +8488,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // ── ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos ──
+            // â”€â”€ ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos â”€â”€
             {
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
@@ -8552,7 +8552,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // ── ETAPA 3 & 4: Viabilidade e Aprovação ──
+            // â”€â”€ ETAPA 3 & 4: Viabilidade e Aprovação â”€â”€
             for (const etapaKey of ['Viabilidade', 'Aprovação']) {
                 const fotasEtapa = fotosAmostraList.filter(f => f.etapa === etapaKey);
                 if (fotasEtapa.length === 0) continue;
@@ -8569,7 +8569,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
 
-            // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
+            // â”€â”€â”€ SEÇÃO 3: RESULTADO DA ANÃLISE FÍSICA E DESMONTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(55); // Garante 55mm livres para o bloco completo
 
             pdf.setFillColor(13, 36, 22);
@@ -8577,7 +8577,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
+            pdf.text('RESULTADO DA ANÃLISE FÍSICA E DESMONTE', 17, y + 5.5);
 
             let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de título
 
@@ -8651,7 +8651,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 11);
             y += 19;
 
-            // ─── SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA ───────────────────
+            // â”€â”€â”€ SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(45);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
@@ -8719,7 +8719,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             y += 28;
 
-            // ─── SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA ────────
+            // â”€â”€â”€ SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA â”€â”€â”€â”€â”€â”€â”€â”€
             checarNovaPagina(40);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
@@ -8795,7 +8795,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const resEst = await fetch('/api/estoque');
             const { estoque } = await resEst.json();
 
-            // ─── KPIs ───
+            // â”€â”€â”€ KPIs â”€â”€â”€
             let pesoTotal = 0;
             let totalCompra = 0;
             let faturamento = 0;
@@ -8837,7 +8837,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('bi-kpi-margem').textContent = fmtBRL(margemConsolidada) + ' %';
             document.getElementById('bi-kpi-perda').textContent = fmtBRL(taxaPerdaIndustrial) + ' %';
 
-            // ── Gráfico 1: Evolução Mensal ──
+            // â”€â”€ Gráfico 1: Evolução Mensal â”€â”€
             const mesesMap = {};
             planejamento.forEach(p => {
                 const m = p.mes || '2026-07';
@@ -8873,7 +8873,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ── Gráfico 2: Composição das Amostras ──
+            // â”€â”€ Gráfico 2: Composição das Amostras â”€â”€
             const compMap = {};
             estoque.forEach(e => {
                 compMap[e.material_nome] = parseFloat(e.saldo) || 0;
@@ -8899,7 +8899,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ── Gráfico 3: Ranking de Fornecedores ──
+            // â”€â”€ Gráfico 3: Ranking de Fornecedores â”€â”€
             const fornMap = {};
             planejamento.forEach(p => {
                 const f = p.fornecedor_nome || 'Desconhecido';
@@ -8935,7 +8935,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ── Gráfico 4: Margem de Compra Coleta vs Entrega ──
+            // â”€â”€ Gráfico 4: Margem de Compra Coleta vs Entrega â”€â”€
             const catMargem = {};
             localPrecos.forEach(p => {
                 const cat = p.material_categoria;
@@ -8970,7 +8970,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ── TOP 10 Melhores Produtos (Margem Líquida) ──
+            // â”€â”€ TOP 10 Melhores Produtos (Margem Líquida) â”€â”€
             const topBody = document.getElementById('bi-top10-table-body');
             if (topBody && localPrecos && localPrecos.length > 0) {
                 const listComMargem = localPrecos.map(p => {
@@ -9050,7 +9050,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ─── 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ───
+    // â”€â”€â”€ 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÃRIOS â”€â”€â”€
     let mesPlanejamentoSelecionado = '2026-08';
     let cenarioPreditivoSelecionado = 'moderado';
     let historicoCenarioPorMes = {}; // Guarda o cenário ativo por mês
@@ -9328,9 +9328,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (badge && cenarioAtivo) {
             badge.style.display = 'flex';
             const infoCenarios = {
-                conservador: { nome: '🛡️ Conservador (-10% Volume / +5% Margem)', det: 'Alocação prudente com redução de teto de custos para menor risco financeiro.' },
-                moderado: { nome: '⚖️ Moderado (Média Histórica Móvel)', det: 'Projeção contínua baseada no desempenho médio recente.' },
-                agressivo: { nome: '🚀 Agressivo (+20% Volume / Expansão)', det: 'Meta de captação ampliada e alocação máxima de trabalho industrial.' }
+                conservador: { nome: 'ðŸ›¡ï¸ Conservador (-10% Volume / +5% Margem)', det: 'Alocação prudente com redução de teto de custos para menor risco financeiro.' },
+                moderado: { nome: '⚠️–ï¸ Moderado (Média Histórica Móvel)', det: 'Projeção contínua baseada no desempenho médio recente.' },
+                agressivo: { nome: 'ðŸš€ Agressivo (+20% Volume / Expansão)', det: 'Meta de captação ampliada e alocação máxima de trabalho industrial.' }
             };
             const c = infoCenarios[cenarioAtivo] || infoCenarios.moderado;
             if (txtNome) txtNome.textContent = c.nome;
@@ -9340,7 +9340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ─── Modal & Motor de Simulação Preditiva ───
+    // â”€â”€â”€ Modal & Motor de Simulação Preditiva â”€â”€â”€
     window.abrirModalPlanejamentoPreditivo = function() {
         document.getElementById('modal-planejamento-preditivo').style.display = 'flex';
         window.atualizarPreviewPreditivo();
@@ -9667,15 +9667,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Inteligencia
-        let indicador = '🟢';
+        let indicador = 'ðŸŸ¢';
         let titulo = 'Excelente para antecipar';
         let cor = '#2AD07A';
         
         const impactoFidcNoLucro = data.lucroB > 0 ? (data.valorFidc / data.lucroB) : 1;
         if (impactoFidcNoLucro > 0.4 || data.margem < 5) {
-            indicador = '🔴'; titulo = 'Não recomendado'; cor = '#ff4d4d';
+            indicador = 'ðŸ”´'; titulo = 'Não recomendado'; cor = '#ff4d4d';
         } else if (impactoFidcNoLucro > 0.2) {
-            indicador = '🟡'; titulo = 'Avaliar necessidade'; cor = '#f0b800';
+            indicador = 'ðŸŸ¡'; titulo = 'Avaliar necessidade'; cor = '#f0b800';
         }
 
         const dif = data.lucroLiqSemFidc - data.lucroLiqComFidc;
@@ -9686,9 +9686,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let txt = `A antecipação via FIDC reduzirá seu lucro em <strong>R$ ${dif.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> (${fmtBRL(data.fidc)}%), porém disponibilizará o capital imediatamente (economia de ${prazo} dias), aumentando a liquidez da empresa. `;
         
-        if (indicador === '🔴') {
+        if (indicador === 'ðŸ”´') {
             txt += "Como o impacto do FIDC no lucro bruto é alto ou a margem da operação é baixa, recomenda-se <strong>NÃO antecipar</strong> os recebíveis a menos que haja urgência de caixa.";
-        } else if (indicador === '🟡') {
+        } else if (indicador === 'ðŸŸ¡') {
             txt += "O impacto financeiro é moderado. Avalie a real necessidade de capital de giro antes de realizar a antecipação.";
         } else {
             txt += "Excelente oportunidade de antecipação. O custo financeiro não compromete a lucratividade e fortalece o fluxo de caixa.";
@@ -9829,7 +9829,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // --- FIM: SIMULADOR FIDC ---
 
-    // ── Helper Marca d'água jsPDF ──────────────────────────────────────────────
+    // â”€â”€ Helper Marca d'água jsPDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let cachedLogoWatermarkBase64 = null;
     async function getLogoWatermarkBase64JsPDF() {
         if (cachedLogoWatermarkBase64) return cachedLogoWatermarkBase64;
@@ -9969,7 +9969,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ── 1. Planejamento de Compra (Trading Comercial & Insumos da Indústria) ────
+    // â”€â”€ 1. Planejamento de Compra (Trading Comercial & Insumos da Indústria) â”€â”€â”€â”€
     window.carregarPlanejamentoCompras = async function() {
         try {
             const res = await fetch('/api/planejamento/compras');
@@ -10008,10 +10008,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const tipo = p.tipo_planejamento || 'COMPRA_VENDA';
 
             let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Sugerido</span>';
-            if (p.status === 'Em Cotação') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🔍 Em Cotação</span>';
+            if (p.status === 'Em Cotação') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸ” Em Cotação</span>';
             if (p.status === 'Aprovado') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Aprovado</span>';
-            if (p.status === 'Em Trânsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🚚 Em Trânsito</span>';
-            if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">📦 Recebido</span>';
+            if (p.status === 'Em Trânsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸšš Em Trânsito</span>';
+            if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸ“¦ Recebido</span>';
 
             if (tipo === 'COMPRA_VENDA') {
                 totalQtyCompras += qty;
@@ -10033,7 +10033,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                         <td style="padding:10px 8px; text-align:center;">
                             <button type="button" onclick="abrirModalAtualizarRealizado(${p.id})" style="background:#3b2d18; border:1px solid #f0b800; color:#f0b800; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Atualizar Realizado Efetuado"><i class="fa-solid fa-pen-to-square"></i> Realizado</button>
-                            <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#162b20; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Baixar PDF com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#162b20; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Baixar PDF com Marca d'Ãgua"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                             <button type="button" onclick="excluirPlanejamentoCompra(${p.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
@@ -10054,7 +10054,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="padding:10px 8px; text-align:right; color:#ffb74d; font-weight:bold;">R$ ${totalEst.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                         <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                         <td style="padding:10px 8px; text-align:center;">
-                            <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Baixar PDF com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <button type="button" onclick="imprimirMrpPdf(${p.id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px;" title="Baixar PDF com Marca d'Ãgua"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                             <button type="button" onclick="excluirPlanejamentoCompra(${p.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
@@ -10304,7 +10304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── 1. Planejamento de Produção & Explosão de Insumos ────────────────────────
+    // â”€â”€ 1. Planejamento de Produção & Explosão de Insumos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarPlanejamentoProducaoInsumos = async function() {
         try {
             const res = await fetch('/api/planejamento/producao-insumos');
@@ -10364,8 +10364,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isVermelho = qLiq > 0;
             const statusBadge = isVermelho ?
-                '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 NECESSIDADE DE COMPRA</span>' :
-                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 ESTOQUE SUFICIENTE</span>';
+                '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ NECESSIDADE DE COMPRA</span>' :
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ ESTOQUE SUFICIENTE</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -10397,7 +10397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiCusto) kpiCusto.textContent = 'R$ ' + totCusto.toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
 
-    // ─── Estado do simulador de produção ───────────────────────────────────
+    // â”€â”€â”€ Estado do simulador de produção â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let _simLinhas = []; 
     let _simLinhaIdx = 0;
 
@@ -10580,12 +10580,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const markup = custoTotal > 0 ? ((meta - custoTotal) / custoTotal) * 100 : 0;
 
         const cards = [
-            { label: '🎯 Meta de Faturamento', val: 'R$ ' + meta.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1' },
-            { label: '📦 Produto Final', val: nomeProd, cor: '#2AD07A', small: periodo },
-            { label: '⚖️ Qtd Necessária', val: qtdProd.toLocaleString('pt-BR', {minimumFractionDigits:3}) + ' kg', cor: '#2AD07A' },
-            { label: '💰 Custo Total Insumos', val: 'R$ ' + custoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800' },
-            { label: '📈 Margem Projetada', val: markup.toFixed(1) + '%', cor: markup >= 0 ? '#2AD07A' : '#ff4d4d' },
-            { label: '🧮 Nº de Insumos', val: _simLinhas.length + ' insumo(s)', cor: '#9b59b6' },
+            { label: 'ðŸŽ¯ Meta de Faturamento', val: 'R$ ' + meta.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1' },
+            { label: 'ðŸ“¦ Produto Final', val: nomeProd, cor: '#2AD07A', small: periodo },
+            { label: '⚠️–ï¸ Qtd Necessária', val: qtdProd.toLocaleString('pt-BR', {minimumFractionDigits:3}) + ' kg', cor: '#2AD07A' },
+            { label: 'ðŸ’° Custo Total Insumos', val: 'R$ ' + custoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800' },
+            { label: 'ðŸ“ˆ Margem Projetada', val: markup.toFixed(1) + '%', cor: markup >= 0 ? '#2AD07A' : '#ff4d4d' },
+            { label: 'ðŸ§® NÂº de Insumos', val: _simLinhas.length + ' insumo(s)', cor: '#9b59b6' },
         ];
 
         document.getElementById('sim-preview-cards').innerHTML = cards.map(c => `
@@ -10601,7 +10601,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? (l.preco_compra_simulado < l.preco_compra_tabela
                     ? '<span style="color:#2AD07A; font-weight:700;">✅ BEM</span>'
                     : l.preco_compra_simulado > l.preco_compra_tabela
-                    ? '<span style="color:#ff4d4d; font-weight:700;">⚠️ ACIMA TAB.</span>'
+                    ? '<span style="color:#ff4d4d; font-weight:700;">⚠️ ï¸ ACIMA TAB.</span>'
                     : '<span style="color:#aaa;">— TAB.</span>')
                 : '—';
             return `<tr style="border-top:1px solid #1a2e3f; color:#fff;">
@@ -10687,7 +10687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { console.error(e); }
     };
 
-    // ─── Extrato de Produção & Movimentações ──────────────────────────────────
+    // â”€â”€â”€ Extrato de Produção & Movimentações â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let _activePlanProducao = null; // objeto do planejamento ativo no extrato
     let _chartExtProdInsumos = null;
     let _chartExtProdMeta = null;
@@ -10784,7 +10784,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const atrasoC = prazoC < hoje && comprasInsumosReal < custoPrevisto;
                 bannerHtml += `
                     <div style="flex:1; background:${atrasoC ? '#3b1818' : '#162432'}; border:1px solid ${atrasoC ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.1rem;">${atrasoC ? '⚠️' : '📅'}</span>
+                        <span style="font-size:1.1rem;">${atrasoC ? '⚠️ ï¸' : 'ðŸ“…'}</span>
                         <div style="font-size:0.8rem;">
                             <span style="color:#aaa;">Prazo Limite Compra Insumos:</span>
                             <strong style="color:#fff; margin-left:5px;">${prazoC}</strong>
@@ -10796,7 +10796,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const atrasoV = prazoV < hoje && vendasReal < metaFaturamento;
                 bannerHtml += `
                     <div style="flex:1; background:${atrasoV ? '#3b1818' : '#162432'}; border:1px solid ${atrasoV ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.1rem;">${atrasoV ? '⚠️' : '📅'}</span>
+                        <span style="font-size:1.1rem;">${atrasoV ? '⚠️ ï¸' : 'ðŸ“…'}</span>
                         <div style="font-size:0.8rem;">
                             <span style="color:#aaa;">Prazo Limite Faturamento/Venda:</span>
                             <strong style="color:#fff; margin-left:5px;">${prazoV}</strong>
@@ -10815,12 +10815,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Renderizar KPI Cards
         const kpis = [
-            { label: '🎯 Meta Faturamento', val: 'R$ ' + metaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1', desc: 'Planejado' },
-            { label: '💰 Realizado (Vendas)', val: 'R$ ' + vendasReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#2AD07A', desc: `${metaProgressoPct.toFixed(1)}% da Meta` },
-            { label: '🛒 Custo Previsto Insumos', val: 'R$ ' + custoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800', desc: 'Simulado' },
-            { label: '💸 Investido Real Insumos', val: 'R$ ' + comprasInsumosReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff9f43', desc: `${custoPrevisto > 0 ? ((comprasInsumosReal/custoPrevisto)*100).toFixed(1) : 0}% do orçado` },
-            { label: '📈 Markup Realizado', val: markupReal.toFixed(1) + '%', cor: markupReal >= 0 ? '#2AD07A' : '#ff4d4d', desc: 'Vendas vs Compras Reais' },
-            { label: '⚠️ Compras Fora do Planejado', val: 'R$ ' + comprasAcima.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff4d4d', desc: 'Preço Real > Preço Simulado' }
+            { label: 'ðŸŽ¯ Meta Faturamento', val: 'R$ ' + metaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1', desc: 'Planejado' },
+            { label: 'ðŸ’° Realizado (Vendas)', val: 'R$ ' + vendasReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#2AD07A', desc: `${metaProgressoPct.toFixed(1)}% da Meta` },
+            { label: 'ðŸ›’ Custo Previsto Insumos', val: 'R$ ' + custoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800', desc: 'Simulado' },
+            { label: 'ðŸ’¸ Investido Real Insumos', val: 'R$ ' + comprasInsumosReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff9f43', desc: `${custoPrevisto > 0 ? ((comprasInsumosReal/custoPrevisto)*100).toFixed(1) : 0}% do orçado` },
+            { label: 'ðŸ“ˆ Markup Realizado', val: markupReal.toFixed(1) + '%', cor: markupReal >= 0 ? '#2AD07A' : '#ff4d4d', desc: 'Vendas vs Compras Reais' },
+            { label: '⚠️ ï¸ Compras Fora do Planejado', val: 'R$ ' + comprasAcima.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff4d4d', desc: 'Preço Real > Preço Simulado' }
         ];
 
         const kpisContainer = document.getElementById('extrato-prod-kpi-container');
@@ -10912,15 +10912,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 let ef = '—';
                                 if (isCompra && refPrice > 0) {
                                     const diff = ((m.preco_unitario - refPrice) / refPrice) * 100;
-                                    if (diff > 0) ef = `<span style="color:#ff4d4d; font-weight:700;">⚠️ +${diff.toFixed(1)}% (Caro)</span>`;
+                                    if (diff > 0) ef = `<span style="color:#ff4d4d; font-weight:700;">⚠️ ï¸ +${diff.toFixed(1)}% (Caro)</span>`;
                                     else if (diff < 0) ef = `<span style="color:#2AD07A; font-weight:700;">✅ ${diff.toFixed(1)}% (Economia)</span>`;
                                     else ef = `<span style="color:#aaa;">= Tabela</span>`;
                                 } else if (!isCompra) {
                                     const refVenda = parseFloat(plan.preco_venda_produto_rs || 0);
                                     if (refVenda > 0) {
                                         const diff = ((m.preco_unitario - refVenda) / refVenda) * 100;
-                                        if (diff > 0) ef = `<span style="color:#2AD07A; font-weight:700;">📈 +${diff.toFixed(1)}% (Alta)</span>`;
-                                        else if (diff < 0) ef = `<span style="color:#ff4d4d; font-weight:700;">📉 ${diff.toFixed(1)}% (Baixa)</span>`;
+                                        if (diff > 0) ef = `<span style="color:#2AD07A; font-weight:700;">ðŸ“ˆ +${diff.toFixed(1)}% (Alta)</span>`;
+                                        else if (diff < 0) ef = `<span style="color:#ff4d4d; font-weight:700;">ðŸ“‰ ${diff.toFixed(1)}% (Baixa)</span>`;
                                         else ef = `<span style="color:#aaa;">= Tabela</span>`;
                                     }
                                 }
@@ -11030,7 +11030,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const diff = ((price - refPrice) / refPrice) * 100;
             if (isCompra) {
                 if (diff > 0) {
-                    labelDesvio.textContent = `⚠️ +${diff.toFixed(1)}% (Compra mais CARA)`;
+                    labelDesvio.textContent = `⚠️ ï¸ +${diff.toFixed(1)}% (Compra mais CARA)`;
                     labelDesvio.style.color = '#ff4d4d';
                 } else if (diff < 0) {
                     labelDesvio.textContent = `✅ ${diff.toFixed(1)}% (Compra mais BARATA)`;
@@ -11044,7 +11044,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     labelDesvio.textContent = `✅ +${diff.toFixed(1)}% (Venda ACIMA do Planejado)`;
                     labelDesvio.style.color = '#2AD07A';
                 } else if (diff < 0) {
-                    labelDesvio.textContent = `⚠️ ${diff.toFixed(1)}% (Venda ABAIXO do Planejado)`;
+                    labelDesvio.textContent = `⚠️ ï¸ ${diff.toFixed(1)}% (Venda ABAIXO do Planejado)`;
                     labelDesvio.style.color = '#ff4d4d';
                 } else {
                     labelDesvio.textContent = 'Preço de Tabela Planejado';
@@ -11137,7 +11137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // ── 2. Planejamento Comercial (Compra e Venda / Revenda) ────────────────────
+    // â”€â”€ 2. Planejamento Comercial (Compra e Venda / Revenda) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarPlanejamentoComercialRevenda = async function() {
         try {
             const res = await fetch('/api/planejamento/comercial-revenda');
@@ -11218,7 +11218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isAltoGiro = fat >= 1000000;
             const giroBadge = isAltoGiro ?
-                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔥 ALTO GIRO</span>' :
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”¥ ALTO GIRO</span>' :
                 '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:2px 6px; border-radius:12px; font-size:0.75rem;">GIRO NORMAL</span>';
 
             const markupColor = markup >= 0 ? '#2AD07A' : '#ff4d4d';
@@ -11234,8 +11234,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <strong>${item.produto_nome || 'Produto'}</strong>
                     <div style="font-size:0.72rem; color:#aaa;">${item.mes_referencia || ''}</div>
                     <div style="font-size:0.7rem; color:#8eaabf; margin-top:4px; line-height:1.2;">
-                        🛒 Compra: ${prazoCompraStr}<br>
-                        💰 Venda: ${prazoVendaStr}
+                        ðŸ›’ Compra: ${prazoCompraStr}<br>
+                        ðŸ’° Venda: ${prazoVendaStr}
                     </div>
                 </td>
                 <td style="padding:10px 8px; text-align:right;">
@@ -11259,7 +11259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${markupColor};">${markup.toFixed(1)}%</td>
                 <td style="padding:10px 8px; text-align:center;">${giroBadge} <small style="color:#aaa;">(${partPct.toFixed(1)}% Meta)</small></td>
-                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">🔵 ${item.status || 'Meta Definida'}</span></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">ðŸ”µ ${item.status || 'Meta Definida'}</span></td>
                 <td style="padding:10px 8px; text-align:center;">
                     <button type="button" onclick="abrirModalTransacaoComercial(${item.id})" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Lançar Movimentação"><i class="fa-solid fa-plus-minus"></i> Movimentar</button>
                     <button type="button" onclick="abrirModalExtratoComercial(${item.id})" style="background:#122a3f; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Extrato & Análise"><i class="fa-solid fa-chart-mixed"></i> Extrato</button>
@@ -11307,7 +11307,7 @@ document.addEventListener('DOMContentLoaded', () => {
             itemDiv.style.padding = '4px 0';
             itemDiv.style.borderBottom = '1px solid #162433';
             itemDiv.innerHTML = `
-                <span>🌟 <strong>${c.nome}</strong></span>
+                <span>ðŸŒŸ <strong>${c.nome}</strong></span>
                 <span style="color:#2AD07A; font-weight:bold;">Fat. Projetado: R$ ${c.fat.toLocaleString('pt-BR', {maximumFractionDigits:0})}</span>
             `;
             lucroBox.appendChild(itemDiv);
@@ -11327,10 +11327,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let alertaText = '';
                 if (o.desvioPrecoCompra > 0) {
-                    alertaText += `⚠️ Compra real (R$ ${o.mediaCompra.toFixed(2)}) acima do planejado (R$ ${o.pCompra.toFixed(2)}). `;
+                    alertaText += `⚠️ ï¸ Compra real (R$ ${o.mediaCompra.toFixed(2)}) acima do planejado (R$ ${o.pCompra.toFixed(2)}). `;
                 }
                 if (o.desvioPrecoVenda < 0) {
-                    alertaText += `📉 Venda real (R$ ${o.mediaVenda.toFixed(2)}) abaixo do planejado (R$ ${o.pVenda.toFixed(2)}).`;
+                    alertaText += `ðŸ“‰ Venda real (R$ ${o.mediaVenda.toFixed(2)}) abaixo do planejado (R$ ${o.pVenda.toFixed(2)}).`;
                 }
 
                 itemDiv.innerHTML = `
@@ -11610,7 +11610,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
     };
 
-    // ── Transações Comerciais Fracionadas ──────────────────────────────────────
+    // â”€â”€ Transações Comerciais Fracionadas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     // Contexto do modal de transação
     let _transacaoCtx = { planejamento_id: null, item: null };
@@ -11720,7 +11720,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── Extrato & Análise ──────────────────────────────────────────────────────
+    // â”€â”€ Extrato & Análise â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     let _extratoCtx = { planejamento_id: null, item: null };
 
@@ -11796,7 +11796,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const desvioPCompra = pCompraTab > 0 && mediaCompra > 0 ? ((mediaCompra - pCompraTab) / pCompraTab) * 100 : null;
         const desvioPVenda  = pVendaTab  > 0 && mediaVenda  > 0 ? ((mediaVenda  - pVendaTab)  / pVendaTab)  * 100 : null;
 
-        // ── Banner de prazos ───────────────────────────────────────────────────
+        // â”€â”€ Banner de prazos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const prazoCompra = item.prazo_compra_ate ? new Date(item.prazo_compra_ate) : null;
         const prazoVenda  = item.prazo_venda_ate  ? new Date(item.prazo_venda_ate)  : null;
         const hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -11807,7 +11807,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data) return;
                 const diff = Math.ceil((data - hoje) / (1000*60*60*24));
                 const urgCor = diff <= 3 ? '#ff4d4d' : diff <= 7 ? '#f0b800' : cor;
-                const icon = diff <= 3 ? '🚨' : diff <= 7 ? '⚠️' : '📅';
+                const icon = diff <= 3 ? 'ðŸš¨' : diff <= 7 ? '⚠️ ï¸' : 'ðŸ“…';
                 bannerHtml += `<div style="flex:1; min-width:220px; background:#0d1826; border:1px solid ${urgCor}; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
                     <span style="font-size:1.3rem;">${icon}</span>
                     <div>
@@ -11817,14 +11817,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>`;
             };
-            addPrazo('🛒 Prazo Limite de Compra', prazoCompra, faltaComprar, '#3e7cb1');
-            addPrazo('💰 Prazo Limite de Venda',  prazoVenda,  faltaVender,  '#2AD07A');
+            addPrazo('ðŸ›’ Prazo Limite de Compra', prazoCompra, faltaComprar, '#3e7cb1');
+            addPrazo('ðŸ’° Prazo Limite de Venda',  prazoVenda,  faltaVender,  '#2AD07A');
             bannerHtml += '</div>';
             bannerEl.innerHTML = bannerHtml;
             bannerEl.style.display = (prazoCompra || prazoVenda) ? 'block' : 'none';
         }
 
-        // ── KPI cards ─────────────────────────────────────────────────────────
+        // â”€â”€ KPI cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const card = (icon, label, value, sub, cor) =>
             `<div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; border-left:3px solid ${cor};">
                 <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:4px;">${icon} ${label}</div>
@@ -11869,30 +11869,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let html = '';
-        html += card('🛒', 'Meta de Compra',       fmtKg(cPlan),             '', '#3e7cb1');
+        html += card('ðŸ›’', 'Meta de Compra',       fmtKg(cPlan),             '', '#3e7cb1');
         html += card('✅', 'Comprado Real',         fmtKg(totalCompraKg),
             `${metaCompPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaComprar)}`,
             metaCompPct >= 100 ? '#2AD07A' : metaCompPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('💰', 'Total Gasto (Compras)', fmtRs(totalCompraRs),      'Capital já investido em estoque', '#ff4d4d');
-        html += card('💵', 'Reserva p/ Comprar',   fmtRs(reservaNecessaria),
-            `${fmtKg(kgRestCompra)} × R$ ${pCompraTab.toFixed(2)}/kg (tab)`, '#f0b800');
-        html += card('📊', 'Eficiência de Compra',  statusCompraTxt,          mediaCompra > 0 ? `Média Real: ${fmtRs(mediaCompra)}/kg vs Tab: ${fmtRs(pCompraTab)}` : 'Nenhuma compra lançada', statusCompraCor);
-        html += card('💰', 'Meta de Venda',        fmtKg(vPlan),             '', '#3e7cb1');
+        html += card('ðŸ’°', 'Total Gasto (Compras)', fmtRs(totalCompraRs),      'Capital já investido em estoque', '#ff4d4d');
+        html += card('ðŸ’µ', 'Reserva p/ Comprar',   fmtRs(reservaNecessaria),
+            `${fmtKg(kgRestCompra)} Ã— R$ ${pCompraTab.toFixed(2)}/kg (tab)`, '#f0b800');
+        html += card('ðŸ“Š', 'Eficiência de Compra',  statusCompraTxt,          mediaCompra > 0 ? `Média Real: ${fmtRs(mediaCompra)}/kg vs Tab: ${fmtRs(pCompraTab)}` : 'Nenhuma compra lançada', statusCompraCor);
+        html += card('ðŸ’°', 'Meta de Venda',        fmtKg(vPlan),             '', '#3e7cb1');
         html += card('✅', 'Vendido Real',          fmtKg(totalVendaKg),
             `${metaVendPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaVender)}`,
             metaVendPct >= 100 ? '#2AD07A' : metaVendPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('💵', 'Faturamento Real',     fmtRs(totalVendaRs),      `Investido: ${fmtRs(totalCompraRs)}`, '#2AD07A');
-        html += card('🔮', 'Faturamento Projetado',fmtRs(fatProjetado),
-            `Restante ${fmtKg(kgRestVenda)} × R$ ${pVendaTab.toFixed(2)}/kg`, '#9b59b6');
-        html += card('📊', 'Eficiência de Venda',   statusVendaTxt,           mediaVenda > 0 ? `Média Real: ${fmtRs(mediaVenda)}/kg vs Tab: ${fmtRs(pVendaTab)}` : 'Nenhuma venda lançada', statusVendaCor);
-        html += card('📈', 'Markup Planejado',     fmtPct(markupPlan),       `R$ ${pCompraTab.toFixed(2)} → R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
-        html += card('📈', 'Markup Médio Real',    markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
-            mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} → R$ ${mediaVenda.toFixed(2)}` : '',
+        html += card('ðŸ’µ', 'Faturamento Real',     fmtRs(totalVendaRs),      `Investido: ${fmtRs(totalCompraRs)}`, '#2AD07A');
+        html += card('ðŸ”®', 'Faturamento Projetado',fmtRs(fatProjetado),
+            `Restante ${fmtKg(kgRestVenda)} Ã— R$ ${pVendaTab.toFixed(2)}/kg`, '#9b59b6');
+        html += card('ðŸ“Š', 'Eficiência de Venda',   statusVendaTxt,           mediaVenda > 0 ? `Média Real: ${fmtRs(mediaVenda)}/kg vs Tab: ${fmtRs(pVendaTab)}` : 'Nenhuma venda lançada', statusVendaCor);
+        html += card('ðŸ“ˆ', 'Markup Planejado',     fmtPct(markupPlan),       `R$ ${pCompraTab.toFixed(2)} â†’ R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
+        html += card('ðŸ“ˆ', 'Markup Médio Real',    markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
+            mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} â†’ R$ ${mediaVenda.toFixed(2)}` : '',
             markupReal >= markupPlan ? '#2AD07A' : '#ff4d4d');
 
         document.getElementById('extrato-painel-analise').innerHTML = html;
 
-        // ── Renderizar gráficos ────────────────────────────────────────────────
+        // â”€â”€ Renderizar gráficos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Precisamos de setTimeout para garantir que os canvas já existam no DOM
         setTimeout(() => _renderExtratoGraficos(item, transacoes, {
             totalCompraKg, totalVendaKg, cPlan, vPlan,
@@ -11911,7 +11911,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ChartJS.defaults.color = '#8eaabf';
         ChartJS.defaults.font.family = 'Inter, sans-serif';
 
-        // ── 1. Donut: Meta de Compra ──
+        // â”€â”€ 1. Donut: Meta de Compra â”€â”€
         const ctxC = document.getElementById('extrato-chart-compra');
         if (ctxC) {
             const realC  = Math.min(totalCompraKg, cPlan);
@@ -11933,7 +11933,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (legCompra) legCompra.innerHTML = `<span style="color:#3e7cb1; font-weight:bold; font-size:1.1rem;">${pct}%</span><br><span style="color:#8eaabf; font-size:0.72rem;">${totalCompraKg.toLocaleString('pt-BR',{minimumFractionDigits:1})} / ${cPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</span>`;
         }
 
-        // ── 2. Donut: Meta de Venda ──
+        // â”€â”€ 2. Donut: Meta de Venda â”€â”€
         const ctxV = document.getElementById('extrato-chart-venda');
         if (ctxV) {
             const realV  = Math.min(totalVendaKg, vPlan);
@@ -11955,7 +11955,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (legVenda) legVenda.innerHTML = `<span style="color:#2AD07A; font-weight:bold; font-size:1.1rem;">${pct}%</span><br><span style="color:#8eaabf; font-size:0.72rem;">${totalVendaKg.toLocaleString('pt-BR',{minimumFractionDigits:1})} / ${vPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</span>`;
         }
 
-        // ── 3. Barras: Preço Médio vs Tabela ──
+        // â”€â”€ 3. Barras: Preço Médio vs Tabela â”€â”€
         const ctxP = document.getElementById('extrato-chart-preco');
         if (ctxP) {
             const labels = ['Compra', 'Venda'];
@@ -11986,7 +11986,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ── 4. Linha: Evolução acumulada ──
+        // â”€â”€ 4. Linha: Evolução acumulada â”€â”€
         const ctxE = document.getElementById('extrato-chart-evolucao');
         if (ctxE && transacoes.length > 0) {
             // Ordenar por data
@@ -12076,7 +12076,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </table>`;
     }
 
-    // ── 3. Planejado vs. Realizado Geral & Chart.js ──────────────────────────────
+    // â”€â”€ 3. Planejado vs. Realizado Geral & Chart.js â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarComparativoRealizadoGeral = async function() {
         await Promise.all([
             carregarPlanejamentoProducaoInsumos(),
@@ -12121,9 +12121,9 @@ document.addEventListener('DOMContentLoaded', () => {
             chartDataPlan.push(planKg);
             chartDataReal.push(realKg);
 
-            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 DENTRO DO PLANEJADO</span>';
-            if (desvioPct < -10) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 ABAIXO DO PLANEJADO</span>';
-            else if (desvioPct > 10) statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 ACIMA DO PLANEJADO</span>';
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ DENTRO DO PLANEJADO</span>';
+            if (desvioPct < -10) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ ABAIXO DO PLANEJADO</span>';
+            else if (desvioPct > 10) statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ ACIMA DO PLANEJADO</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -12163,8 +12163,8 @@ document.addEventListener('DOMContentLoaded', () => {
             totPlanKg += planKg; totRealKg += realKg;
             totPlanRs += planRs;
 
-            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 DENTRO DO PLANEJADO</span>';
-            if (desvioPct < 0) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 NECESSIDADE DE INSUMO</span>';
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ DENTRO DO PLANEJADO</span>';
+            if (desvioPct < 0) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ NECESSIDADE DE INSUMO</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -12229,7 +12229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── 4. Projeção Financeira de Caixa ──────────────────────────────────────────
+    // â”€â”€ 4. Projeção Financeira de Caixa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarProjecaoCaixa = async function() {
         // Popula o select de produto no formulário de entrada
         let _mats = window.localMateriais || [];
@@ -12370,7 +12370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── 5. Parâmetros de Prazos & Estoque Mínimo ──────────────────────────────────
+    // â”€â”€ 5. Parâmetros de Prazos & Estoque Mínimo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarParametrosPrazos = async function() {
         try {
             const res = await fetch('/api/planejamento/parametros-prazos');
@@ -12506,7 +12506,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── Exportação PDF Adicional ────────────────────────────────────────────────
+    // â”€â”€ Exportação PDF Adicional â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.imprimirPlanejamentoProducaoPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
@@ -12597,7 +12597,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.imprimirComparativoRealizadoPdf) window.imprimirComparativoRealizadoPdf();
     };
 
-    // ── 7. Planejamento por Cenários Estratégicos (16 a 22) ─────────────────────
+    // â”€â”€ 7. Planejamento por Cenários Estratégicos (16 a 22) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarPlanejamentoCenarios = async function() {
         try {
             const resCfg = await fetch('/api/planejamento/cenarios/configuracao');
@@ -12702,7 +12702,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 1. Destaque do Cenário Foco (Agressivo por padrão ou configurável)
         const foco = data.cenario_foco || agr;
-        document.getElementById('foco-titulo-cenario').textContent = `CENÁRIO ${foco.cenario}`;
+        document.getElementById('foco-titulo-cenario').textContent = `CENÃRIO ${foco.cenario}`;
         document.getElementById('foco-fat-rs').textContent = 'R$ ' + foco.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('foco-invest-rs').textContent = 'R$ ' + foco.investimento_necessario_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('foco-caixa-rs').textContent = 'R$ ' + foco.necessidade_caixa_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
@@ -12832,9 +12832,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         tbody.innerHTML =
-            buildRow('🔴 CONSERVADOR', pCons, '#ff4d4d') +
-            buildRow('🟡 MODERADO', pMod, '#f0b800') +
-            buildRow('🟢 AGRESSIVO', pAgr, '#2AD07A');
+            buildRow('ðŸ”´ CONSERVADOR', pCons, '#ff4d4d') +
+            buildRow('ðŸŸ¡ MODERADO', pMod, '#f0b800') +
+            buildRow('ðŸŸ¢ AGRESSIVO', pAgr, '#2AD07A');
     }
 
     window.imprimirCenariosPdf = async function() {
@@ -12847,7 +12847,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setTextColor(30, 41, 59);
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text("APEXTECH METAIS - PLANEJAMENTO POR CENÁRIOS ESTRATÉGICOS", 40, 40);
+            doc.text("APEXTECH METAIS - PLANEJAMENTO POR CENÃRIOS ESTRATÉGICOS", 40, 40);
 
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
@@ -12884,7 +12884,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
     };
 
-    // ── PDF Export: Planejamento de Compra & Venda (Trading) ────────────────────
+    // â”€â”€ PDF Export: Planejamento de Compra & Venda (Trading) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.imprimirRelatorioMrpPdf = window.imprimirMrpPdf = function(id) {
         try {
             const jsPDFClass = getJsPDFClass();
@@ -12956,7 +12956,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── PDF Export: Insumos da Indústria ───────────────────────────────────────
+    // â”€â”€ PDF Export: Insumos da Indústria â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.imprimirInsumosIndustriaPdf = function() {
         try {
             const jsPDFClass = getJsPDFClass();
@@ -13025,7 +13025,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── PDF Export: Planejado vs. Realizado (Metas & Caixa) ────────────────────
+    // â”€â”€ PDF Export: Planejado vs. Realizado (Metas & Caixa) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.imprimirComparativoRealizadoPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
@@ -13115,7 +13115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── 2. Planejamento Industrial / Capacidade ──────────────────────────────────
+    // â”€â”€ 2. Planejamento Industrial / Capacidade â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarCapacidadeIndustrial = window.carregarPlanejamentoIndustrial = async function() {
         try {
             const res = await fetch('/api/planejamento/industrial/equipamentos');
@@ -13151,8 +13151,8 @@ document.addEventListener('DOMContentLoaded', () => {
             totalOee += oee;
 
             let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Operacional</span>';
-            if (eq.status === 'Manutenção') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⚠️ Manutenção</span>';
-            if (eq.status === 'Parado') statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem;">❌ Parado</span>';
+            if (eq.status === 'Manutenção') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⚠️ ï¸ Manutenção</span>';
+            if (eq.status === 'Parado') statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem;">âŒ Parado</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -13165,7 +13165,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:#9b59b6;">${oee}%</td>
                 <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                 <td style="padding:10px 8px; text-align:center;">
-                    <button type="button" onclick="imprimirEquipamentoPdf(${eq.id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:6px;" title="Baixar PDF Ficha do Equipamento com Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    <button type="button" onclick="imprimirEquipamentoPdf(${eq.id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:6px;" title="Baixar PDF Ficha do Equipamento com Marca d'Ãgua"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                     <button type="button" onclick="editarEquipamentoIndustrial(${eq.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; font-size:0.9rem; margin-right:8px;" title="Editar"><i class="fa-solid fa-pen"></i></button>
                     <button type="button" onclick="excluirEquipamentoIndustrial(${eq.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -13255,7 +13255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── 3. Produção & PCP (Ordens de Produção com Tempos Operacionais) ─────────
+    // â”€â”€ 3. Produção & PCP (Ordens de Produção com Tempos Operacionais) â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.carregarOrdensProducao = async function() {
         try {
             const res = await fetch('/api/planejamento/producao/ops');
@@ -13321,7 +13321,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tempoRealTotal += opRealHours;
 
             let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Planejada</span>';
-            if (op.status === 'Em Execução') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⏳ Em Execução</span>';
+            if (op.status === 'Em Execução') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">â³ Em Execução</span>';
             if (op.status === 'Concluída') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Concluída</span>';
 
             const tr = document.createElement('tr');
@@ -13334,7 +13334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 8px; min-width:280px;">${etapasHtml}</td>
                 <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                 <td style="padding:10px 8px; text-align:center;">
-                    <button type="button" onclick="imprimirOPPdf(${op.id})" style="background:#3b2d18; border:1px solid #ffb74d; color:#ffb74d; border-radius:4px; padding:4px 10px; font-size:0.78rem; font-weight:bold; cursor:pointer; margin-right:8px;" title="Baixar PDF da OP com Roteiro PCP e Marca d'Água"><i class="fa-solid fa-file-pdf"></i> PDF OP</button>
+                    <button type="button" onclick="imprimirOPPdf(${op.id})" style="background:#3b2d18; border:1px solid #ffb74d; color:#ffb74d; border-radius:4px; padding:4px 10px; font-size:0.78rem; font-weight:bold; cursor:pointer; margin-right:8px;" title="Baixar PDF da OP com Roteiro PCP e Marca d'Ãgua"><i class="fa-solid fa-file-pdf"></i> PDF OP</button>
                     <button type="button" onclick="excluirOrdemProducao(${op.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:0.9rem;" title="Excluir OP"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
@@ -13499,7 +13499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ── 4. Apontamento de Tempo Real da Etapa ────────────────────────────────────
+    // â”€â”€ 4. Apontamento de Tempo Real da Etapa â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.abrirModalApontamentoTempo = function(opId, etapaId) {
         const op = localOPs.find(x => x.id === opId);
         if (!op) return;
@@ -13839,7 +13839,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 7. USUÁRIOS & CONTROLE DE ACESSO ---
+    // --- 7. USUÃRIOS & CONTROLE DE ACESSO ---
     let localUsuarios = [];
     window.initApexUsuarios = function() {
         carregarUsuarios();
@@ -13997,9 +13997,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // LOGIN (Posicionado no final para evitar TDZ e erros de inicialização)
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const loginOverlay       = document.getElementById('login-overlay');
     const dashboardContainer = document.getElementById('admin-dashboard-container');
     const loginForm          = document.getElementById('admin-login-form');
@@ -14550,7 +14550,7 @@ window.carregarFinanceiroView = async function() {
                 </td>
                 <td style="padding:6px 4px; text-align:center;">
                     <select onchange="atualizarItemPedido(${i},'unidade',this.value)" class="noble-input" style="padding:5px 4px; font-size:0.82rem; width:65px;">
-                        ${['kg','t','un','m','m²','L'].map(u=>`<option value="${u}" ${it.unidade===u?'selected':''}>${u}</option>`).join('')}
+                        ${['kg','t','un','m','mÂ²','L'].map(u=>`<option value="${u}" ${it.unidade===u?'selected':''}>${u}</option>`).join('')}
                     </select>
                 </td>
                 <td style="padding:6px 4px;">
@@ -14779,7 +14779,7 @@ window.carregarFinanceiroView = async function() {
         doc.setTextColor(13, 36, 22);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.text('DADOS DO CLIENTE (DESTINATÁRIO)', 18, 40);
+        doc.text('DADOS DO CLIENTE (DESTINATÃRIO)', 18, 40);
         
         doc.setFontSize(8);
         doc.setTextColor(p.cliente_id ? 42 : 180, p.cliente_id ? 150 : 120, p.cliente_id ? 80 : 20);
@@ -15099,7 +15099,7 @@ window.carregarFinanceiroView = async function() {
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            // Configurar Margens Institucionais e Área Útil de Impressão
+            // Configurar Margens Institucionais e Ãrea Útil de Impressão
             const marginTop = 18;
             const marginBottom = 12;
             const marginLeft = 8;
@@ -15183,7 +15183,7 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
-    // ── GERAÇÃO DE PDFS DE PLANEJAMENTO, MRP, INDUSTRIAL E ORDENS DE PRODUÇÃO (PCP) ──
+    // â”€â”€ GERAÇÃO DE PDFS DE PLANEJAMENTO, MRP, INDUSTRIAL E ORDENS DE PRODUÇÃO (PCP) â”€â”€
 
     function getJsPDFClass() {
         if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
@@ -15338,7 +15338,7 @@ window.carregarFinanceiroView = async function() {
 
             doc.autoTable({
                 startY: 34,
-                head: [['Nº OP', 'Mat. Entrada', 'Peso Entrada', 'Mat. Saída Esperado', 'Peso Saída Est.', 'Cronograma', 'Tempo Est.', 'Tempo Real', 'Status OP', 'Responsável']],
+                head: [['NÂº OP', 'Mat. Entrada', 'Peso Entrada', 'Mat. Saída Esperado', 'Peso Saída Est.', 'Cronograma', 'Tempo Est.', 'Tempo Real', 'Status OP', 'Responsável']],
                 body: body,
                 theme: 'grid',
                 headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
@@ -16272,11 +16272,11 @@ window.carregarFinanceiroView = async function() {
 
         let html = `<ul style="margin:0; padding-left:16px; display:flex; flex-direction:column; gap:6px;">`;
         if (melhorMargem) {
-            html += `<li>🚀 <strong>Destaque Comercial</strong>: O produto <strong>${melhorMargem.nome}</strong> possui a melhor margem líquida da tabela com <strong>${melhorMargem.margem.toFixed(1)}%</strong>. Focar volume nele aumenta exponencialmente o lucro.</li>`;
+            html += `<li>ðŸš€ <strong>Destaque Comercial</strong>: O produto <strong>${melhorMargem.nome}</strong> possui a melhor margem líquida da tabela com <strong>${melhorMargem.margem.toFixed(1)}%</strong>. Focar volume nele aumenta exponencialmente o lucro.</li>`;
         }
 
         if (riscoMargem.length > 0) {
-            html += `<li>⚠️ <strong>Alerta de Risco</strong>: Encontramos ${riscoMargem.length} produtos com margem crítica ou negativa (ex: <strong>${riscoMargem[0].nome}</strong> com ${riscoMargem[0].margem.toFixed(1)}%). Recomenda-se renegociar compra ou reajustar tabela de venda.</li>`;
+            html += `<li>⚠️ ï¸ <strong>Alerta de Risco</strong>: Encontramos ${riscoMargem.length} produtos com margem crítica ou negativa (ex: <strong>${riscoMargem[0].nome}</strong> com ${riscoMargem[0].margem.toFixed(1)}%). Recomenda-se renegociar compra ou reajustar tabela de venda.</li>`;
         } else {
             html += `<li>✅ <strong>Saúde da Carteira</strong>: Todos os produtos da Tabela de Preços apresentam margens unitárias saudáveis e seguras contra flutuações.</li>`;
         }
@@ -16289,7 +16289,7 @@ window.carregarFinanceiroView = async function() {
                 return acc + (mod > 0 ? (real / mod) * 100 : 0);
             }, 0) / metasMes.length;
 
-            html += `<li>📊 <strong>Atingimento</strong>: O atingimento médio das metas estratégicas do mês atual está em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
+            html += `<li>ðŸ“Š <strong>Atingimento</strong>: O atingimento médio das metas estratégicas do mês atual está em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
         }
 
         // Análises de progresso por produto
@@ -16301,12 +16301,12 @@ window.carregarFinanceiroView = async function() {
                 const cons = parseFloat(m.qtd_conservador || 0);
 
                 if (real >= mod && mod > 0) {
-                    html += `<li>🏆 <strong>Meta Atingida</strong>: O produto <strong>${tp.material_nome}</strong> superou a meta moderada com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
+                    html += `<li>ðŸ† <strong>Meta Atingida</strong>: O produto <strong>${tp.material_nome}</strong> superou a meta moderada com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
                 } else if (real >= cons && cons > 0) {
-                    html += `<li>📈 <strong>Cenário Conservador</strong>: O produto <strong>${tp.material_nome}</strong> superou o cenário conservador e está buscando a meta moderada.</li>`;
+                    html += `<li>ðŸ“ˆ <strong>Cenário Conservador</strong>: O produto <strong>${tp.material_nome}</strong> superou o cenário conservador e está buscando a meta moderada.</li>`;
                 } else if (mod > 0) {
                     const restante = mod - real;
-                    html += `<li>🕒 <strong>Restante</strong>: Faltam <strong>${restante.toLocaleString('pt-BR')} kg</strong> de <strong>${tp.material_nome}</strong> para atingir a meta moderada do mês.</li>`;
+                    html += `<li>ðŸ•’ <strong>Restante</strong>: Faltam <strong>${restante.toLocaleString('pt-BR')} kg</strong> de <strong>${tp.material_nome}</strong> para atingir a meta moderada do mês.</li>`;
                 }
             }
         });
@@ -16399,7 +16399,7 @@ window.carregarFinanceiroView = async function() {
     };
 
 
-    // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ─────────
+    // â”€â”€â”€ MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let _listMetasV3 = [];
     let _chartEstrategicoV3 = null;
     let _mesV3Ativo = null; // null = visão de 12 meses
@@ -16897,21 +16897,21 @@ window.carregarFinanceiroView = async function() {
                 lblFeed.style.border = '1px solid rgba(255, 184, 0, 0.4)';
                 lblFeed.style.color = '#ffb74d';
                 const faltando = fatTotalAlvo * (Math.abs(diff) / 100);
-                lblFeed.innerHTML = `⚠️ Ainda faltam <strong>${Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong> para atingir 100% do mix — equivale a <strong>R$ ${faltando.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> de faturamento não coberto. Adicione mais produtos.`;
+                lblFeed.innerHTML = `⚠️ ï¸ Ainda faltam <strong>${Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong> para atingir 100% do mix — equivale a <strong>R$ ${faltando.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> de faturamento não coberto. Adicione mais produtos.`;
             } else {
                 lblFeed.style.background = 'rgba(255, 77, 77, 0.1)';
                 lblFeed.style.border = '1px solid rgba(255, 77, 77, 0.4)';
                 lblFeed.style.color = '#ff4d4d';
-                lblFeed.innerHTML = `❌ Mix ultrapassou 100% em <strong>${diff.toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong>. Reduza as frações para não exceder a meta.`;
+                lblFeed.innerHTML = `âŒ Mix ultrapassou 100% em <strong>${diff.toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong>. Reduza as frações para não exceder a meta.`;
             }
         } else if (lblFeed) {
             lblFeed.style.display = 'none';
         }
     };
 
-    // ═══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  CICLOS DE SIMULAÇÃO V3 — Salvar / Lançar Resultado Real
-    // ═══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     // Storage key específico para ciclos desta empresa/usuário
     const _CICLOS_KEY = 'apextech_ciclos_simulacao_v3';
@@ -16952,7 +16952,7 @@ window.carregarFinanceiroView = async function() {
             return;
         }
         if (new Date(dataFim) < new Date(dataInicio)) {
-            (window._apexNotify ? window._apexNotify('Notificação', 'A Data de Fim deve ser posterior à Data de Início.', 'info') : alert('A Data de Fim deve ser posterior à Data de Início.'));
+            (window._apexNotify ? window._apexNotify('Notificação', 'A Data de Fim deve ser posterior Ã  Data de Início.', 'info') : alert('A Data de Fim deve ser posterior Ã  Data de Início.'));
             return;
         }
         if (!metaFat || metaFat <= 0) {
@@ -17070,7 +17070,7 @@ window.carregarFinanceiroView = async function() {
             const fmtData = d => {
                 try { return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR'); } catch { return d; }
             };
-            const periodo = `${fmtData(c.dataInicio)} → ${fmtData(c.dataFim)}`;
+            const periodo = `${fmtData(c.dataInicio)} â†’ ${fmtData(c.dataFim)}`;
             const mixNomes = (c.mixSnapshot || []).map(m => `${m.nome} (${m.fracaoPct.toLocaleString('pt-BR', {maximumFractionDigits:1})}%)`).join(', ') || '—';
 
             let atingimentoHTML = '—';
@@ -17079,7 +17079,7 @@ window.carregarFinanceiroView = async function() {
             if (c.status === 'realizado' && c.fatReal != null) {
                 const pct = c.metaFaturamento > 0 ? (c.fatReal / c.metaFaturamento) * 100 : 0;
                 const cor = pct >= 100 ? '#2AD07A' : pct >= 80 ? '#ffb74d' : '#ff4d4d';
-                const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️' : '❌';
+                const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️ ï¸' : 'âŒ';
                 atingimentoHTML = `<span style="color:${cor}; font-weight:bold;">${icone} ${pct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%</span>`;
                 statusHTML = `<span style="color:${cor}; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Realizado</span>`;
             }
@@ -17424,10 +17424,10 @@ window.carregarFinanceiroView = async function() {
                     const real = parseFloat(m.qtd_realizado || 0);
 
                     if (real >= qPlan && qPlan > 0) {
-                        html += `<li>🏆 <strong>Meta Superada</strong>: O insumo <strong>${tp.material_nome}</strong> atingiu 100% da meta de compra com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
+                        html += `<li>ðŸ† <strong>Meta Superada</strong>: O insumo <strong>${tp.material_nome}</strong> atingiu 100% da meta de compra com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
                     } else if (qPlan > 0) {
                         const falta = qPlan - real;
-                        html += `<li>🕒 <strong>Acompanhamento</strong>: Faltam comprar <strong>${falta.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg</strong> de <strong>${tp.material_nome}</strong> para cobrir a meta comercial.</li>`;
+                        html += `<li>ðŸ•’ <strong>Acompanhamento</strong>: Faltam comprar <strong>${falta.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg</strong> de <strong>${tp.material_nome}</strong> para cobrir a meta comercial.</li>`;
                     }
                 }
             });
