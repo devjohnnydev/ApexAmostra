@@ -328,16 +328,28 @@ async function initDatabase() {
 
         await runSQL(`CREATE TABLE IF NOT EXISTS settings (
             \`key\`   VARCHAR(255) PRIMARY KEY,
-            value TEXT NOT NULL
+            value LONGTEXT NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'settings');
+        
+        try {
+            if (process.env.DB_HOST) {
+                await runSQL(`ALTER TABLE settings MODIFY COLUMN value LONGTEXT NOT NULL`);
+            }
+        } catch(e) { console.warn('Aviso: Não foi possível alterar a coluna settings.value para LONGTEXT.', e.message); }
 
         await runSQL(`CREATE TABLE IF NOT EXISTS galeria (
             id        INT AUTO_INCREMENT PRIMARY KEY,
-            url       TEXT NOT NULL,
+            url       LONGTEXT NOT NULL,
             titulo    TEXT NOT NULL,
             ordem     INTEGER DEFAULT 0,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'galeria');
+        
+        try {
+            if (process.env.DB_HOST) {
+                await runSQL(`ALTER TABLE galeria MODIFY COLUMN url LONGTEXT NOT NULL`);
+            }
+        } catch(e) { console.warn('Aviso: Não foi possível alterar a coluna galeria.url para LONGTEXT.', e.message); }
 
         await runSQL(`CREATE TABLE IF NOT EXISTS lme_destinatarios (
             id        INT AUTO_INCREMENT PRIMARY KEY,
@@ -4814,12 +4826,14 @@ app.get('/api/settings', async (req, res) => {
 });
 
 // ─── Upload Genérico de Imagens (Banners, Galeria, etc) ──────────────────────
-app.post('/api/upload-image', uploadDisk.single('imageFile'), async (req, res) => {
+app.post('/api/upload-image', uploadMemory.single('imageFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'Nenhuma imagem enviada.' });
         }
-        const fileUrl = 'assets/img/uploads/' + req.file.filename;
+        const b64 = Buffer.from(req.file.buffer).toString('base64');
+        const mimeType = req.file.mimetype;
+        const fileUrl = \`data:\${mimeType};base64,\${b64}\`;
         res.json({ url: fileUrl });
     } catch (e) {
         console.error('Erro no upload de imagem:', e);
