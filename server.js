@@ -6534,10 +6534,15 @@ if (process.env.NODE_ENV !== 'test') {
                 const horario = settingsObj.lme_envio_horario || '14:00'; // ex: '14:00'
                 const diasAtivos = (settingsObj.lme_envio_dias || '1,2,3,4,5').split(',').map(Number);
 
-                const agoraLocal = new Date();
-                const agora = new Date(agoraLocal.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
-                const horaAtual = `${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}`;
-                const diaAtual = agora.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
+                const formatterHora = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false });
+                const horaAtual = formatterHora.format(new Date()); // Formato "HH:MM" exato
+
+                const formatterDia = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short' });
+                const diaStr = formatterDia.format(new Date()); // "Sun", "Mon", etc.
+                const diasMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+                const diaAtual = diasMap[diaStr];
+
+                // console.log(`[LME CRON TICK] horaAtual=${horaAtual}, diaAtual=${diaAtual}, horarioAgendado=${horario}, ativo=${settingsObj.lme_envio_ativo}, diasAtivos=${diasAtivos}`);
 
                 if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
                     console.log(`⏰ [LME CRON] Horário de disparo atingido: ${horario} (dia ${diaAtual}). Enviando...`);

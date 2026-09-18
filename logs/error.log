@@ -28,3 +28,10 @@
     at app.listen (C:\Users\Professor\Desktop\ApexAmostra\apextech\node_modules\express\lib\application.js:635:24)
     at C:\Users\Professor\Desktop\ApexAmostra\apextech\server.js:5871:13
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-09-18 12:22:09 [ERROR]: 💥 Erro não tratado (uncaughtException): Error: listen EADDRINUSE: address already in use :::8080
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at app.listen (C:\Users\Professor\Desktop\ApexAmostra\apextech\node_modules\express\lib\application.js:635:24)
+    at C:\Users\Professor\Desktop\ApexAmostra\apextech\server.js:6514:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
