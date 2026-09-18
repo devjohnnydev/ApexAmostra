@@ -1,4 +1,4 @@
-﻿var _listMetasEstrategicas = [];
+var _listMetasEstrategicas = [];
 var _listTabelaPrecosEstrategica = [];
 
 // DOMContentLoaded wrapper removed
@@ -2760,6 +2760,40 @@ var _listTabelaPrecosEstrategica = [];
         // Carrega as configurações dos 3 módulos
         await loadConfigLME();
         await loadConfigTabelas();
+
+        // ─── CRON NO FRONTEND: Disparo automático se o painel estiver aberto ───
+        setInterval(() => {
+            const chkAtivo = document.getElementById('sched-ativo');
+            const inpHorario = document.getElementById('sched-horario');
+            const btnTest = document.getElementById('btn-enviar-teste-lme');
+
+            if (!chkAtivo || !chkAtivo.checked || !inpHorario || !inpHorario.value || !btnTest) return;
+            if (btnTest.disabled) return; // Evita clicar se já estiver enviando
+            
+            const horario = inpHorario.value;
+            const diasAtivos = Array.from(document.querySelectorAll('.sched-dia')).filter(cb => cb.checked).map(cb => Number(cb.value));
+
+            const formatterHora = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false });
+            const horaAtual = formatterHora.format(new Date());
+
+            const formatterDia = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short' });
+            const diaStr = formatterDia.format(new Date());
+            const diasMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+            const diaAtual = diasMap[diaStr];
+
+            if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
+                if (window.__lastLmeCronRun === horaAtual) return;
+                window.__lastLmeCronRun = horaAtual;
+
+                console.log(`[FRONTEND CRON] Horário LME atingido (${horaAtual}). Disparando botão "Enviar Agora"...`);
+                if (typeof _apexNotify === 'function') {
+                    _apexNotify('Sistema', `Horário programado atingido (${horaAtual}). Preparando e enviando PDF da LME...`, 'info');
+                }
+                
+                // Força o clique no botão que faz todo o processo do html2pdf
+                btnTest.click();
+            }
+        }, 15000); // Checa a cada 15 segundos
     }
 
     // =========================================================================
