@@ -5635,20 +5635,21 @@ ${computedKeys.map(ck=>`<tr>
         const resend = new Resend(resendKey);
 
         const emailList = destinatarios.map(d => d.email);
-        const sendResult = await resend.emails.send({
-            from: fromEmail,
-            to: [envFrom],
-            bcc: emailList,
-            subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
-            html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
-            attachments: [{
-                filename: fileName,
-                content: Buffer.from(pdfBuffer).toString('base64'),
-            }],
-        });
-        
-        if (sendResult.error) {
-            throw new Error(sendResult.error.message);
+        for (const email of emailList) {
+            const sendResult = await resend.emails.send({
+                from: fromEmail,
+                to: [email],
+                subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
+                html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+                attachments: [{
+                    filename: fileName,
+                    content: Buffer.from(pdfBuffer).toString('base64'),
+                }],
+            });
+            
+            if (sendResult.error) {
+                throw new Error(sendResult.error.message);
+            }
         }
 
         console.log(`✅ [LME CRON] Relatório enviado com sucesso para: ${emailList.join(', ')}`);
@@ -5695,20 +5696,22 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
 
         const now = new Date();
         const dateTitle = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+        const emailList = destinatarios.map(d => d.email);
 
-        const sendResult = await resend.emails.send({
-            from: fromEmail,
-            to: [envFrom],
-            bcc: destinatarios.map(d => d.email),
-            subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateTitle}`,
-            html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME gerado manualmente hoje.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
-            attachments: [{
-                filename: `LME-ApexTech-${dataStr || dateTitle.replace(/\//g,'-')}.pdf`,
-                content: pdfBase64,
-            }],
-        });
+        for (const email of emailList) {
+            const sendResult = await resend.emails.send({
+                from: fromEmail,
+                to: [email],
+                subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateTitle}`,
+                html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME gerado manualmente hoje.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+                attachments: [{
+                    filename: `LME-ApexTech-${dataStr || dateTitle.replace(/\//g,'-')}.pdf`,
+                    content: pdfBase64,
+                }],
+            });
 
-        if (sendResult.error) throw new Error(sendResult.error.message);
+            if (sendResult.error) throw new Error(sendResult.error.message);
+        }
         res.json({ success: true, message: 'PDF enviado com sucesso!' });
     } catch (err) {
         console.error('❌ [LME PDF] Erro:', err.message);
