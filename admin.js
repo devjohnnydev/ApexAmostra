@@ -2528,7 +2528,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 await new Promise(r => setTimeout(r, 150));
@@ -2536,7 +2536,7 @@ var _listTabelaPrecosEstrategica = [];
                 try {
                     const canvas = await html2canvas(captureArea, {
                         scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false,
-                        scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 800
+                        scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 1200
                     });
                     
                     if (canvas.width === 0 || canvas.height === 0) {
@@ -2932,7 +2932,7 @@ var _listTabelaPrecosEstrategica = [];
             // Backup styling to prevent mobile layout distortion
             const originalWidth = captureArea.style.width;
             const originalMaxWidth = captureArea.style.maxWidth;
-            captureArea.style.width = '800px';
+            captureArea.style.width = '1200px';
             captureArea.style.maxWidth = 'none';
 
             // Delay to allow DOM layout to update
@@ -2945,7 +2945,7 @@ var _listTabelaPrecosEstrategica = [];
                     allowTaint: false, 
                     scrollY: 0, 
                     windowHeight: captureArea.scrollHeight,
-                    width: 800
+                    width: 1200
                 });
                 const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
@@ -3036,7 +3036,7 @@ var _listTabelaPrecosEstrategica = [];
                 // Backup styling to prevent mobile layout distortion
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 // Delay to allow DOM layout to update
@@ -3052,7 +3052,7 @@ var _listTabelaPrecosEstrategica = [];
                         scrollY: 0,
                         windowHeight: captureArea.scrollHeight,
                         height: captureArea.scrollHeight,
-                        width: 800
+                        width: 1200
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
@@ -3711,7 +3711,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 await new Promise(r => setTimeout(r, 100));
@@ -3723,7 +3723,7 @@ var _listTabelaPrecosEstrategica = [];
                         allowTaint: false, 
                         scrollY: 0, 
                         windowHeight: captureArea.scrollHeight,
-                        width: 800
+                        width: 1200
                     });
                     const imgData = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
@@ -3808,7 +3808,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 await new Promise(r => setTimeout(r, 100));
@@ -3822,7 +3822,7 @@ var _listTabelaPrecosEstrategica = [];
                         scrollY: 0,
                         windowHeight: captureArea.scrollHeight,
                         height: captureArea.scrollHeight,
-                        width: 800
+                        width: 1200
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;

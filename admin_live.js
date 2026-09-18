@@ -2356,7 +2356,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 await new Promise(r => setTimeout(r, 100));
@@ -2364,7 +2364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const canvas = await html2canvas(captureArea, {
                         scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false,
-                        scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 800
+                        scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 1200
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
@@ -2755,7 +2755,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Backup styling to prevent mobile layout distortion
             const originalWidth = captureArea.style.width;
             const originalMaxWidth = captureArea.style.maxWidth;
-            captureArea.style.width = '800px';
+            captureArea.style.width = '1200px';
             captureArea.style.maxWidth = 'none';
 
             // Delay to allow DOM layout to update
@@ -2768,7 +2768,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     allowTaint: false, 
                     scrollY: 0, 
                     windowHeight: captureArea.scrollHeight,
-                    width: 800
+                    width: 1200
                 });
                 const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
@@ -2859,7 +2859,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Backup styling to prevent mobile layout distortion
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 // Delay to allow DOM layout to update
@@ -2875,7 +2875,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         scrollY: 0,
                         windowHeight: captureArea.scrollHeight,
                         height: captureArea.scrollHeight,
-                        width: 800
+                        width: 1200
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
@@ -3534,7 +3534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 await new Promise(r => setTimeout(r, 100));
@@ -3546,7 +3546,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         allowTaint: false, 
                         scrollY: 0, 
                         windowHeight: captureArea.scrollHeight,
-                        width: 800
+                        width: 1200
                     });
                     const imgData = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
@@ -3631,7 +3631,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const originalWidth = captureArea.style.width;
                 const originalMaxWidth = captureArea.style.maxWidth;
-                captureArea.style.width = '800px';
+                captureArea.style.width = '1200px';
                 captureArea.style.maxWidth = 'none';
 
                 await new Promise(r => setTimeout(r, 100));
@@ -3645,7 +3645,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         scrollY: 0,
                         windowHeight: captureArea.scrollHeight,
                         height: captureArea.scrollHeight,
-                        width: 800
+                        width: 1200
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
