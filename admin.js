@@ -2536,7 +2536,7 @@ var _listTabelaPrecosEstrategica = [];
                 try {
                     const canvas = await html2canvas(captureArea, {
                         scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false,
-                        scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 1200
+                        scrollY: 0, windowWidth: 1200, windowHeight: captureArea.scrollHeight, windowWidth: 1200, height: captureArea.scrollHeight, width: 1200
                     });
                     
                     if (canvas.width === 0 || canvas.height === 0) {

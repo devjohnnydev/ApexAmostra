@@ -2364,7 +2364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const canvas = await html2canvas(captureArea, {
                         scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false,
-                        scrollY: 0, windowHeight: captureArea.scrollHeight, height: captureArea.scrollHeight, width: 1200
+                        scrollY: 0, windowWidth: 1200, windowHeight: captureArea.scrollHeight, windowWidth: 1200, height: captureArea.scrollHeight, width: 1200
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
@@ -6190,7 +6190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(tempDiv);
         try {
             await new Promise(r => setTimeout(r, 600));
-            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
+            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowWidth: 1200, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             const { jsPDF } = window.jspdf;
             const pdfWidthMm = isCompleta ? 297 : 210;
@@ -6400,7 +6400,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(tempDiv);
         try {
             await new Promise(r => setTimeout(r, 600));
-            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
+            const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, scrollY: 0, windowWidth: 1200, windowHeight: tempDiv.scrollHeight, height: tempDiv.scrollHeight, width: tempDiv.scrollWidth });
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             const { jsPDF } = window.jspdf;
             const pdfWidthMm = isCompleta ? 297 : 210;
