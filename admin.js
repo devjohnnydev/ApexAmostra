@@ -67,10 +67,10 @@ var _listTabelaPrecosEstrategica = [];
         if (!overlay) { _apexNotify('Sistema', titulo + (mensagem ? '\n' + mensagem : ''), 'info'); return; }
 
         const configs = {
-            success: { icon:'ÔÂ£Ã ', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
-            error:   { icon:'ÔÃ˜î', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
-            warning: { icon:'ÔÜáÂ´Â©Ã…', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
-            info:    { icon:'ÔÃ¤â•£Â´Â©Ã…', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
+            success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
+            error:   { icon:'❌', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            warning: { icon:'⚠️', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
+            info:    { icon:'ℹ️', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
         };
         const cfg = configs[tipo] || configs.info;
 
@@ -1946,7 +1946,7 @@ var _listTabelaPrecosEstrategica = [];
                     });
 
                     if (res.ok) {
-                        msgEl.textContent = 'ÔÂ£Ã  Configurações salvas!';
+                        msgEl.textContent = '✅ Configurações salvas!';
                         msgEl.style.color = '#2AD07A';
                         msgEl.style.display = 'block';
                         setTimeout(() => msgEl.style.display = 'none', 5000);
@@ -1954,7 +1954,7 @@ var _listTabelaPrecosEstrategica = [];
                         throw new Error('API error');
                     }
                 } catch(e) {
-                    msgEl.textContent = 'ÔÃ˜î Erro ao salvar. Tente novamente.';
+                    msgEl.textContent = '❌ Erro ao salvar. Tente novamente.';
                     msgEl.style.color = '#ff4d4d';
                     msgEl.style.display = 'block';
                 }
@@ -2003,7 +2003,7 @@ var _listTabelaPrecosEstrategica = [];
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao adicionar foto. Verifique os dados.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -2137,9 +2137,9 @@ var _listTabelaPrecosEstrategica = [];
                     if (locationsWrapper) locationsWrapper.innerHTML = '';
                     createLocationField();
                     renderMateriais();
-                    _apexNotify('Sistema', 'ÔÂ£Ã  Material cadastrado com sucesso!', 'info');
+                    _apexNotify('Sistema', '✅ Material cadastrado com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao salvar material.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2240,9 +2240,9 @@ var _listTabelaPrecosEstrategica = [];
                     solIdInput.value = '';
                     if (btnCancelSolucao) btnCancelSolucao.style.display = 'none';
                     renderSolucoesAdmin();
-                    _apexNotify('Sistema', 'ÔÂ£Ã  Solução salva com sucesso!', 'info');
+                    _apexNotify('Sistema', '✅ Solução salva com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao salvar a solução.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao salvar a solução.', 'error');
                 }
             });
         }
@@ -2328,9 +2328,9 @@ var _listTabelaPrecosEstrategica = [];
                     const dEl = document.getElementById('not-data');
                     if (dEl) dEl.value = new Date().toISOString().split('T')[0];
                     renderNoticiasAdmin();
-                    _apexNotify('Sistema', 'ÔÂ£Ã  Notícia publicada!', 'info');
+                    _apexNotify('Sistema', '✅ Notícia publicada!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'ÔÃ˜î Erro ao publicar notícia.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao publicar notícia.', 'error');
                 }
             });
         }
@@ -2455,7 +2455,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_envio_dias: selectedDias
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Agendamento LME salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento LME salvo com sucesso!', 'info');
             });
         }
 
@@ -2467,7 +2467,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_resend_from:    resendFrom.value.trim()
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Resend API salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Resend API salvo com sucesso!', 'info');
             });
         }
 
@@ -2700,7 +2700,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-geral-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-geral-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_geral_envio_ativo: ativo, tabela_geral_envio_horario: horario, tabela_geral_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Agendamento da Tabela Geral salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Geral salvo com sucesso!', 'info');
             });
         }
 
@@ -2733,7 +2733,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-forn-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-forn-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_fornecedor_envio_ativo: ativo, tabela_fornecedor_envio_horario: horario, tabela_fornecedor_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', 'ÔÂ£Ã  Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
             });
         }
 
@@ -5231,7 +5231,7 @@ var _listTabelaPrecosEstrategica = [];
                         <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
-                        >ÔÂ£Ã„</span>
+                        >✅„</span>
                         <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
@@ -6184,14 +6184,14 @@ var _listTabelaPrecosEstrategica = [];
             const result = await res.json();
             if (res.ok) {
                 setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de preços (${nomeModo}) enviada com sucesso!`), '#2AD07A');
-                _apexNotify('Sistema', `ÔÂ£Ã  Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
+                _apexNotify('Sistema', `✅ Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
             } else {
                 throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
             }
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            _apexNotify('Atenção', 'ÔÃ˜î Erro ao enviar e-mail: ' + err.message, 'error');
+            _apexNotify('Atenção', '❌ Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
@@ -9117,7 +9117,7 @@ var _listTabelaPrecosEstrategica = [];
             });
             const data = await res.json();
             if (res.ok) {
-                const emoji = decisao === 'Aprovado' ? 'ÔÂ£Ã ' : 'ÔÃ˜î';
+                const emoji = decisao === 'Aprovado' ? '✅' : '❌';
                 _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();

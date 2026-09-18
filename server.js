@@ -282,6 +282,15 @@ async function initDatabase() {
         console.log('⚠️  Banco de dados não configurado. Usando armazenamento em memória.');
         return;
     }
+
+    try {
+        await pool.query('SELECT 1');
+        console.log('🔌 Conexão de teste com MySQL bem sucedida.');
+    } catch(err) {
+        console.error('❌ Falha na conexão inicial com o banco de dados:', err.message);
+        dbAvailable = false;
+        return; // Retorna cedo, usando fallback em memória
+    }
     
     // Função auxiliar para executar cada CREATE TABLE individualmente
     async function runSQL(sql, label) {
