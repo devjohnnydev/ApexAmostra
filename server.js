@@ -3672,7 +3672,7 @@ app.post('/api/estrategiav3_planos', async (req, res) => {
     const { titulo, data_inicial, data_final, frente, meta_faturamento, mix, cenario_conservador_pct, cenario_moderado_pct, cenario_agressivo_pct } = req.body;
     try {
         if (!dbAvailable || !pool) throw new Error('DB not available');
-        const client = await pool.connect();
+        const client = await pool.getConnection();
         try {
             await client.query('BEGIN');
             const planoRes = await client.query(`
@@ -4363,7 +4363,7 @@ app.post('/api/planejamento/producao/ops', async (req, res) => {
             return res.json(newOp);
         }
 
-        const client = await pool.connect();
+        const client = await pool.getConnection();
         try {
             await client.query('BEGIN');
             let opRes;
@@ -5393,8 +5393,8 @@ async function disparaEmailLME() {
             settingsObj = memStore.settings || {};
         }
 
-        const resendKey = process.env.RESEND_API_KEY || null;
-        const envFrom = process.env.RESEND_FROM || 'noreply@apextechmetais.com.br';
+        const resendKey = settingsObj.lme_resend_api_key || process.env.RESEND_API_KEY || null;
+        const envFrom = settingsObj.lme_resend_from || process.env.RESEND_FROM || 'noreply@apextechmetais.com.br';
         const fromEmail = envFrom.includes('<') ? envFrom : `Apextech Metais <${envFrom}>`;
 
         if (!resendKey) {
@@ -5686,12 +5686,20 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
 
         if (destinatarios.length === 0) return res.status(400).json({ error: 'Nenhum destinatário.' });
 
+        let settingsObj = {};
+        if (dbAvailable) {
+            const result = await pool.query('SELECT `key`, value FROM settings');
+            result[0].forEach(r => { settingsObj[r.key] = r.value; });
+        } else {
+            settingsObj = memStore.settings || {};
+        }
+
         const { Resend } = require('resend');
-        const resendKey = process.env.RESEND_API_KEY || null;
+        const resendKey = settingsObj.lme_resend_api_key || process.env.RESEND_API_KEY || null;
         if (!resendKey) return res.status(500).json({ error: 'API Key do Resend não configurada.' });
         
         const resend = new Resend(resendKey);
-        const envFrom = process.env.RESEND_FROM || 'noreply@apextechmetais.com.br';
+        const envFrom = settingsObj.lme_resend_from || process.env.RESEND_FROM || 'noreply@apextechmetais.com.br';
         const fromEmail = envFrom.includes('<') ? envFrom : `Apextech Metais <${envFrom}>`;
 
         const now = new Date();
@@ -6335,7 +6343,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
             return res.json(item);
         }
 
-        const client = await pool.connect();
+        const client = await pool.getConnection();
         try {
             await client.query('BEGIN');
             const pedido = await client.query(`
@@ -6411,7 +6419,7 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
             return res.json(memStore.pedidos_venda[idx]);
         }
 
-        const client = await pool.connect();
+        const client = await pool.getConnection();
         try {
             await client.query('BEGIN');
             await client.query(`
@@ -6544,7 +6552,7 @@ if (process.env.NODE_ENV !== 'test') {
 
                 // console.log(`[LME CRON TICK] horaAtual=${horaAtual}, diaAtual=${diaAtual}, horarioAgendado=${horario}, ativo=${settingsObj.lme_envio_ativo}, diasAtivos=${diasAtivos}`);
 
-                if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
+                if (horaAtual.trim() === horario.trim() && diasAtivos.includes(diaAtual)) {
                     console.log(`⏰ [LME CRON] Horário de disparo atingido: ${horario} (dia ${diaAtual}). Enviando...`);
                     await disparaEmailLME();
                 }
