@@ -139,11 +139,11 @@ const memStore = {
         show_cotacoes: 'true',
         show_noticias: 'true',
         show_galeria: 'true',
-        lme_envio_ativo: 'false',
-        lme_envio_horario: '14:00',
-        lme_envio_dias: '1,2,3,4,5',
-        lme_resend_api_key: '',
-        lme_resend_from: 'josetiago@lme.lat',
+        lme_envio_ativo:      process.env.LME_ENVIO_ATIVO     || 'false',
+        lme_envio_horario:    process.env.LME_ENVIO_HORARIO   || '14:00',
+        lme_envio_dias:       process.env.LME_ENVIO_DIAS      || '1,2,3,4,5',
+        lme_resend_api_key:   process.env.RESEND_API_KEY       || '',
+        lme_resend_from:      process.env.RESEND_FROM          || 'josetiago@lme.lat',
         role_permissions: JSON.stringify({
             "Administrador": ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios"],
             "Laboratório": ["view_laboratorio", "view_catalogo"],
@@ -6606,12 +6606,14 @@ if (process.env.NODE_ENV !== 'test') {
                 const horaAtual = `${hh}:${mm}`;
                 const diaAtual = spDate.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
 
-                // console.log(`[LME CRON TICK] horaAtual=${horaAtual}, diaAtual=${diaAtual}, horarioAgendado=${horario}, ativo=${settingsObj.lme_envio_ativo}, diasAtivos=${diasAtivos}`);
-
                 // Normalizar horario configurado para garantir HH:MM
                 const horarioNorm = (horario.match(/^\d{1,2}:\d{2}$/) ? horario.trim().padStart(5, '0') : horario.trim());
 
+                // LOG DE DEBUG (ativo — remova para silenciar em produção)
+                console.log(`[LME CRON TICK] horaAtual=${horaAtual}, diaAtual=${diaAtual}, horarioAgendado=${horarioNorm}, ativo=${settingsObj.lme_envio_ativo}, diasAtivos=${diasAtivos}`);
+
                 if (horaAtual === horarioNorm && diasAtivos.includes(diaAtual)) {
+
                     console.log(`⏰ [LME CRON] Horário de disparo atingido: ${horario} (dia ${diaAtual}). Enviando...`);
                     await disparaEmailLME();
                 }
