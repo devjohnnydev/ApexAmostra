@@ -5385,7 +5385,15 @@ async function gerarExcelLMEBuffer(semana, mesLabel) {
 }
 
 // ─── Função: busca dados e envia relatório LME por e-mail ─────────────────────
+// Flag para evitar disparo duplo simultâneo (Bug 1 fix)
+let lmeCronRunning = false;
+
 async function disparaEmailLME() {
+    if (lmeCronRunning) {
+        console.warn('⚠️ [LME CRON] Disparo ignorado: já existe um envio em andamento.');
+        return;
+    }
+    lmeCronRunning = true;
     try {
         console.log('📧 [LME CRON] Iniciando envio automático do relatório LME...');
 
@@ -5421,10 +5429,26 @@ async function disparaEmailLME() {
         }
 
         // 3. Buscar dados da semana atual via shockmetais
-        const { data: html } = await axios.get('https://shockmetais.com.br/lme/', {
-            timeout: 15000,
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
-        });
+        let html;
+        try {
+            const response = await axios.get('https://shockmetais.com.br/lme/', {
+                timeout: 15000,
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+            });
+            html = response.data;
+        } catch (scrapErr) {
+            // Bug 4 fix: logar falha de scraping no audit_log
+            const errMsg = `[LME CRON] Falha ao buscar dados de shockmetais.com.br: ${scrapErr.message}`;
+            console.error('❌', errMsg);
+            if (dbAvailable) {
+                await pool.query(
+                    `INSERT INTO audit_logs (usuario, acao, detalhe) VALUES ('Sistema', 'LME_CRON_ERRO', ?)`,
+                    [errMsg]
+                ).catch(() => {});
+            }
+            throw new Error(errMsg);
+        }
+
         const $ = cheerio.load(html);
 
         // Helper functions (same as relatorio-semanal route)
@@ -5557,7 +5581,7 @@ async function disparaEmailLME() {
             }
         };
 
-        // 4. Gerar PDF via Puppeteer (sempre PDF, nunca Excel)
+        // 4. Gerar PDF via Puppeteer (Bug 2 e 3 fix: try/finally + timeout)
         const now = new Date();
         const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
         const fileName = `LME-ApexTech-${firstDate.replace(/\//g,'-')}.pdf`;
@@ -5620,47 +5644,76 @@ ${computedKeys.map(ck=>`<tr>
 </body></html>`;
 
         let pdfBuffer;
+        let browser;
         try {
             const puppeteer = require('puppeteer');
-            const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'], headless: true });
+            browser = await puppeteer.launch({
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+                headless: true,
+                timeout: 30000
+            });
             const page = await browser.newPage();
-            await page.setContent(pdfHtml, { waitUntil: 'networkidle0' });
+            page.setDefaultTimeout(30000);
+            await page.setContent(pdfHtml, { waitUntil: 'networkidle0', timeout: 30000 });
             pdfBuffer = await page.pdf({ format: 'A4', margin: { top:'15mm', bottom:'15mm', left:'10mm', right:'10mm' }, printBackground: true });
-            await browser.close();
         } catch(pdfErr) {
             console.error('❌ [LME CRON] Erro Puppeteer (Não foi possível gerar PDF):', pdfErr.message);
             throw new Error('Falha ao gerar o PDF da LME via Puppeteer: ' + pdfErr.message);
+        } finally {
+            if (browser) await browser.close().catch(() => {});
         }
 
-        // 5. Enviar via Resend
+        // 5. Enviar via Resend (log individual por destinatário)
         const { Resend } = require('resend');
         const resend = new Resend(resendKey);
 
+
         const emailList = destinatarios.map(d => d.email);
+        const resultados = [];
         for (const email of emailList) {
-            const sendResult = await resend.emails.send({
-                from: fromEmail,
-                to: [email],
-                subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
-                html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
-                attachments: [{
-                    filename: fileName,
-                    content: Buffer.from(pdfBuffer).toString('base64'),
-                }],
-            });
-            
-            if (sendResult.error) {
-                throw new Error(sendResult.error.message);
+            try {
+                const sendResult = await resend.emails.send({
+                    from: fromEmail,
+                    to: [email],
+                    subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
+                    html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+                    attachments: [{
+                        filename: fileName,
+                        content: Buffer.from(pdfBuffer).toString('base64'),
+                    }],
+                });
+                if (sendResult.error) {
+                    console.error(`❌ [LME CRON] Falha ao enviar para ${email}: ${sendResult.error.message}`);
+                    resultados.push({ email, ok: false, erro: sendResult.error.message });
+                } else {
+                    console.log(`✉️ [LME CRON] Enviado para: ${email}`);
+                    resultados.push({ email, ok: true });
+                }
+            } catch (sendErr) {
+                console.error(`❌ [LME CRON] Exceção ao enviar para ${email}: ${sendErr.message}`);
+                resultados.push({ email, ok: false, erro: sendErr.message });
             }
         }
 
-        console.log(`✅ [LME CRON] Relatório enviado com sucesso para: ${emailList.join(', ')}`);
-        return true;
+        const enviados  = resultados.filter(r => r.ok).map(r => r.email);
+        const falhas    = resultados.filter(r => !r.ok);
+
+        if (enviados.length > 0) {
+            console.log(`✅ [LME CRON] Relatório enviado com sucesso para: ${enviados.join(', ')}`);
+        }
+        if (falhas.length > 0) {
+            console.error(`❌ [LME CRON] Falhas no envio: ${falhas.map(f => `${f.email} (${f.erro})`).join('; ')}`);
+        }
+
+        return { enviados, falhas };
     } catch (err) {
         console.error('❌ [LME CRON] Erro ao enviar relatório LME:', err.message);
         throw err; // RE-THROW PARA A ROTA PEGAR
+    } finally {
+        lmeCronRunning = false;
     }
 }
+
 
 // ─── Rota: Disparar e-mail LME manualmente (teste) ───────────────────────────
 app.post('/api/lme/enviar-agora', async (req, res) => {
@@ -6544,17 +6597,21 @@ if (process.env.NODE_ENV !== 'test') {
                 const horario = settingsObj.lme_envio_horario || '14:00'; // ex: '14:00'
                 const diasAtivos = (settingsObj.lme_envio_dias || '1,2,3,4,5').split(',').map(Number);
 
-                const formatterHora = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false });
-                const horaAtual = formatterHora.format(new Date()); // Formato "HH:MM" exato
-
-                const formatterDia = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short' });
-                const diaStr = formatterDia.format(new Date()); // "Sun", "Mon", etc.
-                const diasMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
-                const diaAtual = diasMap[diaStr];
+                // Bug 6 fix: extrair hora de forma robusta via toLocaleString com opções explícitas
+                // Evita dependência de locale do SO (Linux pode retornar "22h00" em vez de "22:00")
+                const now = new Date();
+                const spDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+                const hh = String(spDate.getHours()).padStart(2, '0');
+                const mm = String(spDate.getMinutes()).padStart(2, '0');
+                const horaAtual = `${hh}:${mm}`;
+                const diaAtual = spDate.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
 
                 // console.log(`[LME CRON TICK] horaAtual=${horaAtual}, diaAtual=${diaAtual}, horarioAgendado=${horario}, ativo=${settingsObj.lme_envio_ativo}, diasAtivos=${diasAtivos}`);
 
-                if (horaAtual.trim() === horario.trim() && diasAtivos.includes(diaAtual)) {
+                // Normalizar horario configurado para garantir HH:MM
+                const horarioNorm = (horario.match(/^\d{1,2}:\d{2}$/) ? horario.trim().padStart(5, '0') : horario.trim());
+
+                if (horaAtual === horarioNorm && diasAtivos.includes(diaAtual)) {
                     console.log(`⏰ [LME CRON] Horário de disparo atingido: ${horario} (dia ${diaAtual}). Enviando...`);
                     await disparaEmailLME();
                 }
@@ -6570,4 +6627,5 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 module.exports = { app, initDatabase, pool };
+
 
