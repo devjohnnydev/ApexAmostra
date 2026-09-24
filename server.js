@@ -2388,7 +2388,9 @@ app.post('/api/amostras', async (req, res) => {
                  VALUES (?, ?, ?, ?, ?, ?, ?, 'Em Análise', ?, ?)`,
                 [numero_amostra, nome_material || '', data, fornecedor_id, responsavel, representante || '', peso_inicial, observacoes, foto_original || '']
             );
-            return res.json(result[0][0]);
+            const insertId = result[0].insertId;
+            const [rows] = await pool.query('SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome FROM amostras a LEFT JOIN fornecedores f ON a.fornecedor_id = f.id WHERE a.id=?', [insertId]);
+            return res.json(rows[0]);
         } else {
             const newA = { id: nextId++, numero_amostra, nome_material: nome_material || '', data, fornecedor_id: parseInt(fornecedor_id), responsavel, representante: representante || '', peso_inicial: parseFloat(peso_inicial), status: 'Em Análise', observacoes, foto_original: foto_original || '' };
             memStore.amostras.push(newA);
@@ -2480,10 +2482,10 @@ app.patch('/api/amostras/:id/status', async (req, res) => {
                 const amostra = aRes[0][0];
 
                 for (const c of compList) {
-                    // Update estoque
+                    // Update estoque (MySQL: ON DUPLICATE KEY UPDATE)
                     await pool.query(
                         `INSERT INTO estoque (material_id, saldo) VALUES (?, ?)
-                         ON CONFLICT (material_id) DO UPDATE SET saldo = estoque.saldo + EXCLUDED.saldo`,
+                         ON DUPLICATE KEY UPDATE saldo = saldo + VALUES(saldo)`,
                         [c.material_id, c.peso]
                     );
                     // Log movimentação
@@ -2613,9 +2615,11 @@ app.delete('/api/amostras/:id', async (req, res) => {
         }
 
         if (dbAvailable) {
+            await pool.query('DELETE FROM fotos_amostra WHERE amostra_id=?', [id]);
             await pool.query('DELETE FROM componentes_amostra WHERE amostra_id=?', [id]);
             await pool.query('DELETE FROM amostras WHERE id=?', [id]);
         } else {
+            memStore.fotos_amostra = (memStore.fotos_amostra || []).filter(x => x.amostra_id !== id);
             memStore.componentes_amostra = memStore.componentes_amostra.filter(x => x.amostra_id !== id);
             memStore.amostras = memStore.amostras.filter(x => x.id !== id);
         }
@@ -2678,10 +2682,11 @@ app.post('/api/amostras/:id/fotos', uploadMemory.array('fotos', 20), async (req,
             const nome     = file.originalname;
             if (dbAvailable) {
                 const r = await pool.query(
-                    'INSERT INTO fotos_amostra (amostra_id, tipo, etapa, componente_idx, data_b64, mimetype, nome) VALUES (?,?,?,?,?,?,?), amostra_id, tipo, etapa, componente_idx, mimetype, nome, criado_em',
+                    'INSERT INTO fotos_amostra (amostra_id, tipo, etapa, componente_idx, data_b64, mimetype, nome) VALUES (?,?,?,?,?,?,?)',
                     [id, tipo, etapa, componenteIdx, b64, mimetype, nome]
                 );
-                inseridas.push(r[0][0]);
+                const fotoId = r[0].insertId;
+                inseridas.push({ id: fotoId, amostra_id: id, tipo, etapa, componente_idx: componenteIdx, mimetype, nome, criado_em: new Date().toISOString() });
             } else {
                 const f = { id: nextId++, amostra_id: id, tipo, etapa, componente_idx: componenteIdx, data_b64: b64, mimetype, nome, criado_em: new Date().toISOString() };
                 if (!memStore.fotos_amostra) memStore.fotos_amostra = [];
