@@ -5623,11 +5623,8 @@ ${computedKeys.map(ck=>`<tr>
             pdfBuffer = await page.pdf({ format: 'A4', margin: { top:'15mm', bottom:'15mm', left:'10mm', right:'10mm' }, printBackground: true });
             await browser.close();
         } catch(pdfErr) {
-            console.error('❌ [LME CRON] Erro Puppeteer, fallback para Excel:', pdfErr.message);
-            // Fallback para Excel se Puppeteer falhar
-            const excelBuffer = await gerarExcelLMEBuffer(semana);
-            pdfBuffer = excelBuffer;
-            fileName = fileName.replace('.pdf', '.xlsx');
+            console.error('❌ [LME CRON] Erro Puppeteer (Não foi possível gerar PDF):', pdfErr.message);
+            throw new Error('Falha ao gerar o PDF da LME via Puppeteer: ' + pdfErr.message);
         }
 
         // 5. Enviar via Resend
