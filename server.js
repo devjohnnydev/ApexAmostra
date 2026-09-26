@@ -5797,15 +5797,17 @@ ${computedKeys.map(ck=>`<tr>
                 html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
                 attachments: [{
                     filename: fileName,
-                    content: pdfBuffer,
-                    contentType: 'application/pdf',
+                    content: pdfBuffer.toString('base64'),
                 }],
             }));
 
             let batchResendId = null;
             try {
-                const sendResult = await resend.batch.send(batchPayload);
-                if (sendResult.error) {
+                let sendResult = null;
+                for (const payload of batchPayload) {
+                    sendResult = await resend.emails.send(payload);
+                }
+                if (sendResult && sendResult.error) {
                     console.error(`❌ [LME CRON] Falha no lote de e-mails: ${sendResult.error.message}`);
                     lote.forEach(email => resultados.push({ email, ok: false, erro: sendResult.error.message }));
                 } else {
@@ -5947,13 +5949,14 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
                 html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME gerado manualmente hoje.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
                 attachments: [{
                     filename: `LME-ApexTech-${dataStr || dateTitle.replace(/\//g,'-')}.pdf`,
-                    content: Buffer.from(pdfBase64, 'base64'),
-                    contentType: 'application/pdf',
+                    content: pdfBase64,
                 }],
             }));
-
-            const sendResult = await resend.batch.send(batchPayload);
-            if (sendResult.error) throw new Error(sendResult.error.message);
+            let sendResult = null;
+            for (const payload of batchPayload) {
+                sendResult = await resend.emails.send(payload);
+            }
+            if (sendResult && sendResult.error) throw new Error(sendResult.error.message);
         }
         res.json({ success: true, message: 'PDF enviado com sucesso em lote!' });
     } catch (err) {
