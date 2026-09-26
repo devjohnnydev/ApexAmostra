@@ -5797,7 +5797,7 @@ ${computedKeys.map(ck=>`<tr>
                 html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
                 attachments: [{
                     filename: fileName,
-                    content: Buffer.from(pdfBuffer).toString('base64'),
+                    content: pdfBuffer,
                 }],
             }));
 
@@ -5946,7 +5946,7 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
                 html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME gerado manualmente hoje.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
                 attachments: [{
                     filename: `LME-ApexTech-${dataStr || dateTitle.replace(/\//g,'-')}.pdf`,
-                    content: pdfBase64,
+                    content: Buffer.from(pdfBase64, 'base64'),
                 }],
             }));
 
