@@ -6725,14 +6725,25 @@ if (process.env.NODE_ENV !== 'test') {
                 const horario = settingsObj.lme_envio_horario || '14:00'; // ex: '14:00'
                 const diasAtivos = (settingsObj.lme_envio_dias || '1,2,3,4,5').split(',').map(Number);
 
-                // Bug 6 fix: extrair hora de forma robusta via toLocaleString com opções explícitas
-                // Evita dependência de locale do SO (Linux pode retornar "22h00" em vez de "22:00")
+                // Bug 6 fix: extrair hora de forma robusta via Intl.DateTimeFormat
+                // Evita falhas de parsing do 'new Date(string)' em ambientes Linux/Node atualizados
                 const now = new Date();
-                const spDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-                const hh = String(spDate.getHours()).padStart(2, '0');
-                const mm = String(spDate.getMinutes()).padStart(2, '0');
-                const horaAtual = `${hh}:${mm}`;
-                const diaAtual = spDate.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
+                const parts = new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'America/Sao_Paulo',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: false,
+                    weekday: 'short'
+                }).formatToParts(now);
+                
+                let hh = parts.find(p => p.type === 'hour').value;
+                let mm = parts.find(p => p.type === 'minute').value;
+                if (hh === '24') hh = '00';
+                const horaAtual = `${hh.padStart(2, '0')}:${mm.padStart(2, '0')}`;
+                
+                const dayStr = parts.find(p => p.type === 'weekday').value;
+                const dayMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+                const diaAtual = dayMap[dayStr]; // 0=Dom, 1=Seg, ..., 6=Sab
 
                 // Normalizar horario configurado para garantir HH:MM
                 const horarioNorm = (horario.match(/^\d{1,2}:\d{2}$/) ? horario.trim().padStart(5, '0') : horario.trim());
