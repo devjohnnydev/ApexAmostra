@@ -35,3 +35,26 @@
     at app.listen (C:\Users\Professor\Desktop\ApexAmostra\apextech\node_modules\express\lib\application.js:635:24)
     at C:\Users\Professor\Desktop\ApexAmostra\apextech\server.js:6514:13
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-09-25 21:26:04 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 2, plano 1, desvio 20%
+2026-09-25 21:26:04 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 1, desvio 15%
+2026-09-25 21:26:29 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%
+2026-09-25 21:28:00 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 2, plano 1, desvio 20%
+2026-09-25 21:28:00 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 1, desvio 15%
+2026-09-25 21:28:01 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%
+2026-09-25 21:28:13 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 2, plano 1, desvio 20%
+2026-09-25 21:28:13 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 1, desvio 15%
+2026-09-25 21:28:13 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%
+2026-09-25 21:31:35 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 2, plano 1, desvio 20%
+2026-09-25 21:31:35 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 1, desvio 15%
+2026-09-25 21:31:37 [ERROR]: [PLANEJAMENTO] PUT /:id/aprovar: Access denied for user 'u843916585_Apex'@'localhost' (using password: YES)
+2026-09-25 21:31:37 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%
+2026-09-25 21:32:24 [ERROR]: [PLANEJAMENTO] PUT /:id/aprovar: Access denied for user 'u843916585_Apex'@'localhost' (using password: YES)
+2026-09-25 21:32:24 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%
+2026-09-25 21:34:09 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 2, plano 1, desvio 20%
+2026-09-25 21:34:09 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 1, desvio 15%
+2026-09-25 21:34:11 [ERROR]: [PLANEJAMENTO] PUT /:id/aprovar: Access denied for user 'u843916585_Apex'@'localhost' (using password: YES)
+2026-09-25 21:34:11 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%
+2026-09-25 21:34:54 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 2, plano 1, desvio 20%
+2026-09-25 21:34:54 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 1, desvio 15%
+2026-09-25 21:34:55 [ERROR]: [PLANEJAMENTO] PUT /:id/aprovar: Access denied for user 'u843916585_Apex'@'localhost' (using password: YES)
+2026-09-25 21:34:55 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%

@@ -258,12 +258,12 @@ const memStore = {
     ],
     fotos_amostra: [],   // { id, amostra_id, tipo: 'bruta'|'separada'|'componente', data_b64, mimetype, nome, criado_em }
     usuarios: [
-        { id: 1, user: "admin", pass: "?b?$OtCdpJ40BrNkHE2npxGDnOMxYHYl9HRGP6mw/le4NlJCnbtF6iyUS", perfil: "Administrador", nome: "Admin Apex" },
-        { id: 2, user: "lab", pass: "?b?$IQb7v6yEEwWAkAqio4ZYOulYFteWjTUect2aDd49Vay7DtxiBQJXm", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
-        { id: 3, user: "compras", pass: "?b?$mpmo8hj4iXEN/BoZQN2Xr.3kjaps0Ip5yij09/styuWodKyW.cae.", perfil: "Compras", nome: "Ana (Compras)" },
-        { id: 4, user: "producao", pass: "?b??BWuIfla8e52NApbFR8yGu9Kq0KYz04aHxLen0Lx9r9dH2OV5iZFe", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
-        { id: 5, user: "financeiro", pass: "?b??dxfQXRxOqoHQdeYQsj3Ue7v5CCZdhZOddhihwY4cAeGnRXBckjVK", perfil: "Financeiro", nome: "Mariana (Fin)" },
-        { id: 6, user: "diretoria", pass: "?b?$S1be8oS/GPW/h1aM38o0Su0PFjxr8xl0O5QtNRBQ/knqLE6.JeA16", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
+        { id: 1, user: "admin", pass: "$2b$10$NYv1SOfpGFfQcbmHm0zje.ppv2NikGSVOdrQ1c56cG/9d3JFEeSTi", perfil: "Administrador", nome: "Admin Apex" },
+        { id: 2, user: "lab", pass: "$2b$10$D8XXqM.LewIirZBT9QrpYuRw4JORj6bADpR6KhkviKx9bW7vHtSbq", perfil: "Laboratório", nome: "Dr. Marcos (Lab)" },
+        { id: 3, user: "compras", pass: "$2b$10$Aeh79YkEevUg2SeY4D29K.WCZI0qM0PcyWqGcCLXFph5rjJjg1PmG", perfil: "Compras", nome: "Ana (Compras)" },
+        { id: 4, user: "producao", pass: "$2b$10$BeXgekZCUKRJPA96MwKR6OnnG7pfjJi4tw1.RYDtN77GD3iyGYxA.", perfil: "Produção", nome: "Carlos (PCP/Produção)" },
+        { id: 5, user: "financeiro", pass: "$2b$10$Ep0quXXybCg22iloXOuS2.BW5M11aKN.qEMVk4oFPiIASvoonCbD.", perfil: "Financeiro", nome: "Mariana (Fin)" },
+        { id: 6, user: "diretoria", pass: "$2b$10$pgxgVLZuzc2bouFvK.gYgOGXULctBaqmwOrnt3UdD.KLZYHuSUCnu", perfil: "Diretoria", nome: "Dr. Tiago (Diretor)" }
     ],
     clientes: [],
     pedidos_venda: [],
@@ -1028,6 +1028,96 @@ async function initDatabase() {
         try { await pool.query('ALTER TABLE clientes ADD COLUMN cidade TEXT'); } catch(e) {}
         try { await pool.query('ALTER TABLE clientes ADD COLUMN uf TEXT'); } catch(e) {}
 
+        // ─── Módulo Estratégico: criar tabelas se não existirem ──────────────
+        await runSQL(`CREATE TABLE IF NOT EXISTS cenarios_planejamento (
+            id                 INT AUTO_INCREMENT PRIMARY KEY,
+            nome               VARCHAR(50) NOT NULL,
+            versao             INT NOT NULL DEFAULT 1,
+            volume_percentual  DECIMAL(6,2)  NOT NULL,
+            eficiencia_inicial DECIMAL(6,2)  NOT NULL,
+            margem_minima      DECIMAL(6,2)  NOT NULL,
+            capital_maximo     DECIMAL(15,2) DEFAULT NULL,
+            ativo              BOOLEAN       NOT NULL DEFAULT FALSE,
+            autor_id           INT           NOT NULL DEFAULT 1,
+            justificativa      TEXT,
+            criado_em          DATETIME      DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_cenario_versao (nome, versao)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'cenarios_planejamento');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS planos_estrategicos (
+            plano_id           INT AUTO_INCREMENT PRIMARY KEY,
+            trimestre          VARCHAR(10)  NOT NULL,
+            versao             INT          NOT NULL DEFAULT 1,
+            cenario_id         INT          NOT NULL,
+            autor_id           INT          NOT NULL DEFAULT 1,
+            data_aprovacao     DATETIME     NULL,
+            situacao           ENUM('rascunho','aprovado','substituido') NOT NULL DEFAULT 'rascunho',
+            receita_meta       DECIMAL(15,2),
+            margem_bruta_meta  DECIMAL(5,2),
+            capital_maximo     DECIMAL(15,2),
+            estoque_final_meta DECIMAL(15,2),
+            horas_disponiveis  DECIMAL(10,2) DEFAULT NULL,
+            horas_necessarias  DECIMAL(10,2) DEFAULT NULL,
+            carga_percentual   DECIMAL(6,2)  DEFAULT NULL,
+            criado_em          DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_plano_trimestre_versao (trimestre, versao)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'planos_estrategicos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS plano_produtos (
+            id                 INT AUTO_INCREMENT PRIMARY KEY,
+            plano_id           INT          NOT NULL,
+            produto_id         INT          NOT NULL DEFAULT 0,
+            produto_nome       VARCHAR(255) NOT NULL,
+            mix_percentual     DECIMAL(5,2),
+            preco              DECIMAL(15,2),
+            custo              DECIMAL(15,2),
+            margem             DECIMAL(5,2),
+            kg_entrada         DECIMAL(15,2),
+            rendimento         DECIMAL(5,2),
+            kg_saida           DECIMAL(15,2),
+            capital_necessario DECIMAL(15,2) DEFAULT NULL,
+            data_recebimento   DATE          DEFAULT NULL,
+            horas_maquina      DECIMAL(10,2) DEFAULT NULL,
+            FOREIGN KEY (plano_id) REFERENCES planos_estrategicos(plano_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'plano_produtos');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS plano_semanas (
+            id                INT AUTO_INCREMENT PRIMARY KEY,
+            plano_id          INT         NOT NULL,
+            numero_semana     TINYINT     NOT NULL,
+            congelada         BOOLEAN     NOT NULL DEFAULT FALSE,
+            planejado         DECIMAL(15,2),
+            programado        DECIMAL(15,2),
+            realizado         DECIMAL(15,2) NOT NULL DEFAULT 0,
+            forecast          DECIMAL(15,2),
+            desvio_percentual DECIMAL(5,2),
+            acao_corretiva    TEXT,
+            atualizado_em     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (plano_id) REFERENCES planos_estrategicos(plano_id),
+            UNIQUE KEY uq_plano_semana (plano_id, numero_semana)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'plano_semanas');
+
+        await runSQL(`CREATE TABLE IF NOT EXISTS estrategico_audit_log (
+            id             INT AUTO_INCREMENT PRIMARY KEY,
+            entidade       VARCHAR(50)  NOT NULL,
+            entidade_id    INT          NOT NULL,
+            usuario        VARCHAR(100) NOT NULL,
+            acao           VARCHAR(100) NOT NULL,
+            valor_anterior TEXT,
+            valor_novo     TEXT,
+            justificativa  TEXT,
+            ip             VARCHAR(45),
+            criado_em      DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, 'estrategico_audit_log');
+
+        // Seed dos 3 cenários padrão (ignora se já existirem pela UNIQUE KEY)
+        try {
+            await pool.query(`INSERT IGNORE INTO cenarios_planejamento (nome, versao, volume_percentual, eficiencia_inicial, margem_minima, ativo, autor_id, justificativa) VALUES
+                ('Conservador', 1, 80.00, 75.00, 30.00, FALSE, 1, 'Cenário inicial padrão'),
+                ('Ponderado',   1,100.00, 85.00, 25.00, FALSE, 1, 'Cenário inicial padrão'),
+                ('Agressivo',   1,120.00, 92.00, 20.00, FALSE, 1, 'Cenário inicial padrão')`);
+        } catch(e) { console.warn('⚠️ [cenarios_planejamento seed]:', e.message); }
+
         dbAvailable = true;
         console.log('✅ Banco de dados MySQL inicializado com sucesso!');
     } catch (err) {
@@ -1204,7 +1294,11 @@ app.use('/api/tabela-precos-fundicao-validade', requireRole(['Diretoria', 'Compr
 app.use('/api/amostras', requireRole(['Diretoria', 'Laboratório', 'Produção']));
 app.use('/api/planejamento', requireRole(['Diretoria', 'Compras', 'Produção', 'Comercial']));
 app.use('/api/planejamento-compras', requireRole(['Diretoria', 'Compras']));
-app.use('/api/planejamento-estrategico', requireRole(['Diretoria']));
+// ── Módulo Estratégico: leitura para todos os perfis relevantes; escrita restrita ──
+// GET (leitura): Diretoria, PCP/Produção, Laboratório, Compras, Comercial
+// POST/PUT/DELETE de aprovação/cenário: somente Diretoria (controlado dentro das rotas)
+app.use('/api/planejamento-estrategico', requireRole(['Diretoria', 'Produção', 'Laboratório', 'Compras', 'Comercial']));
+app.use('/api/cenarios', requireRole(['Diretoria', 'Produção', 'Laboratório', 'Compras', 'Comercial']));
 app.use('/api/planejamento-estrategicov3', requireRole(['Diretoria']));
 app.get('/api/estrategiav3_planos', requireRole(['Diretoria', 'Compras', 'Financeiro', 'Produção', 'Comercial']));
 app.post('/api/estrategiav3_planos', requireRole(['Diretoria']));
@@ -3381,6 +3475,7 @@ app.delete('/api/planejamento/producao-insumos/:id', async (req, res) => {
 });
 
 
+/* -- COMENTADO: SUBSTITUÍDO PELO NOVO MÓDULO (src/routes/planejamento.routes.js) --
 // ─── API: Planejamento Estratégico ──────────────────────────────────────────
 app.get('/api/planejamento-estrategico', async (req, res) => {
     let useDb = dbAvailable && pool;
@@ -3519,6 +3614,7 @@ app.delete('/api/planejamento-estrategico/:id', async (req, res) => {
     memStore.planejamento_estrategico = (memStore.planejamento_estrategico || []).filter(x => x.id !== id);
     res.json({ success: true });
 });
+*/
 
 
 // ─── API: Planejamento Estratégico V3 (Teste Meta Faturamento -> Insumo) ─────
@@ -6567,10 +6663,42 @@ app.get('/api/admin/run-import-fornecedores', (req, res) => {
     }
 });
 
+app.get('/api/admin/migrate-estrategico', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).send('Banco não disponível.');
+        const fs = require('fs');
+        const path = require('path');
+        const sql = fs.readFileSync(path.join(__dirname, 'migrations', '004_modulo_estrategico.sql'), 'utf8');
+        const statements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
+        for (let stmt of statements) {
+            await pool.query(stmt);
+        }
+        res.send('<pre>SUCESSO: Migração 004 do Módulo Estratégico executada com sucesso.</pre>');
+    } catch (e) {
+        res.status(500).send('<pre>ERRO:\n' + e.message + '</pre>');
+    }
+});
+
+app.get('/api/admin/rollback-estrategico', async (req, res) => {
+    try {
+        if (!pool) return res.status(500).send('Banco não disponível.');
+        await pool.query('DROP TABLE IF EXISTS estrategico_audit_log, plano_semanas, plano_produtos, planos_estrategicos, cenarios_planejamento');
+        res.send('<pre>SUCESSO: Tabelas do Módulo Estratégico removidas com sucesso (Rollback).</pre>');
+    } catch (e) {
+        res.status(500).send('<pre>ERRO:\n' + e.message + '</pre>');
+    }
+});
+
 // ==========================================
 // INJEÇÃO DAS ROTAS DO MÓDULO PCP
 // ==========================================
 app.use('/api/pcp', require('./src/routes/pcp')(pool, dbAvailable, memStore));
+
+// ==========================================
+// INJEÇÃO DAS ROTAS DO MÓDULO ESTRATÉGICO
+// ==========================================
+app.use('/api/planejamento-estrategico', require('./src/routes/planejamento.routes')(pool, dbAvailable, memStore, registrarAuditLog));
+app.use('/api/cenarios', require('./src/routes/cenarios.routes')(pool, dbAvailable, memStore, registrarAuditLog));
 
 if (process.env.NODE_ENV !== 'test') {
     initDatabase().then(async () => {
@@ -6625,6 +6753,12 @@ if (process.env.NODE_ENV !== 'test') {
         });
 
         console.log('⏰ [LME CRON] Agendador de e-mail LME iniciado (verifica a cada minuto, fuso: America/Sao_Paulo)');
+
+        // ─── CRON: Forecast Estratégico Semanal (Passo 8) ─────────────────────
+        if (pool) {
+            const { registrarForecastCron } = require('./src/jobs/forecast.cron');
+            registrarForecastCron(pool);
+        }
     });
 }
 
