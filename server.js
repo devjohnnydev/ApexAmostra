@@ -5798,6 +5798,7 @@ ${computedKeys.map(ck=>`<tr>
                 attachments: [{
                     filename: fileName,
                     content: pdfBuffer,
+                    contentType: 'application/pdf',
                 }],
             }));
 
@@ -5947,6 +5948,7 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
                 attachments: [{
                     filename: `LME-ApexTech-${dataStr || dateTitle.replace(/\//g,'-')}.pdf`,
                     content: Buffer.from(pdfBase64, 'base64'),
+                    contentType: 'application/pdf',
                 }],
             }));
 
