@@ -6861,7 +6861,7 @@ async function syncQStashSchedule(horario, diasAtivos, ativo) {
         );
         
         const response = await client.schedules.create({
-            destination: process.env.QSTASH_TARGET_URL,
+            destination: 'https://apextechmetais.com.br/api/lme/cron-trigger',
             cron: `${m} ${h} * * ${ebDays}`,
             body: JSON.stringify({ scheduleId, source: 'qstash' }),
             headers: {
