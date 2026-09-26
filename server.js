@@ -5830,6 +5830,20 @@ app.post('/api/lme/enviar-agora', async (req, res) => {
     }
 });
 
+// ─── Rota: Gatilho Externo para Hostinger Cron ───────────────────────────────
+// Esta rota deve ser chamada pelo Cron Job do painel da Hostinger (OS level)
+// Comando recomendado no painel: curl -X POST https://seudominio.com.br/api/lme/cron-trigger
+app.post('/api/lme/cron-trigger', async (req, res) => {
+    try {
+        console.log('⏰ [HOSTINGER CRON] Gatilho externo recebido. Iniciando envio...');
+        await disparaEmailLME(); // Não usamos scheduledAt aqui para enviar imediatamente
+        res.json({ success: true, message: 'Gatilho LME executado via Hostinger Cron.' });
+    } catch (err) {
+        console.error('❌ [HOSTINGER CRON] Erro:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
     try {
         const { pdfBase64, dataStr } = req.body;
