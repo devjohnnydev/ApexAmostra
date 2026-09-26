@@ -11,7 +11,7 @@
     "import:clientes": "node scripts/import-clientes.js"
   },
   "dependencies": {
-    "@aws-sdk/client-scheduler": "^3.1141.0",
+    "@upstash/qstash": "^2.11.3",
     "axios": "^1.18.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",

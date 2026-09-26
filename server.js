@@ -17,7 +17,7 @@ const rateLimit = require('express-rate-limit');
 const logger    = require('./config/logger');
 const cron      = require('node-cron');
 const crypto    = require('crypto');
-const { SchedulerClient, CreateScheduleCommand, DeleteScheduleCommand } = require('@aws-sdk/client-scheduler');
+const { Client } = require('@upstash/qstash');
 let JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
     console.warn('⚠️ AVISO CRÍTICO: JWT_SECRET não definido no .env. Gerando chave aleatória temporária. Todos os usuários serão deslogados caso o servidor reinicie.');
@@ -4988,7 +4988,7 @@ app.put('/api/settings', async (req, res) => {
                 const ativo = settings.lme_envio_ativo;
                 const horario = settings.lme_envio_horario || '14:00';
                 const diasAtivosStr = settings.lme_envio_dias || '1,2,3,4,5';
-                if (typeof syncEventBridgeSchedule === 'function') await syncEventBridgeSchedule(horario, diasAtivosStr.split(',').map(Number), ativo);
+                if (typeof syncQStashSchedule === 'function') await syncQStashSchedule(horario, diasAtivosStr.split(',').map(Number), ativo);
             }
             return res.json({ success: true });
         }
@@ -6807,23 +6807,46 @@ module.exports = { app, initDatabase, pool };
 
 
 
-// Helper: Integração do LME com AWS EventBridge Scheduler
-async function syncEventBridgeSchedule(horario, diasAtivos, ativo) {
-    if (!process.env.EVENTBRIDGE_ROLE_ARN || !process.env.EVENTBRIDGE_TARGET_ARN) {
-        console.warn('⚠️ [EVENTBRIDGE] Role/Target ARN not configured. Cannot create AWS schedule.');
+// Helper: Integração do LME com Upstash QStash (Agendador Gratuito)
+async function syncQStashSchedule(horario, diasAtivos, ativo) {
+    if (!process.env.QSTASH_TOKEN || !process.env.QSTASH_TARGET_URL) {
+        console.warn('⚠️ [QSTASH] Token ou Target URL não configurados. Abortando criação do agendamento.');
         return;
     }
-    const client = new SchedulerClient({ region: process.env.AWS_REGION || 'us-east-1' });
-    const scheduleName = 'LME_Daily_Report_Schedule';
+    
+    const client = new Client({ token: process.env.QSTASH_TOKEN });
+    
     try {
-        await client.send(new DeleteScheduleCommand({ Name: scheduleName })).catch(() => {});
+        // Obter todos os agendamentos e deletar (limpeza)
+        const schedules = await client.schedules.list();
+        for (const sch of schedules) {
+            await client.schedules.delete({ id: sch.scheduleId }).catch(() => {});
+        }
+        
         if (ativo !== 'true') {
             await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'");
             return;
         }
-        const [h, m] = horario.split(':');
-        const dayMap = { 0: 'SUN', 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT' };
-        const ebDays = diasAtivos.map(d => dayMap[d]).join(',');
+
+        // QStash usa UTC. Precisamos converter o horário de Brasília (UTC-3) para UTC (+3)
+        let [h, m] = horario.split(':').map(Number);
+        
+        let shiftDay = false;
+        h = h + 3;
+        if (h >= 24) {
+            h = h - 24;
+            shiftDay = true;
+        }
+
+        // JS Days: 0=Sun, 1=Mon... 
+        let convertedDays = diasAtivos.map(d => {
+            if (shiftDay) {
+                return (d + 1) > 6 ? 0 : d + 1;
+            }
+            return d;
+        });
+
+        const ebDays = convertedDays.join(',');
         const scheduleId = crypto.randomUUID();
         
         await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'");
@@ -6832,27 +6855,24 @@ async function syncEventBridgeSchedule(horario, diasAtivos, ativo) {
             [scheduleId, horario, diasAtivos.join(',')]
         );
         
-        const response = await client.send(new CreateScheduleCommand({
-            Name: scheduleName,
-            ScheduleExpression: `cron(${m} ${h} ? * ${ebDays} *)`,
-            ScheduleExpressionTimezone: 'America/Sao_Paulo',
-            FlexibleTimeWindow: { Mode: 'OFF' },
-            Target: {
-                Arn: process.env.EVENTBRIDGE_TARGET_ARN,
-                RoleArn: process.env.EVENTBRIDGE_ROLE_ARN,
-                Input: JSON.stringify({ scheduleId, source: 'eventbridge' }),
-                RetryPolicy: { MaximumEventAgeInSeconds: 86400, MaximumRetryAttempts: 10 }
+        const response = await client.schedules.create({
+            destination: process.env.QSTASH_TARGET_URL,
+            cron: `${m} ${h} * * ${ebDays}`,
+            body: JSON.stringify({ scheduleId, source: 'qstash' }),
+            headers: {
+                "Authorization": `Bearer ${process.env.CRON_SECRET || 'secret'}`,
+                "Content-Type": "application/json"
             }
-        }));
+        });
         
-        if (response.ScheduleArn) {
+        if (response.scheduleId) {
             await pool.query(
                 "UPDATE lme_agendamentos SET eventbridge_schedule_arn = ? WHERE id = ?",
-                [response.ScheduleArn, scheduleId]
+                [response.scheduleId, scheduleId]
             );
         }
-        console.log(`✅ [EVENTBRIDGE] Schedule created: ${response.ScheduleArn}`);
+        console.log(`✅ [QSTASH] Schedule criado: ${response.scheduleId} (UTC: ${h}:${m} | Dias: ${ebDays})`);
     } catch (err) {
-        console.error('❌ [EVENTBRIDGE] Error creating schedule:', err.message);
+        console.error('❌ [QSTASH] Erro criando schedule:', err.message);
     }
 }
