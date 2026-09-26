@@ -6814,7 +6814,7 @@ async function syncQStashSchedule(horario, diasAtivos, ativo) {
         return;
     }
     
-    const client = new Client({ token: process.env.QSTASH_TOKEN });
+    const client = new Client({ token: process.env.QSTASH_TOKEN, baseUrl: process.env.QSTASH_URL || undefined });
     
     try {
         // Obter todos os agendamentos e deletar (limpeza)
