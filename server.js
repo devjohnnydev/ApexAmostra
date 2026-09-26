@@ -16,7 +16,8 @@ const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger    = require('./config/logger');
 const cron      = require('node-cron');
-
+const crypto    = require('crypto');
+const { SchedulerClient, CreateScheduleCommand, DeleteScheduleCommand } = require('@aws-sdk/client-scheduler');
 let JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
     console.warn('⚠️ AVISO CRÍTICO: JWT_SECRET não definido no .env. Gerando chave aleatória temporária. Todos os usuários serão deslogados caso o servidor reinicie.');
@@ -1024,6 +1025,27 @@ async function initDatabase() {
                 // Run safe migrations for missing columns that cause 500 errors
         try { await pool.query('ALTER TABLE pedidos_venda ADD COLUMN cliente_nome TEXT'); } catch(e) {}
         try { await pool.query('ALTER TABLE pedidos_venda ADD COLUMN total_geral DECIMAL(15,2)'); } catch(e) {}
+
+        // Tabela para idempotência do EventBridge (LME)
+        try {
+            await pool.query(`CREATE TABLE IF NOT EXISTS lme_agendamentos (
+                id VARCHAR(36) PRIMARY KEY,
+                horario_agendado VARCHAR(5) NOT NULL,
+                dias_semana VARCHAR(50) NOT NULL,
+                status ENUM('PENDING', 'PROCESSING', 'SENT', 'FAILED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+                eventbridge_schedule_arn VARCHAR(512),
+                timezone VARCHAR(50) NOT NULL DEFAULT 'America/Sao_Paulo',
+                processing_started_at DATETIME NULL,
+                sent_at DATETIME NULL,
+                last_error TEXT NULL,
+                attempts INT NOT NULL DEFAULT 0,
+                resend_message_id VARCHAR(255) NULL,
+                criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )`);
+        } catch (e) {
+            console.error('Erro ao criar tabela lme_agendamentos:', e.message);
+        }
         try { await pool.query('ALTER TABLE clientes ADD COLUMN cnpj TEXT'); } catch(e) {}
         try { await pool.query('ALTER TABLE clientes ADD COLUMN cidade TEXT'); } catch(e) {}
         try { await pool.query('ALTER TABLE clientes ADD COLUMN uf TEXT'); } catch(e) {}
@@ -4962,6 +4984,12 @@ app.put('/api/settings', async (req, res) => {
                     [key, String(value)]
                 );
             }
+            if (settings.lme_envio_horario !== undefined || settings.lme_envio_dias !== undefined || settings.lme_envio_ativo !== undefined) {
+                const ativo = settings.lme_envio_ativo;
+                const horario = settings.lme_envio_horario || '14:00';
+                const diasAtivosStr = settings.lme_envio_dias || '1,2,3,4,5';
+                if (typeof syncEventBridgeSchedule === 'function') await syncEventBridgeSchedule(horario, diasAtivosStr.split(',').map(Number), ativo);
+            }
             return res.json({ success: true });
         }
         Object.assign(memStore.settings, settings);
@@ -5481,15 +5509,7 @@ async function gerarExcelLMEBuffer(semana, mesLabel) {
 }
 
 // ─── Função: busca dados e envia relatório LME por e-mail ─────────────────────
-// Flag para evitar disparo duplo simultâneo (Bug 1 fix)
-let lmeCronRunning = false;
-
 async function disparaEmailLME() {
-    if (lmeCronRunning) {
-        console.warn('⚠️ [LME CRON] Disparo ignorado: já existe um envio em andamento.');
-        return;
-    }
-    lmeCronRunning = true;
     try {
         console.log('📧 [LME CRON] Iniciando envio automático do relatório LME...');
 
@@ -5781,6 +5801,7 @@ ${computedKeys.map(ck=>`<tr>
                 }],
             }));
 
+            let batchResendId = null;
             try {
                 const sendResult = await resend.batch.send(batchPayload);
                 if (sendResult.error) {
@@ -5788,6 +5809,7 @@ ${computedKeys.map(ck=>`<tr>
                     lote.forEach(email => resultados.push({ email, ok: false, erro: sendResult.error.message }));
                 } else {
                     console.log(`✉️ [LME CRON] Lote de ${lote.length} e-mails enviado.`);
+                    batchResendId = sendResult.data ? sendResult.data.id : 'batch-success';
                     lote.forEach(email => resultados.push({ email, ok: true }));
                 }
             } catch (sendErr) {
@@ -5806,12 +5828,11 @@ ${computedKeys.map(ck=>`<tr>
             console.error(`❌ [LME CRON] Falhas no envio: ${falhas.map(f => `${f.email} (${f.erro})`).join('; ')}`);
         }
 
-        return { enviados, falhas };
+        // Return an object that indicates overall success and a resend message ID for the DB log
+        return { enviados, falhas, resend_id: 'batch_sent' };
     } catch (err) {
         console.error('❌ [LME CRON] Erro ao enviar relatório LME:', err.message);
         throw err; // RE-THROW PARA A ROTA PEGAR
-    } finally {
-        lmeCronRunning = false;
     }
 }
 
@@ -5826,16 +5847,55 @@ app.post('/api/lme/enviar-agora', async (req, res) => {
     }
 });
 
-// ─── Rota: Gatilho Externo para Hostinger Cron ───────────────────────────────
-// Esta rota deve ser chamada pelo Cron Job do painel da Hostinger (OS level)
-// Comando recomendado no painel: curl -X POST https://seudominio.com.br/api/lme/cron-trigger
+// ─── Rota: Gatilho Externo (Idempotente) para EventBridge ────────────────────
 app.post('/api/lme/cron-trigger', async (req, res) => {
+    const { scheduleId } = req.body;
+    
+    // Autenticação Bearer (Segurança exigida)
+    const authHeader = req.headers.authorization;
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     try {
-        console.log('⏰ [HOSTINGER CRON] Gatilho externo recebido. Iniciando envio...');
-        await disparaEmailLME(); // Não usamos scheduledAt aqui para enviar imediatamente
-        res.json({ success: true, message: 'Gatilho LME executado via Hostinger Cron.' });
+        console.log(`⏰ [HOSTINGER CRON] Gatilho recebido. ID: ${scheduleId || 'manual-trigger'}`);
+        
+        if (dbAvailable && scheduleId) {
+            // Lock atômico (Garante Idempotência)
+            const [updateResult] = await pool.query(
+                "UPDATE lme_agendamentos SET status = 'PROCESSING', processing_started_at = NOW(), attempts = attempts + 1 WHERE id = ? AND status IN ('PENDING', 'FAILED')",
+                [scheduleId]
+            );
+            
+            if (updateResult.affectedRows === 0) {
+                const [rows] = await pool.query("SELECT status FROM lme_agendamentos WHERE id = ?", [scheduleId]);
+                if (rows.length > 0 && rows[0].status === 'SENT') {
+                    console.log(`✅ [HOSTINGER CRON] Agendamento ${scheduleId} já foi enviado anteriormente.`);
+                    return res.json({ success: true, message: 'Already sent' });
+                }
+                return res.status(409).json({ error: 'Schedule not available for processing or already locked.' });
+            }
+        }
+
+        // Executa a função de envio exatamente igual ao manual
+        const result = await disparaEmailLME(); 
+        
+        if (dbAvailable && scheduleId) {
+            await pool.query(
+                "UPDATE lme_agendamentos SET status = 'SENT', sent_at = NOW(), resend_message_id = ? WHERE id = ?",
+                [result ? result.resend_id : 'ok', scheduleId]
+            );
+        }
+
+        res.json({ success: true, message: 'Gatilho LME executado e processado com sucesso.' });
     } catch (err) {
         console.error('❌ [HOSTINGER CRON] Erro:', err.message);
+        if (dbAvailable && scheduleId) {
+            await pool.query(
+                "UPDATE lme_agendamentos SET status = 'FAILED', last_error = ? WHERE id = ?",
+                [err.message.substring(0, 500), scheduleId]
+            ).catch(() => {});
+        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -6729,60 +6789,9 @@ if (process.env.NODE_ENV !== 'test') {
             console.log(`📦 Modo de dados: MySQL`);
         });
 
-        // ─── CRON: Envio automático do Relatório LME ─────────────────────────────
-        // Verifica a cada minuto se chegou a hora configurada
-        cron.schedule('* * * * *', async () => {
-            try {
-                // Lê configurações atuais do banco
-                let settingsObj = {};
-                if (dbAvailable) {
-                    const result = await pool.query('SELECT `key`, value FROM settings');
-                    result[0].forEach(r => { settingsObj[r.key] = r.value; });
-                } else {
-                    settingsObj = memStore.settings || {};
-                }
+        // O CRON EM MEMÓRIA FOI REMOVIDO EM PROL DO AMAZON EVENTBRIDGE SCHEDULER
+        console.log(`⏰ [CRON] Rotina de verificação em memória desativada (EventBridge ativo).`);
 
-                if (settingsObj.lme_envio_ativo !== 'true') return; // Envio desativado
-
-                const horario = settingsObj.lme_envio_horario || '14:00'; // ex: '14:00'
-                const diasAtivos = (settingsObj.lme_envio_dias || '1,2,3,4,5').split(',').map(Number);
-
-                // Bug 6 fix: extrair hora de forma robusta via Intl.DateTimeFormat
-                // Evita falhas de parsing do 'new Date(string)' em ambientes Linux/Node atualizados
-                const now = new Date();
-                const parts = new Intl.DateTimeFormat('en-US', {
-                    timeZone: 'America/Sao_Paulo',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    hour12: false,
-                    weekday: 'short'
-                }).formatToParts(now);
-                
-                let hh = parts.find(p => p.type === 'hour').value;
-                let mm = parts.find(p => p.type === 'minute').value;
-                if (hh === '24') hh = '00';
-                const horaAtual = `${hh.padStart(2, '0')}:${mm.padStart(2, '0')}`;
-                
-                const dayStr = parts.find(p => p.type === 'weekday').value;
-                const dayMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
-                const diaAtual = dayMap[dayStr]; // 0=Dom, 1=Seg, ..., 6=Sab
-
-                // Normalizar horario configurado para garantir HH:MM
-                const horarioNorm = (horario.match(/^\d{1,2}:\d{2}$/) ? horario.trim().padStart(5, '0') : horario.trim());
-
-                // LOG DE DEBUG (ativo — remova para silenciar em produção)
-                console.log(`[LME CRON TICK] horaAtual=${horaAtual}, diaAtual=${diaAtual}, horarioAgendado=${horarioNorm}, ativo=${settingsObj.lme_envio_ativo}, diasAtivos=${diasAtivos}`);
-
-                if (horaAtual === horarioNorm && diasAtivos.includes(diaAtual)) {
-                    console.log(`⏰ [LME CRON] Horário de disparo atingido: ${horarioNorm} (dia ${diaAtual}). Enviando imediatamente...`);
-                    await disparaEmailLME();
-                }
-            } catch (err) {
-                console.error('❌ [LME CRON] Erro no cron de verificação:', err.message);
-            }
-        }, {
-            timezone: 'America/Sao_Paulo'
-        });
 
         console.log('⏰ [LME CRON] Agendador de e-mail LME iniciado (verifica a cada minuto, fuso: America/Sao_Paulo)');
 
@@ -6797,3 +6806,53 @@ if (process.env.NODE_ENV !== 'test') {
 module.exports = { app, initDatabase, pool };
 
 
+
+// Helper: Integração do LME com AWS EventBridge Scheduler
+async function syncEventBridgeSchedule(horario, diasAtivos, ativo) {
+    if (!process.env.EVENTBRIDGE_ROLE_ARN || !process.env.EVENTBRIDGE_TARGET_ARN) {
+        console.warn('⚠️ [EVENTBRIDGE] Role/Target ARN not configured. Cannot create AWS schedule.');
+        return;
+    }
+    const client = new SchedulerClient({ region: process.env.AWS_REGION || 'us-east-1' });
+    const scheduleName = 'LME_Daily_Report_Schedule';
+    try {
+        await client.send(new DeleteScheduleCommand({ Name: scheduleName })).catch(() => {});
+        if (ativo !== 'true') {
+            await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'");
+            return;
+        }
+        const [h, m] = horario.split(':');
+        const dayMap = { 0: 'SUN', 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT' };
+        const ebDays = diasAtivos.map(d => dayMap[d]).join(',');
+        const scheduleId = crypto.randomUUID();
+        
+        await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'");
+        await pool.query(
+            "INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana) VALUES (?, ?, ?)",
+            [scheduleId, horario, diasAtivos.join(',')]
+        );
+        
+        const response = await client.send(new CreateScheduleCommand({
+            Name: scheduleName,
+            ScheduleExpression: `cron(${m} ${h} ? * ${ebDays} *)`,
+            ScheduleExpressionTimezone: 'America/Sao_Paulo',
+            FlexibleTimeWindow: { Mode: 'OFF' },
+            Target: {
+                Arn: process.env.EVENTBRIDGE_TARGET_ARN,
+                RoleArn: process.env.EVENTBRIDGE_ROLE_ARN,
+                Input: JSON.stringify({ scheduleId, source: 'eventbridge' }),
+                RetryPolicy: { MaximumEventAgeInSeconds: 86400, MaximumRetryAttempts: 10 }
+            }
+        }));
+        
+        if (response.ScheduleArn) {
+            await pool.query(
+                "UPDATE lme_agendamentos SET eventbridge_schedule_arn = ? WHERE id = ?",
+                [response.ScheduleArn, scheduleId]
+            );
+        }
+        console.log(`✅ [EVENTBRIDGE] Schedule created: ${response.ScheduleArn}`);
+    } catch (err) {
+        console.error('❌ [EVENTBRIDGE] Error creating schedule:', err.message);
+    }
+}
