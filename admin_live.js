@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     };
 
-    // ������ TOGGLE MENU LATERAL RECOLH�VEL (DESKTOP) ������������������������������������������������������������
+    // ─── TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) ──────────────────────────────
     window.toggleDesktopSidebar = function(forceState) {
         const container = document.getElementById('admin-dashboard-container');
         const icon = document.getElementById('sidebar-toggle-icon');
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Restaurar prefer�ncia do menu ao carregar
+    // Restaurar preferência do menu ao carregar
     try {
         const prefCollapsed = localStorage.getItem('apex_sidebar_collapsed') === 'true';
         if (prefCollapsed) {
@@ -46,14 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch(e) {}
 
-    // ������ Utilit�rio global: formata n�mero no padr�o brasileiro com 2 casas ������
+    // ─── Utilitário global: formata número no padrão brasileiro com 2 casas ───
     window.fmtBRL = function(val) {
         const n = parseFloat(val);
         if (isNaN(n)) return '0,00';
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
-    // ������ SISTEMA DE NOTIFICA��O GLASSMORPHISM (substitui alert nativo) ����������������
+    // ─── SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) ────────
     // Tipos: 'success' | 'error' | 'info' | 'warning'
     window._apexNotify = function(titulo, mensagem, tipo) {
         tipo = tipo || 'info';
@@ -64,10 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!overlay) { _apexNotify('Sistema', titulo + (mensagem ? '\n' + mensagem : ''), 'info'); return; }
 
         const configs = {
-            success: { icon:'', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
-            error:   { icon:'�R', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
-            warning: { icon:'��️', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
-            info:    { icon:'��️', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
+            success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
+            error:   { icon:'âŒ', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            warning: { icon:'⚠️ ï¸', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
+            info:    { icon:'â„¹ï¸', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
         };
         const cfg = configs[tipo] || configs.info;
 
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('_apex_notify_overlay')?.addEventListener('click', function(e) {
         if (e.target === this) window._apexNotifyClose();
     });
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
 
 
     window.formatarDataSemFuso = function(dStr) {
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ������ Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ������
+    // ─── Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ───
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' || e.keyCode === 27) {
             const drop = document.getElementById('pedido-cliente-dropdown');
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.fecharModalUsuario) window.fecharModalUsuario();
             if (window.fecharModalReprovacao) window.fecharModalReprovacao();
 
-            // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produ��o
+            // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produção
             document.querySelectorAll('.fullscreen-overlay').forEach(modal => {
                 if (modal.id !== 'modal-planejamento-producao') {
                     modal.style.display = 'none';
@@ -141,16 +141,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let globalRolePermissions = {};
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
     // LOGIN
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
 
 
 
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
-    // NAVEGA��O
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
+    // NAVEGAÇÃO
+    // ─────────────────────────────────────────────────────────────────────────
     const navItems = document.querySelectorAll('.nav-item[data-target]');
     const sections = document.querySelectorAll('.view-section');
 
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
 
             navItems.forEach(nav => nav.classList.remove('active'));
-            // Esconde todas as se��es EXCETO o hist�rico (que � gerenciado internamente pelo bot�o)
+            // Esconde todas as seções EXCETO o histórico (que é gerenciado internamente pelo botão)
             sections.forEach(sec => {
                 if (sec.id !== 'relatorio-diario-historico') {
                     sec.classList.remove('active');
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 target.classList.add('active');
                 target.style.display = 'block';
-                // Sempre volta ao topo ao trocar de se��o
+                // Sempre volta ao topo ao trocar de seção
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) mainContent.scrollTop = 0;
                 if (item.dataset.target === 'permissoes-view' && window.carregarPermissoesView) {
@@ -208,9 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
     // INIT ADMIN
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
     async function initAdmin() {
         try {
             const res = await fetch('/api/settings');
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 globalRolePermissions = JSON.parse(settings.role_permissions);
             }
         } catch (e) {
-            console.error('Erro ao buscar permiss�es:', e);
+            console.error('Erro ao buscar permissões:', e);
         }
 
         initLMEDashboard();
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initNoticias();
         initLMEEmailConfig();
         
-        // Apex Gest�o Inits
+        // Apex Gestão Inits
         initApexFornecedores();
         initApexClientes();
         initApexMateriais();
@@ -267,12 +267,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!selector || !preview) return;
 
-        const MONTH_NAMES = ['','Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        const MONTH_NAMES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         let excelWeeks = [];
         let activeMetals = new Set(['cobre','zinco','aluminio','chumbo','estanho','niquel','dolar']);
         let allMetalsOn = true;
 
-        // ������ HELPERS ��������������������������������������������������������������������������������������������������������
+        // ─── HELPERS ────────────────────────────────────────────────────
         function showLoading() {
             if (loadingDiv)  { loadingDiv.style.display  = 'flex'; }
             if (errorDiv)    { errorDiv.style.display    = 'none'; }
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (previewWrap) { previewWrap.style.display = 'block'; }
         }
 
-        // ������ LOAD DATA ����������������������������������������������������������������������������������������������������
+        // ─── LOAD DATA ──────────────────────────────────────────────────
         async function loadWeeks(mesOverride = null) {
             showLoading();
             try {
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         mesToFetch = mesesDisponiveis[0].valor;
                         filterMes.value = mesToFetch;
                     } else {
-                        throw new Error('Nenhum m�s dispon�vel na LME.');
+                        throw new Error('Nenhum mês disponível na LME.');
                     }
                 }
 
@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (excelWeeks.length === 0) {
                     selector.innerHTML = '<option value="">Nenhuma semana encontrada</option>';
-                    showError('Nenhuma semana encontrada neste m�s.');
+                    showError('Nenhuma semana encontrada neste mês.');
                     if (countNum) countNum.textContent = '0';
                     return;
                 }
@@ -329,8 +329,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (countNum) countNum.textContent = excelWeeks.length;
                 
                 selector.innerHTML = excelWeeks.map(w => {
-                    const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '';
-                    return `<option value="${w.header}">Semana ${w.header} �  ${lastDay}</option>`;
+                    const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '—';
+                    return `<option value="${w.header}">Semana ${w.header} â†’ ${lastDay}</option>`;
                 }).join('');
 
                 renderPreview(excelWeeks[0].header);
@@ -340,9 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // ������ RENDER PREVIEW TABLE ��������������������������������������������������������������������������������
+        // ─── RENDER PREVIEW TABLE ────────────────────────────────────────
         const formatVal = (v, formatType) => {
-            if (v === null || v === undefined) return '';
+            if (v === null || v === undefined) return '—';
             if (v === 'feriado') return '<span class="excel-feriado">feriado</span>';
             if (typeof v === 'string') return v;
 
@@ -367,11 +367,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const renderOscilacao = (v, isDolar) => {
-            if (v === null || v === undefined || typeof v === 'string') return '';
+            if (v === null || v === undefined || typeof v === 'string') return '—';
             const isUp = v >= 0;
-            const arrow = isUp ? '��' : '��';
+            const arrow = isUp ? 'â–²' : 'â–¼';
             const cls = isUp ? 'excel-up' : 'excel-down';
-            // OSCILA��O R$ � a varia��o convertida em reais brasileiros
+            // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
             const prefix = 'R$ ';
             const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
@@ -381,11 +381,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const COLS = [
             { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'currency_usd', dolFmt: null       },
             { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'currency_usd', dolFmt: null       },
-            { k: 'aluminio', lbl: 'ALUM�NIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'currency_usd', dolFmt: null       },
+            { k: 'aluminio', lbl: 'ALUMÍNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'currency_usd', dolFmt: null       },
             { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'currency_usd', dolFmt: null       },
             { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'currency_usd', dolFmt: null       },
-            { k: 'niquel',   lbl: 'N�QUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
-            { k: 'dolar',    lbl: 'D�LAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'currency4',    dolFmt: 'currency4' },
+            { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
+            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'currency4',    dolFmt: 'currency4' },
         ];
 
         function visibleCols() {
@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
 
             const firstDate = d[0]?.data || headerVal;
-            const lastDate  = d[d.length - 1]?.data || '';
+            const lastDate  = d[d.length - 1]?.data || '—';
             const monthName = filterMes.options[filterMes.selectedIndex]?.text || '';
 
             let html = `
@@ -430,30 +430,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 const day = d[i] || {};
                 const isFeriado = vc.every(c => day[c.k] === 'feriado' || day[c.k] === null);
                 const rowCls = isFeriado ? ' class="excel-row-feriado"' : '';
-                const dateTd = `<td class="excel-date-cell">${day.data || ''}</td>`;
+                const dateTd = `<td class="excel-date-cell">${day.data || '—'}</td>`;
                 const valTds = vc.map(c => `<td class="${c.ccls}">${formatVal(day[c.k], c.fmt)}</td>`).join('');
                 html += `<tr${rowCls}>${dateTd}${valTds}</tr>`;
             }
 
             // Computed rows config
             const COMP_ROWS = [
-                { lbl: 'M�DIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-mensal',         fmt: 'currency_usd', dolFmt: 'dolar'     },
+                { lbl: 'MÉDIA SEMANAL',                    key: 'MEDIA SEMANAL',                    cls: 'excel-row-mensal',         fmt: 'currency_usd', dolFmt: 'dolar'     },
                 { lbl: '100% LME (R$)',                    key: '100% LME',                         cls: 'excel-row-lme100',        fmt: 'currency3',    dolFmt: 'dolar'     },
                 { lbl: 'SEMANA ANTERIOR',                  key: 'SEMANA ANTERIOR',                  cls: 'excel-row-anterior',      fmt: 'currency3',    dolFmt: 'dolar'     },
                 { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)',   key: 'FECHAMENTO % ( SEMANA ANTERIOR )', cls: 'excel-row-fechamento',    fmt: 'percent',      dolFmt: 'percent'   },
-                { lbl: 'OSCILA��O %',                      key: 'OSCILA��O %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',      dolFmt: 'percent'   },
-                { lbl: 'OSCILA��O R$',                     key: 'OSCILA��O R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4',    dolFmt: 'dolar'     },
-                { lbl: 'M�DIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3',    dolFmt: 'dolar'     },
+                { lbl: 'OSCILAÇÃO %',                      key: 'OSCILAÇÃO %',                      cls: 'excel-row-oscilacao-pct', fmt: 'percent',      dolFmt: 'percent'   },
+                { lbl: 'OSCILAÇÃO R$',                     key: 'OSCILAÇÃO R$',                     cls: 'excel-row-oscilacao-rs',  fmt: 'currency4',    dolFmt: 'dolar'     },
+                { lbl: 'MÉDIA MENSAL',                     key: 'MEDIA MENSAL',                     cls: 'excel-row-mensal',        fmt: 'currency3',    dolFmt: 'dolar'     },
             ];
 
             COMP_ROWS.forEach(row => {
                 const vals = comp[row.key] || {};
                 const isAnterior = row.cls === 'excel-row-anterior';
                 const inlineStyle = isAnterior ? ' style="background-color:#1a1a1a;color:#ffffff;"' : '';
-                // Indicar feriado: se a semana teve menos de 5 dias �teis, mostrar no label da m�dia
+                // Indicar feriado: se a semana teve menos de 5 dias úteis, mostrar no label da média
                 let lbl = row.lbl;
                 if (row.key === 'MEDIA SEMANAL' && block.numDias !== undefined && block.numDias < 5) {
-                    lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias �teis)</span>`;
+                    lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias úteis)</span>`;
                 }
                 const labelTd = `<td class="excel-label-cell"${inlineStyle}>${lbl}</td>`;
                 const valTds = vc.map(c => {
@@ -489,11 +489,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Oscillation row (with arrows)
-            const osc = comp['OSCILA��O R$'] || {};
+            const osc = comp['OSCILAÇÃO R$'] || {};
             const oscTds = vc.map(c => `<td class="excel-col-${c.k}">${renderOscilacao(osc[c.k], false)}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
-                    <td class="excel-label-cell" style="font-style:italic;">Oscila��o R$/kg</td>
+                    <td class="excel-label-cell" style="font-style:italic;">Oscilação R$/kg</td>
                     ${oscTds}
                 </tr>
             `;
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showTable();
         }
 
-        // ������ EVENT LISTENERS ������������������������������������������������������������������������������������������
+        // ─── EVENT LISTENERS ─────────────────────────────────────────────
         filterMes.addEventListener('change', () => {
             loadWeeks(filterMes.value);
         });
@@ -540,13 +540,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.URL.revokeObjectURL(url);
             } catch(e) {
                 console.error(e);
-                _apexNotify('Aten��o', 'Erro ao baixar Excel: ' + e.message, 'error');
+                _apexNotify('Atenção', 'Erro ao baixar Excel: ' + e.message, 'error');
             } finally {
                 btnDownload.classList.remove('downloading');
             }
         });
 
-        // ���� PDF Download ����
+        // ── PDF Download ──
         if (btnDownloadPdf) {
             btnDownloadPdf.addEventListener('click', () => {
                 const val = selector.value;
@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Inject/update timestamp into the print area
                 const area = document.getElementById('pdf-print-area');
-                if (!area) { _apexNotify('Sistema', 'Visualize o relat�rio antes de baixar o PDF.', 'info'); return; }
+                if (!area) { _apexNotify('Sistema', 'Visualize o relatório antes de baixar o PDF.', 'info'); return; }
 
                 const now = new Date();
                 const ts = now.toLocaleString('pt-BR', {
@@ -571,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tsEl.style.cssText = 'font-size:9pt;color:#555;margin-bottom:8px;text-align:right;font-family:Calibri,sans-serif;border-bottom:1px solid #ccc;padding-bottom:6px;';
                     area.insertBefore(tsEl, area.firstChild);
                 }
-                tsEl.textContent = `Relat�rio gerado em: ${ts}  ApexTech Metais`;
+                tsEl.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
 
                 window.print();
             });
@@ -613,18 +613,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ������ INITIAL LOAD ������������������������������������������������������������������������������������������������
+        // ─── INITIAL LOAD ────────────────────────────────────────────────
         await loadWeeks();
     }
 
     // =========================================================================
-    // LME DASHBOARD  20 ANALYSES
+    // LME DASHBOARD — 20 ANALYSES
     // =========================================================================
 
     const METALS = ['cobre', 'aluminio', 'zinco', 'chumbo', 'estanho', 'niquel'];
     const METAL_LABELS = {
-        cobre: 'Cobre', aluminio: 'Alum�nio', zinco: 'Zinco',
-        chumbo: 'Chumbo', estanho: 'Estanho', niquel: 'N�quel'
+        cobre: 'Cobre', aluminio: 'Alumínio', zinco: 'Zinco',
+        chumbo: 'Chumbo', estanho: 'Estanho', niquel: 'Níquel'
     };
     const METAL_COLORS = {
         cobre: '#e07b39', aluminio: '#7eb3d5', zinco: '#a8c5a0',
@@ -638,15 +638,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentStats = null;
 
     function parsePrice(str) {
-        if (!str || str === '' || str === '-' || str.trim() === '') return null;
-        // Brazilian format: "9.234,56" �  9234.56
+        if (!str || str === '—' || str === '-' || str.trim() === '') return null;
+        // Brazilian format: "9.234,56" â†’ 9234.56
         const cleaned = str.replace(/\./g, '').replace(',', '.');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
     }
 
     function fmtPrice(val, dec = 2) {
-        if (val === null || val === undefined || isNaN(val)) return '';
+        if (val === null || val === undefined || isNaN(val)) return '—';
         return val.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
     }
 
@@ -682,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return output;
     }
 
-    // ������ Init LME Dashboard ��������������������������������������������������������������������������������������������������������
+    // ─── Init LME Dashboard ────────────────────────────────────────────────────
     async function initLMEDashboard() {
         const mesSel   = document.getElementById('mes-selector');
         const btnRefresh = document.getElementById('btn-refresh-lme');
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch(e) {
-            mesSel.innerHTML = `<option value="${currentMes}">M�s atual</option>`;
+            mesSel.innerHTML = `<option value="${currentMes}">Mês atual</option>`;
         }
 
         // Setup filter bar and fullscreen events
@@ -755,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Set title
                 const titleEl = block.querySelector('.analysis-title');
-                fsTitle.innerHTML = titleEl ? titleEl.innerHTML : `An�lise ${aid}`;
+                fsTitle.innerHTML = titleEl ? titleEl.innerHTML : `Análise ${aid}`;
                 
                 // Clone the chart container / content
                 const contentToClone = block.querySelector('.chart-container, .charts-grid-2, .kpi-grid, .ranking-container, .momentum-grid, .alertas-grid, .canal-container');
@@ -765,7 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // but wait, chart.js canvas cannot be easily moved without redrawing. 
                     // Since it's easier, we just temporarily move the elements.
                     
-                    // Salva a refer�ncia original
+                    // Salva a referência original
                     const originalParent = contentToClone.parentNode;
                     const originalNextSibling = contentToClone.nextSibling;
                     
@@ -841,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ������ Compute Stats ������������������������������������������������������������������������������������������������������������������
+    // ─── Compute Stats ─────────────────────────────────────────────────────────
     function computeStats(data) {
         const stats = {};
         const latest = data[data.length - 1];
@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const avgPrev5  = prev5Vals.length ? prev5Vals.reduce((a, b) => a + b, 0) / prev5Vals.length : avg;
             const momentum  = avgPrev5 ? ((avg5 - avgPrev5) / avgPrev5) * 100 : 0;
 
-            // Opportunity Score (0�100)
+            // Opportunity Score (0â€“100)
             const chanScore = (channelPos / 100) * 40;
             const momScore  = Math.max(0, Math.min(1, (momentum + 5) / 10)) * 30;
             const dayScore  = Math.max(0, Math.min(1, (dayChange + 2) / 4)) * 30;
@@ -892,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Signal
             let signal, signalClass;
             if (channelPos >= 85)      { signal = 'VENDER';   signalClass = 'signal-sell';  }
-            else if (channelPos >= 60) { signal = 'ATEN��O';  signalClass = 'signal-watch'; }
+            else if (channelPos >= 60) { signal = 'ATENÇÃO';  signalClass = 'signal-watch'; }
             else if (channelPos >= 30) { signal = 'RETER';    signalClass = 'signal-hold';  }
             else                       { signal = 'ACUMULAR'; signalClass = 'signal-buy';   }
 
@@ -906,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return stats;
     }
 
-    // ������ Render All ������������������������������������������������������������������������������������������������������������������������
+    // ─── Render All ────────────────────────────────────────────────────────────
     function renderAllAnalyses(data, stats) {
         renderKPICards(stats);                         // Nova 01 (Antiga 01)
         renderTrendChart(data, activeMetalFilter);     // Nova 02 (Antiga 05)
@@ -936,13 +936,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 01: KPI Cards + Sinalizadores ����
+    // ── ANÁLISE 01: KPI Cards + Sinalizadores ──
     function renderKPICards(stats) {
         const container = document.getElementById('kpi-cards');
         if (!container) return;
 
         const icons = { cobre: 'fa-bolt', aluminio: 'fa-layer-group', zinco: 'fa-atom', chumbo: 'fa-weight-hanging', estanho: 'fa-microchip', niquel: 'fa-gem' };
-        const signalIcons = { 'VENDER': 'fa-arrow-up-right-dots', 'ATEN��O': 'fa-eye', 'RETER': 'fa-pause', 'ACUMULAR': 'fa-cart-shopping' };
+        const signalIcons = { 'VENDER': 'fa-arrow-up-right-dots', 'ATENÇÃO': 'fa-eye', 'RETER': 'fa-pause', 'ACUMULAR': 'fa-cart-shopping' };
 
         container.innerHTML = METALS.map(m => {
             const s = stats[m];
@@ -965,15 +965,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa-solid ${upIcon}"></i> ${Math.abs(s.dayChange).toFixed(2)}% hoje
                 </div>
                 <div class="kpi-footer">
-                    <span>�  US$ ${fmtPrice(s.min)}</span>
+                    <span>â†“ US$ ${fmtPrice(s.min)}</span>
                     <span style="color:#555;">|</span>
-                    <span>�  US$ ${fmtPrice(s.max)}</span>
+                    <span>â†‘ US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ���� ANÁLISE 02: Noble Basket Index ����
+    // ── ANÁLISE 02: Noble Basket Index ──
     function renderNobleBasket(data, stats) {
         const nbiVals = data.map(row => {
             let v = 0, ok = true;
@@ -1032,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ���� ANÁLISE 03: Canal de Pre�os ����
+    // ── ANÁLISE 03: Canal de Preços ──
     function renderChannelBars(stats) {
         const el = document.getElementById('canal-bars');
         if (!el) return;
@@ -1053,15 +1053,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="canal-fill" style="width:${pct}%;background:${color};"></div>
                 </div>
                 <div class="canal-labels">
-                    <span>M�n: US$ ${fmtPrice(s.min)}</span>
+                    <span>Mín: US$ ${fmtPrice(s.min)}</span>
                     <span><strong>Atual: US$ ${fmtPrice(s.current)}</strong></span>
-                    <span>M�x: US$ ${fmtPrice(s.max)}</span>
+                    <span>Máx: US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ���� ANÁLISE 05: Tend�ncia de Pre�os ����
+    // ── ANÁLISE 05: Tendência de Preços ──
     function renderTrendChart(data, metal) {
         destroyChart('trendChart');
         const ctx = document.getElementById('trendChart');
@@ -1090,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 06: Varia��o Di�ria ����
+    // ── ANÁLISE 06: Variação Diária ──
     function renderDailyVariation(stats) {
         destroyChart('varDiariaChart');
         const ctx = document.getElementById('varDiariaChart');
@@ -1102,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
                     datasets: [{
-                        label: 'Varia��o Di�ria (%)',
+                        label: 'Variação Diária (%)',
                         data: changes,
                         backgroundColor: colors,
                         borderRadius: 6
@@ -1134,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ���� ANÁLISE 07: Volatilidade ����
+    // ── ANÁLISE 07: Volatilidade ──
     function renderVolatility(stats) {
         destroyChart('volatChart');
         const ctx = document.getElementById('volatChart');
@@ -1167,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 08: Ranking de Performance ����
+    // ── ANÁLISE 08: Ranking de Performance ──
     function renderRanking(stats) {
         const el = document.getElementById('ranking-container');
         if (!el) return;
@@ -1177,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(m => ({ m, chg: stats[m].monthChange, s: stats[m] }))
             .sort((a, b) => b.chg - a.chg);
 
-        const medals = ['�x�!', '�x��', '�x�0'];
+        const medals = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰'];
         el.innerHTML = ranked.map((item, i) => {
             const isPos = item.chg >= 0;
             const barW  = Math.min(100, Math.abs(item.chg) * 10);
@@ -1194,17 +1194,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:7px;overflow:hidden;">
                         <div style="height:100%;width:${barW}%;background:${isPos ? '#2AD07A' : '#ff4d4d'};border-radius:4px;transition:width 1s;"></div>
                     </div>
-                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do m�s �  Hoje</small>
+                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês â†’ Hoje</small>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="color:#aaa;font-size:0.8rem;">US$ ${fmtPrice(item.s.current)}</div>
-                    <div style="color:#555;font-size:0.72rem;">M�dia: US$ ${fmtPrice(item.s.avg)}</div>
+                    <div style="color:#555;font-size:0.72rem;">Média: US$ ${fmtPrice(item.s.avg)}</div>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ���� ANÁLISE 09: Score de Oportunidade ����
+    // ── ANÁLISE 09: Score de Oportunidade ──
     function renderOpportunityScore(stats) {
         destroyChart('scoreChart');
         const ctx = document.getElementById('scoreChart');
@@ -1215,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'bar',
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
-                    datasets: [{ label: 'Score (0�100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
+                    datasets: [{ label: 'Score (0â€“100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
                 },
                 options: deepMerge(baseChartOpts, { scales: { y: { min: 0, max: 100 } } })
             });
@@ -1228,7 +1228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const s = stats[m];
                 const sc = s.score;
                 const color = sc >= 75 ? '#ff4d4d' : sc >= 55 ? '#ff9900' : sc >= 35 ? '#ffcc00' : '#2AD07A';
-                const label = sc >= 75 ? '�x� VENDER AGORA' : sc >= 55 ? '�xx� ATEN��O' : sc >= 35 ? '�xx� RETER' : '�xx� ACUMULAR';
+                const label = sc >= 75 ? 'ðŸ”´ VENDER AGORA' : sc >= 55 ? 'ðŸŸ  ATENÇÃO' : sc >= 35 ? 'ðŸŸ¡ RETER' : 'ðŸŸ¢ ACUMULAR';
                 return `
                 <div class="score-item">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1244,7 +1244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ���� ANÁLISE 05: Semana Atual vs Anterior ����
+    // ── ANÁLISE 05: Semana Atual vs Anterior ──
     function renderWeekComparison(stats) {
         destroyChart('semanaChart');
         const ctx = document.getElementById('semanaChart');
@@ -1379,7 +1379,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         });
 
-        // ���� Render directional badges below the chart ����
+        // ── Render directional badges below the chart ──
         const badges = document.getElementById('semana-badges');
         if (!badges) return;
         badges.innerHTML = METALS.map((m, i) => {
@@ -1387,7 +1387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const diff   = last5[i] - prev5[i];
             const pct    = prev5[i] ? ((diff / prev5[i]) * 100) : 0;
             const isUp   = diff >= 0;
-            const arrow  = isUp ? '��' : '��';
+            const arrow  = isUp ? 'â–²' : 'â–¼';
             const color  = isUp ? '#2AD07A' : '#ff4d4d';
             const bgClr  = isUp ? 'rgba(42,208,122,0.12)' : 'rgba(255,77,77,0.12)';
             const border = isUp ? 'rgba(42,208,122,0.4)' : 'rgba(255,77,77,0.4)';
@@ -1411,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ���� ANÁLISE 11: Melhor Dia da Semana ����
+    // ── ANÁLISE 11: Melhor Dia da Semana ──
     function renderBestDayOfWeek(data) {
         destroyChart('diaSemanaChart');
         const ctx = document.getElementById('diaSemanaChart');
@@ -1422,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const [mesN, anoN] = mesVal.split('-').map(Number);
 
         const dow = { 'Seg': { sum: 0, cnt: 0 }, 'Ter': { sum: 0, cnt: 0 }, 'Qua': { sum: 0, cnt: 0 }, 'Qui': { sum: 0, cnt: 0 }, 'Sex': { sum: 0, cnt: 0 } };
-        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S�b'];
+        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
         data.forEach(row => {
             const d = parseInt(row.dia);
@@ -1441,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'bar',
             data: {
                 labels: workDays,
-                datasets: [{ label: 'M�dia do Cobre (US$/t)', data: avgs, backgroundColor: colors, borderRadius: 8 }]
+                datasets: [{ label: 'Média do Cobre (US$/t)', data: avgs, backgroundColor: colors, borderRadius: 8 }]
             },
             options: deepMerge(baseChartOpts, {
                 plugins: { tooltip: { callbacks: { label: ctx => `US$ ${fmtPrice(ctx.raw)}/t` } } }
@@ -1449,7 +1449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 12: Momentum ����
+    // ── ANÁLISE 12: Momentum ──
     function renderMomentum(stats) {
         const el = document.getElementById('momentum-grid');
         if (!el) return;
@@ -1461,7 +1461,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const up    = mom >= 0;
             const color = up ? '#2AD07A' : '#ff4d4d';
             const icon  = up ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-            const label = Math.abs(mom) > 2 ? (up ? 'Alta Expressiva' : 'Queda Expressiva') : Math.abs(mom) > 0.5 ? (up ? 'Leve Alta' : 'Leve Queda') : 'Est�vel';
+            const label = Math.abs(mom) > 2 ? (up ? 'Alta Expressiva' : 'Queda Expressiva') : Math.abs(mom) > 0.5 ? (up ? 'Leve Alta' : 'Leve Queda') : 'Estável';
             return `
             <div class="momentum-card">
                 <div style="color:${METAL_COLORS[m]};font-weight:700;font-size:0.9rem;margin-bottom:10px;">${METAL_LABELS[m]}</div>
@@ -1476,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ���� ANÁLISE 13: D�lar ����
+    // ── ANÁLISE 13: Dólar ──
     function renderDolarChart(data) {
         destroyChart('dolarChart');
         const ctx = document.getElementById('dolarChart');
@@ -1484,7 +1484,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const dolarRows = data.filter(r => r.dolar !== null);
         if (!dolarRows.length) {
-            ctx.closest('.chart-container').innerHTML = '<p style="color:#666;text-align:center;padding:40px 20px;">Dados do c�mbio n�o dispon�veis neste per�odo.</p>';
+            ctx.closest('.chart-container').innerHTML = '<p style="color:#666;text-align:center;padding:40px 20px;">Dados do câmbio não disponíveis neste período.</p>';
             return;
         }
 
@@ -1493,7 +1493,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: dolarRows.map(r => r.dia),
                 datasets: [{
-                    label: 'D�lar (BRL/USD)',
+                    label: 'Dólar (BRL/USD)',
                     data: dolarRows.map(r => r.dolar),
                     borderColor: '#f5c518',
                     backgroundColor: 'rgba(245,197,24,0.08)',
@@ -1506,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 14: SMA-5 ����
+    // ── ANÁLISE 14: SMA-5 ──
     function renderSMAChart(data, stats) {
         destroyChart('smaChart');
         const ctx = document.getElementById('smaChart');
@@ -1539,7 +1539,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 15: Pre�o Atual vs. M�dia Mensal ����
+    // ── ANÁLISE 15: Preço Atual vs. Média Mensal ──
     function renderVsMedia(stats) {
         destroyChart('vsMediaChart');
         const ctx = document.getElementById('vsMediaChart');
@@ -1555,15 +1555,15 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: METALS.map(m => METAL_LABELS[m]),
                 datasets: [
-                    { label: 'Pre�o Atual', data: currents, backgroundColor: curColors, borderRadius: 5 },
-                    { label: 'M�dia Mensal', data: avgs, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, borderColor: 'rgba(255,255,255,0.25)', borderWidth: 1 }
+                    { label: 'Preço Atual', data: currents, backgroundColor: curColors, borderRadius: 5 },
+                    { label: 'Média Mensal', data: avgs, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, borderColor: 'rgba(255,255,255,0.25)', borderWidth: 1 }
                 ]
             },
             options: { ...baseChartOpts }
         });
     }
 
-    // ���� ANÁLISE 16: �ndice de Risco (Polar Area) ����
+    // ── ANÁLISE 16: Índice de Risco (Polar Area) ──
     function renderRiskChart(stats) {
         destroyChart('riscoChart');
         const ctx = document.getElementById('riscoChart');
@@ -1597,7 +1597,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 17: Radar Comparativo ����
+    // ── ANÁLISE 17: Radar Comparativo ──
     function renderRadar(stats) {
         destroyChart('radarChart');
         const ctx = document.getElementById('radarChart');
@@ -1643,7 +1643,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 18: Z-Score ����
+    // ── ANÁLISE 18: Z-Score ──
     function renderZscore(stats) {
         const el = document.getElementById('zscore-container');
         if (!el) return;
@@ -1655,7 +1655,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const z = s.zscore;
             const color = z > 1 ? '#ff4d4d' : z > 0 ? '#ffcc00' : z > -1 ? '#ff9900' : '#2AD07A';
             const pct   = Math.max(0, Math.min(100, 50 + z * 25)); // Center=50%, 1 std = 25%
-            const label = z > 1.5 ? 'Muito acima da m�dia  VENDER' : z > 0.5 ? 'Acima da m�dia  Momento favor�vel' : z < -1.5 ? 'Muito abaixo da m�dia  ACUMULAR' : z < -0.5 ? 'Abaixo da m�dia  Aguardar' : 'Na m�dia  Neutro';
+            const label = z > 1.5 ? 'Muito acima da média — VENDER' : z > 0.5 ? 'Acima da média — Momento favorável' : z < -1.5 ? 'Muito abaixo da média — ACUMULAR' : z < -0.5 ? 'Abaixo da média — Aguardar' : 'Na média — Neutro';
             return `
             <div class="zscore-item">
                 <div class="zscore-name" style="color:${METAL_COLORS[m]};">${METAL_LABELS[m]}</div>
@@ -1669,12 +1669,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <small style="color:#555;font-size:0.72rem;margin-top:5px;display:block;">${label}</small>
                 </div>
-                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}ϒ</div>
+                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}Ïƒ</div>
             </div>`;
         }).join('');
     }
 
-    // ���� ANÁLISE 19: Alertas de Pre�o ����
+    // ── ANÁLISE 19: Alertas de Preço ──
     function renderAlerts(stats) {
         const el = document.getElementById('alertas-grid');
         if (!el) return;
@@ -1690,13 +1690,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="alerta-card ${triggered ? 'alerta-triggered' : ''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <strong style="color:${METAL_COLORS[m]};font-size:0.95rem;">${METAL_LABELS[m]}</strong>
-                    ${triggered ? '<span class="badge-triggered">�x ALERTA!</span>' : ''}
+                    ${triggered ? '<span class="badge-triggered">ðŸ”” ALERTA!</span>' : ''}
                 </div>
                 <p style="font-size:0.82rem;color:#888;margin-bottom:10px;">Atual: <strong style="color:#ddd;">US$ ${fmtPrice(s.current)}</strong></p>
                 ${alertVal ? `<p style="font-size:0.78rem;color:#666;margin-bottom:10px;">Alvo: US$ ${fmtPrice(alertVal)} | Gap: ${((s.current - alertVal) / alertVal * 100).toFixed(1)}%</p>` : ''}
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input type="number" class="alert-input" data-metal="${m}"
-                        value="${alertVal || ''}" placeholder="Pre�o alvo (US$)" step="10"
+                        value="${alertVal || ''}" placeholder="Preço alvo (US$)" step="10"
                         style="flex:1;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:inherit;">
                     <button class="btn-set-alert" data-metal="${m}"
                         style="padding:8px 12px;background:${METAL_COLORS[m]}33;color:${METAL_COLORS[m]};border:1px solid ${METAL_COLORS[m]}55;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.82rem;white-space:nowrap;transition:all 0.2s;">
@@ -1718,7 +1718,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� ANÁLISE 20: Resumo Executivo ����
+    // ── ANÁLISE 20: Resumo Executivo ──
     function renderResumo(stats) {
         const el = document.getElementById('resumo-executivo');
         if (!el) return;
@@ -1727,9 +1727,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const groups = {
             'VENDER':   { items: [], color: '#ff4d4d',  icon: 'fa-arrow-up-right-dots', label: 'VENDER AGORA' },
-            'ATEN��O':  { items: [], color: '#ff9900',  icon: 'fa-eye',                 label: 'ATEN��O  Perto do Topo' },
-            'RETER':    { items: [], color: '#ffcc00',  icon: 'fa-pause',               label: 'RETER  Aguardar Alta' },
-            'ACUMULAR': { items: [], color: '#2AD07A',  icon: 'fa-cart-shopping',       label: 'ACUMULAR  Pre�o em Baixa' }
+            'ATENÇÃO':  { items: [], color: '#ff9900',  icon: 'fa-eye',                 label: 'ATENÇÃO — Perto do Topo' },
+            'RETER':    { items: [], color: '#ffcc00',  icon: 'fa-pause',               label: 'RETER — Aguardar Alta' },
+            'ACUMULAR': { items: [], color: '#2AD07A',  icon: 'fa-cart-shopping',       label: 'ACUMULAR — Preço em Baixa' }
         };
         sorted.forEach(x => { if (groups[x.s.signal]) groups[x.s.signal].items.push(x); });
 
@@ -1759,7 +1759,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // SETTINGS  Configurar Homepage
+    // SETTINGS — Configurar Homepage
     // =========================================================================
     async function initSettings() {
         try {
@@ -1771,10 +1771,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggle.checked = settings[key] !== 'false';
             });
         } catch(e) {
-            console.warn('N�o foi poss�vel carregar settings:', e);
+            console.warn('Não foi possível carregar settings:', e);
         }
 
-        // Configura��o Local - Painel Admin
+        // Configuração Local - Painel Admin
         const toggleLME = document.getElementById('toggle-relatorio-lme');
         const navLME = document.querySelector('a.nav-item[data-target="lme-excel-report"]');
         
@@ -1815,7 +1815,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     if (res.ok) {
-                        msgEl.textContent = ' Configura��es salvas!';
+                        msgEl.textContent = '✅ Configurações salvas!';
                         msgEl.style.color = '#2AD07A';
                         msgEl.style.display = 'block';
                         setTimeout(() => msgEl.style.display = 'none', 5000);
@@ -1823,7 +1823,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error('API error');
                     }
                 } catch(e) {
-                    msgEl.textContent = '�R Erro ao salvar. Tente novamente.';
+                    msgEl.textContent = 'âŒ Erro ao salvar. Tente novamente.';
                     msgEl.style.color = '#ff4d4d';
                     msgEl.style.display = 'block';
                 }
@@ -1872,7 +1872,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    _apexNotify('Aten��o', '�R Erro ao adicionar foto. Verifique os dados.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -1973,8 +1973,8 @@ document.addEventListener('DOMContentLoaded', () => {
             div.className   = 'location-item';
             div.innerHTML   = `
                 <button type="button" class="btn-remove-loc"><i class="fa-solid fa-xmark"></i></button>
-                <div class="form-group"><label>T�tulo do Local</label><input type="text" class="loc-title" required placeholder="Ex: Ind�stria"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>Descri��o</label><textarea class="loc-desc" rows="2" required placeholder="Descri��o detalhada..."></textarea></div>`;
+                <div class="form-group"><label>Título do Local</label><input type="text" class="loc-title" required placeholder="Ex: Indústria"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>Descrição</label><textarea class="loc-desc" rows="2" required placeholder="Descrição detalhada..."></textarea></div>`;
             div.querySelector('.btn-remove-loc').addEventListener('click', () => div.remove());
             if (locationsWrapper) locationsWrapper.appendChild(div);
         }
@@ -2006,9 +2006,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (locationsWrapper) locationsWrapper.innerHTML = '';
                     createLocationField();
                     renderMateriais();
-                    _apexNotify('Sistema', ' Material cadastrado com sucesso!', 'info');
+                    _apexNotify('Sistema', '✅ Material cadastrado com sucesso!', 'info');
                 } else {
-                    _apexNotify('Aten��o', '�R Erro ao salvar material.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2017,7 +2017,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // SOLU��ES
+    // SOLUÇÕES
     // =========================================================================
     function initSolucoes() {
         const formSolucao      = document.getElementById('form-solucao');
@@ -2037,7 +2037,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 solucoesAdminList.innerHTML = '';
 
                 if (!items.length) {
-                    solucoesAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma solu��o cadastrada.</p>';
+                    solucoesAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma solução cadastrada.</p>';
                     return;
                 }
 
@@ -2078,13 +2078,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 solucoesAdminList.querySelectorAll('.btn-delete-solucao').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover esta solu��o?')) return;
+                        if (!confirm('Remover esta solução?')) return;
                         await fetch(`/api/solucoes/${btn.dataset.id}`, { method: 'DELETE' });
                         renderSolucoesAdmin();
                     });
                 });
             } catch(err) {
-                solucoesAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar solu��es.</p>';
+                solucoesAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar soluções.</p>';
             }
         }
 
@@ -2109,9 +2109,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     solIdInput.value = '';
                     if (btnCancelSolucao) btnCancelSolucao.style.display = 'none';
                     renderSolucoesAdmin();
-                    _apexNotify('Sistema', ' Solu��o salva com sucesso!', 'info');
+                    _apexNotify('Sistema', '✅ Solução salva com sucesso!', 'info');
                 } else {
-                    _apexNotify('Aten��o', '�R Erro ao salvar a solu��o.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao salvar a solução.', 'error');
                 }
             });
         }
@@ -2128,7 +2128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // NOT�CIAS
+    // NOTÍCIAS
     // =========================================================================
     function initNoticias() {
         const formNoticia       = document.getElementById('form-noticia');
@@ -2143,14 +2143,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 noticiasAdminList.innerHTML = '';
 
                 if (!items.length) {
-                    noticiasAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma not�cia publicada ainda.</p>';
+                    noticiasAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma notícia publicada ainda.</p>';
                     return;
                 }
 
                 items.forEach(n => {
                     const div   = document.createElement('div');
                     div.className = 'noticia-admin-item';
-                    const dataF = n.data_pub ? new Date(n.data_pub + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+                    const dataF = n.data_pub ? new Date(n.data_pub + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
                     div.innerHTML = `
                         <div class="noticia-admin-info">
                             ${n.categoria ? `<span class="noticia-admin-cat">${n.categoria}</span>` : ''}
@@ -2164,13 +2164,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 noticiasAdminList.querySelectorAll('.btn-delete-noticia').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover esta not�cia?')) return;
+                        if (!confirm('Remover esta notícia?')) return;
                         await fetch(`/api/noticias/${btn.dataset.id}`, { method: 'DELETE' });
                         renderNoticiasAdmin();
                     });
                 });
             } catch(err) {
-                noticiasAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar not�cias.</p>';
+                noticiasAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar notícias.</p>';
             }
         }
 
@@ -2197,9 +2197,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dEl = document.getElementById('not-data');
                     if (dEl) dEl.value = new Date().toISOString().split('T')[0];
                     renderNoticiasAdmin();
-                    _apexNotify('Sistema', ' Not�cia publicada!', 'info');
+                    _apexNotify('Sistema', '✅ Notícia publicada!', 'info');
                 } else {
-                    _apexNotify('Aten��o', '�R Erro ao publicar not�cia.', 'error');
+                    _apexNotify('Atenção', 'âŒ Erro ao publicar notícia.', 'error');
                 }
             });
         }
@@ -2208,7 +2208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // CONFIGURA��O DE E-MAIL LME E TABELAS DE PRE�OS
+    // CONFIGURAÇÃO DE E-MAIL LME E TABELAS DE PREÇOS
     // =========================================================================
     async function initLMEEmailConfig() {
         const schedAtivo    = document.getElementById('sched-ativo');
@@ -2226,7 +2226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnCancelDest = document.getElementById('btn-cancel-destinatario');
         const listDest      = document.getElementById('lme-destinatarios-list');
 
-        // ������ 1. M�DULO LME ����������������������������������������������������������������������������������������������������
+        // ─── 1. MÓDULO LME ──────────────────────────────────────────────────
         async function loadConfigLME() {
             try {
                 const res = await fetch('/api/settings');
@@ -2241,7 +2241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 loadDestinatariosLME();
             } catch (err) {
-                console.error('Erro ao carregar configura��es LME:', err);
+                console.error('Erro ao carregar configurações LME:', err);
             }
         }
 
@@ -2253,7 +2253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 listDest.innerHTML = '';
 
                 if (!items.length) {
-                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinat�rio LME cadastrado.</td></tr>';
+                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário LME cadastrado.</td></tr>';
                     return;
                 }
 
@@ -2273,7 +2273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 listDest.querySelectorAll('.btn-delete-dest').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover este destinat�rio LME?')) return;
+                        if (!confirm('Remover este destinatário LME?')) return;
                         await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
                         loadDestinatariosLME();
                     });
@@ -2284,7 +2284,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         destId.value = btn.dataset.id;
                         destNome.value = btn.dataset.nome;
                         destEmail.value = btn.dataset.email;
-                        if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinat�rio LME';
+                        if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário LME';
                         if (btnCancelDest) btnCancelDest.style.display = 'inline-block';
                         destNome.focus();
                     });
@@ -2304,7 +2304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     lme_envio_dias: selectedDias
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', ' Agendamento LME salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento LME salvo com sucesso!', 'info');
             });
         }
 
@@ -2320,18 +2320,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const captureArea = document.getElementById('capture-area');
                 if (!captureArea) {
                     testEmailMsg.style.color = '#ff4d4d';
-                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro: Relat�rio n�o carregado.';
+                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro: Relatório não carregado.';
                     btnEnviarTest.disabled = false;
                     return;
                 }
 
-                // Mostrar rodap�
+                // Mostrar rodapé
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                     + ' às ' + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${tsStr}`;
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
@@ -2390,7 +2390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relat�rio PDF enviado!');
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório PDF enviado!');
                     } else {
                         testEmailMsg.style.color = '#ff4d4d';
                         testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro ao enviar.');
@@ -2420,7 +2420,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res.ok) {
                     destId.value = ''; destNome.value = ''; destEmail.value = '';
                     if (btnCancelDest) btnCancelDest.style.display = 'none';
-                    if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio LME';
+                    if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
                     loadDestinatariosLME();
                 }
             });
@@ -2430,11 +2430,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCancelDest.addEventListener('click', () => {
                 destId.value = ''; destNome.value = ''; destEmail.value = '';
                 btnCancelDest.style.display = 'none';
-                if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio LME';
+                if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
             });
         }
 
-        // ������ 2. M�DULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ��������������������
+        // ─── 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ──────────
         async function loadConfigTabelas() {
             try {
                 const res = await fetch('/api/settings');
@@ -2461,7 +2461,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
                 loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
             } catch (err) {
-                console.error('Erro ao carregar configura��es de tabelas:', err);
+                console.error('Erro ao carregar configurações de tabelas:', err);
             }
         }
 
@@ -2474,7 +2474,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 listEl.innerHTML = '';
 
                 if (!items.length) {
-                    listEl.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:12px; color:#aaa;">Nenhum destinat�rio cadastrado.</td></tr>';
+                    listEl.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:12px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
                     return;
                 }
 
@@ -2494,7 +2494,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 listEl.querySelectorAll('.btn-del-tb-dest').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover destinat�rio?')) return;
+                        if (!confirm('Remover destinatário?')) return;
                         await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
                         loadDestinatariosTabela(tipo, listId, inputId, inputNome, inputEmail, titleId);
                     });
@@ -2505,7 +2505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById(inputId).value = btn.dataset.id;
                         document.getElementById(inputNome).value = btn.dataset.nome;
                         document.getElementById(inputEmail).value = btn.dataset.email;
-                        document.getElementById(titleId).innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinat�rio';
+                        document.getElementById(titleId).innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
                         document.getElementById(inputNome).focus();
                     });
                 });
@@ -2523,7 +2523,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const horario = document.getElementById('sched-geral-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-geral-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_geral_envio_ativo: ativo, tabela_geral_envio_horario: horario, tabela_geral_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', ' Agendamento da Tabela Geral salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Geral salvo com sucesso!', 'info');
             });
         }
 
@@ -2541,7 +2541,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('dest-geral-id').value = '';
                     document.getElementById('dest-geral-nome').value = '';
                     document.getElementById('dest-geral-email').value = '';
-                    document.getElementById('dest-geral-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio';
+                    document.getElementById('dest-geral-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
                     loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
                 }
             });
@@ -2556,7 +2556,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const horario = document.getElementById('sched-forn-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-forn-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_fornecedor_envio_ativo: ativo, tabela_fornecedor_envio_horario: horario, tabela_fornecedor_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', ' Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
             });
         }
 
@@ -2574,24 +2574,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('dest-forn-id').value = '';
                     document.getElementById('dest-forn-nome').value = '';
                     document.getElementById('dest-forn-email').value = '';
-                    document.getElementById('dest-forn-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio';
+                    document.getElementById('dest-forn-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
                     loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
                 }
             });
         }
 
-        // Carrega as configura��es dos 3 m�dulos
+        // Carrega as configurações dos 3 módulos
         await loadConfigLME();
         await loadConfigTabelas();
 
-        //     CRON NO FRONTEND: Disparo autom�tico se o painel estiver aberto    
+        // ─── CRON NO FRONTEND: Disparo automático se o painel estiver aberto ───
         setInterval(() => {
             const chkAtivo = document.getElementById('sched-ativo');
             const inpHorario = document.getElementById('sched-horario');
             const btnTest = document.getElementById('btn-enviar-teste-lme');
 
             if (!chkAtivo || !chkAtivo.checked || !inpHorario || !inpHorario.value || !btnTest) return;
-            if (btnTest.disabled) return; // Evita clicar se j� estiver enviando
+            if (btnTest.disabled) return; // Evita clicar se já estiver enviando
             
             const horario = inpHorario.value;
             const diasAtivos = Array.from(document.querySelectorAll('.sched-dia')).filter(cb => cb.checked).map(cb => Number(cb.value));
@@ -2608,19 +2608,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.__lastLmeCronRun === horaAtual) return;
                 window.__lastLmeCronRun = horaAtual;
 
-                console.log(`[FRONTEND CRON] Hor�rio LME atingido (${horaAtual}). Backend encarregado do envio.`);
+                console.log(`[FRONTEND CRON] Horário LME atingido (${horaAtual}). Backend encarregado do envio.`);
                 if (typeof _apexNotify === 'function') {
-                    _apexNotify('Sistema', `Hor�rio programado atingido (${horaAtual}). Servidor gerando e enviando PDF...`, 'info');
+                    _apexNotify('Sistema', `Horário programado atingido (${horaAtual}). Servidor gerando e enviando PDF...`, 'info');
                 }
                 
-                // For�a o clique no bot�o que faz todo o processo do html2pdf (Desativado para evitar envio duplo)
+                // Força o clique no botão que faz todo o processo do html2pdf (Desativado para evitar envio duplo)
                 // btnTest.click();
             }
         }, 15000); // Checa a cada 15 segundos
     }
 
     // =========================================================================
-    // RELAT�RIO DIÁRIO LME (WHATSAPP/EMAIL)
+    // RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiario() {
         const btnGerar = document.getElementById('btn-gerar-imagem-wpp');
@@ -2657,7 +2657,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                         const ano = d.getFullYear();
                         const mes = String(d.getMonth() + 1).padStart(2, '0');
-                        const nomes = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
                         meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
                     }
                     return meses;
@@ -2687,7 +2687,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await loadRelatorioSemanas(mesToFetch, force);
                 }
             } catch (e) {
-                console.error('Erro ao carregar meses do relat�rio', e);
+                console.error('Erro ao carregar meses do relatório', e);
             }
         }
 
@@ -2703,7 +2703,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 weeksData = data.semanas || [];
                 if (weeksData.length === 0) {
-                    if (selectSemana) selectSemana.innerHTML = '<option value="">Nenhuma semana dispon�vel</option>';
+                    if (selectSemana) selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
                     return;
                 }
 
@@ -2716,8 +2716,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSelectedWeek = weeksData[0];
                 renderRelatorioDiario(currentSelectedWeek);
             } catch (e) {
-                console.error('Erro ao carregar semanas do relat�rio', e);
-                if (selectSemana) selectSemana.innerHTML = '<option value="">Erro de conex�o</option>';
+                console.error('Erro ao carregar semanas do relatório', e);
+                if (selectSemana) selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
             }
         }
 
@@ -2741,14 +2741,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnGerar.addEventListener('click', async () => {
             const captureArea = document.getElementById('capture-area');
-            // Mostrar rodap� com timestamp
+            // Mostrar rodapé com timestamp
             const now = new Date();
             const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                 + ' às '
                 + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const rodape = document.getElementById('rel-rodape');
             if (rodape) {
-                rodape.textContent = `Relat�rio gerado em: ${ts}  ApexTech Metais`;
+                rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
                 rodape.style.display = 'block';
             }
 
@@ -2779,7 +2779,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Restore styling
                 captureArea.style.width = originalWidth;
                 captureArea.style.maxWidth = originalMaxWidth;
-                // Ocultar rodap� ap�s download
+                // Ocultar rodapé após download
                 if (rodape) rodape.style.display = 'none';
             }
         });
@@ -2790,27 +2790,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const comp = week.computed || {};
             const d = week.days || [];
             const lastDate = d[d.length - 1]?.data || '';
-            let txt = `*COTA��O LME - APEXTECH METAIS*\n`;
+            let txt = `*COTAÇÃO LME - APEXTECH METAIS*\n`;
             txt += `Semana de ${d[0]?.data} a ${lastDate}\n\n`;
-            txt += `*Varia��o Di�ria (Grupo 6):*\n`;
+            txt += `*Variação Diária (Grupo 6):*\n`;
             
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
-                const osc = comp['OSCILA��O R$']?.[m] ?? 0;
-                const setinha = osc >= 0 ? '� ' : '�!';
+                const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+                const setinha = osc >= 0 ? 'â¬†' : 'â¬‡';
                 const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
             });
 
-            const dolarOsc = comp['OSCILA��O R$']?.['dolar'] ?? 0;
-            const dSetinha = dolarOsc >= 0 ? '� ' : '�!';
+            const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
+            const dSetinha = dolarOsc >= 0 ? 'â¬†' : 'â¬‡';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-            txt += `- D�LAR: ${dSetinha} ${dMoney}\n`;
+            txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
             navigator.clipboard.writeText(txt).then(() => {
-                _apexNotify('Sistema', 'Resumo copiado para a �rea de transfer�ncia!', 'info');
+                _apexNotify('Sistema', 'Resumo copiado para a área de transferência!', 'info');
             }).catch(err => {
-                _apexNotify('Aten��o', 'Erro ao copiar texto.', 'error');
+                _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
                 console.error(err);
             });
         });
@@ -2822,18 +2822,18 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPdf.addEventListener('click', async () => {
                 const captureArea = document.getElementById('capture-area');
 
-                // Mostrar rodap� com timestamp
+                // Mostrar rodapé com timestamp
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                     + ' às '
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${tsStr}`;
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
-                // Corre��o do Bug do SVG Preto:
+                // Correção do Bug do SVG Preto:
                 const logoImg = captureArea.querySelector('.rel-logo img');
                 let originalSrc = '';
                 if (logoImg && logoImg.src.endsWith('.svg')) {
@@ -2843,7 +2843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         tempCanvas.width = logoImg.naturalWidth || 400;
                         tempCanvas.height = logoImg.naturalHeight || 133;
                         const tCtx = tempCanvas.getContext('2d');
-                        tCtx.fillStyle = '#ffffff'; // Fundo branco p/ seguran�a
+                        tCtx.fillStyle = '#ffffff'; // Fundo branco p/ segurança
                         tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
                         tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
                         logoImg.src = tempCanvas.toDataURL('image/png');
@@ -2866,7 +2866,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await new Promise(r => setTimeout(r, 100));
 
                 try {
-                    // Captura a altura TOTAL do conte�do
+                    // Captura a altura TOTAL do conteúdo
                     const canvas = await html2canvas(captureArea, {
                         scale: 2,
                         backgroundColor: '#ffffff',
@@ -2880,11 +2880,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
 
-                    // Calcular dimens�es: usar largura A4, mas altura proporcional ao conte�do total para n�o quebrar a p�gina
+                    // Calcular dimensões: usar largura A4, mas altura proporcional ao conteúdo total para não quebrar a página
                     const pdfWidthMm = 210; // A4 largura em mm
                     const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
 
-                    // Criar PDF vertical de p�gina �nica sem cortes
+                    // Criar PDF vertical de página única sem cortes
                     const pdf = new jsPDF({
                         orientation: 'portrait',
                         unit: 'mm',
@@ -2892,7 +2892,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
 
-                    // Nome de arquivo din�mico (ex: relatorio-lme-DD-MM-AAAA.pdf)
+                    // Nome de arquivo dinâmico (ex: relatorio-lme-DD-MM-AAAA.pdf)
                     let dateStr = '';
                     if (currentSelectedWeek) {
                         const week = currentSelectedWeek;
@@ -2924,14 +2924,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const filename = `Relatorio_LME.pdf`;
                     pdf.save(filename);
                 } finally {
-                    // Restaura o SVG original ap�s gerar o PDF
+                    // Restaura o SVG original após gerar o PDF
                     if (originalSrc) {
                         logoImg.src = originalSrc;
                     }
                     // Restore styling
                     captureArea.style.width = originalWidth;
                     captureArea.style.maxWidth = originalMaxWidth;
-                    // Ocultar rodap� ap�s exporta��o
+                    // Ocultar rodapé após exportação
                     if (rodape) rodape.style.display = 'none';
                 }
             });
@@ -2948,7 +2948,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             semana: block,
-                            mesLabel: 'Relat�rio Di�rio LME'
+                            mesLabel: 'Relatório Diário LME'
                         })
                     });
 
@@ -2963,11 +2963,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        _apexNotify('Aten��o', 'Erro ao gerar Excel.', 'error');
+                        _apexNotify('Atenção', 'Erro ao gerar Excel.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    _apexNotify('Aten��o', 'Erro na conex�o com o servidor.', 'error');
+                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -2991,9 +2991,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        // Tentar obter a data da semana a partir do primeiro dia �til dela
+        // Tentar obter a data da semana a partir do primeiro dia útil dela
         let referenceDate = new Date();
-        if (d.length > 0 && d[0].data && d[0].data !== '') {
+        if (d.length > 0 && d[0].data && d[0].data !== '—') {
             const parts = d[0].data.split('/');
             if (parts.length >= 2) {
                 const selectMes = document.getElementById('rel-filter-mes');
@@ -3036,7 +3036,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
         };
 
-        // Fun��o reutiliz�vel para formatar indicadores de varia��o
+        // Função reutilizável para formatar indicadores de variação
         function formatVariacaoCell(element, value, type, decimals = 3) {
             if (!element) return;
             if (value === null || value === undefined || isNaN(value)) {
@@ -3058,22 +3058,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">��</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">â–²</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">��</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">â–¼</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
             element.style.setProperty('color', '#000000', 'important'); // Texto sempre em preto
         }
 
-        // Fix 1: Indicar feriado na label da m�dia semanal se semana teve < 5 dias �teis
+        // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias úteis
         const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
             if (week.numDias !== undefined && week.numDias < 5) {
-                mediaLabelEl.innerHTML = `M�DIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias �teis)</span>`;
+                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
             } else {
-                mediaLabelEl.textContent = 'M�DIA SEMANAL';
+                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
             }
         }
 
@@ -3119,9 +3119,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const elFech = document.getElementById('rel-fech-' + m);
             formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
             const elOscPct = document.getElementById('rel-osc-pct-' + m);
-            formatVariacaoCell(elOscPct, comp['OSCILA��O %']?.[m], 'percent');
+            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILA��O R$']?.[m] ?? 0;
+            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-osc-rs-' + m);
             formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
@@ -3143,7 +3143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            // CORRE��O CR�TICA: LME ATUAL � o valor de '100% LME' (R$/kg) da semana em curso, n�o a m�dia semanal bruta em US$/t!
+            // CORREÇÃO CRÍTICA: LME ATUAL é o valor de '100% LME' (R$/kg) da semana em curso, não a média semanal bruta em US$/t!
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
             if (elCompAtu) {
                 if (isDolar) {
@@ -3156,7 +3156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formatVariacaoCell(elCompOsc, oscRs, 'currency', isDolar ? 4 : 3);
         });
 
-        // Aplica overrides de cores nas linhas espec�ficas por label
+        // Aplica overrides de cores nas linhas específicas por label
         const summaryRows = document.querySelectorAll('.rel-summary-body tr');
         summaryRows.forEach(row => {
             const firstCell = row.cells[0];
@@ -3170,7 +3170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.classList.add('row-lme100');
             } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
                 row.classList.add('row-fechamento-anterior');
-            } else if (text.includes("OSCILA��O R$")) {
+            } else if (text.includes("OSCILAÇÃO R$")) {
                 row.classList.add('row-oscilacao-rs');
             } else if (text === "SEMANA ANTERIOR") {
                 row.classList.add('row-semana-anterior');
@@ -3184,11 +3184,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderRelatorioCharts(week) {
         const comp = week.computed || {};
 
-        // ���� helpers ��������������������������������������������������������������������������������������������������������������������
+        // ── helpers ──────────────────────────────────────────────────────────
         const fmtR = v =>
             'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-        // Plugin inline de r�tulos acima das barras
+        // Plugin inline de rótulos acima das barras
         const datalabelPlugin = {
             id: 'apexBarLabels',
             afterDatasetsDraw(chart) {
@@ -3220,11 +3220,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // ���� Configura��o comum dos dois gr�ficos ����������������������������������������������������������
+        // ── Configuração comum dos dois gráficos ─────────────────────────────
         function buildBarChart(canvasId, labels, dataAnt, dataAtu) {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
-            // Destruir inst�ncia anterior se existir
+            // Destruir instância anterior se existir
             const key = '__apexChart_' + canvasId;
             if (window[key]) { window[key].destroy(); }
 
@@ -3310,11 +3310,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ���� Grupo 1: Cobre · Zinco · Alum�nio · Chumbo ����������������������������������������������
+        // ── Grupo 1: Cobre · Zinco · Alumínio · Chumbo ───────────────────────
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
-            { key: 'aluminio', label: 'ALUM�NIO' },
+            { key: 'aluminio', label: 'ALUMÍNIO' },
             { key: 'chumbo',   label: 'CHUMBO' }
         ];
         buildBarChart(
@@ -3324,10 +3324,10 @@ document.addEventListener('DOMContentLoaded', () => {
             group1.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ���� Grupo 2: Estanho · N�quel ����������������������������������������������������������������������������������
+        // ── Grupo 2: Estanho · Níquel ─────────────────────────────────────────
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
-            { key: 'niquel',  label: 'N�QUEL' }
+            { key: 'niquel',  label: 'NÍQUEL' }
         ];
         buildBarChart(
             'relChartOsc',
@@ -3336,7 +3336,7 @@ document.addEventListener('DOMContentLoaded', () => {
             group2.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ���� Cards de compara��o ����������������������������������������������������������������������������������������������
+        // ── Cards de comparação ───────────────────────────────────────────────
         function buildCards(containerId, group) {
             const el = document.getElementById(containerId);
             if (!el) return;
@@ -3346,7 +3346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? '� ' : isDown ? '� ' : '�';
+                const arrow    = isUp ? 'â†‘' : isDown ? 'â†“' : 'â€“';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -3384,7 +3384,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let colsHtml = `<td>${pLabel}</td>`;
 
             metals.forEach(m => {
-                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1ª semana do m�s  exibe '-'
+                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1ª semana do mês — exibe '-'
                 const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
                 const colClass = `rel-col-${m}`;
                 if (lme === null) {
@@ -3402,7 +3402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // HIST�RICO DO RELAT�RIO DIÁRIO LME (WHATSAPP/EMAIL)
+    // HISTÓRICO DO RELATÓRIO DIÁRIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiarioHistorico() {
         const btnVerHistorico = document.getElementById('btn-ver-historico');
@@ -3433,7 +3433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function loadHistoricoMeses() {
             try {
-                // Gera lista de meses dos �ltimos 12 meses como fallback
+                // Gera lista de meses dos últimos 12 meses como fallback
                 function gerarMesesFallback() {
                     const meses = [];
                     const now = new Date();
@@ -3441,7 +3441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                         const ano = d.getFullYear();
                         const mes = String(d.getMonth() + 1).padStart(2, '0');
-                        const nomes = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
                         meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
                     }
                     return meses;
@@ -3470,7 +3470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectMes.value = mesToFetch;
                 await loadHistoricoSemanas(mesToFetch);
             } catch (e) {
-                console.error('Erro ao carregar meses do hist�rico', e);
+                console.error('Erro ao carregar meses do histórico', e);
                 selectMes.innerHTML = '<option value="">Erro ao carregar meses</option>';
             }
         }
@@ -3488,7 +3488,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 weeksData = data.semanas || [];
                 if (weeksData.length === 0) {
-                    selectSemana.innerHTML = '<option value="">Nenhuma semana dispon�vel</option>';
+                    selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
                     return;
                 }
 
@@ -3500,8 +3500,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSelectedWeek = weeksData[0];
                 renderRelatorioDiarioHistorico(currentSelectedWeek);
             } catch (e) {
-                console.error('Erro ao carregar semanas do hist�rico', e);
-                selectSemana.innerHTML = '<option value="">Erro de conex�o</option>';
+                console.error('Erro ao carregar semanas do histórico', e);
+                selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
             }
         }
 
@@ -3517,7 +3517,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // A��es de exporta��o do hist�rico (usando o capture-area-historico e currentSelectedWeek)
+        // Ações de exportação do histórico (usando o capture-area-historico e currentSelectedWeek)
         if (btnGerar) {
             btnGerar.addEventListener('click', async () => {
                 if (!currentSelectedWeek) return;
@@ -3528,7 +3528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${ts}  ApexTech Metais`;
+                    rodape.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
                     rodape.style.display = 'block';
                 }
 
@@ -3567,27 +3567,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const comp = currentSelectedWeek.computed || {};
                 const d = currentSelectedWeek.days || [];
                 const lastDate = d[d.length - 1]?.data || '';
-                let txt = `*COTA��O LME HIST�RICO - APEXTECH METAIS*\n`;
+                let txt = `*COTAÇÃO LME HISTÓRICO - APEXTECH METAIS*\n`;
                 txt += `Semana de ${d[0]?.data} a ${lastDate}\n\n`;
-                txt += `*Varia��o Di�ria (Grupo 6):*\n`;
+                txt += `*Variação Diária (Grupo 6):*\n`;
                 
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
-                    const osc = comp['OSCILA��O R$']?.[m] ?? 0;
-                    const setinha = osc >= 0 ? '� ' : '�!';
+                    const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
+                    const setinha = osc >= 0 ? 'â¬†' : 'â¬‡';
                     const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
                 });
 
-                const dolarOsc = comp['OSCILA��O R$']?.['dolar'] ?? 0;
-                const dSetinha = dolarOsc >= 0 ? '� ' : '�!';
+                const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
+                const dSetinha = dolarOsc >= 0 ? 'â¬†' : 'â¬‡';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-                txt += `- D�LAR: ${dSetinha} ${dMoney}\n`;
+                txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
                 navigator.clipboard.writeText(txt).then(() => {
-                    _apexNotify('Sistema', 'Resumo hist�rico copiado!', 'info');
+                    _apexNotify('Sistema', 'Resumo histórico copiado!', 'info');
                 }).catch(err => {
-                    _apexNotify('Aten��o', 'Erro ao copiar texto.', 'error');
+                    _apexNotify('Atenção', 'Erro ao copiar texto.', 'error');
                     console.error(err);
                 });
             });
@@ -3603,7 +3603,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${tsStr}`;
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
@@ -3681,7 +3681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             semana: currentSelectedWeek,
-                            mesLabel: 'Relat�rio Hist�rico LME'
+                            mesLabel: 'Relatório Histórico LME'
                         })
                     });
 
@@ -3696,11 +3696,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        _apexNotify('Aten��o', 'Erro ao gerar Excel do hist�rico.', 'error');
+                        _apexNotify('Atenção', 'Erro ao gerar Excel do histórico.', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    _apexNotify('Aten��o', 'Erro na conex�o com o servidor.', 'error');
+                    _apexNotify('Atenção', 'Erro na conexão com o servidor.', 'error');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -3723,9 +3723,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        // Tentar obter a data da semana a partir do primeiro dia �til dela
+        // Tentar obter a data da semana a partir do primeiro dia útil dela
         let referenceDate = new Date();
-        if (d.length > 0 && d[0].data && d[0].data !== '') {
+        if (d.length > 0 && d[0].data && d[0].data !== '—') {
             const parts = d[0].data.split('/');
             if (parts.length >= 2) {
                 const selectMes = document.getElementById('rel-hist-filter-mes');
@@ -3744,7 +3744,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        const monthNames = ["janeiro", "fevereiro", "mar�o", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+        const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
         const dataTexto = `${week.label}`;
         const weekNum = getISOWeek(referenceDate);
         
@@ -3790,9 +3790,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">��</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">â–²</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">��</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">â–¼</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
@@ -3802,9 +3802,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const mediaLabelEl = document.querySelector('#relatorio-diario-historico .rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
             if (week.numDias !== undefined && week.numDias < 5) {
-                mediaLabelEl.innerHTML = `M�DIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias �teis)</span>`;
+                mediaLabelEl.innerHTML = `MÉDIA SEMANAL <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${week.numDias} dias úteis)</span>`;
             } else {
-                mediaLabelEl.textContent = 'M�DIA SEMANAL';
+                mediaLabelEl.textContent = 'MÉDIA SEMANAL';
             }
         }
 
@@ -3850,9 +3850,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const elFech = document.getElementById('rel-hist-fech-' + m);
             formatVariacaoCell(elFech, comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.[m], 'percent');
             const elOscPct = document.getElementById('rel-hist-osc-pct-' + m);
-            formatVariacaoCell(elOscPct, comp['OSCILA��O %']?.[m], 'percent');
+            formatVariacaoCell(elOscPct, comp['OSCILAÇÃO %']?.[m], 'percent');
 
-            const oscRs = comp['OSCILA��O R$']?.[m] ?? 0;
+            const oscRs = comp['OSCILAÇÃO R$']?.[m] ?? 0;
             const elOscRs = document.getElementById('rel-hist-osc-rs-' + m);
             formatVariacaoCell(elOscRs, oscRs, 'currency', isDolar ? 4 : 3);
 
@@ -3898,7 +3898,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.classList.add('row-lme100');
             } else if (text.includes("FECHAMENTO %") && text.includes("SEMANA ANTERIOR")) {
                 row.classList.add('row-fechamento-anterior');
-            } else if (text.includes("OSCILA��O R$")) {
+            } else if (text.includes("OSCILAÇÃO R$")) {
                 row.classList.add('row-oscilacao-rs');
             } else if (text === "SEMANA ANTERIOR") {
                 row.classList.add('row-semana-anterior');
@@ -4034,7 +4034,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
-            { key: 'aluminio', label: 'ALUM�NIO' },
+            { key: 'aluminio', label: 'ALUMÍNIO' },
             { key: 'chumbo',   label: 'CHUMBO' }
         ];
         buildBarChart(
@@ -4046,7 +4046,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
-            { key: 'niquel',  label: 'N�QUEL' }
+            { key: 'niquel',  label: 'NÍQUEL' }
         ];
         buildBarChart(
             'rel-hist-ChartOsc',
@@ -4064,7 +4064,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? '� ' : isDown ? '� ' : '�';
+                const arrow    = isUp ? 'â†‘' : isDown ? 'â†“' : 'â€“';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -4119,9 +4119,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
-    // APEX GEST�O  SISTEMA DE PERMISS�ES, ANÁLISE, FINANCEIRO E ESTOQUE
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
+    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÁLISE, FINANCEIRO E ESTOQUE
+    // ─────────────────────────────────────────────────────────────────────────
     let currentSimulatedRole = sessionStorage.getItem('apex_user_role') || 'Administrador';
     let localFornecedores = [];
     let localMateriais = [];
@@ -4130,7 +4130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let localPlanejamento = [];
     let activeAmostraIdForDesmonte = null;
 
-    // --- Role Switcher & Permiss�es ---
+    // --- Role Switcher & Permissões ---
     window.switchSimulatedRole = function(role) {
         currentSimulatedRole = role;
         sessionStorage.setItem('apex_user_role', role);
@@ -4144,9 +4144,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const mapRoleToBtn = {
             'Administrador': 'sim-admin',
-            'Laborat�rio': 'sim-lab',
+            'Laboratório': 'sim-lab',
             'Compras': 'sim-compras',
-            'Produ��o': 'sim-producao',
+            'Produção': 'sim-producao',
             'Financeiro': 'sim-financeiro',
             'Diretoria': 'sim-diretoria'
         };
@@ -4159,22 +4159,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyRolePermissions() {
         const role = currentSimulatedRole;
 
-        // Se por acaso as permiss�es ainda n�o carregaram ou o role n�o existir, falha fechado (deny all exceto admin)
+        // Se por acaso as permissões ainda não carregaram ou o role não existir, falha fechado (deny all exceto admin)
         let permissoes = globalRolePermissions[role] || [];
         if (role === 'Administrador') {
-            // Admin v� tudo.
+            // Admin vê tudo.
             permissoes = ["view_lme", "view_precos", "view_catalogo", "view_fornecedores", "view_laboratorio", "view_planejamento", "view_estoque", "view_bi", "edit_financeiro", "edit_producao", "view_usuarios", "view_permissoes", "view_financeiro", "view_pedidos"];
         }
 
         const temPermissao = (p) => permissoes.includes(p);
 
-        // Fun��es auxiliares para esconder/mostrar navega��o
+        // Funções auxiliares para esconder/mostrar navegação
         const setNav = (idOrSelector, isVisible) => {
             const el = document.getElementById(idOrSelector) || document.querySelector(idOrSelector);
             if (el) el.style.display = isVisible ? 'flex' : 'none';
         };
 
-        // Tabs Visibility (Apex Gest�o)
+        // Tabs Visibility (Apex Gestão)
         setNav('nav-fornecedores', temPermissao('view_fornecedores'));
         setNav('nav-materiais', temPermissao('view_catalogo'));
         setNav('nav-precos', temPermissao('view_precos'));
@@ -4187,12 +4187,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setNav('nav-financeiro', temPermissao('view_financeiro'));
         setNav('nav-pedidos-venda', temPermissao('view_pedidos') || role === 'Administrador');
 
-        // Tabs Visibility (LME - como os originais n�o tem ID, usamos querySelector)
+        // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
         setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
         setNav('.nav-item[data-target="relatorio-diario"]', temPermissao('view_lme'));
         setNav('.nav-item[data-target="lme-email-config"]', temPermissao('view_lme'));
 
-        // Oculta a se��o ativa se o usu�rio perdeu acesso a ela e redireciona para a primeira dispon�vel
+        // Oculta a seção ativa se o usuário perdeu acesso a ela e redireciona para a primeira disponível
         const activeNav = document.querySelector('.nav-item.active');
         if (activeNav && activeNav.style.display === 'none') {
             activeNav.classList.remove('active');
@@ -4210,17 +4210,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Restrito Financeiro (Valores, margens, custos)
         const restritoFin = document.querySelectorAll('.restrito-financeiro');
         restritoFin.forEach(el => {
-            // Alguns elementos podem usar flex ou table-cell ou block, ent�o restauramos o valor limpo '' em vez de fixar
+            // Alguns elementos podem usar flex ou table-cell ou block, então restauramos o valor limpo '' em vez de fixar
             el.style.display = temPermissao('edit_financeiro') ? '' : 'none';
         });
 
-        // Restrito Produ��o (PCP)
+        // Restrito Produção (PCP)
         const restritoProd = document.querySelectorAll('.restrito-producao');
         restritoProd.forEach(el => {
             el.style.display = temPermissao('edit_producao') ? '' : 'none';
         });
 
-        // Atualiza bot�es no desmonte se aberto
+        // Atualiza botões no desmonte se aberto
         if (activeAmostraIdForDesmonte) {
             const amostra = localAmostras.find(x => x.id === activeAmostraIdForDesmonte);
             if (amostra) renderizarBotoesAcoesAmostra(amostra.status);
@@ -4309,7 +4309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let amostrasHtml = '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
             if (amostrasForn.length > 0) {
                 amostrasHtml = `<select style="background:#0d1a24; color:#4fc3f7; border:1px solid #1e3a5f; padding:6px; border-radius:6px; font-size:0.85rem; cursor:pointer; min-width:120px;" onchange="if(this.value) window.abrirAmostraPorNumero(this.value); this.value='';">
-                    <option value="">${amostrasForn.length} Amostra(s) ��</option>
+                    <option value="">${amostrasForn.length} Amostra(s) â–¾</option>
                     ${amostrasForn.map(a => `<option value="${a.numero_amostra}">${a.numero_amostra}</option>`).join('')}
                 </select>`;
             }
@@ -4320,7 +4320,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<button style="background:#1c252e;border:1px solid #334155;color:#64748b;padding:6px 10px;border-radius:6px;cursor:not-allowed;margin-right:4px;" disabled title="Sem e-mail cadastrado"><i class="fa-solid fa-paper-plane"></i> Tabela</button>`;
 
             const tr = document.createElement('tr');
-            tr.title = 'Clique na linha para editar este fornecedor (exceto bot�es e selects)';
+            tr.title = 'Clique na linha para editar este fornecedor (exceto botões e selects)';
             tr.style.cursor = 'pointer';
             tr.onclick = (e) => {
                 if (e.target.closest('button') || e.target.closest('select')) return;
@@ -4362,7 +4362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.editarFornecedor = function(id) {
         const f = localFornecedores.find(x => x.id === id);
-        if (!f) { _apexNotify('Sistema', 'Fornecedor n�o encontrado na lista local. Recarregue a p�gina.', 'info'); return; }
+        if (!f) { _apexNotify('Sistema', 'Fornecedor não encontrado na lista local. Recarregue a página.', 'info'); return; }
         document.getElementById('modal-forn-titulo').textContent = 'Editar Fornecedor';
         document.getElementById('forn-id').value = f.id;
         document.getElementById('forn-codfor').value = f.codfor || '';
@@ -4431,7 +4431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalFornecedor();
             carregarFornecedores();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao salvar fornecedor: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar fornecedor: ' + err.message, 'error');
             console.error('Erro ao salvar fornecedor:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Fornecedor'; }
@@ -4448,9 +4448,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // �"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"�
-    // CLIENTES  CRUD COMPLETO
-    // �"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"�
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // CLIENTES — CRUD COMPLETO
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     let localClientes = [];
 
     window.initApexClientes = async function() {
@@ -4632,7 +4632,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.clienteCadastradoCallback = null;
             }
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao salvar cliente: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar cliente: ' + err.message, 'error');
             console.error('Erro ao salvar cliente:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Cliente'; }
@@ -4672,7 +4672,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cells = row.querySelectorAll('td');
                 if (cells.length > colIndex) {
                     const text = cells[colIndex].textContent.toLowerCase().trim();
-                    // Conforme solicitado, busca pelas iniciais do termo na coluna espec�fica
+                    // Conforme solicitado, busca pelas iniciais do termo na coluna específica
                     match = text.startsWith(search) || text.includes(search);
                 }
             }
@@ -4779,7 +4779,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.buscarNcmManual = function() {
         const valor = document.getElementById('mat-ncm').value;
         if (!valor) {
-            _apexNotify('Sistema', 'Digite um termo ou c�digo para buscar.', 'info');
+            _apexNotify('Sistema', 'Digite um termo ou código para buscar.', 'info');
             return;
         }
         executarBuscaNcm(valor);
@@ -4809,7 +4809,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `).join('');
             }
 
-            // Sempre adiciona a op��o de usar o valor digitado manualmente
+            // Sempre adiciona a opção de usar o valor digitado manualmente
             const termoSanitizado = termo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             html += `
                 <div style="padding:10px; cursor:pointer; background:#1a3045; border-top:1px solid #3e7cb1;" 
@@ -4830,7 +4830,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.usarNcmManual = function(valor) {
         const input = document.getElementById('mat-ncm');
         if (input) {
-            // Formata o valor manual se parecer com um n�mero de 8 d�gitos
+            // Formata o valor manual se parecer com um número de 8 dígitos
             input.value = formatarCodigoNcm(valor);
         }
         fecharNcmDropdown();
@@ -4970,7 +4970,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
-                _apexNotify('Aten��o', 'Erro ao salvar material: ' + (errData.error || resp.statusText), 'error');
+                _apexNotify('Atenção', 'Erro ao salvar material: ' + (errData.error || resp.statusText), 'error');
                 return;
             }
             fecharModalMaterial();
@@ -4982,12 +4982,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.carregarPrecosLigas) await window.carregarPrecosLigas();
         } catch (err) {
             console.error(err);
-            _apexNotify('Aten��o', 'Erro de conex�o ao salvar material: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro de conexão ao salvar material: ' + err.message, 'error');
         }
     };
 
     window.deletarMaterial = async function(id) {
-        if (!confirm('Excluir este material do cat�logo? O pre�o correspondente tamb�m ser� removido.')) return;
+        if (!confirm('Excluir este material do catálogo? O preço correspondente também será removido.')) return;
         try {
             await fetch(`/api/materiais-catalogo/${id}`, { method: 'DELETE' });
             await carregarMateriais();
@@ -5031,7 +5031,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const badgesDiv = document.getElementById('mat-categoria-badges');
         if (!matCat) return;
         
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try {
                 cats = JSON.parse(settingsPrecos['categorias_materiais']);
@@ -5051,10 +5051,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Renderiza badges visuais
         if (badgesDiv) {
-            const catsDefault = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+            const catsDefault = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
             const corPaleta = {
-                'Alum�nio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
-                'A�o': '#7ea374', 'Chumbo': '#7a8a99', 'Lat�o/Bronze': '#c8a240',
+                'Alumínio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
+                'Aço': '#7ea374', 'Chumbo': '#7a8a99', 'Latão/Bronze': '#c8a240',
                 'Zamac': '#8a7ba8', 'Outros': '#6b7280'
             };
             badgesDiv.innerHTML = cats.map(cat => {
@@ -5067,11 +5067,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
-                        >�S}</span>
+                        >âœŽ</span>
                         <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
-                        >�</span>
+                        >Ã—</span>
                     </span>` : '';
                 return `<button type="button" class="cat-badge-btn"
                     data-cat="${cat}" data-color="${cor}" data-custom="${isCustom}"
@@ -5097,7 +5097,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const trim = nova.trim();
         if (trim === '') return;
         
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -5121,7 +5121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.excluirCategoria = async function(cat) {
         const materiaisDoGrupo = localMateriais.filter(m => m.categoria === cat);
         if (materiaisDoGrupo.length > 0) {
-            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  ⬢ ' + m.nome).join('\n')}\n\nExcluir o grupo tamb�m remover� esses materiais e seus pre�os. Deseja continuar?`;
+            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  â€¢ ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
             if (!confirm(confirmMsg)) return;
             for (const m of materiaisDoGrupo) {
                 await fetch(`/api/materiais-catalogo/${m.id}`, { method: 'DELETE' });
@@ -5130,7 +5130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!confirm(`Excluir o grupo "${cat}"?`)) return;
         }
 
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -5147,7 +5147,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await carregarMateriais();
         if (window.carregarPrecos) await window.carregarPrecos();
-        // Se o grupo exclu�do estava selecionado, limpa
+        // Se o grupo excluído estava selecionado, limpa
         const select = document.getElementById('mat-categoria');
         if (select && select.value === cat) selecionarCategoriaBadge(null);
         popularSeletoresCategorias();
@@ -5159,7 +5159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const trim = novoNome.trim();
 
         // Atualiza a lista de categorias
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -5255,7 +5255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- 3. TABELA DE PRE�OS ---
+    // --- 3. TABELA DE PREÇOS ---
     let settingsPrecos = {};
     let visualizacaoTabelaPrecos = 'completa';
 
@@ -5332,7 +5332,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         // Agrupar por categorias
-        let categorias = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try {
                 categorias = JSON.parse(settingsPrecos['categorias_materiais']);
@@ -5359,35 +5359,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="categoria-preco-header" style="background: ${corCategoria};">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span>${cat.toUpperCase()}</span>
-                        <input type="color" value="${corCategoria}" title="Alterar cor do cabe�alho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
+                        <input type="color" value="${corCategoria}" title="Alterar cor do cabeçalho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
                     </div>
-                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vig�ncia geral com calend�rio" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIG�NCIA AT�: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
+                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vigência geral com calendário" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg. | OBS: Varia��o de pre�o conforme atualiza��o de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descri��o</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color: #ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color: #aaa;">Comiss�o (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">Comissão (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda L�quida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro L�q. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem L�q. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L�q. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L�q. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A��es</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5445,7 +5445,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }).join('')}
                             <tr style="background:#131c26;">
                                 <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
-                                    DEMAIS MATERIAIS PRE�O SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5570,18 +5570,18 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalPreco();
             carregarPrecos();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao salvar pre�o: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar preço: ' + err.message, 'error');
             console.error(err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
-    // ������ Calend�rio Visual Interativo de Vig�ncia ������
+    // ─── Calendário Visual Interativo de Vigência ───
     let calVigenciaAno = 2026;
     let calVigenciaMes = 6;
     let calVigenciaDataSelecionada = new Date().toISOString().split('T')[0];
-    const mesesNomes = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
     window.renderCalendarioVigencia = function() {
         const titulo = document.getElementById('cal-vigencia-titulo');
@@ -5673,7 +5673,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.salvarVigenciaGeralModal = async function() {
         const novaData = calVigenciaDataSelecionada || document.getElementById('input-vigencia-geral-data').value;
         if (!novaData) {
-            _apexNotify('Sistema', 'Por favor, clique em um dia no calend�rio.', 'info');
+            _apexNotify('Sistema', 'Por favor, clique em um dia no calendário.', 'info');
             return;
         }
         const btn = document.getElementById('btn-salvar-vigencia-geral');
@@ -5686,12 +5686,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!res.ok) throw new Error(await res.text());
             fecharModalVigenciaGeral();
-            _apexNotify('Sistema', 'Vig�ncia atualizada para todos os materiais com sucesso!', 'info');
+            _apexNotify('Sistema', 'Vigência atualizada para todos os materiais com sucesso!', 'info');
             await carregarPrecos();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao atualizar vig�ncia geral: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao atualizar vigência geral: ' + err.message, 'error');
         } finally {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vig�ncia'; }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência'; }
         }
     };
 
@@ -5700,7 +5700,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.deletarPreco = async function(id) {
-        if (!confirm('Excluir este pre�o?')) return;
+        if (!confirm('Excluir este preço?')) return;
         try {
             await fetch(`/api/tabela-precos/${id}`, { method: 'DELETE' });
             carregarPrecos();
@@ -5710,13 +5710,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.exportarTabelaPrecosExcel = function() {
-        _apexNotify('Sistema', 'Tabela de Pre�os exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
+        _apexNotify('Sistema', 'Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
     };
 
     function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const activeSettings = settings || settingsPrecos || {};
         const isCompleta = modo === 'completa';
-        let categorias = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (activeSettings && activeSettings['categorias_materiais']) {
             try {
                 categorias = JSON.parse(activeSettings['categorias_materiais']);
@@ -5729,9 +5729,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
 
-        const tituloPdf = isCompleta ? 'Tabela Geral de Pre�os Vigente (Vis�o Completa)' : 'Tabela de Pre�os Vigente';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Preços Vigente (Visão Completa)' : 'Tabela de Preços Vigente';
         const maxWidthContainer = '100%';
-        // Marca d'�gua diretamente no container (zero elementos extras, zero altura extra)
+        // Marca d'água diretamente no container (zero elementos extras, zero altura extra)
         const wmStyle = logoBase64
             ? `background-image: url('${logoBase64}'); background-repeat: repeat; background-size: 200px auto; background-position: 0 0;`
             : '';
@@ -5746,19 +5746,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div style="text-align: right;">
                             <h1 style="margin: 0; color: #1e4e8c; font-size: ${isCompleta ? '1.6rem' : '1.8rem'}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${tituloPdf}</h1>
-                            <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">�ltima Atualiza��o: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">Última Atualização: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
 
                     <!-- Diretrizes -->
                     <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                            ��️ Diretrizes Gerais de Compra
+                            ⚠️ ï¸ Diretrizes Gerais de Compra
                         </h4>
                         <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
-                            <li>Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg.</li>
-                            <li>OBS: Varia��o de pre�o conforme atualiza��o de mercado.</li>
-                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PRE�O SOBRE ANÁLISE (FOTO)</li>
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
                         </ul>
                     </div>
         `;
@@ -5774,25 +5774,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="margin-bottom: 30px; border: 1px solid ${corCategoria}; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background: ${corCategoria}; color: #ffffff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIG�NCIA AT�: ${validadeStr}</span>
+                        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; font-size: ${isCompleta ? '0.75rem' : '0.8rem'}; text-align: left;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">Descri��o</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">Descrição</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Comiss�o (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Comissão (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">PIS/COFINS (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">FIDC (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">ICMS (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Frete Coleta</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #0284c7;">Venda L�q.</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Lucro L�q. Ent.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #0284c7;">Venda Líq.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Lucro Líq. Ent.</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Margem Ent (%)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Lucro L�q. Col.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Lucro Líq. Col.</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">NCM</th>
@@ -5845,7 +5845,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                             <tr style="background: #fafafa;">
                                 <td colspan="${isCompleta ? 15 : 4}" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
-                                    DEMAIS MATERIAIS PRE�O SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5858,10 +5858,10 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `
                     <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555;">
                         <div style="font-weight: bold; color: #1e4e8c; font-size: 0.95rem;">
-                             Aprovado pelo CEO Jose Tiago
+                            ✅ Aprovado pelo CEO Jose Tiago
                         </div>
                         <div style="text-align: right; color: #888;">
-                            Documento oficial ApexTech Metais ⬢ Gerado em: ${new Date().toLocaleString('pt-BR')}
+                            Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}
                         </div>
                     </div>
                 </div>
@@ -5901,7 +5901,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.background = '#ffffff';
 
-        // Carregar logo (2).png como base64 para a marca d'�gua
+        // Carregar logo (2).png como base64 para a marca d'água
         let logoWatermarkBase64 = null;
         try {
             const logoRes = await fetch('/assets/img/logo%20(2).png');
@@ -5914,9 +5914,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch(e) {
-            console.warn('Logo watermark n�o carregou, usando fallback:', e);
+            console.warn('Logo watermark não carregou, usando fallback:', e);
         }
-        // Reduz opacidade da logo para 7% (marca d'�gua sutil) via canvas
+        // Reduz opacidade da logo para 7% (marca d'água sutil) via canvas
         let fadedLogo = null;
         if (logoWatermarkBase64) {
             fadedLogo = await new Promise(resolve => {
@@ -5979,7 +5979,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return pdf.output('datauristring').split(',')[1];
         } catch (err) {
-            console.error('Erro ao gerar base64 da tabela de pre�os:', err);
+            console.error('Erro ao gerar base64 da tabela de preços:', err);
             return null;
         } finally {
             document.body.removeChild(tempDiv);
@@ -5998,7 +5998,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const base64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!base64) {
-                _apexNotify('Aten��o', 'Erro ao gerar o PDF da tabela de pre�os.', 'error');
+                _apexNotify('Atenção', 'Erro ao gerar o PDF da tabela de preços.', 'error');
                 return;
             }
             const linkSource = `data:application/pdf;base64,${base64}`;
@@ -6009,7 +6009,7 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadLink.click();
         } catch (err) {
             console.error(err);
-            _apexNotify('Aten��o', 'Erro ao exportar PDF: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -6020,12 +6020,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ������ PDF RES�DUOS ������������������������������������������������������������������������������������������������������������������������
+    // ─── PDF RESÍDUOS ────────────────────────────────────────────────────────────
 
     function gerarHtmlTabelaResiduosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
         const activeSettings = settings || settingsPrecosResiduos || {};
-        const tituloPdf = isCompleta ? 'Tabela Geral de Res�duos  Vis�o Completa' : 'Tabela de Pre�os  Res�duos';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Resíduos — Visão Completa' : 'Tabela de Preços — Resíduos';
 
         const categorias = [];
         precos.forEach(p => {
@@ -6056,15 +6056,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                         <div style="text-align:right;">
                             <h1 style="margin:0;color:#1a5c38;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">�ltima Atualiza��o: <span style="color:#1a5c38;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1a5c38;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
                     <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">��️ Diretrizes Gerais de Compra  Res�duos</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">⚠️ ï¸ Diretrizes Gerais de Compra — Resíduos</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                            <li>Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg.</li>
-                            <li>OBS: Varia��o de pre�o conforme atualiza��o de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RES�DUOS PRE�O SOBRE ANÁLISE (FOTO)</li>
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -6078,25 +6078,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG�NCIA AT�: ${validadeStr}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                         <thead>
                             <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri��o</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss�o (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L�q.</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L�q. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L�q. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -6142,7 +6142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RES�DUOS PRE�O SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6151,8 +6151,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;"> Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ⬢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -6182,7 +6182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     reader.readAsDataURL(blob);
                 });
             }
-        } catch(e) { console.warn('Logo watermark n�o carregou:', e); }
+        } catch(e) { console.warn('Logo watermark não carregou:', e); }
 
         const tempDiv = document.createElement('div');
         tempDiv.style.cssText = `position:absolute;left:-9999px;top:-9999px;width:${isCompleta ? '1400px' : '1000px'};box-sizing:border-box;background:#ffffff;`;
@@ -6202,7 +6202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             heightLeft -= pdfPageHeightMm;
             while (heightLeft > 5) { position -= pdfPageHeightMm; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, position, pdfWidthMm, imgHeightMm); heightLeft -= pdfPageHeightMm; }
             return pdf.output('datauristring').split(',')[1];
-        } catch(err) { console.error('Erro ao gerar PDF Res�duos:', err); return null; }
+        } catch(err) { console.error('Erro ao gerar PDF Resíduos:', err); return null; }
         finally { document.body.removeChild(tempDiv); }
     };
 
@@ -6214,12 +6214,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
         try {
             const base64 = await window.gerarPdfTabelaResiduosBase64(modoPDF);
-            if (!base64) { _apexNotify('Aten��o', 'Erro ao gerar o PDF de Res�duos.', 'error'); return; }
+            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Resíduos.', 'error'); return; }
             const link = document.createElement('a');
             link.href = `data:application/pdf;base64,${base64}`;
             link.download = isCompleta ? 'Tabela_Residuos_Completa.pdf' : 'Tabela_Residuos_Fornecedor.pdf';
             link.click();
-        } catch(err) { console.error(err); _apexNotify('Aten��o', 'Erro ao exportar PDF Res�duos: ' + err.message, 'error'); }
+        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Resíduos: ' + err.message, 'error'); }
         finally {
             if (btn) {
                 btn.disabled = false;
@@ -6230,12 +6230,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ������ PDF LIGAS ��������������������������������������������������������������������������������������������������������������������������������
+    // ─── PDF LIGAS ────────────────────────────────────────────────────────────────
 
     function gerarHtmlTabelaLigasParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
         const activeSettings = settings || settingsPrecosLigas || {};
-        const tituloPdf = isCompleta ? 'Tabela Geral de Ligas Met�licas  Vis�o Completa' : 'Tabela de Pre�os  Ligas Met�licas';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Ligas Metálicas — Visão Completa' : 'Tabela de Preços — Ligas Metálicas';
 
         const categorias = [];
         precos.forEach(p => {
@@ -6266,15 +6266,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                         <div style="text-align:right;">
                             <h1 style="margin:0;color:#1565c0;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">�ltima Atualiza��o: <span style="color:#1565c0;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1565c0;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
                     <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">��️ Diretrizes Gerais de Compra  Ligas</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">⚠️ ï¸ Diretrizes Gerais de Compra — Ligas</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                            <li>Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg.</li>
-                            <li>OBS: Varia��o de pre�o conforme atualiza��o de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PRE�O SOBRE ANÁLISE (FOTO)</li>
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -6288,25 +6288,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG�NCIA AT�: ${validadeStr}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                         <thead>
                             <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri��o</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss�o (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L�q.</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L�q. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L�q. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -6352,7 +6352,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PRE�O SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6361,8 +6361,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;"> Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais ⬢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -6392,7 +6392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     reader.readAsDataURL(blob);
                 });
             }
-        } catch(e) { console.warn('Logo watermark n�o carregou:', e); }
+        } catch(e) { console.warn('Logo watermark não carregou:', e); }
 
         const tempDiv = document.createElement('div');
         tempDiv.style.cssText = `position:absolute;left:-9999px;top:-9999px;width:${isCompleta ? '1400px' : '1000px'};box-sizing:border-box;background:#ffffff;`;
@@ -6424,12 +6424,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
         try {
             const base64 = await window.gerarPdfTabelaLigasBase64(modoPDF);
-            if (!base64) { _apexNotify('Aten��o', 'Erro ao gerar o PDF de Ligas.', 'error'); return; }
+            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Ligas.', 'error'); return; }
             const link = document.createElement('a');
             link.href = `data:application/pdf;base64,${base64}`;
             link.download = isCompleta ? 'Tabela_Ligas_Completa.pdf' : 'Tabela_Ligas_Fornecedor.pdf';
             link.click();
-        } catch(err) { console.error(err); _apexNotify('Aten��o', 'Erro ao exportar PDF Ligas: ' + err.message, 'error'); }
+        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Ligas: ' + err.message, 'error'); }
         finally {
             if (btn) {
                 btn.disabled = false;
@@ -6460,13 +6460,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnConfig) btnConfig.disabled = loading;
         };
 
-        const destText = emailDestino ? `para ${emailDestino}` : 'para os destinat�rios cadastrados';
+        const destText = emailDestino ? `para ${emailDestino}` : 'para os destinatários cadastrados';
         setUIState(true, `<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF (${nomeModo}) e enviando ${destText}...`);
 
         try {
             const pdfBase64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!pdfBase64) {
-                throw new Error('Falha ao gerar o PDF da tabela de pre�os.');
+                throw new Error('Falha ao gerar o PDF da tabela de preços.');
             }
 
             const res = await fetch('/api/tabela-precos/enviar-email', {
@@ -6477,15 +6477,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await res.json();
             if (res.ok) {
-                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de pre�os (${nomeModo}) enviada com sucesso!`), '#2AD07A');
-                _apexNotify('Sistema', ` Tabela de pre�os (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
+                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de preços (${nomeModo}) enviada com sucesso!`), '#2AD07A');
+                _apexNotify('Sistema', `✅ Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
             } else {
                 throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
             }
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            _apexNotify('Aten��o', '�R Erro ao enviar e-mail: ' + err.message, 'error');
+            _apexNotify('Atenção', 'âŒ Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
@@ -6495,14 +6495,14 @@ document.addEventListener('DOMContentLoaded', () => {
         carregarCotacoesDolarLME();
     };
 
-    // ������ COTA��ES AO VIVO D�LAR & LME (USD / BRL) ����������������������������������������������������������
+    // ─── COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) ─────────────────────────────
     window.carregarCotacoesDolarLME = async function() {
         try {
             const res = await fetch('/api/cotacoes/dolar-lme');
             const data = await res.json();
             if (data && data.dolar) {
                 window.currentDolarRate = data.dolar;
-                console.log(`�x� Cota��o D�lar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
+                console.log(`ðŸ’µ Cotação Dólar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
 
                 const alertaEl = document.getElementById('alerta-cotacao-mercado');
                 const alertaTexto = document.getElementById('alerta-cotacao-texto');
@@ -6510,14 +6510,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     alertaEl.style.display = 'flex';
                     if (alertaTexto) {
                         const pctStr = (data.dolar_pct_change >= 0 ? '+' : '') + (data.dolar_pct_change || 0).toFixed(2) + '%';
-                        alertaTexto.textContent = `Alta volatilidade detectada no D�lar (${pctStr} hoje). Avalie revisar a Tabela de Pre�os.`;
+                        alertaTexto.textContent = `Alta volatilidade detectada no Dólar (${pctStr} hoje). Avalie revisar a Tabela de Preços.`;
                     }
                 } else if (alertaEl) {
                     alertaEl.style.display = 'none';
                 }
             }
         } catch(e) {
-            console.warn('Erro ao buscar cota��o ao vivo:', e);
+            console.warn('Erro ao buscar cotação ao vivo:', e);
         }
     };
 
@@ -6535,12 +6535,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ������ MOTOR DE NOTIFICA��ES DO SININHO (DIRETORIA / ADM) ������������������������������������������
+    // ─── MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) ─────────────────────
     window.atualizarNotificacoesAprovacao = function() {
         if (!Array.isArray(localAmostras)) return;
 
         const pendentes = localAmostras.filter(a => 
-            a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decis�o de Compra'
+            a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra'
         );
 
         const count = pendentes.length;
@@ -6571,7 +6571,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (listEl) {
             if (count === 0) {
-                listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprova��o pendente no momento.</div>';
+                listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprovação pendente no momento.</div>';
             } else {
                 listEl.innerHTML = pendentes.map(p => `
                     <div style="background:#162432; border:1px solid #1e4e8c; border-radius:6px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:all 0.2s;" onclick="abrirAmostraEDesmonte(${p.id})" onmouseover="this.style.borderColor='#2AD07A'" onmouseout="this.style.borderColor='#1e4e8c'" title="Clique para abrir e ver os detalhes desta amostra">
@@ -6604,7 +6604,7 @@ document.addEventListener('DOMContentLoaded', () => {
         abrirAnaliseDesmonte(id);
     };
 
-    // Polling autom�tico a cada 10 segundos
+    // Polling automático a cada 10 segundos
     setInterval(() => {
         if (typeof carregarAmostras === 'function') carregarAmostras();
     }, 10000);
@@ -6669,9 +6669,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusBadgeHtml = `<span class="badge-status aprovado-compra-autorizada" style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Aprovado por ${a.autorizado_por || 'Diretoria'} em ${dtDec}. Clique para ver os detalhes.">
                     <i class="fa-solid fa-check-circle"></i> Aprovado por ${a.autorizado_por || 'Diretoria'}${dtDec ? ' (' + dtDec + ')' : ''}
                 </span>`;
-            } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decis�o de Compra') {
+            } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra') {
                 statusBadgeHtml = `<span class="badge-status aguardando-decisao-de-compra" style="background:rgba(240,180,0,0.15); color:#f0c040; border:1px solid #f0b800; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Clique para analisar e aprovar">
-                    <i class="fa-solid fa-clock"></i> Aguardando Aprova��o Diretoria
+                    <i class="fa-solid fa-clock"></i> Aguardando Aprovação Diretoria
                 </span>`;
             }
 
@@ -6746,19 +6746,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.deletarAmostra = async function(id) {
         if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-            _apexNotify('Aten��o', 'Erro: Apenas o Administrador ou Diretoria podem excluir amostras.', 'error');
+            _apexNotify('Atenção', 'Erro: Apenas o Administrador ou Diretoria podem excluir amostras.', 'error');
             return;
         }
-        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas an�lises de componentes?')) return;
+        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas análises de componentes?')) return;
         try {
             const res = await fetch(`/api/amostras/${id}?user_perfil=${currentSimulatedRole}`, { method: 'DELETE' });
             if (res.ok) {
-                _apexNotify('Sistema', 'Amostra exclu�da com sucesso!', 'info');
+                _apexNotify('Sistema', 'Amostra excluída com sucesso!', 'info');
                 carregarAmostras();
                 fecharAnaliseDesmonte();
             } else {
                 const data = await res.json();
-                _apexNotify('Aten��o', 'Erro ao excluir: ' + (data.error || 'Erro desconhecido.'), 'error');
+                _apexNotify('Atenção', 'Erro ao excluir: ' + (data.error || 'Erro desconhecido.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -6793,7 +6793,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) modal.style.display = 'flex';
         const dataEl = document.getElementById('amo-data');
         if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
-        // Limpa fotos acumuladas de sess�es anteriores
+        // Limpa fotos acumuladas de sessões anteriores
         if (typeof window._limparFotosRecebimento === 'function') window._limparFotosRecebimento();
     };
 
@@ -6802,7 +6802,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) modal.style.display = 'none';
     };
 
-    // ������ FOTOS DO RECEBIMENTO (Etapa 1  M�ltiplas fotos via arquivo ou webcam) ����������������������������������
+    // ─── FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) ─────────────────
     let _fotosRecebimento = []; // Array de { base64, blob, nome }
 
     // Limpa o array ao abrir o modal (chamado em abrirModalAmostra)
@@ -6811,7 +6811,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFotosRecebimentoPreview();
     };
 
-    // Adiciona fotos via sele��o de arquivo
+    // Adiciona fotos via seleção de arquivo
     window.adicionarFotosRecebimento = function(input) {
         if (!input.files || input.files.length === 0) return;
         const tasks = Array.from(input.files).map(file => {
@@ -6830,7 +6830,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Abre a webcam e, ao confirmar, adiciona a foto ao array _fotosRecebimento
     window.abrirWebcamRecebimento = function() {
-        if (!window._WCM) { _apexNotify('Sistema', 'M�dulo de webcam n�o inicializado. Tente recarregar a p�gina.', 'info'); return; }
+        if (!window._WCM) { _apexNotify('Sistema', 'Módulo de webcam não inicializado. Tente recarregar a página.', 'info'); return; }
         window._WCM.abrirParaRecebimento(function(img64, blob) {
             const nome = 'webcam_recebimento_' + Date.now() + '.jpg';
             _fotosRecebimento.push({ base64: img64, blob: blob, nome: nome });
@@ -6839,7 +6839,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // Renderiza as miniaturas na galeria do formul�rio
+    // Renderiza as miniaturas na galeria do formulário
     function renderFotosRecebimentoPreview() {
         const container = document.getElementById('amo-fotos-preview');
         if (!container) return;
@@ -6851,7 +6851,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="position:relative; display:inline-block;">
                 <img src="${f.base64}" style="width:72px; height:72px; object-fit:cover; border-radius:6px; border:2px solid #2AD07A; display:block;" title="${f.nome}">
                 <button type="button" onclick="removerFotoRecebimento(${i})"
-                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">�S"</button>
+                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">âœ•</button>
             </div>
         `).join('');
     }
@@ -6899,7 +6899,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Limpa as fotos ap�s salvar
+            // Limpa as fotos após salvar
             _fotosRecebimento = [];
             renderFotosRecebimentoPreview();
 
@@ -6911,8 +6911,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ������ NAVEGA��O DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ������������
-    // ������ NAVEGA��O DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ������������
+    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
+    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
     window.mudarTelaEtapa = function(etapaNum) {
         const idMap = {
             1: 'tela-etapa-1',
@@ -6926,7 +6926,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Etapa 4: acesso restrito
         if (etapaNum === 4) {
             if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                _apexNotify('Sistema', '�x Acesso Restrito ao N�vel de Diretoria / Administrador (ERP Security Level).\n\nUsu�rios operacionais do laborat�rio n�o possuem permiss�o para visualizar ou definir pre�os estrat�gicos.', 'info');
+                _apexNotify('Sistema', 'ðŸ”’ Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
@@ -6936,7 +6936,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const el = document.getElementById(targetId);
         if (el) {
-            // Garante que o elemento est� vis�vel antes de rolar
+            // Garante que o elemento está visível antes de rolar
             if (el.style.display === 'none') el.style.display = 'block';
             // Scroll com pequeno offset do topo da janela
             const yOffset = -80;
@@ -6955,13 +6955,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ������ ETIQUETA QR CODE FISICA DE LOTE ����������������������������������������������������������������������������������
+    // ─── ETIQUETA QR CODE FISICA DE LOTE ─────────────────────────────────────────
     window.gerarEtiquetaQRAmostra = function(id) {
         const amostra = localAmostras.find(a => a.id === id);
         if (!amostra) return;
 
         document.getElementById('qr-amostra-codigo').textContent = amostra.numero_amostra;
-        document.getElementById('qr-amostra-material').textContent = amostra.nome_material || 'Material N�o Especificado';
+        document.getElementById('qr-amostra-material').textContent = amostra.nome_material || 'Material Não Especificado';
         document.getElementById('qr-amostra-detalhes').textContent = `Fornecedor: ${amostra.fornecedor_nome} | Peso: ${parseFloat(amostra.peso_inicial).toFixed(3)} kg`;
 
         const qrCanvas = document.createElement('canvas');
@@ -6980,7 +6980,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!err) document.getElementById('qr-code-img').src = url;
             });
         } else {
-            // Fallback via API r�pida de QR Code
+            // Fallback via API rápida de QR Code
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payloadText)}`;
         }
 
@@ -6998,7 +6998,7 @@ document.addEventListener('DOMContentLoaded', () => {
         win.document.close();
     };
 
-    // ������ EXPORTA��O EM BATCH DE LAUDOS PDF EM ZIP ��������������������������������������������������������������
+    // ─── EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP ───────────────────────────────
     window.exportarLaudosEmLoteZip = async function() {
         const checkboxes = document.querySelectorAll('.chk-amostra-select:checked');
         if (checkboxes.length === 0) {
@@ -7007,14 +7007,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (typeof JSZip === 'undefined') {
-            _apexNotify('Sistema', 'Biblioteca JSZip n�o carregada.', 'info');
+            _apexNotify('Sistema', 'Biblioteca JSZip não carregada.', 'info');
             return;
         }
 
         const zip = new JSZip();
         const folder = zip.folder('LAUDOS_APEXTECH');
 
-        _apexNotify('Sistema', `Iniciando gera��o de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclus�o.`, 'info');
+        _apexNotify('Sistema', `Iniciando geração de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclusão.`, 'info');
 
         for (const chk of checkboxes) {
             const amostraId = parseInt(chk.value);
@@ -7022,13 +7022,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!amostra) continue;
 
             try {
-                // Abre gera��o tempor�ria
+                // Abre geração temporária
                 await window.gerarLaudoPDF(amostraId);
             } catch(e) {
                 console.error(`Erro ao incluir amostra ${amostraId} no ZIP:`, e);
             }
         }
-        _apexNotify('Sistema', 'Gera��o em lote finalizada com sucesso!', 'info');
+        _apexNotify('Sistema', 'Geração em lote finalizada com sucesso!', 'info');
     };
 
     // Detalhes do Desmonte
@@ -7043,11 +7043,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('analise-titulo-amostra').textContent = amostra.numero_amostra;
             const matNomeEl = document.getElementById('analise-material-nome');
-            if (matNomeEl) matNomeEl.textContent = amostra.nome_material || 'Material n�o informado';
+            if (matNomeEl) matNomeEl.textContent = amostra.nome_material || 'Material não informado';
             document.getElementById('analise-fornecedor-nome').textContent = amostra.fornecedor_nome;
             document.getElementById('analise-peso-inicial').textContent = parseFloat(amostra.peso_inicial).toFixed(3);
 
-            // Atualiza os n�s visuais do Stepper de Etapas
+            // Atualiza os nós visuais do Stepper de Etapas
             atualizarStepperAmostra(amostra.status, amostra.decisao_diretoria);
 
             componentesActivos = componentes.map((c, idx) => {
@@ -7056,7 +7056,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     material_id:  c.material_id,
                     peso:         parseFloat(c.peso),
                     percentual:   parseFloat(c.percentual),
-                    dificuldade:  c.dificuldade || 'F�cil',
+                    dificuldade:  c.dificuldade || 'Fácil',
                     foto:         c.foto || '',
                     fotosUrl:     urls,
                     fotosBase64:  [],
@@ -7065,7 +7065,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
 
-            // Restaurar fotos do banco por componente_idx (garante que fotos anteriores n�o somem)
+            // Restaurar fotos do banco por componente_idx (garante que fotos anteriores não somem)
             try {
                 const ftRes  = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`);
                 const ftList = await ftRes.json();
@@ -7089,7 +7089,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch(e) { console.warn('Erro ao restaurar fotos dos componentes:', e); }
 
 
-            // Inicializa cron�metro com tempo j� salvo (se houver) e inicia a contagem automaticamente
+            // Inicializa cronômetro com tempo já salvo (se houver) e inicia a contagem automaticamente
             resetCronometro();
             if (amostra.tempo_desmonte) {
                 cronSegundos = parseInt(amostra.tempo_desmonte);
@@ -7099,15 +7099,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.toggleCronometro();
             }
 
-            // Parecer T�cnico
+            // Parecer Técnico
             document.getElementById('analise-parecer-tecnico').value = amostra.parecer_tecnico || '';
 
-            // Decis�o da Diretoria e campos de precifica��o autorizada
+            // Decisão da Diretoria e campos de precificação autorizada
             const painelDir = document.getElementById('painel-decisao-diretoria');
             const hContainer = document.getElementById('decisao-historica-container');
             const bannerAutonomia = document.getElementById('banner-autonomia-compra');
             
-            // Popula os inputs de precifica��o e obs. diretoria
+            // Popula os inputs de precificação e obs. diretoria
             document.getElementById('dir-preco-entregar').value = amostra.preco_compra_entregar || '';
             document.getElementById('dir-preco-coletar').value = amostra.preco_compra_coletar || '';
             const defaultDate = new Date();
@@ -7143,7 +7143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tecnicoDiv.style.display = 'none';
             }
 
-            // Exibir banner de autonomia com detalhes expl�citos
+            // Exibir banner de autonomia com detalhes explícitos
             if (bannerAutonomia) {
                 if (amostra.decisao_diretoria === 'Aprovado') {
                     bannerAutonomia.style.display = 'flex';
@@ -7176,9 +7176,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnLiberar) btnLiberar.style.display = 'none';
         if (btnProcessar) btnProcessar.style.display = 'none';
 
-        if (status === 'Aguardando Libera��o PCP' || status === 'Aprovado - Compra Autorizada') {
+        if (status === 'Aguardando Liberação PCP' || status === 'Aprovado - Compra Autorizada') {
             if (btnLiberar) btnLiberar.style.display = '';
-        } else if (status === 'Liberado para Produ��o') {
+        } else if (status === 'Liberado para Produção') {
             if (btnProcessar) btnProcessar.style.display = '';
         }
     }
@@ -7189,7 +7189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetCronometro();
     };
 
-    // Cron�metro
+    // Cronômetro
     let cronInterval = null;
     let cronSegundos = 0;
 
@@ -7250,7 +7250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const s4 = document.getElementById('step-node-4');
         if (!s1 || !s2 || !s3 || !s4) return;
 
-        // Exibe todas as etapas em uma �nica p�gina longa de forma cont�nua
+        // Exibe todas as etapas em uma única página longa de forma contínua
         const t1 = document.getElementById('tela-etapa-1');
         const t2 = document.getElementById('tela-etapa-2');
         const t3 = document.getElementById('tela-etapa-3');
@@ -7263,7 +7263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
                 t4.style.display = 'block';
             } else {
-                t4.style.display = 'none'; // Seguran�a ERP para usu�rios comuns
+                t4.style.display = 'none'; // Segurança ERP para usuários comuns
             }
         }
 
@@ -7284,11 +7284,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Etapa 1 sempre conclu�da ap�s cria��o do recebimento
+        // Etapa 1 sempre concluída após criação do recebimento
         setStepState(s1, false, true);
 
-        // Etapa 2: Desmonte (Ativa se Em An�lise, Conclu�da se status for al�m de Em An�lise)
-        if (status === 'Em An�lise') {
+        // Etapa 2: Desmonte (Ativa se Em Análise, Concluída se status for além de Em Análise)
+        if (status === 'Em Análise') {
             setStepState(s2, true, false);
             setStepState(s3, false, false);
             setStepState(s4, false, false);
@@ -7296,10 +7296,10 @@ document.addEventListener('DOMContentLoaded', () => {
             setStepState(s2, false, true);
             setStepState(s3, true, false);
             
-            if (status === 'Aguardando Decis�o de Compra') {
+            if (status === 'Aguardando Decisão de Compra') {
                 setStepState(s3, false, true);
                 setStepState(s4, true, false);
-            } else if (decisaoDiretoria === 'Aprovado' || status === 'Aprovado - Compra Autorizada' || status === 'Aguardando Libera��o PCP' || status === 'Liberado para Produ��o' || status === 'Processado') {
+            } else if (decisaoDiretoria === 'Aprovado' || status === 'Aprovado - Compra Autorizada' || status === 'Aguardando Liberação PCP' || status === 'Liberado para Produção' || status === 'Processado') {
                 setStepState(s3, false, true);
                 setStepState(s4, false, true, '#2AD07A');
             } else if (decisaoDiretoria === 'Reprovado') {
@@ -7309,7 +7309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ������ UPLOAD REAL DE FOTOS ������������������������������������������������������������������������������������������������������
+    // ─── UPLOAD REAL DE FOTOS ───────────────────────────────────────────────────
     window.uploadFotos = async function(input, tipo, etapa) {
         if (!activeAmostraIdForDesmonte || !input.files || input.files.length === 0) return;
         const spinner = document.getElementById('foto-input-spinner');
@@ -7324,7 +7324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 await carregarFotosAmostra(activeAmostraIdForDesmonte);
             } else {
-                _apexNotify('Aten��o', 'Erro ao enviar foto: ' + (result.error || 'desconhecido'), 'error');
+                _apexNotify('Atenção', 'Erro ao enviar foto: ' + (result.error || 'desconhecido'), 'error');
             }
         } catch (err) {
             console.error('uploadFotos:', err);
@@ -7346,7 +7346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const gallery     = document.getElementById('fotos-gallery');
         const placeholder = document.getElementById('fotos-placeholder');
         if (!gallery) return;
-        // Remove thumbs anteriores mas mant�m placeholder
+        // Remove thumbs anteriores mas mantém placeholder
         Array.from(gallery.children).forEach(el => { if (el.id !== 'fotos-placeholder') el.remove(); });
         if (!fotos || fotos.length === 0) {
             if (placeholder) placeholder.style.display = 'block';
@@ -7354,7 +7354,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (placeholder) placeholder.style.display = 'none';
 
-        // Ordena��o cronol�gica estrita (Ordem em que foram tiradas: Recebimento -> Desmonte -> Componentes)
+        // Ordenação cronológica estrita (Ordem em que foram tiradas: Recebimento -> Desmonte -> Componentes)
         const fotosOrdenadas = (fotos || []).slice().sort((a, b) => {
             const timeA = new Date(a.criado_em || 0).getTime() || a.id;
             const timeB = new Date(b.criado_em || 0).getTime() || b.id;
@@ -7372,7 +7372,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (etapaTexto === 'Recebimento') badgeBg = '#f0b800';
             else if (etapaTexto === 'Desmonte') badgeBg = '#3e7cb1';
             else if (etapaTexto === 'Viabilidade') badgeBg = '#9c27b0';
-            else if (etapaTexto === 'Aprova��o' || etapaTexto === 'Aprova��o Adm') badgeBg = '#2AD07A';
+            else if (etapaTexto === 'Aprovação' || etapaTexto === 'Aprovação Adm') badgeBg = '#2AD07A';
 
             badge.style.cssText = `position:absolute;top:4px;left:4px;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;background:${badgeBg};color:#000;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.5);`;
             
@@ -7399,7 +7399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ������ CALCULADORA FIDC ����������������������������������������������������������������������������������������������������������������
+    // ─── CALCULADORA FIDC ────────────────────────────────────────────────────────
     // Cache de precos para o painel
     let fidcPrecosCache = [];
 
@@ -7479,7 +7479,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el('fidc-preco-sugerido-coletar'))    el('fidc-preco-sugerido-coletar').innerHTML   = fmt(precoSugColetar)  + '<span style="font-size:0.7rem;color:#777;">/kg</span>';
     }
 
-    // ������ TRILHA DE AUDITORIA ����������������������������������������������������������������������������������������������������������
+    // ─── TRILHA DE AUDITORIA ─────────────────────────────────────────────────────
     window.abrirModalAuditLogs = function() {
         const modal = document.getElementById('modal-audit-logs');
         if (modal) modal.style.display = 'flex';
@@ -7516,12 +7516,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // �"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"�
-    // M�DULO WEBCAM  completamente autocontido, modal criado via JS
-    // �"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"�
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // MÓDULO WEBCAM — completamente autocontido, modal criado via JS
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     (function() {
         let _stream    = null;   // MediaStream ativo
-        let _compIdx   = null;   // �ndice da linha que pediu a foto
+        let _compIdx   = null;   // índice da linha que pediu a foto
         let _tipo      = 'separada';
         let _etapa     = 'Desmonte';
         let _captured  = null;   // base64 da foto capturada
@@ -7531,7 +7531,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let _preview   = null;
         let _onConfirmCallback = null; // callback especial para modos alternativos (ex: Recebimento)
 
-        /* ���� Cria o modal no DOM (uma �nica vez) ���� */
+        /* ── Cria o modal no DOM (uma única vez) ── */
         function _criarModal() {
             if (document.getElementById('_wcm_overlay')) return;
 
@@ -7547,7 +7547,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="width:96vw;max-width:1100px;background:#0d1a24;border:2px solid #2AD07A;
                           border-radius:14px;padding:22px;display:flex;flex-direction:column;
                           box-shadow:0 10px 60px #000;gap:14px;max-height:95vh;">
-                <!-- cabe�alho -->
+                <!-- cabeçalho -->
                 <div style="display:flex;justify-content:space-between;align-items:center;
                             border-bottom:1px solid #1e3a5f;padding-bottom:12px;">
                   <h3 style="margin:0;color:#2AD07A;font-size:1.15rem;display:flex;align-items:center;gap:8px;">
@@ -7555,10 +7555,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   </h3>
                   <button id="_wcm_fechar" style="background:#e63946;color:#fff;border:none;
                     border-radius:6px;padding:7px 16px;font-weight:bold;cursor:pointer;font-size:0.9rem;">
-                    �S" Desligar e Sair
+                    âœ• Desligar e Sair
                   </button>
                 </div>
-                <!-- �rea de v�deo -->
+                <!-- área de vídeo -->
                 <div style="flex:1;background:#000;border-radius:10px;overflow:hidden;
                             border:2px solid #1e4e8c;position:relative;min-height:300px;
                             display:flex;align-items:center;justify-content:center;">
@@ -7568,7 +7568,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          style="display:none;width:100%;height:100%;max-height:55vh;object-fit:contain;">
                   <canvas id="_wcm_canvas" style="display:none;"></canvas>
                 </div>
-                <!-- bot�es -->
+                <!-- botões -->
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
                   <button id="_wcm_sair" style="background:#e63946;color:#fff;border:none;border-radius:8px;
                     padding:10px 22px;font-size:1rem;cursor:pointer;font-weight:bold;">
@@ -7585,7 +7585,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <button id="_wcm_ok" style="display:none;background:#2AD07A;color:#000;border:none;
                       border-radius:8px;padding:10px 26px;font-size:1.05rem;cursor:pointer;font-weight:bold;">
-                      <i class='fa-solid fa-check'></i> �S Usar esta Foto
+                      <i class='fa-solid fa-check'></i> âœ” Usar esta Foto
                     </button>
                   </div>
                 </div>
@@ -7604,7 +7604,7 @@ document.addEventListener('DOMContentLoaded', () => {
             o.querySelector('#_wcm_ok').onclick     = _confirmar;
         }
 
-        /* ���� Abre o modal e inicia a c�mera ���� */
+        /* ── Abre o modal e inicia a câmera ── */
         async function _abrir(compIdx, tipo, etapa) {
             _criarModal();
             _compIdx  = (compIdx !== undefined && compIdx !== null) ? compIdx : null;
@@ -7631,14 +7631,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 _video.srcObject = _stream;
                 await _video.play().catch(() => {});
             } catch(e) {
-                _apexNotify('Sistema', 'C�mera n�o dispon�vel: ' + e.message, 'info');
+                _apexNotify('Sistema', 'Câmera não disponível: ' + e.message, 'info');
                 _fechar();
             }
         }
 
-        /* ���� Captura o frame atual para o canvas ���� */
+        /* ── Captura o frame atual para o canvas ── */
         function _capturar() {
-            if (!_stream || !_video.srcObject) { _apexNotify('Sistema', 'C�mera n�o ativa.', 'info'); return; }
+            if (!_stream || !_video.srcObject) { _apexNotify('Sistema', 'Câmera não ativa.', 'info'); return; }
 
             const w = _video.videoWidth  || 1280;
             const h = _video.videoHeight || 720;
@@ -7647,7 +7647,7 @@ document.addEventListener('DOMContentLoaded', () => {
             _canvas.getContext('2d').drawImage(_video, 0, 0, w, h);
 
             const data = _canvas.toDataURL('image/jpeg', 0.9);
-            if (!data || data.length < 100) { _apexNotify('Aten��o', 'Falha na captura. Tente novamente.', 'error'); return; }
+            if (!data || data.length < 100) { _apexNotify('Atenção', 'Falha na captura. Tente novamente.', 'error'); return; }
 
             _captured = data;
             _preview.src           = _captured;
@@ -7659,7 +7659,7 @@ document.addEventListener('DOMContentLoaded', () => {
             _modal.querySelector('#_wcm_ok').style.display    = 'inline-block';
         }
 
-        /* ���� Refaz a foto ���� */
+        /* ── Refaz a foto ── */
         function _refazer() {
             _captured              = null;
             _preview.style.display = 'none';
@@ -7669,17 +7669,17 @@ document.addEventListener('DOMContentLoaded', () => {
             _modal.querySelector('#_wcm_ok').style.display    = 'none';
         }
 
-        /* ���� Confirma: insere thumbnail na linha IMEDIATAMENTE ���� */
+        /* ── Confirma: insere thumbnail na linha IMEDIATAMENTE ── */
         async function _confirmar() {
             if (!_captured) { _apexNotify('Sistema', 'Nenhuma foto capturada.', 'info'); return; }
 
             const img64   = _captured;
             const cIdx    = _compIdx;
 
-            // 1. Fecha a c�mera imediatamente
+            // 1. Fecha a câmera imediatamente
             _fechar();
 
-            // 2. Se h� um callback especial (ex: Recebimento), delega a ele e encerra
+            // 2. Se há um callback especial (ex: Recebimento), delega a ele e encerra
             if (typeof _onConfirmCallback === 'function') {
                 const cb = _onConfirmCallback;
                 _onConfirmCallback = null;
@@ -7691,7 +7691,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 2. Insere thumbnail na c�lula da linha da tabela (acumulando fotos)
+            // 2. Insere thumbnail na célula da linha da tabela (acumulando fotos)
             if (cIdx !== null && componentesActivos && componentesActivos[cIdx]) {
                 if (!componentesActivos[cIdx].fotosBase64) {
                     componentesActivos[cIdx].fotosBase64 = [];
@@ -7705,18 +7705,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (typeof renderComponentesDesmonte === 'function') renderComponentesDesmonte();
                 }
 
-                // Alimenta tamb�m a Pr�via do Laudo
+                // Alimenta também a Prévia do Laudo
                 if (typeof adicionarPreviaLaudo === 'function') adicionarPreviaLaudo(cIdx, img64);
             }
 
-            // 3. Upload em background (n�o bloqueia UI)
+            // 3. Upload em background (não bloqueia UI)
             if (typeof activeAmostraIdForDesmonte !== 'undefined' && activeAmostraIdForDesmonte) {
                 try {
                     const blob = await (await fetch(img64)).blob();
                     const fd   = new FormData();
                     fd.append('tipo',  _tipo);
                     fd.append('etapa', _etapa || 'Desmonte');
-                    // Vincula a foto ao componente espec�fico da tabela
+                    // Vincula a foto ao componente específico da tabela
                     if (cIdx !== null) fd.append('componente_idx', String(cIdx));
                     fd.append('fotos', blob, 'webcam_comp' + (cIdx !== null ? cIdx : '') + '_' + Date.now() + '.jpg');
                     const r = await (await fetch('/api/amostras/' + activeAmostraIdForDesmonte + '/fotos', { method:'POST', body:fd })).json();
@@ -7732,13 +7732,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         const url = '/api/amostras/' + activeAmostraIdForDesmonte + '/fotos/' + fotoId + '/img';
                         componentesActivos[cIdx].fotosUrl.push(url);
                         componentesActivos[cIdx].fotosDbIds.push(fotoId);
-                        componentesActivos[cIdx].foto = url; // Mant�m fallback da �ltima foto ativa
+                        componentesActivos[cIdx].foto = url; // Mantém fallback da última foto ativa
                     }
                 } catch(e) { console.warn('Upload webcam (background):', e); }
             }
         }
 
-        /* ���� Fecha e desliga a c�mera ���� */
+        /* ── Fecha e desliga a câmera ── */
         function _fechar() {
             if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
             if (_video)  { _video.srcObject = null; }
@@ -7746,7 +7746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             _captured = null;
         }
 
-        /* ���� HTML do card thumbnail da lista de fotos por linha ���� */
+        /* ── HTML do card thumbnail da lista de fotos por linha ── */
         function _thumbsHtmlList(idx) {
             const comp = componentesActivos[idx];
             if (!comp) return '';
@@ -7763,11 +7763,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   '</div>' +
                   '<button type="button" onclick="_WCM.removerFotoDoComponente(' + idx + ',' + fIdx + ')" title="Remover esta foto" ' +
                     'style="position:absolute; top:-4px; right:-4px; background:#ff4d4d; color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">' +
-                    '�S"</button>' +
+                    'âœ•</button>' +
                 '</div>';
             });
 
-            // Bot�o Adicionar Mais uma Foto na linha
+            // Botão Adicionar Mais uma Foto na linha
             html += '<button type="button" onclick="_WCM.abrir(' + idx + ')" title="Adicionar mais uma foto" ' +
               'style="background:#1e3a5f; border:1px dashed #2AD07A; border-radius:6px; width:64px; height:64px; cursor:pointer; color:#2AD07A; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:0.75rem;">' +
               '<i class="fa-solid fa-plus" style="font-size:1.1rem;"></i> Foto</button>';
@@ -7776,7 +7776,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return html;
         }
 
-        /* ���� API p�blica ���� */
+        /* ── API pública ── */
         window._WCM = {
             abrir: function(compIdx) { _abrir(compIdx, 'separada', 'Desmonte'); },
             abrirGeral: function(tipo, etapa) { _compIdx = null; _onConfirmCallback = null; _abrir(null, tipo, etapa); },
@@ -7810,7 +7810,7 @@ document.addEventListener('DOMContentLoaded', () => {
             thumbsHtmlList: _thumbsHtmlList
         };
 
-        // Mant�m compatibilidade com fun��es antigas chamadas pelo HTML restante
+        // Mantém compatibilidade com funções antigas chamadas pelo HTML restante
         window.abrirWebcamModal      = function(tipo, etapa) { window._WCM.abrirGeral(tipo, etapa); };
         window.abrirWebcamModalComp  = function(idx)         { window._WCM.abrir(idx); };
         window.fecharWebcamModal     = _fechar;
@@ -7840,7 +7840,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<button class="btn-primary" type="button"
                        style="padding:6px 10px; background:#2AD07A; color:#000; font-size:0.78rem; font-weight:bold;
                               border-radius:6px; white-space:nowrap;"
-                       onclick="abrirWebcamModalComp(${idx})" title="Capturar foto desta pe�a">
+                       onclick="abrirWebcamModalComp(${idx})" title="Capturar foto desta peça">
                        <i class="fa-solid fa-camera"></i> Foto
                    </button>`;
 
@@ -7849,7 +7849,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display:flex; flex-direction:column; gap:5px;">
                         <div style="display:flex; align-items:center; gap:6px;">
                             <button type="button" onclick="alterarSelecaoMaterialComp(${idx},'NEW')"
-                                title="Material n�o cadastrado"
+                                title="Material não cadastrado"
                                 style="flex-shrink:0; background:${isCustom ? '#2AD07A' : '#1e3a5f'};
                                        color:${isCustom ? '#000' : '#2AD07A'}; border:1px solid #2AD07A;
                                        border-radius:5px; width:28px; height:28px; font-size:1rem;
@@ -7878,8 +7878,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px;">
                     <select class="noble-input" style="padding:6px; font-size:0.85rem;"
                         onchange="atualizarComponenteData(${idx}, 'dificuldade', this.value)">
-                        <option value="F�cil" ${c.dificuldade === 'F�cil' ? 'selected' : ''}>F�cil</option>
-                        <option value="M�dia" ${c.dificuldade === 'M�dia' ? 'selected' : ''}>M�dia</option>
+                        <option value="Fácil" ${c.dificuldade === 'Fácil' ? 'selected' : ''}>Fácil</option>
+                        <option value="Média" ${c.dificuldade === 'Média' ? 'selected' : ''}>Média</option>
                         <option value="Alta" ${c.dificuldade === 'Alta' ? 'selected' : ''}>Alta</option>
                     </select>
                 </td>
@@ -7919,7 +7919,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ������ PR�VIA VISUAL DO LAUDO ��������������������������������������������������������������������������������������������������
+    // ─── PRÉVIA VISUAL DO LAUDO ─────────────────────────────────────────────────
     const previaLaudoItens = [];
 
     function adicionarPreviaLaudo(idx, imgBase64) {
@@ -7934,7 +7934,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ts: Date.now(),
             nome: nomeMaterial,
             peso: comp.peso || 0,
-            dificuldade: comp.dificuldade || 'F�cil',
+            dificuldade: comp.dificuldade || 'Fácil',
             observacoes: comp.observacoes || '',
             img: imgBase64
         };
@@ -7952,14 +7952,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="position:relative;">
                     <img src="${item.img}" style="width:100%; height:180px; object-fit:cover; display:block;">
                     <div style="position:absolute; top:8px; left:8px; background:rgba(13,26,36,0.85); border:1px solid #2AD07A; border-radius:20px; padding:2px 10px; font-size:0.72rem; color:#2AD07A; font-weight:bold;">
-                        �x� #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
+                        ðŸ“¸ #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
                     </div>
                 </div>
                 <div style="padding:12px;">
                     <div style="font-weight:bold; color:#fff; font-size:0.95rem; margin-bottom:6px;">${item.nome}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">� ${parseFloat(item.peso).toFixed(3)} kg</span>
-                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">�x� ${item.dificuldade}</span>
+                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">⚠️– ${parseFloat(item.peso).toFixed(3)} kg</span>
+                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">ðŸ”§ ${item.dificuldade}</span>
                     </div>
                     ${item.observacoes ? `<div style="color:#aaa; font-size:0.8rem; border-top:1px solid #223547; padding-top:8px;">${item.observacoes}</div>` : ''}
                 </div>
@@ -7997,7 +7997,7 @@ document.addEventListener('DOMContentLoaded', () => {
             material_id: localMateriais[0] ? localMateriais[0].id : null,
             peso: 0.0,
             percentual: 0.0,
-            dificuldade: 'F�cil',
+            dificuldade: 'Fácil',
             foto: '',
             fotosUrl: [],
             fotosBase64: [],
@@ -8031,7 +8031,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.calcularAnaliseAmostra = function() {
         const pesoInicial = parseFloat(document.getElementById('analise-peso-inicial').textContent) || 0.0;
         
-        // Executar c�lculo centralizado no ApexEngine
+        // Executar cálculo centralizado no ApexEngine
         const resEngine = window.ApexEngine.calcularViabilidadeCompleta({
             pesoBruto: pesoInicial,
             componentes: componentesActivos,
@@ -8052,20 +8052,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (resEngine.totalPesoRecuperado > pesoInicial) {
-            _apexNotify('Sistema', 'Aten��o: A soma do peso dos componentes n�o pode exceder o peso inicial da amostra!', 'info');
+            _apexNotify('Sistema', 'Atenção: A soma do peso dos componentes não pode exceder o peso inicial da amostra!', 'info');
         }
 
         document.getElementById('resumo-peso-recuperado').textContent = resEngine.totalPesoRecuperado.toFixed(3);
         document.getElementById('resumo-peso-perda').textContent = resEngine.perdaFisicaKg.toFixed(3);
         document.getElementById('resumo-percentual-perda').textContent = fmtBRL(resEngine.percentualPerda);
 
-        // Formula Qu�mica
+        // Formula Química
         const formulaParts = componentesActivos.map(c => {
             const m = localMateriais.find(x => x.id === c.material_id);
             return `${c.percentual.toFixed(1)}% ${m ? m.nome : (c.custom_name || 'Desconhecido')}`;
         });
         if (resEngine.perdaFisicaKg > 0) {
-            formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Res�duos`);
+            formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Resíduos`);
         }
         document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' · ');
 
@@ -8082,7 +8082,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPesos = componentesActivos.reduce((sum, c) => sum + c.peso, 0);
 
         if (totalPesos > pesoInicial) {
-            _apexNotify('Aten��o', 'Erro: A soma do peso dos componentes � maior do que o peso total dispon�vel.', 'error');
+            _apexNotify('Atenção', 'Erro: A soma do peso dos componentes é maior do que o peso total disponível.', 'error');
             return;
         }
         
@@ -8097,22 +8097,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     tecnico_analise: sessionStorage.getItem('apex_logged_user_name') || currentSimulatedRole
                 })
             });
-            // Muda status para sinalizar que precisa de decis�o do Diretor
+            // Muda status para sinalizar que precisa de decisão do Diretor
             await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Aguardando Decis�o de Compra' })
+                body: JSON.stringify({ status: 'Aguardando Decisão de Compra' })
             });
-            // Disparo autom�tico de e-mail ao Diretor
+            // Disparo automático de e-mail ao Diretor
             try {
                 const emailRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/enviar-laudo-email`, { method: 'POST' });
                 const emailData = await emailRes.json();
                 const emailMsg = emailData.enviado
-                    ? `E-mail enviado para ${emailData.destinatarios?.length || 0} destinat�rio(s).`
-                    : `E-mail n�o enviado (${emailData.motivo || 'sem config'}).`;
-                _apexNotify('An�lise Salva com Sucesso!', 'A amostra foi enviada para decis�o de compra pela Diretoria.\n\n' + emailMsg, 'success');
+                    ? `E-mail enviado para ${emailData.destinatarios?.length || 0} destinatário(s).`
+                    : `E-mail não enviado (${emailData.motivo || 'sem config'}).`;
+                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.\n\n' + emailMsg, 'success');
             } catch(e) {
-                _apexNotify('An�lise Salva com Sucesso!', 'A amostra foi enviada para decis�o de compra pela Diretoria.', 'success');
+                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.', 'success');
             }
             fecharAnaliseDesmonte();
             carregarAmostras();
@@ -8121,7 +8121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // A��es Diretoria
+    // Ações Diretoria
     window.abrirModalReprovacao = function() {
         document.getElementById('reprovacao-motivo-texto').value = '';
         document.getElementById('modal-reprovacao').style.display = 'flex';
@@ -8140,13 +8140,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const obsDir = (document.getElementById('dir-obs-diretoria') || {}).value || '';
 
         if (decisao === 'Reprovado' && !motivo) {
-            _apexNotify('Sistema', 'Por favor, informe o motivo da reprova��o.', 'info');
+            _apexNotify('Sistema', 'Por favor, informe o motivo da reprovação.', 'info');
             return;
         }
 
         if (decisao === 'Aprovado') {
             if (isNaN(precoEntregar) || isNaN(precoColetar) || !validade) {
-                _apexNotify('Sistema', 'Por favor, preencha os pre�os autorizados de compra (Entregar e Coletar) e a validade.', 'info');
+                _apexNotify('Sistema', 'Por favor, preencha os preços autorizados de compra (Entregar e Coletar) e a validade.', 'info');
                 return;
             }
         }
@@ -8168,13 +8168,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             if (res.ok) {
-                const emoji = decisao === 'Aprovado' ? '' : '�R';
-                _apexNotify('Sistema', `${emoji} Decis�o da Diretoria registrada: ${decisao}\n\nEsta decis�o foi permanentemente registrada no laudo da amostra.`, 'info');
+                const emoji = decisao === 'Aprovado' ? '✅' : 'âŒ';
+                _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();
                 carregarAmostras();
             } else {
-                _apexNotify('Aten��o', 'Erro: ' + (data.error || 'N�o foi poss�vel registrar a decis�o.'), 'error');
+                _apexNotify('Atenção', 'Erro: ' + (data.error || 'Não foi possível registrar a decisão.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -8187,9 +8187,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Liberado para Produ��o' })
+                body: JSON.stringify({ status: 'Liberado para Produção' })
             });
-            _apexNotify('Sistema', 'Lote Aprovado e Liberado para Produ��o/PCP!', 'info');
+            _apexNotify('Sistema', 'Lote Aprovado e Liberado para Produção/PCP!', 'info');
             fecharAnaliseDesmonte();
             carregarAmostras();
         } catch (err) {
@@ -8239,7 +8239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(ftData)) fotosAmostraList = ftData;
             } catch(e) { console.warn('Erro ao carregar fotos:', e); }
 
-            // Carregar logo do cabe�alho
+            // Carregar logo do cabeçalho
             let logoBase64 = null;
             try {
                 const logoRes = await fetch('/assets/img/apexlogo.png');
@@ -8249,7 +8249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     reader.onloadend = () => resolve(reader.result);
                     reader.readAsDataURL(logoBlob);
                 });
-            } catch(e) { console.warn('Logo cabe�alho n�o carregado:', e); }
+            } catch(e) { console.warn('Logo cabeçalho não carregado:', e); }
 
             // Carregar Marca d'Água: logo (2).png
             let watermarkBase64 = null;
@@ -8262,7 +8262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     reader.readAsDataURL(wBlob);
                 });
             } catch(e) {
-                console.warn('Watermark logo (2).png n�o carregado:', e);
+                console.warn('Watermark logo (2).png não carregado:', e);
                 watermarkBase64 = logoBase64;
             }
 
@@ -8294,7 +8294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setTextColor(140, 210, 160);
                 pdf.text('Tecnologia e Sustentabilidade na Reciclagem de Metais', 60, 289);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('P�gina ' + pageNum, 195, 289, { align: 'right' });
+                pdf.text('Página ' + pageNum, 195, 289, { align: 'right' });
                 pdf.setFontSize(7);
                 pdf.setTextColor(120, 180, 140);
                 pdf.text('Laudo No. APX-' + (amostra.numero_amostra || '') + '  |  ' + new Date().toLocaleDateString('pt-BR'), 15, 293);
@@ -8328,7 +8328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.setFont('helvetica', 'normal');
                 pdf.setFontSize(8);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('EMISS�O: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
+                pdf.text('EMISSÃO: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
                 const decStatus = amostra.decisao_diretoria || 'AGUARDANDO';
                 const sc = decStatus === 'Aprovado' ? [42, 208, 122] : decStatus === 'Reprovado' ? [255, 80, 80] : [220, 200, 60];
                 pdf.setTextColor(...sc);
@@ -8352,7 +8352,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let y = 50;
 
-            // ������ SE��O 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ������������������
+            // ─── SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ─────────
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -8384,7 +8384,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('Material Recebido:', 17, y);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(10, 120, 50);
-            pdf.text((amostra.nome_material || 'Material n�o informado').toUpperCase(), 48, y);
+            pdf.text((amostra.nome_material || 'Material não informado').toUpperCase(), 48, y);
             pdf.setTextColor(50, 50, 50);
 
             pdf.setFont('helvetica', 'bold');
@@ -8396,7 +8396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setFont('helvetica', 'bold');
             pdf.text('Comprador / Contato:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            // Trunca para n�o sobrepor o campo Peso Inicial à direita
+            // Trunca para não sobrepor o campo Peso Inicial à direita
             const compTel = fcomp + (ftel ? ' (' + ftel + ')' : '');
             pdf.text(pdf.splitTextToSize(compTel, 110)[0], 52, y);
 
@@ -8407,13 +8407,13 @@ document.addEventListener('DOMContentLoaded', () => {
             y += 6;
 
             pdf.setFont('helvetica', 'bold');
-            pdf.text('Respons�vel T�c:', 17, y);
+            pdf.text('Responsável Téc:', 17, y);
             pdf.setFont('helvetica', 'normal');
             pdf.text(amostra.responsavel || 'Eng. Roberto', 48, y);
 
             if (fend) {
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Endere�o:', 138, y);
+                pdf.text('Endereço:', 138, y);
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(pdf.splitTextToSize(fend, 38)[0], 156, y);
             }
@@ -8421,7 +8421,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (amostra.observacoes) {
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Observa��es:', 17, y);
+                pdf.text('Observações:', 17, y);
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(pdf.splitTextToSize(amostra.observacoes, 155)[0], 42, y);
                 y += 6;
@@ -8433,7 +8433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // ������ SE��O 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ��������������������������������������������������������������������
+            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ──────────────────────────────────
             checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
@@ -8443,7 +8443,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÁFICO POR ETAPA', 17, y + 5.5);
             y += 12;
 
-            // ���� Helper: carrega uma imagem da API e retorna base64 ����
+            // ── Helper: carrega uma imagem da API e retorna base64 ──
             async function _loadImgB64(url) {
                 try {
                     const r = await fetch(url);
@@ -8453,7 +8453,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch(e) { return null; }
             }
 
-            // ���� Helper: desenha um bloco de foto no PDF ����
+            // ── Helper: desenha um bloco de foto no PDF ──
             function _drawFotoBloco(srcB64, label, bY, bH) {
                 pdf.setFillColor(248, 252, 249);
                 pdf.setDrawColor(13, 36, 22);
@@ -8473,13 +8473,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdf.text(pdf.splitTextToSize(label, 110), 76, bY + 9);
             }
 
-            // ���� ETAPA 1  RECEBIMENTO ����
+            // ── ETAPA 1 — RECEBIMENTO ──
             {
                 const blocoH = 42;
                 checarNovaPagina(blocoH + 6);
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text('ETAPA 1  PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
+                pdf.text('ETAPA 1 — PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
                 y += 8;
                 checarNovaPagina(blocoH + 4);
 
@@ -8503,12 +8503,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const infoTextoRec = [
-                    `Produto: ${(amostra.nome_material || 'N�o informado').toUpperCase()}`,
-                    `C�digo: APX-${amostra.numero_amostra || '000'}`,
+                    `Produto: ${(amostra.nome_material || 'Não informado').toUpperCase()}`,
+                    `Código: APX-${amostra.numero_amostra || '000'}`,
                     `Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`,
                     `Peso Bruto: ${parseFloat(amostra.peso_inicial || 0).toFixed(3)} kg`,
-                    `Respons�vel: ${amostra.responsavel || '---'}`,
-                    `Obs: ${(amostra.observacoes || 'Sem observa��es.').substring(0, 60)}`
+                    `Responsável: ${amostra.responsavel || '---'}`,
+                    `Obs: ${(amostra.observacoes || 'Sem observações.').substring(0, 60)}`
                 ].join('\n');
 
                 _drawFotoBloco(fotoOrigFinal, infoTextoRec, y, blocoH);
@@ -8518,15 +8518,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (const f of recebimentoExtras) {
                     checarNovaPagina(blocoH + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `Foto Recebimento  ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
+                    if (b64) { _drawFotoBloco(b64, `Foto Recebimento — ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
                 }
             }
 
-            // ���� ETAPA 2  DESMONTE: uma subse��o por componente com TODAS as suas fotos ����
+            // ── ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos ──
             {
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text('ETAPA 2  DESMONTE F�SICO & TRIAGEM DE COMPONENTES', 17, y + 4.3);
+                pdf.text('ETAPA 2 — DESMONTE FÍSICO & TRIAGEM DE COMPONENTES', 17, y + 4.3);
                 y += 8;
 
                 // Agrupa fotos por componente_idx
@@ -8537,7 +8537,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         fotosPorComp[f.componente_idx].push(f);
                     }
                 }
-                // Fotos do Desmonte n�o vinculadas a componente espec�fico
+                // Fotos do Desmonte não vinculadas a componente específico
                 const fotosDesmonteGeral = fotosAmostraList.filter(f =>
                     (f.etapa || 'Desmonte') === 'Desmonte' && (f.componente_idx === null || f.componente_idx === undefined)
                 );
@@ -8548,17 +8548,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         const nomeComp = comp.material_nome || `Componente ${cIdx + 1}`;
                         const fotasComp = fotosPorComp[cIdx] || [];
                         const blocoH = 42;
-                        // Cabe�alho do componente
+                        // Cabeçalho do componente
                         checarNovaPagina(blocoH + 12);
                         pdf.setFillColor(30, 78, 140); pdf.rect(15, y, 180, 5, 'F');
                         pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5);
-                        pdf.text(`COMPONENTE ${cIdx + 1}: ${nomeComp.toUpperCase()}  ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`, 17, y + 3.5);
+                        pdf.text(`COMPONENTE ${cIdx + 1}: ${nomeComp.toUpperCase()} — ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`, 17, y + 3.5);
                         y += 7;
 
                         if (fotasComp.length === 0) {
                             // Sem fotos para este componente
                             checarNovaPagina(blocoH + 4);
-                            _drawFotoBloco(null, `${nomeComp} | ${parseFloat(comp.peso).toFixed(3)} kg  ${parseFloat(comp.percentual).toFixed(1)}%\nDificuldade: ${comp.dificuldade || 'F�cil'}\nObs: ${(comp.observacoes || '').substring(0, 60) || 'Sem observa��es.'}`, y, blocoH);
+                            _drawFotoBloco(null, `${nomeComp} | ${parseFloat(comp.peso).toFixed(3)} kg — ${parseFloat(comp.percentual).toFixed(1)}%\nDificuldade: ${comp.dificuldade || 'Fácil'}\nObs: ${(comp.observacoes || '').substring(0, 60) || 'Sem observações.'}`, y, blocoH);
                             y += blocoH + 4;
                         } else {
                             // Exibe TODAS as fotos do componente
@@ -8567,10 +8567,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 checarNovaPagina(blocoH + 4);
                                 const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
                                 const label = [
-                                    `${nomeComp}  Foto ${fIdx + 1}/${fotasComp.length}`,
+                                    `${nomeComp} — Foto ${fIdx + 1}/${fotasComp.length}`,
                                     `Peso: ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`,
-                                    `Dificuldade: ${comp.dificuldade || 'F�cil'}`,
-                                    `Obs: ${(comp.observacoes || 'Sem observa��es.').substring(0, 60)}`
+                                    `Dificuldade: ${comp.dificuldade || 'Fácil'}`,
+                                    `Obs: ${(comp.observacoes || 'Sem observações.').substring(0, 60)}`
                                 ].join('\n');
                                 _drawFotoBloco(b64, label, y, blocoH);
                                 y += blocoH + 4;
@@ -8578,32 +8578,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-                // Fotos de Desmonte gerais (n�o vinculadas a componente)
+                // Fotos de Desmonte gerais (não vinculadas a componente)
                 for (const f of fotosDesmonteGeral) {
                     checarNovaPagina(42 + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `Desmonte Geral  ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                    if (b64) { _drawFotoBloco(b64, `Desmonte Geral — ${f.nome || 'Foto'}`, y, 42); y += 46; }
                 }
             }
 
-            // ���� ETAPA 3 & 4: Viabilidade e Aprova��o ����
-            for (const etapaKey of ['Viabilidade', 'Aprova��o']) {
+            // ── ETAPA 3 & 4: Viabilidade e Aprovação ──
+            for (const etapaKey of ['Viabilidade', 'Aprovação']) {
                 const fotasEtapa = fotosAmostraList.filter(f => f.etapa === etapaKey);
                 if (fotasEtapa.length === 0) continue;
                 checarNovaPagina(50);
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text(`ETAPA  ${etapaKey.toUpperCase()}`, 17, y + 4.3);
+                pdf.text(`ETAPA — ${etapaKey.toUpperCase()}`, 17, y + 4.3);
                 y += 8;
                 for (const f of fotasEtapa) {
                     checarNovaPagina(42 + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `${etapaKey}  ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                    if (b64) { _drawFotoBloco(b64, `${etapaKey} — ${f.nome || 'Foto'}`, y, 42); y += 46; }
                 }
             }
 
 
-            // ������ SE��O 3: RESULTADO DA ANÁLISE F�SICA E DESMONTE ����������������������������������������
+            // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
             checarNovaPagina(55); // Garante 55mm livres para o bloco completo
 
             pdf.setFillColor(13, 36, 22);
@@ -8611,11 +8611,11 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RESULTADO DA ANÁLISE F�SICA E DESMONTE', 17, y + 5.5);
+            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
 
-            let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de t�tulo
+            let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de título
 
-            // Cabe�alho da Tabela de Componentes (Altura 7mm)
+            // Cabeçalho da Tabela de Componentes (Altura 7mm)
             pdf.setFillColor(20, 60, 35);
             pdf.rect(15, tableY, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -8626,7 +8626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text('Rendimento', 145, tableY + 4.8);
             pdf.text('Dificuldade', 170, tableY + 4.8);
             
-            tableY += 10.0; // Avan�a 10mm (7mm da caixa + 3mm de margem livre)
+            tableY += 10.0; // Avança 10mm (7mm da caixa + 3mm de margem livre)
 
             let sumPeso = 0;
             pdf.setFont('helvetica', 'normal');
@@ -8644,7 +8644,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, tableY + 4.8);
                     pdf.text(fmtBRL(c.percentual) + ' %', 148, tableY + 4.8);
                     if (c.dificuldade) {
-                        const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'M�dia' ? [180,130,0] : [30,130,60];
+                        const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Média' ? [180,130,0] : [30,130,60];
                         pdf.setTextColor(...dc);
                         pdf.setFontSize(7.5);
                         pdf.text(c.dificuldade, 172, tableY + 4.8);
@@ -8654,7 +8654,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Linha de Perda F�sica / Res�duos Industriais (Altura 7mm, posicionada 10mm abaixo do cabe�alho)
+            // Linha de Perda Física / Resíduos Industriais (Altura 7mm, posicionada 10mm abaixo do cabeçalho)
             const perda = parseFloat(amostra.peso_inicial || 0) - sumPeso;
             const pctPerda = parseFloat(amostra.peso_inicial || 0) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
             
@@ -8663,21 +8663,21 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(180, 40, 40);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('Res�duos Industriais / Perda F�sica', 18, tableY + 4.8);
+            pdf.text('Resíduos Industriais / Perda Física', 18, tableY + 4.8);
             pdf.text((perda > 0 ? perda : 0).toLocaleString('pt-BR') + ' kg', 110, tableY + 4.8);
             pdf.text(fmtBRL(pctPerda > 0 ? pctPerda : 0) + ' %', 148, tableY + 4.8);
             
             tableY += 12;
             y = tableY; // Atualiza o ponteiro global y com o valor acumulado em tableY
 
-            // Consolida��o qu�mica
+            // Consolidação química
             checarNovaPagina(20);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 15, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('COMPOSI��O CONSOLIDADA / F�RMULA QU�MICA:', 18, y + 5);
+            pdf.text('COMPOSIÇÃO CONSOLIDADA / FÓRMULA QUÍMICA:', 18, y + 5);
             pdf.setFont('courier', 'normal');
             pdf.setTextColor(170, 255, 200);
             pdf.setFontSize(7.5);
@@ -8685,17 +8685,17 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 11);
             y += 19;
 
-            // ������ SE��O 4: PARECERES T�CNICOS E DECIS�O DE COMPRA ��������������������������������������
+            // ─── SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA ───────────────────
             checarNovaPagina(45);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('PARECERES T�CNICO E DECIS�O DE COMPRA', 17, y + 5);
+            pdf.text('PARECERES TÉCNICO E DECISÃO DE COMPRA', 17, y + 5);
             y += 10;
 
-            // Parecer t�cnico
+            // Parecer técnico
             pdf.setFillColor(235, 248, 240);
             pdf.rect(15, y, 180, 18, 'F');
             pdf.setFillColor(42, 140, 80);
@@ -8706,14 +8706,14 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(10, 70, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text('PARECER T�CNICO (LABORAT�RIO):', 22, y + 5);
+            pdf.text('PARECER TÉCNICO (LABORATÓRIO):', 22, y + 5);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
-            const pt = amostra.parecer_tecnico || '(sem observa��es informadas)';
+            const pt = amostra.parecer_tecnico || '(sem observações informadas)';
             pdf.text(pdf.splitTextToSize(pt, 168).slice(0, 2), 22, y + 11);
             y += 22;
 
-            // Decis�o diretoria
+            // Decisão diretoria
             const decAprovada = amostra.decisao_diretoria === 'Aprovado';
             const isReprov = amostra.decisao_diretoria === 'Reprovado';
             const bgDec = decAprovada ? [235, 252, 240] : isReprov ? [252, 235, 235] : [248, 248, 235];
@@ -8730,7 +8730,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setTextColor(...txtDec);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('DECIS�O DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
+            pdf.text('DECISÃO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
             pdf.setFontSize(8);
@@ -8742,43 +8742,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (amostra.motivo_reprovacao) {
                 pdf.setTextColor(160, 30, 30);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Motivo da Reprova��o: ' + amostra.motivo_reprovacao, 22, dy);
+                pdf.text('Motivo da Reprovação: ' + amostra.motivo_reprovacao, 22, dy);
                 dy += 5;
             }
             if (decAprovada && amostra.preco_compra_entregar) {
                 pdf.setTextColor(10, 100, 40);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Pre�o Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
+                pdf.text('Preço Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
                 dy += 5;
             }
             y += 28;
 
-            // ������ SE��O 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETR�NICA ����������������
+            // ─── SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA ────────
             checarNovaPagina(40);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('ASSINATURAS E RASTREABILIDADE DIGITAL / ELETR�NICA', 17, y + 5);
+            pdf.text('ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA', 17, y + 5);
             y += 12;
 
             const sigBoxWidth = 85;
             const sigY = y;
 
-            // Assinatura T�cnico Executor
+            // Assinatura Técnico Executor
             pdf.setDrawColor(42, 140, 80);
             pdf.setLineWidth(0.4);
             pdf.line(17, sigY + 12, 17 + sigBoxWidth, sigY + 12);
             pdf.setTextColor(30, 30, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text((amostra.tecnico_analise || amostra.responsavel || 'Analista de Laborat�rio').toUpperCase(), 17, sigY + 16);
+            pdf.text((amostra.tecnico_analise || amostra.responsavel || 'Analista de Laboratório').toUpperCase(), 17, sigY + 16);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(100, 100, 100);
             pdf.setFontSize(7);
-            pdf.text('Perfil: T�cnico Respons�vel / Laborat�rio', 17, sigY + 20);
-            pdf.text('Status Execu��o: Desmonte e Triagem OK', 17, sigY + 24);
+            pdf.text('Perfil: Técnico Responsável / Laboratório', 17, sigY + 20);
+            pdf.text('Status Execução: Desmonte e Triagem OK', 17, sigY + 24);
 
             // Assinatura Diretoria / Aprovador
             const dirX = 110;
@@ -8792,19 +8792,19 @@ document.addEventListener('DOMContentLoaded', () => {
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(100, 100, 100);
             pdf.setFontSize(7);
-            pdf.text('Perfil: Diretoria / Autoriza��o Estrat�gica', dirX, sigY + 20);
-            pdf.text('Decis�o: ' + (amostra.decisao_diretoria || 'Aguardando'), dirX, sigY + 24);
+            pdf.text('Perfil: Diretoria / Autorização Estratégica', dirX, sigY + 20);
+            pdf.text('Decisão: ' + (amostra.decisao_diretoria || 'Aguardando'), dirX, sigY + 24);
 
             y += 30;
 
-            // Rodap� final com total de p�ginas
+            // Rodapé final com total de páginas
             drawFooter(currentPageNum);
 
             pdf.save('LAUDO_APEXTECH_' + (amostra.numero_amostra || 'PDF') + '.pdf');
 
         } catch (err) {
             console.error('Erro ao gerar laudo PDF:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar o laudo. Tente novamente.', 'error');
+            _apexNotify('Atenção', 'Erro ao gerar o laudo. Tente novamente.', 'error');
         }
     };
 
@@ -8829,7 +8829,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const resEst = await fetch('/api/estoque');
             const { estoque } = await resEst.json();
 
-            // ������ KPIs ������
+            // ─── KPIs ───
             let pesoTotal = 0;
             let totalCompra = 0;
             let faturamento = 0;
@@ -8850,7 +8850,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let totalPesoPerdaAmostras = 0;
             
             amostras.forEach(a => {
-                if (a.status === 'Processado' || a.status === 'Liberado para Produ��o') {
+                if (a.status === 'Processado' || a.status === 'Liberado para Produção') {
                     const weight = parseFloat(a.peso_inicial) || 0;
                     totalPesoOriginalAmostras += weight;
                     
@@ -8871,7 +8871,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('bi-kpi-margem').textContent = fmtBRL(margemConsolidada) + ' %';
             document.getElementById('bi-kpi-perda').textContent = fmtBRL(taxaPerdaIndustrial) + ' %';
 
-            // ���� Gr�fico 1: Evolu��o Mensal ����
+            // ── Gráfico 1: Evolução Mensal ──
             const mesesMap = {};
             planejamento.forEach(p => {
                 const m = p.mes || '2026-07';
@@ -8907,7 +8907,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ���� Gr�fico 2: Composi��o das Amostras ����
+            // ── Gráfico 2: Composição das Amostras ──
             const compMap = {};
             estoque.forEach(e => {
                 compMap[e.material_nome] = parseFloat(e.saldo) || 0;
@@ -8933,7 +8933,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ���� Gr�fico 3: Ranking de Fornecedores ����
+            // ── Gráfico 3: Ranking de Fornecedores ──
             const fornMap = {};
             planejamento.forEach(p => {
                 const f = p.fornecedor_nome || 'Desconhecido';
@@ -8969,7 +8969,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ���� Gr�fico 4: Margem de Compra Coleta vs Entrega ����
+            // ── Gráfico 4: Margem de Compra Coleta vs Entrega ──
             const catMargem = {};
             localPrecos.forEach(p => {
                 const cat = p.material_categoria;
@@ -9004,7 +9004,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // ���� TOP 10 Melhores Produtos (Margem L�quida) ����
+            // ── TOP 10 Melhores Produtos (Margem Líquida) ──
             const topBody = document.getElementById('bi-top10-table-body');
             if (topBody && localPrecos && localPrecos.length > 0) {
                 const listComMargem = localPrecos.map(p => {
@@ -9047,7 +9047,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     let statusBadge = '<span class="bi-status-badge" style="background:#0d3020; color:#2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Excelente</span>';
                     if (item.margemLiqEnt < 5) {
-                        statusBadge = '<span class="bi-status-badge" style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Aten��o/Baixa</span>';
+                        statusBadge = '<span class="bi-status-badge" style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Atenção/Baixa</span>';
                     } else if (item.margemLiqEnt < 15) {
                         statusBadge = '<span class="bi-status-badge" style="background:#3a2e00; color:#f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Boa</span>';
                     }
@@ -9084,10 +9084,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ������ 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ������
+    // ─── 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ───
     let mesPlanejamentoSelecionado = '2026-08';
     let cenarioPreditivoSelecionado = 'moderado';
-    let historicoCenarioPorMes = {}; // Guarda o cen�rio ativo por m�s
+    let historicoCenarioPorMes = {}; // Guarda o cenário ativo por mês
 
     window.initApexPlanejamento = function() {
         if (window.carregarPlanejamentoDashboard) {
@@ -9111,7 +9111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!data.success) throw new Error('Falha ao buscar planos ativos');
             
             let planos = data.planos || [];
-            // Filtrar planos n�o finalizados
+            // Filtrar planos não finalizados
             planos = planos.filter(p => p.status !== 'FINALIZADO');
 
             let totalPlanejadoAlvo = 0;
@@ -9153,7 +9153,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elQtdPlanos) elQtdPlanos.textContent = totalPlanosAtivos;
             if (elQtdProds) elQtdProds.textContent = produtosMap.size;
 
-            // Renderiza Gr�fico
+            // Renderiza Gráfico
             renderChartDashPlComparativo(produtosMap);
 
         } catch (e) {
@@ -9162,7 +9162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errDiv.style = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,0,0,0.8); color:white; z-index:999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:24px; padding:20px; white-space:pre-wrap;";
             errDiv.innerText = "FATAL ERROR DASHBOARD:\n" + (e.stack || e.message || String(e));
             document.body.appendChild(errDiv);
-            (window._apexNotify ? window._apexNotify('Notifica��o', "ERRO: " + e.message, 'info') : alert("ERRO: " + e.message));
+            (window._apexNotify ? window._apexNotify('Notificação', "ERRO: " + e.message, 'info') : alert("ERRO: " + e.message));
         }
     };
 
@@ -9220,7 +9220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             beginAtZero: true,
                             ticks: { color: '#8eaabf' },
                             grid: { color: '#1a2e3f' },
-                            // D� uma margem no topo para caber os labels
+                            // Dá uma margem no topo para caber os labels
                             suggestedMax: (dataAlvo.length > 0 ? Math.max(...dataAlvo, ...dataReal) : 100) * 1.15
                         },
                         x: {
@@ -9245,7 +9245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (e) {
             console.error('Erro ao renderizar grafico dash pl:', e);
-            (window._apexNotify ? window._apexNotify('Notifica��o', 'Erro ao desenhar grafico: ' + e.message, 'info') : alert('Erro ao desenhar grafico: ' + e.message));
+            (window._apexNotify ? window._apexNotify('Notificação', 'Erro ao desenhar grafico: ' + e.message, 'info') : alert('Erro ao desenhar grafico: ' + e.message));
         }
     }
 
@@ -9262,10 +9262,10 @@ document.addEventListener('DOMContentLoaded', () => {
         body.innerHTML = '';
         footer.innerHTML = '';
 
-        // Filtra lotes pelo m�s selecionado
+        // Filtra lotes pelo mês selecionado
         const lotesMes = localPlanejamento.filter(lc => {
             if (mesPlanejamentoSelecionado === 'todos') return true;
-            if (!lc.mes) return true; // se n�o tiver m�s definido, mostra por padr�o
+            if (!lc.mes) return true; // se não tiver mês definido, mostra por padrão
             return lc.mes === mesPlanejamentoSelecionado;
         });
 
@@ -9292,7 +9292,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding:8px;"><strong>${lc.fornecedor_nome || 'Fornecedor V�rios'}</strong></td>
+                <td style="padding:8px;"><strong>${lc.fornecedor_nome || 'Fornecedor Vários'}</strong></td>
                 <td style="padding:8px;">${lc.produto || '-'}</td>
                 <td style="padding:8px; text-align:right;">${parseFloat(lc.peso_comprado || 0).toLocaleString('pt-BR')} kg</td>
                 <td style="padding:8px; text-align:right;">R$ ${fmtBRL(lc.preco_compra)}</td>
@@ -9312,7 +9312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body.appendChild(tr);
         });
 
-        // Rodap� de Fechamento consolidado
+        // Rodapé de Fechamento consolidado
         const avgPrecoCompra = pesoTotal > 0 ? totalCompra / pesoTotal : 0;
         const avgRendimento = pesoTotal > 0 ? (pesoMaterialTotal / pesoTotal) * 100 : 0;
         const avgPrecoVenda = pesoMaterialTotal > 0 ? totalVenda / pesoMaterialTotal : 0;
@@ -9339,7 +9339,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>
         `;
 
-        // Atualizar KPIs de Capacidade de Trabalho & Or�amento Preditivo
+        // Atualizar KPIs de Capacidade de Trabalho & Orçamento Preditivo
         const elVol = document.getElementById('pl-kpi-volume');
         const elOrc = document.getElementById('pl-kpi-orcamento');
         const elLuc = document.getElementById('pl-kpi-lucro');
@@ -9351,9 +9351,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elVol) elVol.textContent = `${pesoTotal.toLocaleString('pt-BR')} kg`;
         if (elOrc) elOrc.textContent = `R$ ${totalCompra.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         if (elLuc) elLuc.textContent = `R$ ${lucroBrutoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        if (elTrab) elTrab.textContent = `${horasTrabalho.toLocaleString('pt-BR')} Horas/M�s`;
+        if (elTrab) elTrab.textContent = `${horasTrabalho.toLocaleString('pt-BR')} Horas/Mês`;
 
-        // Badge de Cen�rio Ativo
+        // Badge de Cenário Ativo
         const badge = document.getElementById('badge-cenario-ativo');
         const txtNome = document.getElementById('txt-cenario-nome');
         const txtDet = document.getElementById('txt-cenario-detalhe');
@@ -9362,9 +9362,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (badge && cenarioAtivo) {
             badge.style.display = 'flex';
             const infoCenarios = {
-                conservador: { nome: '�x:�️ Conservador (-10% Volume / +5% Margem)', det: 'Aloca��o prudente com redu��o de teto de custos para menor risco financeiro.' },
-                moderado: { nome: '�️ Moderado (M�dia Hist�rica M�vel)', det: 'Proje��o cont�nua baseada no desempenho m�dio recente.' },
-                agressivo: { nome: '�xa� Agressivo (+20% Volume / Expans�o)', det: 'Meta de capta��o ampliada e aloca��o m�xima de trabalho industrial.' }
+                conservador: { nome: 'ðŸ›¡ï¸ Conservador (-10% Volume / +5% Margem)', det: 'Alocação prudente com redução de teto de custos para menor risco financeiro.' },
+                moderado: { nome: '⚠️–ï¸ Moderado (Média Histórica Móvel)', det: 'Projeção contínua baseada no desempenho médio recente.' },
+                agressivo: { nome: 'ðŸš€ Agressivo (+20% Volume / Expansão)', det: 'Meta de captação ampliada e alocação máxima de trabalho industrial.' }
             };
             const c = infoCenarios[cenarioAtivo] || infoCenarios.moderado;
             if (txtNome) txtNome.textContent = c.nome;
@@ -9374,7 +9374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ������ Modal & Motor de Simula��o Preditiva ������
+    // ─── Modal & Motor de Simulação Preditiva ───
     window.abrirModalPlanejamentoPreditivo = function() {
         document.getElementById('modal-planejamento-preditivo').style.display = 'flex';
         window.atualizarPreviewPreditivo();
@@ -9414,12 +9414,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const cenario = cenarioPreditivoSelecionado;
         const baseMeses = parseInt(document.getElementById('pred-base-historico')?.value || '3');
 
-        // Calcula m�dia de lotes existentes
+        // Calcula média de lotes existentes
         let volBase = localPlanejamento.reduce((acc, x) => acc + (parseFloat(x.peso_comprado) || 0), 0);
         let custoBase = localPlanejamento.reduce((acc, x) => acc + ((parseFloat(x.peso_comprado) || 0) * (parseFloat(x.preco_compra) || 0)), 0);
         let fatBase = localPlanejamento.reduce((acc, x) => acc + ((parseFloat(x.peso_comprado) || 0) * (parseFloat(x.percentual_rendimento || 0) / 100) * (parseFloat(x.preco_venda_material) || 0)), 0);
 
-        // Se n�o houver dados no localPlanejamento, usa estimativa de modelo
+        // Se não houver dados no localPlanejamento, usa estimativa de modelo
         if (volBase === 0) {
             volBase = 45000;
             custoBase = 180000;
@@ -9461,20 +9461,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processando Proje��o...';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processando Projeção...';
         }
 
         try {
-            // Lotes padr�o para preencher a proje��o caso n�o haja hist�rico suficiente
+            // Lotes padrão para preencher a projeção caso não haja histórico suficiente
             const fornecedoresList = (window.localFornecedores || []).length > 0 ? window.localFornecedores : [
                 { id: 1, nome: 'Fornecedor Sucatas A' },
                 { id: 2, nome: 'Reciclagem Metal B' },
-                { id: 3, nome: 'Metal�rgica Centro C' }
+                { id: 3, nome: 'Metalúrgica Centro C' }
             ];
             const materiaisList = (window.localMateriais || []).length > 0 ? window.localMateriais : [
-                { id: 1, nome: 'Alum�nio Bloco', categoria: 'Alum�nio' },
+                { id: 1, nome: 'Alumínio Bloco', categoria: 'Alumínio' },
                 { id: 2, nome: 'Cobre Mel', categoria: 'Cobre' },
-                { id: 3, nome: 'Sucata Mi�da', categoria: 'A�o' }
+                { id: 3, nome: 'Sucata Miúda', categoria: 'Aço' }
             ];
 
             let multVol = 1.0;
@@ -9489,12 +9489,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     fornecedor_id: fornecedoresList[0]?.id || 1,
                     fornecedor_nome: fornecedoresList[0]?.apelido || fornecedoresList[0]?.nome || 'Fornecedor A',
-                    produto: 'Sucata de Alum�nio Misturada',
+                    produto: 'Sucata de Alumínio Misturada',
                     peso_comprado: Math.round(15000 * multVol),
                     preco_compra: 5.50,
                     percentual_rendimento: 85.0,
                     material_id: materiaisList[0]?.id || 1,
-                    material_nome: materiaisList[0]?.nome || 'Alum�nio Bloco',
+                    material_nome: materiaisList[0]?.nome || 'Alumínio Bloco',
                     preco_venda_material: 7.80,
                     comissao: 2.0,
                     fidc: 2.3,
@@ -9516,13 +9516,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 {
                     fornecedor_id: fornecedoresList[2]?.id || 3,
-                    fornecedor_nome: fornecedoresList[2]?.apelido || fornecedoresList[2]?.nome || 'Metal�rgica C',
+                    fornecedor_nome: fornecedoresList[2]?.apelido || fornecedoresList[2]?.nome || 'Metalúrgica C',
                     produto: 'Lote Conectores & Tomadas',
                     peso_comprado: Math.round(12000 * multVol),
                     preco_compra: 8.20,
                     percentual_rendimento: 72.0,
                     material_id: materiaisList[2]?.id || 3,
-                    material_nome: materiaisList[2]?.nome || 'Lat�o/Bronze',
+                    material_nome: materiaisList[2]?.nome || 'Latão/Bronze',
                     preco_venda_material: 14.50,
                     comissao: 2.0,
                     fidc: 2.3,
@@ -9530,7 +9530,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             ];
 
-            // Remove lotes preditivos antigos do mesmo m�s para recriar
+            // Remove lotes preditivos antigos do mesmo mês para recriar
             localPlanejamento = localPlanejamento.filter(lc => lc.mes !== mesAlvo);
 
             // Persiste no backend cada lote projetado
@@ -9552,10 +9552,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Registra o cen�rio ativo no hist�rico do m�s
+            // Registra o cenário ativo no histórico do mês
             historicoCenarioPorMes[mesAlvo] = cenario;
 
-            // Ajusta seletor de m�s para o m�s rec�m gerado
+            // Ajusta seletor de mês para o mês recém gerado
             const selMes = document.getElementById('pl-filtro-mes');
             if (selMes) selMes.value = mesAlvo;
 
@@ -9563,14 +9563,14 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalPlanejamentoPreditivo();
             renderPlanejamento();
 
-            _apexNotify('Sucesso', `Planejamento Preditivo para ${mesAlvo} gerado com sucesso no Cen�rio ${cenario.toUpperCase()}!`, 'info');
+            _apexNotify('Sucesso', `Planejamento Preditivo para ${mesAlvo} gerado com sucesso no Cenário ${cenario.toUpperCase()}!`, 'info');
         } catch (err) {
-            console.error('Erro na gera��o preditiva:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar planejamento preditivo: ' + err.message, 'error');
+            console.error('Erro na geração preditiva:', err);
+            _apexNotify('Atenção', 'Erro ao gerar planejamento preditivo: ' + err.message, 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Gerar e Aplicar ao M�s';
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Gerar e Aplicar ao Mês';
             }
         }
     };
@@ -9603,16 +9603,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('pl-rendimento').value = componentes[0].percentual;
                 document.getElementById('pl-produto').value = componentes[0].material_nome;
 
-                // Favorecer o pre�o especial de compra autorizado pelo Diretor
+                // Favorecer o preço especial de compra autorizado pelo Diretor
                 if (amostra.decisao_diretoria === 'Aprovado' && amostra.preco_compra_entregar) {
                     document.getElementById('pl-preco-compra').value = amostra.preco_compra_entregar;
-                    // Pre�o de venda de refer�ncia da tabela geral
+                    // Preço de venda de referência da tabela geral
                     const prc = localPrecos.find(x => x.material_id === componentes[0].material_id);
                     if (prc) {
                         document.getElementById('pl-preco-venda').value = prc.venda_ref;
                     }
                 } else {
-                    // Fallback para pre�o da tabela geral
+                    // Fallback para preço da tabela geral
                     const prc = localPrecos.find(x => x.material_id === componentes[0].material_id);
                     if (prc) {
                         document.getElementById('pl-preco-compra').value = prc.preco_entregar;
@@ -9652,7 +9652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sim-fat-total').textContent = 'R$ ' + totalV.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('sim-lucro-bruto').textContent = 'R$ ' + lucroB.toLocaleString('pt-BR', {minimumFractionDigits:2});
         
-        // Exibindo lucro l�quido sem considerar o desconto antecipado (j� que � opcional)
+        // Exibindo lucro líquido sem considerar o desconto antecipado (já que é opcional)
         document.getElementById('sim-res-liquido').textContent = 'R$ ' + lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('sim-margem').textContent = fmtBRL(margem) + ' %';
         document.getElementById('sim-roi').textContent = fmtBRL(roi) + ' %';
@@ -9677,7 +9677,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = window.currentSimData;
         const prazo = parseInt(document.getElementById('pl-prazo').value) || 30;
-        const cliente = document.getElementById('pl-cliente').value || 'N�o informado';
+        const cliente = document.getElementById('pl-cliente').value || 'Não informado';
 
         document.getElementById('sim-fidc-prazo-s').textContent = prazo;
         document.getElementById('sim-fidc-lucro-s').textContent = 'R$ ' + data.lucroLiqSemFidc.toLocaleString('pt-BR', {minimumFractionDigits:2});
@@ -9701,15 +9701,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Inteligencia
-        let indicador = '�xx�';
+        let indicador = 'ðŸŸ¢';
         let titulo = 'Excelente para antecipar';
         let cor = '#2AD07A';
         
         const impactoFidcNoLucro = data.lucroB > 0 ? (data.valorFidc / data.lucroB) : 1;
         if (impactoFidcNoLucro > 0.4 || data.margem < 5) {
-            indicador = '�x�'; titulo = 'N�o recomendado'; cor = '#ff4d4d';
+            indicador = 'ðŸ”´'; titulo = 'Não recomendado'; cor = '#ff4d4d';
         } else if (impactoFidcNoLucro > 0.2) {
-            indicador = '�xx�'; titulo = 'Avaliar necessidade'; cor = '#f0b800';
+            indicador = 'ðŸŸ¡'; titulo = 'Avaliar necessidade'; cor = '#f0b800';
         }
 
         const dif = data.lucroLiqSemFidc - data.lucroLiqComFidc;
@@ -9718,14 +9718,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sim-fidc-indicador-titulo').style.color = cor;
         document.getElementById('sim-fidc-inteligencia-box').style.borderLeftColor = cor;
 
-        let txt = `A antecipa��o via FIDC reduzir� seu lucro em <strong>R$ ${dif.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> (${fmtBRL(data.fidc)}%), por�m disponibilizar� o capital imediatamente (economia de ${prazo} dias), aumentando a liquidez da empresa. `;
+        let txt = `A antecipação via FIDC reduzirá seu lucro em <strong>R$ ${dif.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> (${fmtBRL(data.fidc)}%), porém disponibilizará o capital imediatamente (economia de ${prazo} dias), aumentando a liquidez da empresa. `;
         
-        if (indicador === '�x�') {
-            txt += "Como o impacto do FIDC no lucro bruto � alto ou a margem da opera��o � baixa, recomenda-se <strong>N�O antecipar</strong> os receb�veis a menos que haja urg�ncia de caixa.";
-        } else if (indicador === '�xx�') {
-            txt += "O impacto financeiro � moderado. Avalie a real necessidade de capital de giro antes de realizar a antecipa��o.";
+        if (indicador === 'ðŸ”´') {
+            txt += "Como o impacto do FIDC no lucro bruto é alto ou a margem da operação é baixa, recomenda-se <strong>NÃO antecipar</strong> os recebíveis a menos que haja urgência de caixa.";
+        } else if (indicador === 'ðŸŸ¡') {
+            txt += "O impacto financeiro é moderado. Avalie a real necessidade de capital de giro antes de realizar a antecipação.";
         } else {
-            txt += "Excelente oportunidade de antecipa��o. O custo financeiro n�o compromete a lucratividade e fortalece o fluxo de caixa.";
+            txt += "Excelente oportunidade de antecipação. O custo financeiro não compromete a lucratividade e fortalece o fluxo de caixa.";
         }
         
         document.getElementById('sim-fidc-inteligencia-texto').innerHTML = txt;
@@ -9741,7 +9741,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: ['SEM FIDC', 'COM FIDC'],
                 datasets: [
                     {
-                        label: 'Lucro L�quido (R$)',
+                        label: 'Lucro Líquido (R$)',
                         data: [data.lucroLiqSemFidc, data.lucroLiqComFidc],
                         backgroundColor: ['#2AD07A', '#f0b800']
                     }
@@ -9777,7 +9777,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.gerarPdfFIDC = async function() {
         if (!window.jspdf) {
-            _apexNotify('Sistema', 'A biblioteca jsPDF n�o carregou corretamente.', 'info');
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
             return;
         }
         
@@ -9790,20 +9790,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const produto = document.getElementById('pl-produto').value || 'N/A';
         const fp = document.getElementById('pl-forma-pagamento').value;
 
-        // Cabe�alho
+        // Cabeçalho
         doc.setFontSize(18);
         doc.setTextColor(224, 123, 57);
-        doc.text('Relat�rio Executivo - Intelig�ncia Financeira (FIDC)', 15, 20);
+        doc.text('Relatório Executivo - Inteligência Financeira (FIDC)', 15, 20);
         
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
-        doc.text('Usu�rio: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
+        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
 
-        // Dados da Opera��o
+        // Dados da Operação
         doc.setFontSize(12);
         doc.setTextColor(40);
-        doc.text('1. Dados da Opera��o', 15, 45);
+        doc.text('1. Dados da Operação', 15, 45);
 
         doc.autoTable({
             startY: 50,
@@ -9817,7 +9817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.text('2. Indicadores Financeiros', 15, doc.lastAutoTable.finalY + 10);
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 15,
-            head: [['Custo Total', 'Receita Estimada', 'Lucro Bruto', 'Comiss�o (%)', 'Margem (%)', 'ROI (%)']],
+            head: [['Custo Total', 'Receita Estimada', 'Lucro Bruto', 'Comissão (%)', 'Margem (%)', 'ROI (%)']],
             body: [[
                 'R$ ' + data.totalC.toLocaleString('pt-BR', {minimumFractionDigits:2}),
                 'R$ ' + data.totalV.toLocaleString('pt-BR', {minimumFractionDigits:2}),
@@ -9830,11 +9830,11 @@ document.addEventListener('DOMContentLoaded', () => {
             headStyles: { fillColor: [13, 26, 38] },
         });
 
-        // Simula��o FIDC
-        doc.text('3. Simula��o de Antecipa��o (FIDC)', 15, doc.lastAutoTable.finalY + 10);
+        // Simulação FIDC
+        doc.text('3. Simulação de Antecipação (FIDC)', 15, doc.lastAutoTable.finalY + 10);
         doc.autoTable({
             startY: doc.lastAutoTable.finalY + 15,
-            head: [['Taxa FIDC', 'Desconto Financeiro', 'Lucro SEM FIDC', 'Lucro COM FIDC', 'Diferen�a']],
+            head: [['Taxa FIDC', 'Desconto Financeiro', 'Lucro SEM FIDC', 'Lucro COM FIDC', 'Diferença']],
             body: [[
                 fmtBRL(data.fidc) + '%',
                 'R$ ' + data.valorFidc.toLocaleString('pt-BR', {minimumFractionDigits:2}),
@@ -9846,7 +9846,7 @@ document.addEventListener('DOMContentLoaded', () => {
             headStyles: { fillColor: [224, 123, 57] },
         });
 
-        // Conclus�o Inteligente
+        // Conclusão Inteligente
         doc.text('4. Parecer Financeiro', 15, doc.lastAutoTable.finalY + 10);
         
         const div = document.createElement('div');
@@ -9863,7 +9863,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // --- FIM: SIMULADOR FIDC ---
 
-    // ���� Helper Marca d'�gua jsPDF ��������������������������������������������������������������������������������������������
+    // ── Helper Marca d'água jsPDF ──────────────────────────────────────────────
     let cachedLogoWatermarkBase64 = null;
     async function getLogoWatermarkBase64JsPDF() {
         if (cachedLogoWatermarkBase64) return cachedLogoWatermarkBase64;
@@ -9880,7 +9880,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return cachedLogoWatermarkBase64;
             }
         } catch(e) {
-            console.warn('Erro ao carregar logo para marca d�gua:', e);
+            console.warn('Erro ao carregar logo para marca dágua:', e);
         }
         return null;
     }
@@ -9953,7 +9953,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // NAVEGA��O DE SUB-GUIAS DE PLANEJAMENTO INTEGRADO
+    // NAVEGAÇÃO DE SUB-GUIAS DE PLANEJAMENTO INTEGRADO
     // =========================================================================
     let subAbaPlanejamentoAtual = 'simulacao';
     let localMRP = [];
@@ -10003,7 +10003,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ���� 1. Planejamento de Compra (Trading Comercial & Insumos da Ind�stria) ��������
+    // ── 1. Planejamento de Compra (Trading Comercial & Insumos da Indústria) ────
     window.carregarPlanejamentoCompras = async function() {
         try {
             const res = await fetch('/api/planejamento/compras');
@@ -10042,10 +10042,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const tipo = p.tipo_planejamento || 'COMPRA_VENDA';
 
             let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Sugerido</span>';
-            if (p.status === 'Em Cota��o') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">�x� Em Cota��o</span>';
-            if (p.status === 'Aprovado') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;"> Aprovado</span>';
-            if (p.status === 'Em Tr�nsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">�xaa Em Tr�nsito</span>';
-            if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">�x� Recebido</span>';
+            if (p.status === 'Em Cotação') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸ” Em Cotação</span>';
+            if (p.status === 'Aprovado') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Aprovado</span>';
+            if (p.status === 'Em Trânsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸšš Em Trânsito</span>';
+            if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸ“¦ Recebido</span>';
 
             if (tipo === 'COMPRA_VENDA') {
                 totalQtyCompras += qty;
@@ -10124,7 +10124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <small style="font-size:0.75rem; color:#aaa; display:block; text-align:center; margin-top:2px;">${pctBarra}% Atingido</small>
                     </td>
                     <td style="padding:10px 8px; text-align:center;">
-                        <button type="button" onclick="abrirModalAtualizarRealizado(${p.id})" style="background:#3b2d18; border:1px solid #f0b800; color:#f0b800; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer;" title="Lan�ar Volume Realizado"><i class="fa-solid fa-pen"></i> Lan�ar</button>
+                        <button type="button" onclick="abrirModalAtualizarRealizado(${p.id})" style="background:#3b2d18; border:1px solid #f0b800; color:#f0b800; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer;" title="Lançar Volume Realizado"><i class="fa-solid fa-pen"></i> Lançar</button>
                     </td>
                 `;
                 tbodyRealizado.appendChild(tr);
@@ -10153,7 +10153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiInsVol) kpiInsVol.textContent = totalQtyInsumos.toLocaleString('pt-BR') + ' kg';
         if (kpiInsCusto) kpiInsCusto.textContent = 'R$ ' + totalCustoInsumos.toLocaleString('pt-BR', {minimumFractionDigits:2});
 
-        // KPIs Sub-aba 3 (Realizado & Proje��o)
+        // KPIs Sub-aba 3 (Realizado & Projeção)
         const kpiRealPlan = document.getElementById('real-kpi-planejado-vol');
         const kpiRealEfet = document.getElementById('real-kpi-realizado-vol');
         const kpiRealDesv = document.getElementById('real-kpi-desvio');
@@ -10220,7 +10220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('modal-mrp-titulo').innerHTML = tipoVal === 'COMPRA_VENDA' ?
             '<i class="fa-solid fa-cart-shopping" style="color:#2AD07A;"></i> Nova Meta de Compra & Venda (Trading)' :
-            '<i class="fa-solid fa-boxes-packing" style="color:#3e7cb1;"></i> Novo Insumo da Ind�stria (Produ��o)';
+            '<i class="fa-solid fa-boxes-packing" style="color:#3e7cb1;"></i> Novo Insumo da Indústria (Produção)';
 
         document.getElementById('modal-planejamento-compra').style.display = 'flex';
     };
@@ -10277,7 +10277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalPlanejamentoCompra();
             await carregarPlanejamentoCompras();
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -10323,7 +10323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalAtualizarRealizado();
             await carregarPlanejamentoCompras();
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -10331,14 +10331,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm('Excluir este planejamento?')) return;
         try {
             await fetch(`/api/planejamento/compras/${id}`, { method: 'DELETE' });
-            _apexNotify('Sucesso', 'Registro exclu�do.', 'success');
+            _apexNotify('Sucesso', 'Registro excluído.', 'success');
             await carregarPlanejamentoCompras();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao excluir: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
         }
     };
 
-    // ���� 1. Planejamento de Produ��o & Explos�o de Insumos ������������������������������������������������
+    // ── 1. Planejamento de Produção & Explosão de Insumos ────────────────────────
     window.carregarPlanejamentoProducaoInsumos = async function() {
         try {
             const res = await fetch('/api/planejamento/producao-insumos');
@@ -10346,7 +10346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localProducaoInsumos = Array.isArray(data) ? data : [];
             renderPlanejamentoProducaoInsumos();
         } catch (err) {
-            console.error('Erro ao carregar planejamento de produ��o insumos:', err);
+            console.error('Erro ao carregar planejamento de produção insumos:', err);
             localProducaoInsumos = [];
             renderPlanejamentoProducaoInsumos();
         }
@@ -10362,10 +10362,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr>
                     <td colspan="11" style="text-align:center; padding:40px 15px; color:#aaa;">
                         <i class="fa-solid fa-industry" style="font-size:2.8rem; opacity:0.25; margin-bottom:12px; display:block; color:#2AD07A;"></i>
-                        <span style="font-size:1.05rem; color:#fff; font-weight:700; display:block; margin-bottom:6px;">Nenhum planejamento registrado para este per�odo</span>
-                        <span style="font-size:0.85rem; color:#7a9cb8; display:block; margin-bottom:18px;">Clique no bot�o abaixo para adicionar um produto acabado e calcular a explos�o de insumos.</span>
+                        <span style="font-size:1.05rem; color:#fff; font-weight:700; display:block; margin-bottom:6px;">Nenhum planejamento registrado para este período</span>
+                        <span style="font-size:0.85rem; color:#7a9cb8; display:block; margin-bottom:18px;">Clique no botão abaixo para adicionar um produto acabado e calcular a explosão de insumos.</span>
                         <button type="button" onclick="window._forcarAbrirModalPlanejamentoProducao()" style="background:#2AD07A; color:#0d1826; border:none; padding:10px 22px; border-radius:8px; font-weight:800; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(42,208,122,0.4);">
-                            <i class="fa-solid fa-plus-circle" style="font-size:1.1rem;"></i> + Criar Novo Planejamento de Produ��o
+                            <i class="fa-solid fa-plus-circle" style="font-size:1.1rem;"></i> + Criar Novo Planejamento de Produção
                         </button>
                     </td>
                 </tr>
@@ -10398,8 +10398,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isVermelho = qLiq > 0;
             const statusBadge = isVermelho ?
-                '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�x� NECESSIDADE DE COMPRA</span>' :
-                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�xx� ESTOQUE SUFICIENTE</span>';
+                '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ NECESSIDADE DE COMPRA</span>' :
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ ESTOQUE SUFICIENTE</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -10431,7 +10431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiCusto) kpiCusto.textContent = 'R$ ' + totCusto.toLocaleString('pt-BR', {minimumFractionDigits:2});
     }
 
-    // ������ Estado do simulador de produ��o ����������������������������������������������������������������������
+    // ─── Estado do simulador de produção ───────────────────────────────────
     let _simLinhas = []; 
     let _simLinhaIdx = 0;
 
@@ -10468,11 +10468,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (perEl) perEl.value = new Date().toISOString().slice(0, 7);
         document.getElementById('sim-meta-fat').value = '';
         document.getElementById('sim-preco-venda').value = '';
-        document.getElementById('sim-qtd-produto').value = '';
+        document.getElementById('sim-qtd-produto').value = '—';
         document.getElementById('sim-prazo-compra').value = '';
         document.getElementById('sim-prazo-venda').value = '';
         document.getElementById('sim-linhas-rows').innerHTML = '';
-        simAdicionarLinhaInsumo(); // come�a com 1 linha
+        simAdicionarLinhaInsumo(); // começa com 1 linha
     };
 
     window.fecharModalPlanejamentoProducao = function() {
@@ -10522,7 +10522,7 @@ document.addEventListener('DOMContentLoaded', () => {
             qtdEl.value = qtd.toLocaleString('pt-BR', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' kg';
             simRecalcularLinhas();
         } else {
-            qtdEl.value = '';
+            qtdEl.value = '—';
         }
     };
 
@@ -10544,10 +10544,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${_mats.map(m => `<option value="${m.id}" data-nome="${m.nome}" data-pc="${m.preco_compra||m.preco_tabela||0}" data-pv="${m.preco_venda||m.preco_tabela_venda||0}">${m.nome}</option>`).join('')}
             </select>
             <input type="number" id="sim-ins-coef-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:center;" value="100" min="0.01" step="0.01" title="% do produto final" oninput="simRecalcularLinhas()">
-            <input type="text" id="sim-ins-qtd-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#2AD07A;" readonly value="">
-            <input type="text" id="sim-ins-pct-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#aaa;" readonly value="">
+            <input type="text" id="sim-ins-qtd-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#2AD07A;" readonly value="—">
+            <input type="text" id="sim-ins-pct-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#aaa;" readonly value="—">
             <input type="number" id="sim-ins-pcs-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right;" step="0.0001" placeholder="Simular" oninput="simRecalcularLinhas()">
-            <input type="text" id="sim-ins-cust-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#f0b800; font-weight:700;" readonly value="">
+            <input type="text" id="sim-ins-cust-${idx}" class="noble-input" style="font-size:0.8rem; padding:5px 6px; text-align:right; background:#0a1810; color:#f0b800; font-weight:700;" readonly value="—">
             <button type="button" onclick="simRemoverLinha(${idx})" style="background:transparent; border:1px solid #3d1a1a; color:#ff6b6b; width:32px; height:32px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">
                 <i class="fa-solid fa-trash" style="font-size:0.75rem;"></i>
             </button>`;
@@ -10567,7 +10567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         linha.preco_compra_simulado = linha.preco_compra_tabela;
         document.getElementById('sim-ins-pct-' + idx).value = linha.preco_compra_tabela > 0
             ? 'R$ ' + linha.preco_compra_tabela.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:4})
-            : '';
+            : '—';
         const psEl = document.getElementById('sim-ins-pcs-' + idx);
         if (psEl && !psEl.value) psEl.value = linha.preco_compra_tabela > 0 ? linha.preco_compra_tabela.toFixed(4) : '';
         simRecalcularLinhas();
@@ -10595,8 +10595,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const qtdEl = document.getElementById('sim-ins-qtd-' + l.idx);
             const custEl = document.getElementById('sim-ins-cust-' + l.idx);
-            if (qtdEl) qtdEl.value = l.qtd_necessaria > 0 ? l.qtd_necessaria.toLocaleString('pt-BR', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' kg' : '';
-            if (custEl) custEl.value = l.custo_total > 0 ? 'R$ ' + l.custo_total.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '';
+            if (qtdEl) qtdEl.value = l.qtd_necessaria > 0 ? l.qtd_necessaria.toLocaleString('pt-BR', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' kg' : '—';
+            if (custEl) custEl.value = l.custo_total > 0 ? 'R$ ' + l.custo_total.toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
         });
     };
 
@@ -10606,7 +10606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const qtdProd = (meta > 0 && pv > 0) ? meta / pv : 0;
         const periodo = document.getElementById('sim-periodo').value;
         const selProd = document.getElementById('sim-produto-id');
-        const nomeProd = selProd?.options[selProd.selectedIndex]?.text || '';
+        const nomeProd = selProd?.options[selProd.selectedIndex]?.text || '—';
 
         simRecalcularLinhas();
 
@@ -10614,12 +10614,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const markup = custoTotal > 0 ? ((meta - custoTotal) / custoTotal) * 100 : 0;
 
         const cards = [
-            { label: '�x}� Meta de Faturamento', val: 'R$ ' + meta.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1' },
-            { label: '�x� Produto Final', val: nomeProd, cor: '#2AD07A', small: periodo },
-            { label: '�️ Qtd Necess�ria', val: qtdProd.toLocaleString('pt-BR', {minimumFractionDigits:3}) + ' kg', cor: '#2AD07A' },
-            { label: '�x� Custo Total Insumos', val: 'R$ ' + custoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800' },
-            { label: '�x� Margem Projetada', val: markup.toFixed(1) + '%', cor: markup >= 0 ? '#2AD07A' : '#ff4d4d' },
-            { label: '�x�� Nº de Insumos', val: _simLinhas.length + ' insumo(s)', cor: '#9b59b6' },
+            { label: 'ðŸŽ¯ Meta de Faturamento', val: 'R$ ' + meta.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1' },
+            { label: 'ðŸ“¦ Produto Final', val: nomeProd, cor: '#2AD07A', small: periodo },
+            { label: '⚠️–ï¸ Qtd Necessária', val: qtdProd.toLocaleString('pt-BR', {minimumFractionDigits:3}) + ' kg', cor: '#2AD07A' },
+            { label: 'ðŸ’° Custo Total Insumos', val: 'R$ ' + custoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800' },
+            { label: 'ðŸ“ˆ Margem Projetada', val: markup.toFixed(1) + '%', cor: markup >= 0 ? '#2AD07A' : '#ff4d4d' },
+            { label: 'ðŸ§® Nº de Insumos', val: _simLinhas.length + ' insumo(s)', cor: '#9b59b6' },
         ];
 
         document.getElementById('sim-preview-cards').innerHTML = cards.map(c => `
@@ -10633,11 +10633,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sim-preview-tabela').innerHTML = _simLinhas.map(l => {
             const eficiencia = l.preco_compra_simulado > 0 && l.preco_compra_tabela > 0
                 ? (l.preco_compra_simulado < l.preco_compra_tabela
-                    ? '<span style="color:#2AD07A; font-weight:700;"> BEM</span>'
+                    ? '<span style="color:#2AD07A; font-weight:700;">✅ BEM</span>'
                     : l.preco_compra_simulado > l.preco_compra_tabela
-                    ? '<span style="color:#ff4d4d; font-weight:700;">��️ ACIMA TAB.</span>'
-                    : '<span style="color:#aaa;"> TAB.</span>')
-                : '';
+                    ? '<span style="color:#ff4d4d; font-weight:700;">⚠️ ï¸ ACIMA TAB.</span>'
+                    : '<span style="color:#aaa;">— TAB.</span>')
+                : '—';
             return `<tr style="border-top:1px solid #1a2e3f; color:#fff;">
                 <td style="padding:6px; text-align:left;">${l.insumo_nome || '(sem nome)'}</td>
                 <td style="padding:6px; text-align:right; color:#8eaabf;">${l.coef_pct.toFixed(1)}%</td>
@@ -10659,11 +10659,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const meta    = parseFloat(document.getElementById('sim-meta-fat').value) || 0;
         const pv      = parseFloat(document.getElementById('sim-preco-venda').value) || 0;
         if (!meta || !pv || !selProd?.value) {
-            _apexNotify('Aten��o', 'Preencha a meta de faturamento, produto final e pre�o de venda.', 'warning');
+            _apexNotify('Atenção', 'Preencha a meta de faturamento, produto final e preço de venda.', 'warning');
             return;
         }
         if (_simLinhas.length === 0 || !_simLinhas.some(l => l.insumo_nome)) {
-            _apexNotify('Aten��o', 'Adicione ao menos um insumo no Step 2.', 'warning');
+            _apexNotify('Atenção', 'Adicione ao menos um insumo no Step 2.', 'warning');
             return;
         }
 
@@ -10703,7 +10703,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload)
             });
             if (!res.ok) throw new Error('Erro ao salvar');
-            _apexNotify('Sucesso', 'Planejamento de produ��o salvo com sucesso!', 'success');
+            _apexNotify('Sucesso', 'Planejamento de produção salvo com sucesso!', 'success');
             fecharModalPlanejamentoProducao();
             await carregarPlanejamentoProducaoInsumos();
         } catch (err) {
@@ -10714,14 +10714,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.excluirPlanejamentoProducaoInsumo = async function(id) {
-        if (!confirm('Excluir este planejamento de produ��o (linhas e movimenta��es inclu�das)?')) return;
+        if (!confirm('Excluir este planejamento de produção (linhas e movimentações incluídas)?')) return;
         try {
             await fetch(`/api/planejamento/producao-insumos/${id}`, { method: 'DELETE' });
             await carregarPlanejamentoProducaoInsumos();
         } catch(e) { console.error(e); }
     };
 
-    // ������ Extrato de Produ��o & Movimenta��es ��������������������������������������������������������������������
+    // ─── Extrato de Produção & Movimentações ──────────────────────────────────
     let _activePlanProducao = null; // objeto do planejamento ativo no extrato
     let _chartExtProdInsumos = null;
     let _chartExtProdMeta = null;
@@ -10733,7 +10733,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const list = Array.isArray(data) ? data : [];
             const plan = list.find(p => p.id === id);
             if (!plan) {
-                _apexNotify('Aten��o', 'Planejamento n�o encontrado.', 'error');
+                _apexNotify('Atenção', 'Planejamento não encontrado.', 'error');
                 return;
             }
             _activePlanProducao = plan;
@@ -10744,12 +10744,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 modal.style.display = 'block';
             }
 
-            document.getElementById('extrato-prod-titulo').textContent = `Extrato & An�lise Produ��o  ${plan.produto_nome} (${plan.periodo})`;
+            document.getElementById('extrato-prod-titulo').textContent = `Extrato & Análise Produção — ${plan.produto_nome} (${plan.periodo})`;
 
             renderExtratoProducaoConteudo();
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'N�o foi poss�vel carregar o extrato.', 'error');
+            _apexNotify('Erro', 'Não foi possível carregar o extrato.', 'error');
         }
     };
 
@@ -10766,7 +10766,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const plan = _activePlanProducao;
         const linhas = Array.isArray(plan.linhas) ? plan.linhas : [];
 
-        // Agrupar todas as movimenta��es reais
+        // Agrupar todas as movimentações reais
         let todasMovs = [];
         linhas.forEach(l => {
             const movs = Array.isArray(l.movimentacoes) ? l.movimentacoes : [];
@@ -10780,7 +10780,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Ordenar movimenta��es por data decrescente
+        // Ordenar movimentações por data decrescente
         todasMovs.sort((a,b) => new Date(b.data_movimentacao) - new Date(a.data_movimentacao));
 
         // Calcular KPIs reais vs previstos
@@ -10792,7 +10792,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Somar vendas do produto (Real)
         const vendasReal = todasMovs.filter(m => m.tipo === 'VENDA').reduce((sum, m) => sum + parseFloat(m.valor_total || 0), 0);
 
-        // Efici�ncia de compras (Pre�o pago vs Pre�o Planejado/Simulado)
+        // Eficiência de compras (Preço pago vs Preço Planejado/Simulado)
         let comprasAcima = 0;
         let comprasAbaixo = 0;
         todasMovs.filter(m => m.tipo === 'COMPRA').forEach(m => {
@@ -10818,7 +10818,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const atrasoC = prazoC < hoje && comprasInsumosReal < custoPrevisto;
                 bannerHtml += `
                     <div style="flex:1; background:${atrasoC ? '#3b1818' : '#162432'}; border:1px solid ${atrasoC ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.1rem;">${atrasoC ? '��️' : '�x&'}</span>
+                        <span style="font-size:1.1rem;">${atrasoC ? '⚠️ ï¸' : 'ðŸ“…'}</span>
                         <div style="font-size:0.8rem;">
                             <span style="color:#aaa;">Prazo Limite Compra Insumos:</span>
                             <strong style="color:#fff; margin-left:5px;">${prazoC}</strong>
@@ -10830,7 +10830,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const atrasoV = prazoV < hoje && vendasReal < metaFaturamento;
                 bannerHtml += `
                     <div style="flex:1; background:${atrasoV ? '#3b1818' : '#162432'}; border:1px solid ${atrasoV ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.1rem;">${atrasoV ? '��️' : '�x&'}</span>
+                        <span style="font-size:1.1rem;">${atrasoV ? '⚠️ ï¸' : 'ðŸ“…'}</span>
                         <div style="font-size:0.8rem;">
                             <span style="color:#aaa;">Prazo Limite Faturamento/Venda:</span>
                             <strong style="color:#fff; margin-left:5px;">${prazoV}</strong>
@@ -10849,12 +10849,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Renderizar KPI Cards
         const kpis = [
-            { label: '�x}� Meta Faturamento', val: 'R$ ' + metaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1', desc: 'Planejado' },
-            { label: '�x� Realizado (Vendas)', val: 'R$ ' + vendasReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#2AD07A', desc: `${metaProgressoPct.toFixed(1)}% da Meta` },
-            { label: '�x: Custo Previsto Insumos', val: 'R$ ' + custoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800', desc: 'Simulado' },
-            { label: '�x� Investido Real Insumos', val: 'R$ ' + comprasInsumosReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff9f43', desc: `${custoPrevisto > 0 ? ((comprasInsumosReal/custoPrevisto)*100).toFixed(1) : 0}% do or�ado` },
-            { label: '�x� Markup Realizado', val: markupReal.toFixed(1) + '%', cor: markupReal >= 0 ? '#2AD07A' : '#ff4d4d', desc: 'Vendas vs Compras Reais' },
-            { label: '��️ Compras Fora do Planejado', val: 'R$ ' + comprasAcima.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff4d4d', desc: 'Pre�o Real > Pre�o Simulado' }
+            { label: 'ðŸŽ¯ Meta Faturamento', val: 'R$ ' + metaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1', desc: 'Planejado' },
+            { label: 'ðŸ’° Realizado (Vendas)', val: 'R$ ' + vendasReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#2AD07A', desc: `${metaProgressoPct.toFixed(1)}% da Meta` },
+            { label: 'ðŸ›’ Custo Previsto Insumos', val: 'R$ ' + custoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800', desc: 'Simulado' },
+            { label: 'ðŸ’¸ Investido Real Insumos', val: 'R$ ' + comprasInsumosReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff9f43', desc: `${custoPrevisto > 0 ? ((comprasInsumosReal/custoPrevisto)*100).toFixed(1) : 0}% do orçado` },
+            { label: 'ðŸ“ˆ Markup Realizado', val: markupReal.toFixed(1) + '%', cor: markupReal >= 0 ? '#2AD07A' : '#ff4d4d', desc: 'Vendas vs Compras Reais' },
+            { label: '⚠️ ï¸ Compras Fora do Planejado', val: 'R$ ' + comprasAcima.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff4d4d', desc: 'Preço Real > Preço Simulado' }
         ];
 
         const kpisContainer = document.getElementById('extrato-prod-kpi-container');
@@ -10867,7 +10867,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`).join('');
         }
 
-        // Gr�fico 1: Insumos (Progresso Compra)
+        // Gráfico 1: Insumos (Progresso Compra)
         const insumoLabels = linhas.map(l => l.insumo_nome);
         const insumoQtdPlanejada = linhas.map(l => parseFloat(l.qtd_necessaria || 0));
         const insumoQtdComprada = linhas.map(l => {
@@ -10896,7 +10896,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Gr�fico 2: Faturamento Real vs Meta (Vendas)
+        // Gráfico 2: Faturamento Real vs Meta (Vendas)
         if (_chartExtProdMeta) _chartExtProdMeta.destroy();
         const ctxMeta = document.getElementById('extrato-prod-chart-meta');
         if (ctxMeta) {
@@ -10918,11 +10918,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Renderizar Hist�rico de Movimenta��es
+        // Renderizar Histórico de Movimentações
         const tableContainer = document.getElementById('extrato-prod-tabela-container');
         if (tableContainer) {
             if (todasMovs.length === 0) {
-                tableContainer.innerHTML = `<div style="text-align:center; padding:30px; color:#aaa; font-size:0.85rem;">Nenhuma movimenta��o real lan�ada para este planejamento.</div>`;
+                tableContainer.innerHTML = `<div style="text-align:center; padding:30px; color:#aaa; font-size:0.85rem;">Nenhuma movimentação real lançada para este planejamento.</div>`;
             } else {
                 tableContainer.innerHTML = `
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
@@ -10932,29 +10932,29 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <th style="padding:8px; text-align:center;">Tipo</th>
                                 <th style="padding:8px;">Item</th>
                                 <th style="padding:8px; text-align:right;">Qtd (kg)</th>
-                                <th style="padding:8px; text-align:right;">P.Unit�rio</th>
+                                <th style="padding:8px; text-align:right;">P.Unitário</th>
                                 <th style="padding:8px; text-align:right;">Total</th>
-                                <th style="padding:8px; text-align:center;">Efici�ncia</th>
+                                <th style="padding:8px; text-align:center;">Eficiência</th>
                                 <th style="padding:8px;">Obs</th>
-                                <th style="padding:8px; text-align:center;">A��es</th>
+                                <th style="padding:8px; text-align:center;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${todasMovs.map(m => {
                                 const isCompra = m.tipo === 'COMPRA';
                                 const refPrice = parseFloat(m.preco_compra_simulado || m.preco_compra_tabela || 0);
-                                let ef = '';
+                                let ef = '—';
                                 if (isCompra && refPrice > 0) {
                                     const diff = ((m.preco_unitario - refPrice) / refPrice) * 100;
-                                    if (diff > 0) ef = `<span style="color:#ff4d4d; font-weight:700;">��️ +${diff.toFixed(1)}% (Caro)</span>`;
-                                    else if (diff < 0) ef = `<span style="color:#2AD07A; font-weight:700;"> ${diff.toFixed(1)}% (Economia)</span>`;
+                                    if (diff > 0) ef = `<span style="color:#ff4d4d; font-weight:700;">⚠️ ï¸ +${diff.toFixed(1)}% (Caro)</span>`;
+                                    else if (diff < 0) ef = `<span style="color:#2AD07A; font-weight:700;">✅ ${diff.toFixed(1)}% (Economia)</span>`;
                                     else ef = `<span style="color:#aaa;">= Tabela</span>`;
                                 } else if (!isCompra) {
                                     const refVenda = parseFloat(plan.preco_venda_produto_rs || 0);
                                     if (refVenda > 0) {
                                         const diff = ((m.preco_unitario - refVenda) / refVenda) * 100;
-                                        if (diff > 0) ef = `<span style="color:#2AD07A; font-weight:700;">�x� +${diff.toFixed(1)}% (Alta)</span>`;
-                                        else if (diff < 0) ef = `<span style="color:#ff4d4d; font-weight:700;">�x0 ${diff.toFixed(1)}% (Baixa)</span>`;
+                                        if (diff > 0) ef = `<span style="color:#2AD07A; font-weight:700;">ðŸ“ˆ +${diff.toFixed(1)}% (Alta)</span>`;
+                                        else if (diff < 0) ef = `<span style="color:#ff4d4d; font-weight:700;">ðŸ“‰ ${diff.toFixed(1)}% (Baixa)</span>`;
                                         else ef = `<span style="color:#aaa;">= Tabela</span>`;
                                     }
                                 }
@@ -10982,7 +10982,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Modal lan�amento de transa��es/movimenta��es de produ��o
+    // Modal lançamento de transações/movimentações de produção
     window.abrirModalTransacaoProducao = function() {
         if (!_activePlanProducao) return;
         const plan = _activePlanProducao;
@@ -11064,24 +11064,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const diff = ((price - refPrice) / refPrice) * 100;
             if (isCompra) {
                 if (diff > 0) {
-                    labelDesvio.textContent = `��️ +${diff.toFixed(1)}% (Compra mais CARA)`;
+                    labelDesvio.textContent = `⚠️ ï¸ +${diff.toFixed(1)}% (Compra mais CARA)`;
                     labelDesvio.style.color = '#ff4d4d';
                 } else if (diff < 0) {
-                    labelDesvio.textContent = ` ${diff.toFixed(1)}% (Compra mais BARATA)`;
+                    labelDesvio.textContent = `✅ ${diff.toFixed(1)}% (Compra mais BARATA)`;
                     labelDesvio.style.color = '#2AD07A';
                 } else {
-                    labelDesvio.textContent = 'Pre�o de Tabela Planejado';
+                    labelDesvio.textContent = 'Preço de Tabela Planejado';
                     labelDesvio.style.color = '#aaa';
                 }
             } else {
                 if (diff > 0) {
-                    labelDesvio.textContent = ` +${diff.toFixed(1)}% (Venda ACIMA do Planejado)`;
+                    labelDesvio.textContent = `✅ +${diff.toFixed(1)}% (Venda ACIMA do Planejado)`;
                     labelDesvio.style.color = '#2AD07A';
                 } else if (diff < 0) {
-                    labelDesvio.textContent = `��️ ${diff.toFixed(1)}% (Venda ABAIXO do Planejado)`;
+                    labelDesvio.textContent = `⚠️ ï¸ ${diff.toFixed(1)}% (Venda ABAIXO do Planejado)`;
                     labelDesvio.style.color = '#ff4d4d';
                 } else {
-                    labelDesvio.textContent = 'Pre�o de Tabela Planejado';
+                    labelDesvio.textContent = 'Preço de Tabela Planejado';
                     labelDesvio.style.color = '#aaa';
                 }
             }
@@ -11117,8 +11117,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Falha ao salvar movimenta��o de produ��o');
-            _apexNotify('Sucesso', 'Movimenta��o real salva!', 'success');
+            if (!res.ok) throw new Error('Falha ao salvar movimentação de produção');
+            _apexNotify('Sucesso', 'Movimentação real salva!', 'success');
             fecharModalTransacaoProducao();
 
             const resReload = await fetch('/api/planejamento/producao-insumos');
@@ -11138,7 +11138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.excluirTransacaoProducao = async function(movId) {
-        if (!confirm('Excluir este lan�amento real?')) return;
+        if (!confirm('Excluir este lançamento real?')) return;
         if (!_activePlanProducao) return;
         const planId = _activePlanProducao.id;
         try {
@@ -11171,7 +11171,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // ���� 2. Planejamento Comercial (Compra e Venda / Revenda) ����������������������������������������
+    // ── 2. Planejamento Comercial (Compra e Venda / Revenda) ────────────────────
     window.carregarPlanejamentoComercialRevenda = async function() {
         try {
             const res = await fetch('/api/planejamento/comercial-revenda');
@@ -11203,7 +11203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let totFatPrev = 0, totInvest = 0;
         const metaGlobal = _metaComercialGlobalCache;
 
-        // Arrays para guardar estat�sticas de an�lise de impacto
+        // Arrays para guardar estatísticas de análise de impacto
         const produtosEstatistica = [];
 
         localComercialRevenda.forEach(item => {
@@ -11216,7 +11216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const markup = pCompra > 0 ? ((pVenda - pCompra) / pCompra) * 100 : 0;
             const partPct = metaGlobal > 0 ? (fat / metaGlobal) * 100 : 0;
 
-            // Dados reais das transa��es
+            // Dados reais das transações
             const totalCompraKgReal = parseFloat(item.totalCompraKg || 0);
             const totalVendaKgReal  = parseFloat(item.totalVendaKg  || 0);
             const totalCompraRsReal = parseFloat(item.totalCompraRs || 0);
@@ -11226,7 +11226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const metaCompPct = cPlan > 0 ? Math.min((totalCompraKgReal / cPlan) * 100, 100) : 0;
             const metaVendPct = vPlan > 0 ? Math.min((totalVendaKgReal  / vPlan) * 100, 100) : 0;
 
-            // Para an�lise de impacto
+            // Para análise de impacto
             const lucroPrevisto = fat - inv;
             const lucroRealizado = totalVendaRsReal - totalCompraRsReal;
             
@@ -11252,7 +11252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isAltoGiro = fat >= 1000000;
             const giroBadge = isAltoGiro ?
-                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�x� ALTO GIRO</span>' :
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”¥ ALTO GIRO</span>' :
                 '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:2px 6px; border-radius:12px; font-size:0.75rem;">GIRO NORMAL</span>';
 
             const markupColor = markup >= 0 ? '#2AD07A' : '#ff4d4d';
@@ -11268,8 +11268,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <strong>${item.produto_nome || 'Produto'}</strong>
                     <div style="font-size:0.72rem; color:#aaa;">${item.mes_referencia || ''}</div>
                     <div style="font-size:0.7rem; color:#8eaabf; margin-top:4px; line-height:1.2;">
-                        �x: Compra: ${prazoCompraStr}<br>
-                        �x� Venda: ${prazoVendaStr}
+                        ðŸ›’ Compra: ${prazoCompraStr}<br>
+                        ðŸ’° Venda: ${prazoVendaStr}
                     </div>
                 </td>
                 <td style="padding:10px 8px; text-align:right;">
@@ -11284,7 +11284,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td style="padding:10px 8px; text-align:right; color:#ccc;">
                     <div>Tab: R$ ${pCompra.toFixed(2)} / R$ ${pVenda.toFixed(2)}</div>
-                    ${mediaCompra > 0 ? `<div style="font-size:0.75rem; color:#f0b800;">M�d: R$ ${mediaCompra.toFixed(2)} / R$ ${mediaVenda.toFixed(2)}</div>` : ''}
+                    ${mediaCompra > 0 ? `<div style="font-size:0.75rem; color:#f0b800;">Méd: R$ ${mediaCompra.toFixed(2)} / R$ ${mediaVenda.toFixed(2)}</div>` : ''}
                 </td>
                 <td style="padding:10px 8px; text-align:right; color:#f0b800; font-weight:bold;">R$ ${inv.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                 <td style="padding:10px 8px; text-align:right; color:#2AD07A; font-weight:bold;">
@@ -11293,17 +11293,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${markupColor};">${markup.toFixed(1)}%</td>
                 <td style="padding:10px 8px; text-align:center;">${giroBadge} <small style="color:#aaa;">(${partPct.toFixed(1)}% Meta)</small></td>
-                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">�x� ${item.status || 'Meta Definida'}</span></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">ðŸ”µ ${item.status || 'Meta Definida'}</span></td>
                 <td style="padding:10px 8px; text-align:center;">
-                    <button type="button" onclick="abrirModalTransacaoComercial(${item.id})" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Lan�ar Movimenta��o"><i class="fa-solid fa-plus-minus"></i> Movimentar</button>
-                    <button type="button" onclick="abrirModalExtratoComercial(${item.id})" style="background:#122a3f; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Extrato & An�lise"><i class="fa-solid fa-chart-mixed"></i> Extrato</button>
+                    <button type="button" onclick="abrirModalTransacaoComercial(${item.id})" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Lançar Movimentação"><i class="fa-solid fa-plus-minus"></i> Movimentar</button>
+                    <button type="button" onclick="abrirModalExtratoComercial(${item.id})" style="background:#122a3f; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Extrato & Análise"><i class="fa-solid fa-chart-mixed"></i> Extrato</button>
                     <button type="button" onclick="excluirPlanejamentoComercial(${item.id})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
 
-        // Atualiza a an�lise visual de lucro/perda
+        // Atualiza a análise visual de lucro/perda
         atualizarAnaliseLucroOfensores(produtosEstatistica);
 
         const kpiFatPrev = document.getElementById('com-kpi-fat-previsto');
@@ -11327,12 +11327,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ofensoresBox.innerHTML = '';
 
         if (!estatisticas || estatisticas.length === 0) {
-            lucroBox.innerHTML = '<span style="color:#aaa;">Nenhuma meta ou transa��o ativa para an�lise.</span>';
-            ofensoresBox.innerHTML = '<span style="color:#aaa;">Nenhum desvio detectado nas movimenta��es.</span>';
+            lucroBox.innerHTML = '<span style="color:#aaa;">Nenhuma meta ou transação ativa para análise.</span>';
+            ofensoresBox.innerHTML = '<span style="color:#aaa;">Nenhum desvio detectado nas movimentações.</span>';
             return;
         }
 
-        // 1. Campe�es (ordenar por faturamento previsto / lucro esperado)
+        // 1. Campeões (ordenar por faturamento previsto / lucro esperado)
         const campeoes = [...estatisticas].sort((a, b) => b.fat - a.fat).slice(0, 3);
         campeoes.forEach(c => {
             const itemDiv = document.createElement('div');
@@ -11341,7 +11341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             itemDiv.style.padding = '4px 0';
             itemDiv.style.borderBottom = '1px solid #162433';
             itemDiv.innerHTML = `
-                <span>�xRx <strong>${c.nome}</strong></span>
+                <span>ðŸŒŸ <strong>${c.nome}</strong></span>
                 <span style="color:#2AD07A; font-weight:bold;">Fat. Projetado: R$ ${c.fat.toLocaleString('pt-BR', {maximumFractionDigits:0})}</span>
             `;
             lucroBox.appendChild(itemDiv);
@@ -11350,7 +11350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Ofensores (verificar se comprou mais caro que o planejado ou vendeu mais barato)
         const ofensores = estatisticas.filter(x => x.desvioPrecoCompra > 0 || x.desvioPrecoVenda < 0);
         if (ofensores.length === 0) {
-            ofensoresBox.innerHTML = '<span style="color:#2AD07A; font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Todas as opera��es est�o dentro ou melhores que o planejado!</span>';
+            ofensoresBox.innerHTML = '<span style="color:#2AD07A; font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Todas as operações estão dentro ou melhores que o planejado!</span>';
         } else {
             ofensores.forEach(o => {
                 const itemDiv = document.createElement('div');
@@ -11361,10 +11361,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let alertaText = '';
                 if (o.desvioPrecoCompra > 0) {
-                    alertaText += `��️ Compra real (R$ ${o.mediaCompra.toFixed(2)}) acima do planejado (R$ ${o.pCompra.toFixed(2)}). `;
+                    alertaText += `⚠️ ï¸ Compra real (R$ ${o.mediaCompra.toFixed(2)}) acima do planejado (R$ ${o.pCompra.toFixed(2)}). `;
                 }
                 if (o.desvioPrecoVenda < 0) {
-                    alertaText += `�x0 Venda real (R$ ${o.mediaVenda.toFixed(2)}) abaixo do planejado (R$ ${o.pVenda.toFixed(2)}).`;
+                    alertaText += `ðŸ“‰ Venda real (R$ ${o.mediaVenda.toFixed(2)}) abaixo do planejado (R$ ${o.pVenda.toFixed(2)}).`;
                 }
 
                 itemDiv.innerHTML = `
@@ -11527,7 +11527,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.carregarComparativoRealizadoGeral();
             }
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -11632,7 +11632,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.carregarComparativoRealizadoGeral();
             }
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -11644,9 +11644,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
     };
 
-    // ���� Transa��es Comerciais Fracionadas ����������������������������������������������������������������������������
+    // ── Transações Comerciais Fracionadas ──────────────────────────────────────
 
-    // Contexto do modal de transa��o
+    // Contexto do modal de transação
     let _transacaoCtx = { planejamento_id: null, item: null };
 
     window.abrirModalTransacaoComercial = function(planejamentoId) {
@@ -11720,8 +11720,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const desEl = document.getElementById('transcom-desvio-tabela');
             desEl.textContent = (desvioPct >= 0 ? '+' : '') + desvioPct.toFixed(1) + '% (R$ ' + (preco - precoTabela).toFixed(2) + ')';
             desEl.style.color = tipo === 'COMPRA'
-                ? (desvioPct > 0 ? '#ff4d4d' : '#2AD07A')   // COMPRA: mais caro � ruim
-                : (desvioPct > 0 ? '#2AD07A' : '#ff4d4d');  // VENDA: mais caro � bom
+                ? (desvioPct > 0 ? '#ff4d4d' : '#2AD07A')   // COMPRA: mais caro é ruim
+                : (desvioPct > 0 ? '#2AD07A' : '#ff4d4d');  // VENDA: mais caro é bom
         }
     };
 
@@ -11740,7 +11740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ planejamento_id: pid, tipo, quantidade_kg: qtdKg, preco_unitario: precoU, data_transacao: data, observacoes: obs })
             });
-            if (!res.ok) throw new Error('Erro ao salvar movimenta��o');
+            if (!res.ok) throw new Error('Erro ao salvar movimentação');
             _apexNotify('Sucesso', tipo === 'COMPRA' ? 'Compra registrada!' : 'Venda registrada!', 'success');
             fecharModalTransacaoComercial();
             await carregarPlanejamentoComercialRevenda();
@@ -11750,11 +11750,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 await abrirModalExtratoComercial(_transacaoCtx.planejamento_id);
             }
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
-    // ���� Extrato & An�lise ������������������������������������������������������������������������������������������������������������
+    // ── Extrato & Análise ──────────────────────────────────────────────────────
 
     let _extratoCtx = { planejamento_id: null, item: null };
 
@@ -11770,9 +11770,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(modalEl);
         modalEl.style.display = 'block';
 
-        document.getElementById('extrato-titulo').textContent = `Extrato & An�lise  ${item.produto_nome} (${item.mes_referencia})`;
+        document.getElementById('extrato-titulo').textContent = `Extrato & Análise — ${item.produto_nome} (${item.mes_referencia})`;
 
-        // Buscar transa��es
+        // Buscar transações
         let transacoes = [];
         try {
             const r = await fetch(`/api/planejamento/comercial-revenda/${planejamentoId}/transacoes`);
@@ -11788,7 +11788,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalEl) modalEl.style.display = 'none';
     };
 
-    // Inst�ncias dos gr�ficos do extrato (para destruir antes de recriar)
+    // Instâncias dos gráficos do extrato (para destruir antes de recriar)
     let _extratoCharts = {};
 
     function _destroyExtratoCharts() {
@@ -11830,7 +11830,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const desvioPCompra = pCompraTab > 0 && mediaCompra > 0 ? ((mediaCompra - pCompraTab) / pCompraTab) * 100 : null;
         const desvioPVenda  = pVendaTab  > 0 && mediaVenda  > 0 ? ((mediaVenda  - pVendaTab)  / pVendaTab)  * 100 : null;
 
-        // ���� Banner de prazos ������������������������������������������������������������������������������������������������������
+        // ── Banner de prazos ───────────────────────────────────────────────────
         const prazoCompra = item.prazo_compra_ate ? new Date(item.prazo_compra_ate) : null;
         const prazoVenda  = item.prazo_venda_ate  ? new Date(item.prazo_venda_ate)  : null;
         const hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -11841,24 +11841,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data) return;
                 const diff = Math.ceil((data - hoje) / (1000*60*60*24));
                 const urgCor = diff <= 3 ? '#ff4d4d' : diff <= 7 ? '#f0b800' : cor;
-                const icon = diff <= 3 ? '�xa�' : diff <= 7 ? '��️' : '�x&';
+                const icon = diff <= 3 ? 'ðŸš¨' : diff <= 7 ? '⚠️ ï¸' : 'ðŸ“…';
                 bannerHtml += `<div style="flex:1; min-width:220px; background:#0d1826; border:1px solid ${urgCor}; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
                     <span style="font-size:1.3rem;">${icon}</span>
                     <div>
                         <div style="font-size:0.75rem; color:#8eaabf;">${label}</div>
-                        <div style="font-weight:bold; color:${urgCor}; font-size:0.95rem;">${data.toLocaleDateString('pt-BR')}  ${diff > 0 ? diff + ' dias restantes' : diff === 0 ? 'HOJE!' : 'VENCIDO'}</div>
+                        <div style="font-weight:bold; color:${urgCor}; font-size:0.95rem;">${data.toLocaleDateString('pt-BR')} — ${diff > 0 ? diff + ' dias restantes' : diff === 0 ? 'HOJE!' : 'VENCIDO'}</div>
                         <div style="font-size:0.72rem; color:#aaa;">Falta comprar/vender: ${kgFalta.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</div>
                     </div>
                 </div>`;
             };
-            addPrazo('�x: Prazo Limite de Compra', prazoCompra, faltaComprar, '#3e7cb1');
-            addPrazo('�x� Prazo Limite de Venda',  prazoVenda,  faltaVender,  '#2AD07A');
+            addPrazo('ðŸ›’ Prazo Limite de Compra', prazoCompra, faltaComprar, '#3e7cb1');
+            addPrazo('ðŸ’° Prazo Limite de Venda',  prazoVenda,  faltaVender,  '#2AD07A');
             bannerHtml += '</div>';
             bannerEl.innerHTML = bannerHtml;
             bannerEl.style.display = (prazoCompra || prazoVenda) ? 'block' : 'none';
         }
 
-        // ���� KPI cards ������������������������������������������������������������������������������������������������������������������
+        // ── KPI cards ─────────────────────────────────────────────────────────
         const card = (icon, label, value, sub, cor) =>
             `<div style="background:#0d1826; border:1px solid #1a2e3f; border-radius:10px; padding:14px; border-left:3px solid ${cor};">
                 <div style="font-size:0.75rem; color:#8eaabf; margin-bottom:4px;">${icon} ${label}</div>
@@ -11870,7 +11870,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fmtRs  = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2});
         const fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
 
-        // M�trica de Efici�ncia de Compra
+        // Métrica de Eficiência de Compra
         let statusCompraTxt = 'Sem compras';
         let statusCompraCor = '#aaa';
         if (mediaCompra > 0) {
@@ -11881,12 +11881,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusCompraTxt = `COMPRANDO MAL (+${Math.abs(desvioPCompra).toFixed(1)}%)`;
                 statusCompraCor = '#ff4d4d';
             } else {
-                statusCompraTxt = 'NO PRE�O DA TABELA';
+                statusCompraTxt = 'NO PREÇO DA TABELA';
                 statusCompraCor = '#f0b800';
             }
         }
 
-        // M�trica de Efici�ncia de Venda
+        // Métrica de Eficiência de Venda
         let statusVendaTxt = 'Sem vendas';
         let statusVendaCor = '#aaa';
         if (mediaVenda > 0) {
@@ -11897,37 +11897,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusVendaTxt = `VENDENDO MAL (-${Math.abs(desvioPVenda).toFixed(1)}%)`;
                 statusVendaCor = '#ff4d4d';
             } else {
-                statusVendaTxt = 'NO PRE�O DA TABELA';
+                statusVendaTxt = 'NO PREÇO DA TABELA';
                 statusVendaCor = '#f0b800';
             }
         }
 
         let html = '';
-        html += card('�x:', 'Meta de Compra',       fmtKg(cPlan),             '', '#3e7cb1');
-        html += card('', 'Comprado Real',         fmtKg(totalCompraKg),
+        html += card('ðŸ›’', 'Meta de Compra',       fmtKg(cPlan),             '', '#3e7cb1');
+        html += card('✅', 'Comprado Real',         fmtKg(totalCompraKg),
             `${metaCompPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaComprar)}`,
             metaCompPct >= 100 ? '#2AD07A' : metaCompPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('�x�', 'Total Gasto (Compras)', fmtRs(totalCompraRs),      'Capital j� investido em estoque', '#ff4d4d');
-        html += card('�x�', 'Reserva p/ Comprar',   fmtRs(reservaNecessaria),
-            `${fmtKg(kgRestCompra)} � R$ ${pCompraTab.toFixed(2)}/kg (tab)`, '#f0b800');
-        html += card('�x`', 'Efici�ncia de Compra',  statusCompraTxt,          mediaCompra > 0 ? `M�dia Real: ${fmtRs(mediaCompra)}/kg vs Tab: ${fmtRs(pCompraTab)}` : 'Nenhuma compra lan�ada', statusCompraCor);
-        html += card('�x�', 'Meta de Venda',        fmtKg(vPlan),             '', '#3e7cb1');
-        html += card('', 'Vendido Real',          fmtKg(totalVendaKg),
+        html += card('ðŸ’°', 'Total Gasto (Compras)', fmtRs(totalCompraRs),      'Capital já investido em estoque', '#ff4d4d');
+        html += card('ðŸ’µ', 'Reserva p/ Comprar',   fmtRs(reservaNecessaria),
+            `${fmtKg(kgRestCompra)} Ã— R$ ${pCompraTab.toFixed(2)}/kg (tab)`, '#f0b800');
+        html += card('ðŸ“Š', 'Eficiência de Compra',  statusCompraTxt,          mediaCompra > 0 ? `Média Real: ${fmtRs(mediaCompra)}/kg vs Tab: ${fmtRs(pCompraTab)}` : 'Nenhuma compra lançada', statusCompraCor);
+        html += card('ðŸ’°', 'Meta de Venda',        fmtKg(vPlan),             '', '#3e7cb1');
+        html += card('✅', 'Vendido Real',          fmtKg(totalVendaKg),
             `${metaVendPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaVender)}`,
             metaVendPct >= 100 ? '#2AD07A' : metaVendPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('�x�', 'Faturamento Real',     fmtRs(totalVendaRs),      `Investido: ${fmtRs(totalCompraRs)}`, '#2AD07A');
-        html += card('�x�', 'Faturamento Projetado',fmtRs(fatProjetado),
-            `Restante ${fmtKg(kgRestVenda)} � R$ ${pVendaTab.toFixed(2)}/kg`, '#9b59b6');
-        html += card('�x`', 'Efici�ncia de Venda',   statusVendaTxt,           mediaVenda > 0 ? `M�dia Real: ${fmtRs(mediaVenda)}/kg vs Tab: ${fmtRs(pVendaTab)}` : 'Nenhuma venda lan�ada', statusVendaCor);
-        html += card('�x�', 'Markup Planejado',     fmtPct(markupPlan),       `R$ ${pCompraTab.toFixed(2)} �  R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
-        html += card('�x�', 'Markup M�dio Real',    markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
-            mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} �  R$ ${mediaVenda.toFixed(2)}` : '',
+        html += card('ðŸ’µ', 'Faturamento Real',     fmtRs(totalVendaRs),      `Investido: ${fmtRs(totalCompraRs)}`, '#2AD07A');
+        html += card('ðŸ”®', 'Faturamento Projetado',fmtRs(fatProjetado),
+            `Restante ${fmtKg(kgRestVenda)} Ã— R$ ${pVendaTab.toFixed(2)}/kg`, '#9b59b6');
+        html += card('ðŸ“Š', 'Eficiência de Venda',   statusVendaTxt,           mediaVenda > 0 ? `Média Real: ${fmtRs(mediaVenda)}/kg vs Tab: ${fmtRs(pVendaTab)}` : 'Nenhuma venda lançada', statusVendaCor);
+        html += card('ðŸ“ˆ', 'Markup Planejado',     fmtPct(markupPlan),       `R$ ${pCompraTab.toFixed(2)} â†’ R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
+        html += card('ðŸ“ˆ', 'Markup Médio Real',    markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
+            mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} â†’ R$ ${mediaVenda.toFixed(2)}` : '',
             markupReal >= markupPlan ? '#2AD07A' : '#ff4d4d');
 
         document.getElementById('extrato-painel-analise').innerHTML = html;
 
-        // ���� Renderizar gr�ficos ������������������������������������������������������������������������������������������������
-        // Precisamos de setTimeout para garantir que os canvas j� existam no DOM
+        // ── Renderizar gráficos ────────────────────────────────────────────────
+        // Precisamos de setTimeout para garantir que os canvas já existam no DOM
         setTimeout(() => _renderExtratoGraficos(item, transacoes, {
             totalCompraKg, totalVendaKg, cPlan, vPlan,
             pCompraTab, pVendaTab, mediaCompra, mediaVenda
@@ -11945,7 +11945,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ChartJS.defaults.color = '#8eaabf';
         ChartJS.defaults.font.family = 'Inter, sans-serif';
 
-        // ���� 1. Donut: Meta de Compra ����
+        // ── 1. Donut: Meta de Compra ──
         const ctxC = document.getElementById('extrato-chart-compra');
         if (ctxC) {
             const realC  = Math.min(totalCompraKg, cPlan);
@@ -11967,7 +11967,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (legCompra) legCompra.innerHTML = `<span style="color:#3e7cb1; font-weight:bold; font-size:1.1rem;">${pct}%</span><br><span style="color:#8eaabf; font-size:0.72rem;">${totalCompraKg.toLocaleString('pt-BR',{minimumFractionDigits:1})} / ${cPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</span>`;
         }
 
-        // ���� 2. Donut: Meta de Venda ����
+        // ── 2. Donut: Meta de Venda ──
         const ctxV = document.getElementById('extrato-chart-venda');
         if (ctxV) {
             const realV  = Math.min(totalVendaKg, vPlan);
@@ -11989,7 +11989,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (legVenda) legVenda.innerHTML = `<span style="color:#2AD07A; font-weight:bold; font-size:1.1rem;">${pct}%</span><br><span style="color:#8eaabf; font-size:0.72rem;">${totalVendaKg.toLocaleString('pt-BR',{minimumFractionDigits:1})} / ${vPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</span>`;
         }
 
-        // ���� 3. Barras: Pre�o M�dio vs Tabela ����
+        // ── 3. Barras: Preço Médio vs Tabela ──
         const ctxP = document.getElementById('extrato-chart-preco');
         if (ctxP) {
             const labels = ['Compra', 'Venda'];
@@ -12001,7 +12001,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     labels,
                     datasets: [
                         { label: 'Tabela Ref.',  data: tabela, backgroundColor: '#1e354d', borderColor: '#3e7cb1', borderWidth: 2, borderRadius: 4 },
-                        { label: 'M�dio Real',   data: real,   backgroundColor: ctx => {
+                        { label: 'Médio Real',   data: real,   backgroundColor: ctx => {
                             const i = ctx.dataIndex;
                             // Compra: vermelho se acima da tabela. Venda: verde se acima da tabela.
                             if (i === 0) return real[0] > tabela[0] ? '#ff4d4d' : '#2AD07A';
@@ -12020,7 +12020,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ���� 4. Linha: Evolu��o acumulada ����
+        // ── 4. Linha: Evolução acumulada ──
         const ctxE = document.getElementById('extrato-chart-evolucao');
         if (ctxE && transacoes.length > 0) {
             // Ordenar por data
@@ -12063,7 +12063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
 
         if (transacoes.length === 0) {
-            container.innerHTML = '<div style="text-align:center; color:#8eaabf; padding:24px;">Nenhuma movimenta��o lan�ada ainda.<br><small>Use o bot�o "Nova Movimenta��o" para registrar compras e vendas fracionadas.</small></div>';
+            container.innerHTML = '<div style="text-align:center; color:#8eaabf; padding:24px;">Nenhuma movimentação lançada ainda.<br><small>Use o botão "Nova Movimentação" para registrar compras e vendas fracionadas.</small></div>';
             return;
         }
 
@@ -12099,7 +12099,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <th style="padding:8px; text-align:left;">Data</th>
                         <th style="padding:8px;">Tipo</th>
                         <th style="padding:8px; text-align:right;">Qtd (kg)</th>
-                        <th style="padding:8px; text-align:right;">Pre�o Unit.</th>
+                        <th style="padding:8px; text-align:right;">Preço Unit.</th>
                         <th style="padding:8px; text-align:right;">Total R$</th>
                         <th style="padding:8px; text-align:right;">Acumulado</th>
                         <th style="padding:8px;">Obs</th>
@@ -12110,7 +12110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </table>`;
     }
 
-    // ���� 3. Planejado vs. Realizado Geral & Chart.js ������������������������������������������������������������
+    // ── 3. Planejado vs. Realizado Geral & Chart.js ──────────────────────────────
     window.carregarComparativoRealizadoGeral = async function() {
         await Promise.all([
             carregarPlanejamentoProducaoInsumos(),
@@ -12155,9 +12155,9 @@ document.addEventListener('DOMContentLoaded', () => {
             chartDataPlan.push(planKg);
             chartDataReal.push(realKg);
 
-            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�xx� DENTRO DO PLANEJADO</span>';
-            if (desvioPct < -10) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�x� ABAIXO DO PLANEJADO</span>';
-            else if (desvioPct > 10) statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�xx� ACIMA DO PLANEJADO</span>';
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ DENTRO DO PLANEJADO</span>';
+            if (desvioPct < -10) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ ABAIXO DO PLANEJADO</span>';
+            else if (desvioPct > 10) statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ ACIMA DO PLANEJADO</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -12186,7 +12186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
         });
 
-        // Itens Produ��o Insumos
+        // Itens Produção Insumos
         (localProducaoInsumos || []).forEach(p => {
             const planKg = parseFloat(p.quantidade_insumo_nec_kg || 0);
             const realKg = parseFloat(p.estoque_atual_kg || 0);
@@ -12197,12 +12197,12 @@ document.addEventListener('DOMContentLoaded', () => {
             totPlanKg += planKg; totRealKg += realKg;
             totPlanRs += planRs;
 
-            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�xx� DENTRO DO PLANEJADO</span>';
-            if (desvioPct < 0) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">�x� NECESSIDADE DE INSUMO</span>';
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ DENTRO DO PLANEJADO</span>';
+            if (desvioPct < 0) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ NECESSIDADE DE INSUMO</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="padding:10px 8px;"><span style="background:#1e354d; color:#3e7cb1; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:0.75rem;">Insumo Ind�stria</span></td>
+                <td style="padding:10px 8px;"><span style="background:#1e354d; color:#3e7cb1; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:0.75rem;">Insumo Indústria</span></td>
                 <td style="padding:10px 8px;"><strong>${p.insumo_nome || 'Insumo'}</strong> <small style="color:#aaa;">(${p.produto_nome || ''})</small></td>
                 <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#fff;">${planKg.toLocaleString('pt-BR')} kg</td>
                 <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${realKg.toLocaleString('pt-BR')} kg</td>
@@ -12235,7 +12235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chartRealizadoInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels.length > 0 ? labels : ['Conector', 'Fio Cobre', 'Alum�nio'],
+                labels: labels.length > 0 ? labels : ['Conector', 'Fio Cobre', 'Alumínio'],
                 datasets: [
                     {
                         label: 'Planejado (kg)',
@@ -12263,9 +12263,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ���� 4. Proje��o Financeira de Caixa ������������������������������������������������������������������������������������
+    // ── 4. Projeção Financeira de Caixa ──────────────────────────────────────────
     window.carregarProjecaoCaixa = async function() {
-        // Popula o select de produto no formul�rio de entrada
+        // Popula o select de produto no formulário de entrada
         let _mats = window.localMateriais || [];
         if (_mats.length === 0) {
             try {
@@ -12279,10 +12279,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
         }
 
-        // Define o m�s padr�o
+        // Define o mês padrão
         const cxMes = document.getElementById('cx-mes');
         if (cxMes && !cxMes.value) {
-            // Pr�ximo m�s
+            // Próximo mês
             const d = new Date(); d.setMonth(d.getMonth() + 1);
             cxMes.value = d.toISOString().slice(0, 7);
         }
@@ -12306,7 +12306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cEst = parseFloat(p.custo_estimado_rs || 0);
             totPlan += cEst;
             desinstalos.push({
-                nome: (p.insumo_nome || 'Insumo') + ' (Ind�stria)',
+                nome: (p.insumo_nome || 'Insumo') + ' (Indústria)',
                 qtd: parseFloat(p.quantidade_necessaria_compra_kg || 0),
                 preco: parseFloat(p.quantidade_necessaria_compra_kg || 0) > 0 ? cEst / parseFloat(p.quantidade_necessaria_compra_kg) : 0,
                 desembolso: cEst
@@ -12346,7 +12346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (desinstalos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#aaa;">Nenhuma proje��o registrada. Use o formul�rio acima para adicionar entradas manuais ou cadastre dados nas abas de Produ��o e Compra e Venda.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#aaa;">Nenhuma projeção registrada. Use o formulário acima para adicionar entradas manuais ou cadastre dados nas abas de Produção e Compra e Venda.</td></tr>';
             }
         }
     };
@@ -12367,7 +12367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const precoUnit = parseFloat(document.getElementById('cx-preco-unit').value || 0);
 
         if (!mesVal || !prodId || qtdKg <= 0 || precoUnit <= 0) {
-            _apexNotify('Aten��o', 'Preencha todos os campos obrigat�rios com valores v�lidos.', 'warning');
+            _apexNotify('Atenção', 'Preencha todos os campos obrigatórios com valores válidos.', 'warning');
             return;
         }
 
@@ -12383,16 +12383,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 lead_time_dias: 7,
                 preco_estimado: precoUnit,
                 mes_referencia: mesVal,
-                status: 'Proje��o Caixa',
-                observacoes: `Proje��o de caixa manual. Desembolso: R$ ${desembolso.toLocaleString('pt-BR', {minimumFractionDigits:2})}`
+                status: 'Projeção Caixa',
+                observacoes: `Projeção de caixa manual. Desembolso: R$ ${desembolso.toLocaleString('pt-BR', {minimumFractionDigits:2})}`
             };
             const res = await fetch('/api/planejamento/compras', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao registrar proje��o');
-            _apexNotify('Sucesso', `Proje��o de R$ ${desembolso.toLocaleString('pt-BR', {minimumFractionDigits:2})} adicionada ao caixa!`, 'success');
+            if (!res.ok) throw new Error('Erro ao registrar projeção');
+            _apexNotify('Sucesso', `Projeção de R$ ${desembolso.toLocaleString('pt-BR', {minimumFractionDigits:2})} adicionada ao caixa!`, 'success');
             document.getElementById('form-projecao-caixa').reset();
             document.getElementById('cx-total-preview').textContent = 'R$ 0,00';
             // Recarrega os dados
@@ -12404,7 +12404,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ���� 5. Par�metros de Prazos & Estoque M�nimo ��������������������������������������������������������������������
+    // ── 5. Parâmetros de Prazos & Estoque Mínimo ──────────────────────────────────
     window.carregarParametrosPrazos = async function() {
         try {
             const res = await fetch('/api/planejamento/parametros-prazos');
@@ -12412,7 +12412,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localParametrosPrazos = Array.isArray(data) ? data : [];
             renderParametrosPrazos();
         } catch (err) {
-            console.error('Erro ao carregar par�metros de prazos:', err);
+            console.error('Erro ao carregar parâmetros de prazos:', err);
             localParametrosPrazos = [];
             renderParametrosPrazos();
         }
@@ -12434,7 +12434,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 8px; text-align:right; font-weight:bold; color:#2AD07A;">${parseFloat(p.estoque_seguranca_kg || 0).toLocaleString('pt-BR')} kg</td>
                 <td style="padding:10px 8px; text-align:center;">${p.prazo_permanencia_dias || 30} dias</td>
                 <td style="padding:10px 8px; text-align:center;">
-                    <button type="button" onclick="editarParametrosPrazos(${p.material_id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer;" title="Editar Par�metros"><i class="fa-solid fa-pen"></i> Editar</button>
+                    <button type="button" onclick="editarParametrosPrazos(${p.material_id})" style="background:#1e354d; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer;" title="Editar Parâmetros"><i class="fa-solid fa-pen"></i> Editar</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -12484,7 +12484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('form-parametros-prazos');
         if (form) form.reset();
         
-        // Garantir vis�vel
+        // Garantir visível
         modalEl.style.display = 'flex';
     };
 
@@ -12512,7 +12512,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const matId = document.getElementById('prazos-mat-id').value;
         if (!matId) {
-            _apexNotify('Aten��o', 'Selecione o material antes de salvar.', 'warning');
+            _apexNotify('Atenção', 'Selecione o material antes de salvar.', 'warning');
             return;
         }
         const payload = {
@@ -12531,33 +12531,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao salvar par�metros');
-            _apexNotify('Sucesso', 'Par�metros de prazos e estoque salvos!', 'success');
+            if (!res.ok) throw new Error('Erro ao salvar parâmetros');
+            _apexNotify('Sucesso', 'Parâmetros de prazos e estoque salvos!', 'success');
             fecharModalParametrosPrazos();
             await carregarParametrosPrazos();
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
-    // ���� Exporta��o PDF Adicional ������������������������������������������������������������������������������������������������
+    // ── Exportação PDF Adicional ────────────────────────────────────────────────
     window.imprimirPlanejamentoProducaoPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) return;
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
             
-            // T�tulo e Meta Info em Fundo Branco
+            // Título e Meta Info em Fundo Branco
             doc.setTextColor(30, 41, 59);
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text("APEXTECH METAIS - PLANEJAMENTO DE PRODU��O & EXPLOS�O DE INSUMOS", 40, 40);
+            doc.text("APEXTECH METAIS - PLANEJAMENTO DE PRODUÇÃO & EXPLOSÃO DE INSUMOS", 40, 40);
 
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Intelig�ncia`, 40, 56);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Inteligência`, 40, 56);
 
-            const headers = [['Produto', 'Insumo', 'Insumo Nec. (kg)', 'Estoque Atual', 'Compra L�quida', 'Custo Est. (R$)']];
+            const headers = [['Produto', 'Insumo', 'Insumo Nec. (kg)', 'Estoque Atual', 'Compra Líquida', 'Custo Est. (R$)']];
             const body = (localProducaoInsumos || []).map(item => [
                 item.produto_nome || '',
                 item.insumo_nome || '',
@@ -12578,7 +12578,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejamento_Producao_Insumos_${new Date().toISOString().slice(0, 10)}.pdf`);
-            _apexNotify('Sucesso', 'PDF de Insumos da Produ��o baixado!', 'success');
+            _apexNotify('Sucesso', 'PDF de Insumos da Produção baixado!', 'success');
         } catch(e){}
     };
 
@@ -12588,7 +12588,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!jsPDFClass) return;
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
             
-            // T�tulo e Meta Info em Fundo Branco
+            // Título e Meta Info em Fundo Branco
             doc.setTextColor(30, 41, 59);
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
@@ -12596,7 +12596,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Intelig�ncia`, 40, 56);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Inteligência`, 40, 56);
 
             const headers = [['Produto Comercial', 'Compra Plan. (kg)', 'Venda Plan. (kg)', 'Investimento (R$)', 'Faturamento Prev. (R$)', '% Meta Global']];
             const body = (localComercialRevenda || []).map(item => {
@@ -12631,7 +12631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.imprimirComparativoRealizadoPdf) window.imprimirComparativoRealizadoPdf();
     };
 
-    // ���� 7. Planejamento por Cen�rios Estrat�gicos (16 a 22) ������������������������������������������
+    // ── 7. Planejamento por Cenários Estratégicos (16 a 22) ─────────────────────
     window.carregarPlanejamentoCenarios = async function() {
         try {
             const resCfg = await fetch('/api/planejamento/cenarios/configuracao');
@@ -12658,7 +12658,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const selProd = document.getElementById('cenarios-select-produto');
         if (selProd) {
-            selProd.innerHTML = '<option value="">Selecione o Produto para An�lise...</option>' +
+            selProd.innerHTML = '<option value="">Selecione o Produto para Análise...</option>' +
                 _mats.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
         }
 
@@ -12689,13 +12689,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao salvar configura��o dos cen�rios');
-            _apexNotify('Sucesso', 'Percentuais dos cen�rios salvos com sucesso!', 'success');
+            if (!res.ok) throw new Error('Erro ao salvar configuração dos cenários');
+            _apexNotify('Sucesso', 'Percentuais dos cenários salvos com sucesso!', 'success');
             currentCenariosConfig = payload;
             toggleConfiguracaoCenariosPanel();
             await executarSimulacaoCenarios(payload.meta_base_padrao_rs);
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -12718,12 +12718,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao simular cen�rios');
+            if (!res.ok) throw new Error('Erro ao simular cenários');
             const data = await res.json();
             currentCenariosSimulation = data;
             renderCenariosEstrategicos(data);
         } catch (err) {
-            console.error('Erro na simula��o dos cen�rios:', err);
+            console.error('Erro na simulação dos cenários:', err);
         }
     };
 
@@ -12734,7 +12734,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const mod = data.cenarios.moderado;
         const agr = data.cenarios.agressivo;
 
-        // 1. Destaque do Cen�rio Foco (Agressivo por padr�o ou configur�vel)
+        // 1. Destaque do Cenário Foco (Agressivo por padrão ou configurável)
         const foco = data.cenario_foco || agr;
         document.getElementById('foco-titulo-cenario').textContent = `CENÁRIO ${foco.cenario}`;
         document.getElementById('foco-fat-rs').textContent = 'R$ ' + foco.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
@@ -12748,7 +12748,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('foco-diff-mod').textContent = (diffMod >= 0 ? '+' : '') + 'R$ ' + diffMod.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${((diffMod / (mod.faturamento_previsto_rs || 1)) * 100).toFixed(1)}%)`;
         document.getElementById('foco-diff-cons').textContent = (diffCons >= 0 ? '+' : '') + 'R$ ' + diffCons.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${((diffCons / (cons.faturamento_previsto_rs || 1)) * 100).toFixed(1)}%)`;
 
-        // 2. Triple Cards dos 3 Cen�rios
+        // 2. Triple Cards dos 3 Cenários
         // Conservador
         document.getElementById('cons-pct-badge').textContent = `${cons.percentual}% Meta`;
         document.getElementById('cons-fat-txt').textContent = 'R$ ' + cons.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2});
@@ -12773,12 +12773,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('agr-margem-txt').textContent = 'R$ ' + agr.margem_estimada_rs.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ` (${agr.margem_estimada_pct.toFixed(1)}%)`;
         document.getElementById('agr-vol-txt').textContent = agr.volume_compras_kg.toLocaleString('pt-BR') + ' kg';
 
-        // 3. Frases da Apresenta��o Gerencial (Requisito 20)
-        document.getElementById('apres-cons-txt').textContent = `"Se trabalharmos no cen�rio conservador (${cons.percentual}%), teremos R$ ${cons.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})} de faturamento."`;
-        document.getElementById('apres-mod-txt').textContent = `"No cen�rio moderado (${mod.percentual}%), atingiremos R$ ${mod.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})}."`;
-        document.getElementById('apres-agr-txt').textContent = `"Para atingir nossa meta estrat�gica, precisamos trabalhar no cen�rio agressivo (${agr.percentual}%), chegando a R$ ${agr.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})}."`;
+        // 3. Frases da Apresentação Gerencial (Requisito 20)
+        document.getElementById('apres-cons-txt').textContent = `"Se trabalharmos no cenário conservador (${cons.percentual}%), teremos R$ ${cons.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})} de faturamento."`;
+        document.getElementById('apres-mod-txt').textContent = `"No cenário moderado (${mod.percentual}%), atingiremos R$ ${mod.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})}."`;
+        document.getElementById('apres-agr-txt').textContent = `"Para atingir nossa meta estratégica, precisamos trabalhar no cenário agressivo (${agr.percentual}%), chegando a R$ ${agr.faturamento_previsto_rs.toLocaleString('pt-BR', {minimumFractionDigits:2})}."`;
 
-        // 4. Gr�fico Comparativo Chart.js
+        // 4. Gráfico Comparativo Chart.js
         renderGraficoCenarios(cons, mod, agr);
 
         // 5. Atualizar Produto se houver selecionado
@@ -12829,7 +12829,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tbody) return;
 
         if (!prodId) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto acima para visualizar os cen�rios individuais.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto acima para visualizar os cenários individuais.</td></tr>';
             return;
         }
 
@@ -12866,9 +12866,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         tbody.innerHTML =
-            buildRow('�x� CONSERVADOR', pCons, '#ff4d4d') +
-            buildRow('�xx� MODERADO', pMod, '#f0b800') +
-            buildRow('�xx� AGRESSIVO', pAgr, '#2AD07A');
+            buildRow('ðŸ”´ CONSERVADOR', pCons, '#ff4d4d') +
+            buildRow('ðŸŸ¡ MODERADO', pMod, '#f0b800') +
+            buildRow('ðŸŸ¢ AGRESSIVO', pAgr, '#2AD07A');
     }
 
     window.imprimirCenariosPdf = async function() {
@@ -12877,15 +12877,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!jsPDFClass) return;
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
             
-            // T�tulo e Meta Info em Fundo Branco
+            // Título e Meta Info em Fundo Branco
             doc.setTextColor(30, 41, 59);
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text("APEXTECH METAIS - PLANEJAMENTO POR CENÁRIOS ESTRAT�GICOS", 40, 40);
+            doc.text("APEXTECH METAIS - PLANEJAMENTO POR CENÁRIOS ESTRATÉGICOS", 40, 40);
 
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Intelig�ncia`, 40, 56);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')} | Central de Inteligência`, 40, 56);
 
             if (!currentCenariosSimulation || !currentCenariosSimulation.cenarios) return;
 
@@ -12893,7 +12893,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const mod = currentCenariosSimulation.cenarios.moderado;
             const agr = currentCenariosSimulation.cenarios.agressivo;
 
-            const headers = [['Cen�rio', '% Meta', 'Faturamento (R$)', 'Investimento (R$)', 'Caixa (R$)', 'Volume (kg)']];
+            const headers = [['Cenário', '% Meta', 'Faturamento (R$)', 'Investimento (R$)', 'Caixa (R$)', 'Volume (kg)']];
             const body = [cons, mod, agr].map(item => [
                 item.cenario,
                 item.percentual + '%',
@@ -12914,16 +12914,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejamento_Cenarios_Estrategicos_${new Date().toISOString().slice(0, 10)}.pdf`);
-            _apexNotify('Sucesso', 'PDF de Cen�rios Estrat�gicos baixado!', 'success');
+            _apexNotify('Sucesso', 'PDF de Cenários Estratégicos baixado!', 'success');
         } catch(e){}
     };
 
-    // ���� PDF Export: Planejamento de Compra & Venda (Trading) ����������������������������������������
+    // ── PDF Export: Planejamento de Compra & Venda (Trading) ────────────────────
     window.imprimirRelatorioMrpPdf = window.imprimirMrpPdf = function(id) {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) {
-                _apexNotify('Aten��o', 'Biblioteca jsPDF n�o carregada.', 'error');
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
                 return;
             }
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
@@ -12940,7 +12940,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(170, 170, 170);
-            doc.text(`Relat�rio Gerencial Comercial | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+            doc.text(`Relatório Gerencial Comercial | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
 
             let y = 80;
             doc.setFillColor(30, 78, 140);
@@ -12950,7 +12950,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text("Material / Produto", 50, y + 15);
             doc.text("Fornecedor", 220, y + 15);
             doc.text("Meta (kg)", 380, y + 15);
-            doc.text("Pre�o (R$/kg)", 460, y + 15);
+            doc.text("Preço (R$/kg)", 460, y + 15);
             doc.text("Investimento (R$)", 550, y + 15);
             doc.text("Realizado (kg)", 670, y + 15);
             doc.text("Status", 770, y + 15);
@@ -12983,19 +12983,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejamento_Trading_${new Date().toISOString().slice(0, 10)}.pdf`);
-            _apexNotify('Sucesso', 'PDF de Trading Comercial gerado com marca d\'�gua!', 'success');
+            _apexNotify('Sucesso', 'PDF de Trading Comercial gerado com marca d\'água!', 'success');
         } catch (err) {
             console.error('Erro ao gerar PDF Trading:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 
-    // ���� PDF Export: Insumos da Ind�stria ������������������������������������������������������������������������������
+    // ── PDF Export: Insumos da Indústria ───────────────────────────────────────
     window.imprimirInsumosIndustriaPdf = function() {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) {
-                _apexNotify('Aten��o', 'Biblioteca jsPDF n�o carregada.', 'error');
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
                 return;
             }
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
@@ -13007,12 +13007,12 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
-            doc.text("APEXTECH METAIS - PLANEJAMENTO DE INSUMOS DA IND�STRIA", 40, 40);
+            doc.text("APEXTECH METAIS - PLANEJAMENTO DE INSUMOS DA INDÚSTRIA", 40, 40);
 
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(170, 170, 170);
-            doc.text(`Consumo e Abastecimento de F�brica | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
+            doc.text(`Consumo e Abastecimento de Fábrica | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 55);
 
             let y = 80;
             doc.setFillColor(30, 78, 140);
@@ -13021,7 +13021,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setFont('helvetica', 'bold');
             doc.text("Insumo / Material", 50, y + 15);
             doc.text("Fornecedor", 240, y + 15);
-            doc.text("Qtd Necess�ria (kg)", 420, y + 15);
+            doc.text("Qtd Necessária (kg)", 420, y + 15);
             doc.text("Lead Time", 550, y + 15);
             doc.text("Custo Previsto (R$)", 640, y + 15);
             doc.text("Status", 770, y + 15);
@@ -13052,25 +13052,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejamento_Insumos_Industria_${new Date().toISOString().slice(0, 10)}.pdf`);
-            _apexNotify('Sucesso', 'PDF de Insumos da Ind�stria gerado com marca d\'�gua!', 'success');
+            _apexNotify('Sucesso', 'PDF de Insumos da Indústria gerado com marca d\'água!', 'success');
         } catch (err) {
             console.error('Erro ao gerar PDF Insumos:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 
-    // ���� PDF Export: Planejado vs. Realizado (Metas & Caixa) ����������������������������������������
+    // ── PDF Export: Planejado vs. Realizado (Metas & Caixa) ────────────────────
     window.imprimirComparativoRealizadoPdf = async function() {
         try {
             const jsPDFClass = getJsPDFClass();
             if (!jsPDFClass) {
-                _apexNotify('Aten��o', 'Biblioteca jsPDF n�o carregada.', 'error');
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
                 return;
             }
             const doc = new jsPDFClass('landscape', 'pt', 'a4');
             const dataToExport = localMRP || [];
 
-            // T�tulo e Meta Info em Fundo Branco
+            // Título e Meta Info em Fundo Branco
             doc.setTextColor(30, 41, 59);
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
@@ -13078,7 +13078,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139);
-            doc.text(`Acompanhamento de Metas de Compra & Proje��o de Caixa | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 56);
+            doc.text(`Acompanhamento de Metas de Compra & Projeção de Caixa | Gerado em: ${new Date().toLocaleString('pt-BR')}`, 40, 56);
 
             const headers = [['Tipo', 'Material / Produto', 'Meta (kg)', 'Realizado (kg)', 'Desvio %', 'Previsto (R$)', 'Realizado (R$)']];
             const body = dataToExport.map(item => {
@@ -13112,11 +13112,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let nextY = doc.lastAutoTable.finalY + 20;
 
-            // Capturar e Inserir o Gr�fico de Metas
+            // Capturar e Inserir o Gráfico de Metas
             const chartCanvas = document.getElementById('chart-planejado-vs-realizado');
             if (chartCanvas) {
                 try {
-                    // Garantir que cabe na p�gina atual, sen�o cria nova
+                    // Garantir que cabe na página atual, senão cria nova
                     if (nextY + 160 > doc.internal.pageSize.getHeight() - 40) {
                         await aplicarMarcaDaguaLogoJsPDF(doc);
                         doc.addPage();
@@ -13126,16 +13126,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const chartImgData = chartCanvas.toDataURL('image/png');
                     doc.addImage(chartImgData, 'PNG', 40, nextY, doc.internal.pageSize.getWidth() - 80, 150);
                 } catch (e) {
-                    console.warn('Erro ao inserir gr�fico no PDF:', e);
+                    console.warn('Erro ao inserir gráfico no PDF:', e);
                 }
             }
 
             await aplicarMarcaDaguaLogoJsPDF(doc);
             doc.save(`Planejado_vs_Realizado_${new Date().toISOString().slice(0, 10)}.pdf`);
-            _apexNotify('Sucesso', 'PDF Planejado vs. Realizado baixado com gr�ficos e marca d\'�gua!', 'success');
+            _apexNotify('Sucesso', 'PDF Planejado vs. Realizado baixado com gráficos e marca d\'água!', 'success');
         } catch (err) {
             console.error('Erro ao gerar PDF Planejado vs Realizado:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 
@@ -13145,11 +13145,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch(`/api/planejamento/compras/${id}`, { method: 'DELETE' });
             await carregarPlanejamentoCompras();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao excluir: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
         }
     };
 
-    // ���� 2. Planejamento Industrial / Capacidade ��������������������������������������������������������������������
+    // ── 2. Planejamento Industrial / Capacidade ──────────────────────────────────
     window.carregarCapacidadeIndustrial = window.carregarPlanejamentoIndustrial = async function() {
         try {
             const res = await fetch('/api/planejamento/industrial/equipamentos');
@@ -13184,9 +13184,9 @@ document.addEventListener('DOMContentLoaded', () => {
             totalSetup += setup;
             totalOee += oee;
 
-            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;"> Operacional</span>';
-            if (eq.status === 'Manuten��o') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">��️ Manuten��o</span>';
-            if (eq.status === 'Parado') statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem;">�R Parado</span>';
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Operacional</span>';
+            if (eq.status === 'Manutenção') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⚠️ ï¸ Manutenção</span>';
+            if (eq.status === 'Parado') statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem;">âŒ Parado</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -13275,7 +13275,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalEquipamentoIndustrial();
             await carregarCapacidadeIndustrial();
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -13285,11 +13285,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch(`/api/planejamento/industrial/equipamentos/${id}`, { method: 'DELETE' });
             await carregarCapacidadeIndustrial();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao excluir: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
         }
     };
 
-    // ���� 3. Produ��o & PCP (Ordens de Produ��o com Tempos Operacionais) ������������������
+    // ── 3. Produção & PCP (Ordens de Produção com Tempos Operacionais) ─────────
     window.carregarOrdensProducao = async function() {
         try {
             const res = await fetch('/api/planejamento/producao/ops');
@@ -13298,7 +13298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.localOPs = localOPs;
             renderOrdensProducao();
         } catch (err) {
-            console.error('Erro ao carregar Ordens de Produ��o PCP:', err);
+            console.error('Erro ao carregar Ordens de Produção PCP:', err);
             localOPs = [];
             window.localOPs = [];
             renderOrdensProducao();
@@ -13317,7 +13317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         localOPs.forEach(op => {
             const pesoEnt = parseFloat(op.peso_entrada_kg || 0);
-            if (op.status === 'Em Execu��o') opsExecucaoCount++;
+            if (op.status === 'Em Execução') opsExecucaoCount++;
             volumeTotal += pesoEnt;
 
             const etapas = op.etapas || [];
@@ -13332,7 +13332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let stBg = '#aaa';
                 if (et.status_etapa === 'Em Andamento') stBg = '#f0b800';
-                if (et.status_etapa === 'Conclu�da') stBg = '#2AD07A';
+                if (et.status_etapa === 'Concluída') stBg = '#2AD07A';
 
                 return `
                     <div style="background:#0d1826; border:1px solid #1a2a3a; padding:6px 10px; border-radius:6px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; font-size:0.78rem;">
@@ -13355,8 +13355,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tempoRealTotal += opRealHours;
 
             let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Planejada</span>';
-            if (op.status === 'Em Execu��o') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⏳ Em Execu��o</span>';
-            if (op.status === 'Conclu�da') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;"> Conclu�da</span>';
+            if (op.status === 'Em Execução') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">â³ Em Execução</span>';
+            if (op.status === 'Concluída') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Concluída</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -13364,7 +13364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding:10px 8px;">${op.material_entrada || '-'}</td>
                 <td style="padding:10px 8px; text-align:right; font-weight:bold;">${pesoEnt.toLocaleString('pt-BR')} kg</td>
                 <td style="padding:10px 8px;">${op.material_saida_nome || '-'} (${parseFloat(op.peso_saida_estimado_kg||0).toLocaleString('pt-BR')} kg)</td>
-                <td style="padding:10px 8px; text-align:center; font-size:0.78rem;">${fmtD(op.data_inicio_prevista)} at� ${fmtD(op.data_fim_prevista)}</td>
+                <td style="padding:10px 8px; text-align:center; font-size:0.78rem;">${fmtD(op.data_inicio_prevista)} até ${fmtD(op.data_fim_prevista)}</td>
                 <td style="padding:10px 8px; min-width:280px;">${etapasHtml}</td>
                 <td style="padding:10px 8px; text-align:center;">${statusBadge}</td>
                 <td style="padding:10px 8px; text-align:center;">
@@ -13404,7 +13404,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const selMat = document.getElementById('op-material-saida-id');
         if (selMat) {
-            selMat.innerHTML = '<option value="">Selecione o Material de Sa�da...</option>' +
+            selMat.innerHTML = '<option value="">Selecione o Material de Saída...</option>' +
                 _mats.map(m => `<option value="${m.id}">${m.nome} (${m.categoria || 'Geral'})</option>`).join('');
         }
 
@@ -13413,11 +13413,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('op-data-inicio').value = hoje;
         document.getElementById('op-data-fim').value = amanha;
 
-        // Etapas padr�o pr�-carregadas para acelerar o PCP
+        // Etapas padrão pré-carregadas para acelerar o PCP
         etapasOpFormDraft = [
-            { nome_etapa: 'Recep��o & Pesagem', equipamento_id: '', tempo_estimado_horas: 1.5, operador_responsavel: 'Carlos' },
-            { nome_etapa: 'Tritura��o & Desmonte', equipamento_id: '', tempo_estimado_horas: 4.0, operador_responsavel: 'Jo�o' },
-            { nome_etapa: 'Separa��o Magn�tica & Prensagem', equipamento_id: '', tempo_estimado_horas: 3.0, operador_responsavel: 'Marcos' },
+            { nome_etapa: 'Recepção & Pesagem', equipamento_id: '', tempo_estimado_horas: 1.5, operador_responsavel: 'Carlos' },
+            { nome_etapa: 'Trituração & Desmonte', equipamento_id: '', tempo_estimado_horas: 4.0, operador_responsavel: 'João' },
+            { nome_etapa: 'Separação Magnética & Prensagem', equipamento_id: '', tempo_estimado_horas: 3.0, operador_responsavel: 'Marcos' },
             { nome_etapa: 'Qualidade & Embalagem', equipamento_id: '', tempo_estimado_horas: 1.5, operador_responsavel: 'Eng. Roberto' }
         ];
 
@@ -13514,26 +13514,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) throw new Error('Erro ao salvar Ordem de Produ��o');
-            _apexNotify('Sucesso', 'Ordem de Produ��o (OP) criada com sucesso!', 'success');
+            if (!res.ok) throw new Error('Erro ao salvar Ordem de Produção');
+            _apexNotify('Sucesso', 'Ordem de Produção (OP) criada com sucesso!', 'success');
             fecharModalOrdemProducao();
             await carregarOrdensProducao();
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
     window.excluirOrdemProducao = async function(id) {
-        if (!confirm('Excluir esta Ordem de Produ��o (OP)?')) return;
+        if (!confirm('Excluir esta Ordem de Produção (OP)?')) return;
         try {
             await fetch(`/api/planejamento/producao/ops/${id}`, { method: 'DELETE' });
             await carregarOrdensProducao();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao excluir: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao excluir: ' + err.message, 'error');
         }
     };
 
-    // ���� 4. Apontamento de Tempo Real da Etapa ������������������������������������������������������������������������
+    // ── 4. Apontamento de Tempo Real da Etapa ────────────────────────────────────
     window.abrirModalApontamentoTempo = function(opId, etapaId) {
         const op = localOPs.find(x => x.id === opId);
         if (!op) return;
@@ -13577,7 +13577,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalApontamentoTempo();
             await carregarOrdensProducao();
         } catch (err) {
-            _apexNotify('Aten��o', err.message, 'error');
+            _apexNotify('Atenção', err.message, 'error');
         }
     };
 
@@ -13587,13 +13587,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.exportarDashboardPDF = async function() {
         if (!window.jspdf) {
-            _apexNotify('Sistema', 'A biblioteca jsPDF n�o carregou corretamente.', 'info');
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
             return;
         }
         const section = document.getElementById('dashboard');
         if (!section) return;
 
-        _apexNotify('Sistema', 'Gerando PDF da Central de Decis�o LME...', 'info');
+        _apexNotify('Sistema', 'Gerando PDF da Central de Decisão LME...', 'info');
 
         try {
             const canvas = await html2canvas(section, {
@@ -13633,16 +13633,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             pdf.save(`Relatorio_Estrategico_LME_${new Date().toISOString().split('T')[0]}.pdf`);
-            _apexNotify('Sistema', 'PDF da Central de Decis�o LME baixado com sucesso!', 'info');
+            _apexNotify('Sistema', 'PDF da Central de Decisão LME baixado com sucesso!', 'info');
         } catch (err) {
             console.error('Erro ao gerar PDF do Dashboard:', err);
-            _apexNotify('Aten��o', 'Erro ao exportar PDF do Dashboard.', 'error');
+            _apexNotify('Atenção', 'Erro ao exportar PDF do Dashboard.', 'error');
         }
     };
 
     window.exportarPlanejamentoPDF = async function() {
         if (!window.jspdf) {
-            _apexNotify('Sistema', 'A biblioteca jsPDF n�o carregou corretamente.', 'info');
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
             return;
         }
         const { jsPDF } = window.jspdf;
@@ -13662,7 +13662,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fornObj = (window.localFornecedores || []).find(f => f.id == pl.fornecedor_id);
                 if (fornObj) fornecedorStr = fornObj.nome || fornObj.nome_fantasia || fornObj.apelido || '';
             }
-            if (!fornecedorStr) fornecedorStr = 'Fornecedor V�rios';
+            if (!fornecedorStr) fornecedorStr = 'Fornecedor Vários';
             
             // Remove duplicate token if repeated like "ACJG JG" -> "ACJG"
             const tokens = fornecedorStr.split(/\s+/);
@@ -13699,24 +13699,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         doc.autoTable({
             startY: 45,
-            head: [['M�s', 'Fornecedor', 'Produto/Ref', 'Peso Comp.','Pre�o Comp.', 'Total Compra', 'Rend. %', 'Material', 'Peso Mat.', 'Pre�o Venda', 'Total Venda', 'Lucro Bruto', 'Margem Liq.']],
+            head: [['Mês', 'Fornecedor', 'Produto/Ref', 'Peso Comp.','Preço Comp.', 'Total Compra', 'Rend. %', 'Material', 'Peso Mat.', 'Preço Venda', 'Total Venda', 'Lucro Bruto', 'Margem Liq.']],
             body: body,
             theme: 'grid',
             styles: { fontSize: 8 },
             headStyles: { fillColor: [27, 45, 61], fontSize: 8.5 }
         });
 
-        // Cabe�alho
+        // Cabeçalho
         const selectElem = document.getElementById('pl-filtro-mes');
         const mesTexto = selectElem ? selectElem.options[selectElem.selectedIndex]?.text : mesFiltro;
         doc.setFontSize(16);
         doc.setTextColor(62, 124, 177); // #3e7cb1
-        doc.text(`Relat�rio de Planejamento Mensal (${mesTexto})`, 15, 20);
+        doc.text(`Relatório de Planejamento Mensal (${mesTexto})`, 15, 20);
         
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
-        doc.text('Usu�rio: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
+        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
 
         await aplicarMarcaDaguaLogoJsPDF(doc);
 
@@ -13725,7 +13725,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.gerarPdfPlanejamentoModal = async function() {
         if (!window.jspdf) {
-            _apexNotify('Sistema', 'A biblioteca jsPDF n�o carregou corretamente.', 'info');
+            _apexNotify('Sistema', 'A biblioteca jsPDF não carregou corretamente.', 'info');
             return;
         }
         
@@ -13747,15 +13747,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Cabe�alho
+        // Cabeçalho
         doc.setFontSize(18);
         doc.setTextColor(62, 124, 177);
-        doc.text('Relat�rio Executivo - Simula��o de Lote', 15, 20);
+        doc.text('Relatório Executivo - Simulação de Lote', 15, 20);
         
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), 15, 28);
-        doc.text('Usu�rio: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
+        doc.text('Usuário: ' + (sessionStorage.getItem('apex_logged_user_name') || 'Admin'), 15, 34);
 
         // Dados
         doc.setFontSize(12);
@@ -13770,10 +13770,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 ['Produto', produto],
                 ['Material Resultante', material],
                 ['Peso Comprado', pesoComprado + ' kg'],
-                ['Pre�o de Compra', 'R$ ' + parseFloat(precoCompra).toFixed(2)],
+                ['Preço de Compra', 'R$ ' + parseFloat(precoCompra).toFixed(2)],
                 ['Rendimento Estimado', rendimento + '%'],
-                ['Pre�o Venda Estimado', 'R$ ' + parseFloat(precoVenda).toFixed(2)],
-                ['Comiss�o', comissao + '%'],
+                ['Preço Venda Estimado', 'R$ ' + parseFloat(precoVenda).toFixed(2)],
+                ['Comissão', comissao + '%'],
                 ['Taxa FIDC', fidc + '%']
             ],
             theme: 'grid',
@@ -13785,7 +13785,7 @@ document.addEventListener('DOMContentLoaded', () => {
             head: [['Indicador de Rentabilidade', 'Resultado']],
             body: [
                 ['Lucro Bruto', lucroBruto],
-                ['Lucro L�quido Estimado', lucroLiq],
+                ['Lucro Líquido Estimado', lucroLiq],
                 ['Margem', margem]
             ],
             theme: 'grid',
@@ -13834,7 +13834,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 <span style="font-size:0.75rem; text-transform:uppercase; color:#aaa; font-weight:bold;">${cat}</span>
                 <h2 style="margin:5px 0 0; color:#fff;">${cats[cat].toLocaleString('pt-BR')} kg</h2>
-                <div style="font-size:0.8rem; color:#3e7cb1; margin-top:5px;">Estoque f�sico ativo</div>
+                <div style="font-size:0.8rem; color:#3e7cb1; margin-top:5px;">Estoque físico ativo</div>
             `;
             grid.appendChild(card);
         });
@@ -13939,7 +13939,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.deletarUsuario = async function(id) {
-        if (!confirm('Deseja realmente remover este usu�rio?')) return;
+        if (!confirm('Deseja realmente remover este usuário?')) return;
         try {
             await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
             carregarUsuarios();
@@ -13963,7 +13963,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
 
     function popularPerfisPermissoes() {
-        const perfis = ['Administrador', 'Laborat�rio', 'Compras', 'Produ��o', 'Financeiro', 'Diretoria'];
+        const perfis = ['Administrador', 'Laboratório', 'Compras', 'Produção', 'Financeiro', 'Diretoria'];
         const container = document.getElementById('lista-perfis-permissoes');
         container.innerHTML = perfis.map(p => `
             <div onclick="selecionarPerfilPermissoes('${p}')" style="padding:10px 15px; border-radius:6px; background:#1a3045; cursor:pointer; color:#fff; border:1px solid transparent; transition:0.2s;" onmouseover="this.style.borderColor='#3e7cb1'" onmouseout="this.style.borderColor='transparent'" id="btn-perfil-${p.toLowerCase().replace(/[^a-z0-9]/g,'')}">
@@ -14023,17 +14023,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ role_permissions: JSON.stringify(globalRolePermissions) })
             });
-            _apexNotify('Sistema', 'Permiss�es salvas com sucesso!', 'info');
+            _apexNotify('Sistema', 'Permissões salvas com sucesso!', 'info');
             applyRolePermissions();
         } catch (err) {
-            console.error('Erro ao salvar permiss�es:', err);
-            _apexNotify('Aten��o', 'Erro ao salvar permiss�es.', 'error');
+            console.error('Erro ao salvar permissões:', err);
+            _apexNotify('Atenção', 'Erro ao salvar permissões.', 'error');
         }
     };
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
-    // LOGIN (Posicionado no final para evitar TDZ e erros de inicializa��o)
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
+    // LOGIN (Posicionado no final para evitar TDZ e erros de inicialização)
+    // ─────────────────────────────────────────────────────────────────────────
     const loginOverlay       = document.getElementById('login-overlay');
     const dashboardContainer = document.getElementById('admin-dashboard-container');
     const loginForm          = document.getElementById('admin-login-form');
@@ -14047,7 +14047,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dashboardContainer.style.display = 'flex';
         initAdmin();
     } else {
-        // Se a sess�o diz que t� logado mas n�o tem token, for�a limpeza
+        // Se a sessão diz que tá logado mas não tem token, força limpeza
         sessionStorage.removeItem('apex_admin_logged_in');
     }
 
@@ -14057,7 +14057,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value.trim();
 
-            // Fun��o para entrar no painel
+            // Função para entrar no painel
             function entrarNoPainel(nome, perfil) {
                 sessionStorage.setItem('apex_admin_logged_in', 'true');
                 if (nome) sessionStorage.setItem('apex_logged_user_name', nome);
@@ -14090,7 +14090,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Erro no login:', error);
-                loginError.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro de conex�o com o servidor.';
+                loginError.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro de conexão com o servidor.';
                 loginError.style.display = 'block';
             }
         });
@@ -14119,7 +14119,7 @@ window.calcularFidcIsolado = function() {
     chartFidcIsolado = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['L�quido Imediato', 'Desconto FIDC'],
+            labels: ['Líquido Imediato', 'Desconto FIDC'],
             datasets: [{
                 data: [liquido, desconto],
                 backgroundColor: ['#2AD07A', '#ff4d4d'],
@@ -14137,7 +14137,7 @@ window.calcularFidcIsolado = function() {
 };
 
 window.carregarFinanceiroView = async function() {
-    // Buscar lotes de compras e simula��es via API
+    // Buscar lotes de compras e simulações via API
     try {
         const res = await fetch('/api/planejamento-compras'); // Rota a ser checada ou criada
         if (!res.ok) throw new Error('Falha ao carregar planejamentos');
@@ -14200,10 +14200,10 @@ window.carregarFinanceiroView = async function() {
     const fmtD = (d) => { if (!d) return '-'; try { return new Date(d).toLocaleDateString('pt-BR', {timeZone:'UTC'}); } catch(e){ return d; } };
     const statusColor = {
         'Rascunho': '#7fa8c8',
-        'Aguardando Aprova��o': '#ffeb3b',
+        'Aguardando Aprovação': '#ffeb3b',
         'Aprovado': '#2AD07A',
         'Confirmado': '#2AD07A',
-        'Em Separa��o': '#4fc3f7',
+        'Em Separação': '#4fc3f7',
         'Faturado': '#2AD07A',
         'Entregue': '#2AD07A',
         'Cancelado': '#ff6b6b'
@@ -14247,7 +14247,7 @@ window.carregarFinanceiroView = async function() {
             <tr style="border-bottom:1px solid #1a2a3a; transition:background 0.15s;" onmouseover="this.style.background='#0f2030'" onmouseout="this.style.background=''">
                 <td style="padding:12px 10px; font-weight:bold; color:#2AD07A;">
                     ${p.numero || '-'}<br>
-                    <small style="color:#5a738e; font-weight:normal;">Emiss�o: ${fmtD(p.data_emissao)}</small>
+                    <small style="color:#5a738e; font-weight:normal;">Emissão: ${fmtD(p.data_emissao)}</small>
                 </td>
                 <td style="padding:12px 10px; color:#fff;">
                     <div style="font-weight:bold; font-size:0.92rem;">${p.cliente_nome || p.cliente_nome_avulso || 'Cliente Avulso'} ${badgeCliente}</div>
@@ -14294,7 +14294,7 @@ window.carregarFinanceiroView = async function() {
     window.abrirNovoPedido = async function() {
         itensPedido = [];
 
-        // 1. Abrir o modal IMEDIATAMENTE ao clicar no bot�o
+        // 1. Abrir o modal IMEDIATAMENTE ao clicar no botão
         const modal = document.getElementById('modal-pedido-venda');
         if (modal) modal.style.display = 'flex';
 
@@ -14307,7 +14307,7 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('modal-pedido-titulo').textContent = 'Novo Pedido de Venda';
         document.getElementById('pedido-data-emissao').value = new Date().toISOString().split('T')[0];
         
-        // Auto-preencher usu�rio logado e perfil
+        // Auto-preencher usuário logado e perfil
         const loggedUser = sessionStorage.getItem('apex_logged_user_name') || 'Administrador Apex';
         const loggedRole = sessionStorage.getItem('apex_logged_user_role') || 'Administrador';
         if (document.getElementById('pedido-vendedor')) document.getElementById('pedido-vendedor').value = loggedUser;
@@ -14317,10 +14317,10 @@ window.carregarFinanceiroView = async function() {
         renderItensPedido();
         recalcularPedido();
 
-        // N�mero provis�rio imediato
+        // Número provisório imediato
         document.getElementById('pedido-numero').value = 'PV-' + String(Math.floor(Date.now()/1000)%10000).padStart(4,'0');
 
-        // 2. Buscar dados em segundo plano com valida��o de status HTTP
+        // 2. Buscar dados em segundo plano com validação de status HTTP
         try {
             const res = await fetch('/api/clientes');
             if (res.ok) window.localClientes = await res.json();
@@ -14462,12 +14462,12 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('pedido-cliente-busca').value = c.nome || c.fantasia || '';
         document.getElementById('pedido-cliente-dropdown').style.display = 'none';
         document.getElementById('cc-nome').textContent     = c.nome || c.fantasia || '';
-        document.getElementById('cc-cnpj').textContent     = c.cnpj || c.cpf || 'CNPJ N�o informado';
+        document.getElementById('cc-cnpj').textContent     = c.cnpj || c.cpf || 'CNPJ Não informado';
         document.getElementById('cc-cidade').textContent   = c.cidade || '';
         document.getElementById('cc-uf').textContent       = c.uf || '';
         document.getElementById('cc-tel').textContent      = c.telefone1 || c.telefone2 || '-';
         document.getElementById('cc-email').textContent    = c.email || '-';
-        if (document.getElementById('cc-endereco')) document.getElementById('cc-endereco').textContent = c.endereco || 'Endere�o principal de cadastro';
+        if (document.getElementById('cc-endereco')) document.getElementById('cc-endereco').textContent = c.endereco || 'Endereço principal de cadastro';
         
         const badge = document.getElementById('cc-status-badge');
         if (badge) {
@@ -14477,7 +14477,7 @@ window.carregarFinanceiroView = async function() {
             badge.innerHTML = '<i class="fa-solid fa-user-check"></i> CLIENTE CADASTRADO NO SISTEMA';
         }
 
-        // Se o endere�o de entrega estiver vazio, preenche com o endere�o do cliente
+        // Se o endereço de entrega estiver vazio, preenche com o endereço do cliente
         const elEndEntrega = document.getElementById('pedido-endereco-entrega');
         if (elEndEntrega && !elEndEntrega.value) {
             elEndEntrega.value = (c.endereco || '') + (c.cidade ? ' - ' + c.cidade + '/' + (c.uf||'') : '');
@@ -14580,7 +14580,7 @@ window.carregarFinanceiroView = async function() {
         tbody.innerHTML = itensPedido.map((it,i) => `
             <tr style="border-bottom:1px solid #1a2a3a;">
                 <td style="padding:6px 4px;">
-                    <input value="${it.descricao||''}" onchange="atualizarItemPedido(${i},'descricao',this.value)" class="noble-input" style="width:100%; padding:5px 8px; font-size:0.82rem;" placeholder="Ex: Sucata de Cobre / Alum�nio" />
+                    <input value="${it.descricao||''}" onchange="atualizarItemPedido(${i},'descricao',this.value)" class="noble-input" style="width:100%; padding:5px 8px; font-size:0.82rem;" placeholder="Ex: Sucata de Cobre / Alumínio" />
                 </td>
                 <td style="padding:6px 4px; text-align:center;">
                     <select onchange="atualizarItemPedido(${i},'unidade',this.value)" class="noble-input" style="padding:5px 4px; font-size:0.82rem; width:65px;">
@@ -14664,7 +14664,7 @@ window.carregarFinanceiroView = async function() {
             fecharModalPedido();
             await carregarPedidos();
         } catch(err) {
-            _apexNotify('Aten��o', 'N�o foi poss�vel salvar o pedido: '+err.message, 'error');
+            _apexNotify('Atenção', 'Não foi possível salvar o pedido: '+err.message, 'error');
         }
     };
 
@@ -14707,17 +14707,17 @@ window.carregarFinanceiroView = async function() {
             recalcularPedido();
             document.getElementById('modal-pedido-venda').style.display = 'flex';
         } catch(err) {
-            _apexNotify('Aten��o', 'Erro ao carregar pedido: '+err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao carregar pedido: '+err.message, 'error');
         }
     };
 
     window.excluirPedido = async function(id, numero) {
-        if (!confirm(`Excluir o pedido ${numero}? Esta a��o n�o pode ser desfeita.`)) return;
+        if (!confirm(`Excluir o pedido ${numero}? Esta ação não pode ser desfeita.`)) return;
         try {
             await fetch(`/api/pedidos-venda/${id}`, {method:'DELETE'});
             await carregarPedidos();
         } catch(err) {
-            _apexNotify('Aten��o', 'Erro ao excluir: '+err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao excluir: '+err.message, 'error');
         }
     };
 
@@ -14733,7 +14733,7 @@ window.carregarFinanceiroView = async function() {
         } catch(e) {
             console.error('Erro ao buscar itens do pedido:', e);
         }
-        if (!p || p.error) { _apexNotify('Sistema', 'Pedido n�o encontrado.', 'info'); return; }
+        if (!p || p.error) { _apexNotify('Sistema', 'Pedido não encontrado.', 'info'); return; }
         await gerarPdfPedidoVenda(p);
     };
 
@@ -14769,11 +14769,11 @@ window.carregarFinanceiroView = async function() {
     };
 
     async function gerarPdfPedidoVenda(p) {
-        if (!window.jspdf) { _apexNotify('Sistema', 'Biblioteca jsPDF n�o carregada.', 'info'); return; }
+        if (!window.jspdf) { _apexNotify('Sistema', 'Biblioteca jsPDF não carregada.', 'info'); return; }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        // Marca d'�gua do logo em toda a folha
+        // Marca d'água do logo em toda a folha
         if (typeof window.aplicarMarcaDaguaLogoJsPDF === 'function') {
             await window.aplicarMarcaDaguaLogoJsPDF(doc);
         } else if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
@@ -14784,7 +14784,7 @@ window.carregarFinanceiroView = async function() {
             try { doc.setGState(new doc.GState({ opacity: 1.0 })); } catch(e){}
         }
 
-        // Cabe�alho da Empresa
+        // Cabeçalho da Empresa
         doc.setFillColor(13, 36, 22);
         doc.rect(0, 0, 210, 28, 'F');
 
@@ -14802,7 +14802,7 @@ window.carregarFinanceiroView = async function() {
         doc.text(p.numero || 'PV-0000', 196, 14, { align: 'right' });
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Emiss�o: ${fmtD(p.data_emissao)}`, 196, 21, { align: 'right' });
+        doc.text(`Emissão: ${fmtD(p.data_emissao)}`, 196, 21, { align: 'right' });
 
         // Box 1: Dados do Cliente & Cadastro
         doc.setFillColor(240, 244, 248);
@@ -14822,9 +14822,9 @@ window.carregarFinanceiroView = async function() {
         doc.setTextColor(40, 40, 40);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
-        doc.text('Raz�o Social / Nome: ', 18, 46);
+        doc.text('Razão Social / Nome: ', 18, 46);
         doc.setFont('helvetica', 'normal');
-        doc.text(String(p.cliente_nome || p.cliente_nome_avulso || p.cliente_id || 'N�o informado'), 55, 46);
+        doc.text(String(p.cliente_nome || p.cliente_nome_avulso || p.cliente_id || 'Não informado'), 55, 46);
 
         doc.setFont('helvetica', 'bold');
         doc.text('CNPJ/CPF: ', 18, 52);
@@ -14837,7 +14837,7 @@ window.carregarFinanceiroView = async function() {
         doc.text(String(p.cliente_telefone || '-'), 132, 52);
 
         doc.setFont('helvetica', 'bold');
-        doc.text('Endere�o Fiscal: ', 18, 58);
+        doc.text('Endereço Fiscal: ', 18, 58);
         doc.setFont('helvetica', 'normal');
         const endStr = `${p.cliente_endereco || ''} ${p.cliente_cidade ? '- ' + p.cliente_cidade : ''}${p.cliente_uf ? '/' + p.cliente_uf : ''}`;
         doc.text(endStr.trim() ? endStr : '-', 45, 58);
@@ -14847,7 +14847,7 @@ window.carregarFinanceiroView = async function() {
         doc.setFont('helvetica', 'normal');
         doc.text(String(p.cliente_email || '-'), 33, 64);
 
-        // Box 2: Emissor, Log�stica e Aprova��o
+        // Box 2: Emissor, Logística e Aprovação
         doc.setFillColor(248, 249, 250);
         doc.roundedRect(14, 74, 182, 24, 2, 2, 'FD');
 
@@ -14862,14 +14862,14 @@ window.carregarFinanceiroView = async function() {
 
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(13, 36, 22);
-        doc.text('Status / Aprova��o: ', 115, 80);
+        doc.text('Status / Aprovação: ', 115, 80);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(p.status === 'Aprovado' || p.status === 'Faturado' || p.status === 'Entregue' ? 42 : 200, p.status === 'Aprovado' ? 150 : 100, 40);
         doc.text(String(p.status || 'Rascunho'), 147, 80);
 
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(13, 36, 22);
-        doc.text('Endere�o de Entrega: ', 18, 86);
+        doc.text('Endereço de Entrega: ', 18, 86);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
         doc.text(String(p.endereco_entrega || endStr || 'Mesmo do cadastro'), 52, 86);
@@ -14883,7 +14883,7 @@ window.carregarFinanceiroView = async function() {
 
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(13, 36, 22);
-        doc.text('Frete / Log�stica: ', 115, 92);
+        doc.text('Frete / Logística: ', 115, 92);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
         doc.text(String(p.tipo_frete || 'CIF - Entrega APEXTECH').replace(/Apex ?Tech/ig, 'APEXTECH'), 142, 92);
@@ -14901,7 +14901,7 @@ window.carregarFinanceiroView = async function() {
 
         doc.autoTable({
             startY: 102,
-            head: [['Item', 'Descri��o do Produto/Material', 'Und', 'Qtd', 'Pre�o Unit.', 'Desc%', 'Total (R$)']],
+            head: [['Item', 'Descrição do Produto/Material', 'Und', 'Qtd', 'Preço Unit.', 'Desc%', 'Total (R$)']],
             body: tableItens.length > 0 ? tableItens : [['1', 'Nenhum item adicionado', '-', '0', 'R$ 0,00', '0%', 'R$ 0,00']],
             theme: 'grid',
             headStyles: { fillColor: [13, 36, 22], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
@@ -14949,12 +14949,12 @@ window.carregarFinanceiroView = async function() {
         doc.text('TOTAL DO PEDIDO:', 124, finalY + 27);
         doc.text(fmtR(p.total_geral || totalGeral), 192, finalY + 27, { align: 'right' });
 
-        // Observa��es
+        // Observações
         if (p.observacoes) {
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
             doc.setTextColor(13, 36, 22);
-            doc.text('OBSERVA��ES / INSTRU��ES DE ENTREGA:', 14, finalY + 7);
+            doc.text('OBSERVAÇÕES / INSTRUÇÕES DE ENTREGA:', 14, finalY + 7);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8.5);
             doc.setTextColor(50, 50, 50);
@@ -14971,39 +14971,39 @@ window.carregarFinanceiroView = async function() {
         doc.setFontSize(8);
         doc.setTextColor(80, 80, 80);
         doc.setFont('helvetica', 'normal');
-        doc.text(`ApexTech Metais  Emissor: ${p.criado_por || 'Admin'}`, 55, sigY + 5, { align: 'center' });
+        doc.text(`ApexTech Metais — Emissor: ${p.criado_por || 'Admin'}`, 55, sigY + 5, { align: 'center' });
         doc.text('Aceito e De Acordo (Cliente)', 155, sigY + 5, { align: 'center' });
 
-        // Aplicar Marca d'�gua oficial em todas as p�ginas
+        // Aplicar Marca d'água oficial em todas as páginas
         if (typeof window.aplicarMarcaDaguaLogoJsPDF === 'function') {
             await window.aplicarMarcaDaguaLogoJsPDF(doc);
         } else if (typeof aplicarMarcaDaguaLogoJsPDF === 'function') {
             await aplicarMarcaDaguaLogoJsPDF(doc);
         }
 
-        // Rodap�
+        // Rodapé
         const pageCount = doc.internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(7.5);
             doc.setTextColor(130, 130, 130);
-            doc.text(`ApexTech Metais  Documento de Pedido de Venda ${p.numero || ''} | P�gina ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text(`ApexTech Metais — Documento de Pedido de Venda ${p.numero || ''} | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
         }
 
         doc.save(`Pedido_Venda_${p.numero || 'PV'}.pdf`);
     }
 
     // =========================================================================
-    // EXPORTAR CENTRAL DE INTELIG�NCIA APEXTECH (BI) EM PDF
+    // EXPORTAR CENTRAL DE INTELIGÊNCIA APEXTECH (BI) EM PDF
     // =========================================================================
     window.exportarBIPDF = async function() {
         const biView = document.getElementById('bi-view');
         if (!biView) {
-            _apexNotify('Aten��o', 'Painel BI n�o encontrado.', 'error');
+            _apexNotify('Atenção', 'Painel BI não encontrado.', 'error');
             return;
         }
 
-        _apexNotify('Gerando PDF', 'Formatando relat�rio BI com fundo claro institucional... Aguarde!', 'info');
+        _apexNotify('Gerando PDF', 'Formatando relatório BI com fundo claro institucional... Aguarde!', 'info');
 
         const btnPdf = biView.querySelector('button[onclick="exportarBIPDF()"]');
         if (btnPdf) btnPdf.style.visibility = 'hidden';
@@ -15011,7 +15011,7 @@ window.carregarFinanceiroView = async function() {
         // Salvar estilo original para restaurar depois
         const originalStyle = biView.getAttribute('style') || '';
         
-        // Guardar estilos originais para restaura��o p�s-impress�o
+        // Guardar estilos originais para restauração pós-impressão
         const allDynamicEls = biView.querySelectorAll('*');
         const originalInlineStyles = new Map();
         allDynamicEls.forEach(el => {
@@ -15020,20 +15020,20 @@ window.carregarFinanceiroView = async function() {
         const originalBiViewStyle = biView.getAttribute('style');
 
         try {
-            // 1. Aplicar Tema de Impress�o de Alt�ssima Nitidez (Fundo 100% Branco Puro e sem Backgrounds em Cards)
+            // 1. Aplicar Tema de Impressão de Altíssima Nitidez (Fundo 100% Branco Puro e sem Backgrounds em Cards)
             biView.style.background = '#ffffff';
             biView.style.color = '#000000';
             biView.style.padding = '15px';
             biView.style.borderRadius = '0px';
 
-            // Remover backgrounds de TODOS os cards, tabelas e cont�ineres internos
+            // Remover backgrounds de TODOS os cards, tabelas e contêineres internos
             const elementsToClearBg = biView.querySelectorAll('.estoque-card, .kpi-card, .dashboard-card, table, thead, tr, th, td, div, section, header, .chart-container');
             elementsToClearBg.forEach(el => {
                 el.style.backgroundColor = 'transparent';
                 el.style.background = 'none';
             });
 
-            // Dar bordas limpas e elegantes aos cards KPI e de gr�ficos para estrutura��o sem polui��o visual
+            // Dar bordas limpas e elegantes aos cards KPI e de gráficos para estruturação sem poluição visual
             const cardsBorder = biView.querySelectorAll('.estoque-card, .kpi-card');
             cardsBorder.forEach(el => {
                 el.style.border = '1px solid #cbd5e1';
@@ -15041,7 +15041,7 @@ window.carregarFinanceiroView = async function() {
                 el.style.boxShadow = 'none';
             });
 
-            // Ajustar o cabe�alho da tabela TOP 10 Produtos (removendo fundo escuro e aplicando fundo cinza institucional bem suave)
+            // Ajustar o cabeçalho da tabela TOP 10 Produtos (removendo fundo escuro e aplicando fundo cinza institucional bem suave)
             const tableHeaders = biView.querySelectorAll('thead tr, th');
             tableHeaders.forEach(el => {
                 el.style.backgroundColor = '#f1f5f9';
@@ -15055,11 +15055,11 @@ window.carregarFinanceiroView = async function() {
                 el.style.borderBottom = '1px solid #e2e8f0';
             });
 
-            // Ajustar especificamente as badges de Posi��o (#4 em diante) e Status no PDF
+            // Ajustar especificamente as badges de Posição (#4 em diante) e Status no PDF
             const posBadges = biView.querySelectorAll('.bi-pos-badge');
             posBadges.forEach(el => {
                 const txt = el.textContent || '';
-                // Manter cores especiais s� do p�dio (#1 ouro, #2 prata, #3 bronze)
+                // Manter cores especiais só do pódio (#1 ouro, #2 prata, #3 bronze)
                 if (!txt.includes('#1') && !txt.includes('#2') && !txt.includes('#3')) {
                     el.style.backgroundColor = 'transparent';
                     el.style.background = 'none';
@@ -15078,11 +15078,11 @@ window.carregarFinanceiroView = async function() {
                 else el.style.color = '#b91c1c';
             });
 
-            // Ajustar cores de textos para ficarem 100% n�tidos e leg�veis
+            // Ajustar cores de textos para ficarem 100% nítidos e legíveis
             const allTextNodes = biView.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, strong, label, th, td');
             allTextNodes.forEach(el => {
                 const comp = window.getComputedStyle(el).color;
-                // Se o texto for amarelo (Venda Ref), converter para Marrom/�mbar escuro vibrante n�tido (#b45309)
+                // Se o texto for amarelo (Venda Ref), converter para Marrom/Âmbar escuro vibrante nítido (#b45309)
                 if (el.classList.contains('bi-venda-ref') || comp.includes('255, 235, 59') || comp.includes('240, 184, 0') || comp.includes('217, 119, 6')) {
                     el.style.color = '#b45309';
                     el.style.fontWeight = 'bold';
@@ -15091,7 +15091,7 @@ window.carregarFinanceiroView = async function() {
                 else if (!el.classList.contains('bi-pos-badge') && (comp.includes('255, 255, 255') || comp.includes('170, 170, 170') || comp.includes('127, 168, 200') || comp.includes('204, 204, 204'))) {
                     el.style.color = '#0f172a';
                 }
-                // T�tulos e subt�tulos principais em tom azul marinho escuro n�tido
+                // Títulos e subtítulos principais em tom azul marinho escuro nítido
                 if (['H1','H2','H3','H4','STRONG'].includes(el.tagName)) {
                     if (comp.includes('255, 255, 255') || comp.includes('15, 23, 42') || comp.includes('17, 24, 39')) {
                         el.style.color = '#0f172a';
@@ -15099,7 +15099,7 @@ window.carregarFinanceiroView = async function() {
                 }
             });
 
-            // Capturar com html2canvas em alt�ssima defini��o (scale: 2)
+            // Capturar com html2canvas em altíssima definição (scale: 2)
             const canvas = await html2canvas(biView, {
                 scale: 2,
                 useCORS: true,
@@ -15118,10 +15118,10 @@ window.carregarFinanceiroView = async function() {
                 else el.removeAttribute('style');
             });
 
-            // 3. Montar PDF Multi-p�ginas com jsPDF em A4 com encaixe perfeito sem fatiar linhas ao meio
+            // 3. Montar PDF Multi-páginas com jsPDF em A4 com encaixe perfeito sem fatiar linhas ao meio
             const { jsPDF } = window.jspdf || {};
             if (!jsPDF) {
-                _apexNotify('Aten��o', 'Biblioteca jsPDF n�o carregada.', 'error');
+                _apexNotify('Atenção', 'Biblioteca jsPDF não carregada.', 'error');
                 return;
             }
 
@@ -15133,14 +15133,14 @@ window.carregarFinanceiroView = async function() {
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            // Configurar Margens Institucionais e Área �til de Impress�o
+            // Configurar Margens Institucionais e Área Útil de Impressão
             const marginTop = 18;
             const marginBottom = 12;
             const marginLeft = 8;
-            const contentWidth = pdfWidth - (marginLeft * 2); // 194mm �til
-            const maxPageHeight = pdfHeight - marginTop - marginBottom; // 267mm �rea �til por folha
+            const contentWidth = pdfWidth - (marginLeft * 2); // 194mm útil
+            const maxPageHeight = pdfHeight - marginTop - marginBottom; // 267mm área útil por folha
 
-            // Calcular propor��es
+            // Calcular proporções
             const pxToMm = contentWidth / canvas.width;
             const totalContentHeightMm = canvas.height * pxToMm;
 
@@ -15151,16 +15151,16 @@ window.carregarFinanceiroView = async function() {
             while (remainingHeightMm > 0) {
                 if (pageNum > 1) pdf.addPage();
 
-                // Cabe�alho Institucional de topo em cada p�gina
+                // Cabeçalho Institucional de topo em cada página
                 pdf.setFillColor(30, 78, 140);
                 pdf.rect(0, 0, pdfWidth, 13, 'F');
                 pdf.setTextColor(255, 255, 255);
                 pdf.setFont('helvetica', 'bold');
                 pdf.setFontSize(10);
-                pdf.text('APEXTECH METAIS  RELAT�RIO BI & DESEMPENHO OPERACIONAL', 8, 8.5);
+                pdf.text('APEXTECH METAIS — RELATÓRIO BI & DESEMPENHO OPERACIONAL', 8, 8.5);
                 pdf.setFontSize(8);
                 pdf.setFont('helvetica', 'normal');
-                pdf.text(`Emiss�o: ${dateStr}`, pdfWidth - 8, 8.5, { align: 'right' });
+                pdf.text(`Emissão: ${dateStr}`, pdfWidth - 8, 8.5, { align: 'right' });
 
                 // Quantos mm e px cabem nesta folha
                 const sliceHeightMm = Math.min(maxPageHeight, remainingHeightMm);
@@ -15183,24 +15183,24 @@ window.carregarFinanceiroView = async function() {
                 const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.98);
                 pdf.addImage(pageImgData, 'JPEG', marginLeft, marginTop, contentWidth, sliceHeightMm);
 
-                // Rodap� com numera��o de p�gina institucional
+                // Rodapé com numeração de página institucional
                 pdf.setFontSize(8);
                 pdf.setTextColor(100, 116, 139);
-                pdf.text(`P�gina ${pageNum} | Central de Intelig�ncia ApexTech`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+                pdf.text(`Página ${pageNum} | Central de Inteligência ApexTech`, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
 
                 currentSrcYPx += sliceHeightPx;
                 remainingHeightMm -= sliceHeightMm;
                 pageNum++;
             }
 
-            // Aplicar marca d'�gua oficial com logo em todas as p�ginas do PDF
+            // Aplicar marca d'água oficial com logo em todas as páginas do PDF
             if (typeof window.aplicarMarcaDaguaLogoJsPDF === 'function') {
                 await window.aplicarMarcaDaguaLogoJsPDF(pdf);
             }
 
             pdf.save(`Relatorio_BI_ApexTech_${formattedDate}.pdf`);
 
-            _apexNotify('Sucesso', ' Relat�rio BI exportado em PDF n�tido e limpo!', 'info');
+            _apexNotify('Sucesso', '✅ Relatório BI exportado em PDF nítido e limpo!', 'info');
 
         } catch (err) {
             console.error('Erro ao exportar PDF do BI:', err);
@@ -15213,11 +15213,11 @@ window.carregarFinanceiroView = async function() {
                 if (orig !== null && orig !== undefined) el.setAttribute('style', orig);
                 else el.removeAttribute('style');
             });
-            _apexNotify('Aten��o', 'Erro ao exportar PDF: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
         }
     };
 
-    // ���� GERA��O DE PDFS DE PLANEJAMENTO, MRP, INDUSTRIAL E ORDENS DE PRODU��O (PCP) ����
+    // ── GERAÇÃO DE PDFS DE PLANEJAMENTO, MRP, INDUSTRIAL E ORDENS DE PRODUÇÃO (PCP) ──
 
     function getJsPDFClass() {
         if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
@@ -15229,13 +15229,13 @@ window.carregarFinanceiroView = async function() {
         try {
             const JSClass = getJsPDFClass();
             if (!JSClass) {
-                _apexNotify('Sistema', 'A biblioteca jsPDF n�o est� dispon�vel no navegador.', 'error');
+                _apexNotify('Sistema', 'A biblioteca jsPDF não está disponível no navegador.', 'error');
                 return;
             }
             const list = (localOPs && localOPs.length > 0) ? localOPs : (window.localOPs || []);
             const op = list.find(x => x.id == opId);
             if (!op) {
-                _apexNotify('Aten��o', 'Ordem de Produ��o n�o encontrada.', 'error');
+                _apexNotify('Atenção', 'Ordem de Produção não encontrada.', 'error');
                 return;
             }
 
@@ -15251,7 +15251,7 @@ window.carregarFinanceiroView = async function() {
 
             doc.setFontSize(11);
             doc.setTextColor(255, 255, 255);
-            doc.text(`ORDEM DE PRODU��O & ROTEIRO PCP  ${op.numero_op || 'OP'}`, 15, 24);
+            doc.text(`ORDEM DE PRODUÇÃO & ROTEIRO PCP — ${op.numero_op || 'OP'}`, 15, 24);
 
             doc.setFontSize(8);
             doc.setTextColor(180, 200, 220);
@@ -15260,17 +15260,17 @@ window.carregarFinanceiroView = async function() {
 
             doc.autoTable({
                 startY: 38,
-                head: [['Campo / Par�metro', 'Especifica��o Industrial']],
+                head: [['Campo / Parâmetro', 'Especificação Industrial']],
                 body: [
-                    ['N�mero da OP', op.numero_op || 'OP-2026'],
+                    ['Número da OP', op.numero_op || 'OP-2026'],
                     ['Material de Entrada', op.material_entrada || '-'],
                     ['Peso de Entrada (kg)', parseFloat(op.peso_entrada_kg || 0).toLocaleString('pt-BR') + ' kg'],
                     ['Material Resultante Esperado', op.material_saida_nome || '-'],
-                    ['Peso de Sa�da Estimado (kg)', parseFloat(op.peso_saida_estimado_kg || 0).toLocaleString('pt-BR') + ' kg'],
-                    ['Cronograma Previsto', `${fmtD(op.data_inicio_prevista)} at� ${fmtD(op.data_fim_prevista)}`],
-                    ['Respons�vel PCP', op.responsavel_pcp || 'Eng. Roberto'],
-                    ['Status da Ordem de Produ��o', op.status || 'Planejada'],
-                    ['Observa��es / Instru��es', op.observacoes || 'Sem observa��es']
+                    ['Peso de Saída Estimado (kg)', parseFloat(op.peso_saida_estimado_kg || 0).toLocaleString('pt-BR') + ' kg'],
+                    ['Cronograma Previsto', `${fmtD(op.data_inicio_prevista)} até ${fmtD(op.data_fim_prevista)}`],
+                    ['Responsável PCP', op.responsavel_pcp || 'Eng. Roberto'],
+                    ['Status da Ordem de Produção', op.status || 'Planejada'],
+                    ['Observações / Instruções', op.observacoes || 'Sem observações']
                 ],
                 theme: 'grid',
                 headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -15322,10 +15322,10 @@ window.carregarFinanceiroView = async function() {
             }
 
             doc.save(`Ordem_Producao_${op.numero_op}_${new Date().toISOString().split('T')[0]}.pdf`);
-            _apexNotify('Sucesso', `PDF da Ordem de Produ��o ${op.numero_op} baixado com marca d'�gua!`, 'success');
+            _apexNotify('Sucesso', `PDF da Ordem de Produção ${op.numero_op} baixado com marca d'água!`, 'success');
         } catch (err) {
             console.error('Erro ao gerar PDF da OP:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF da OP: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao gerar PDF da OP: ' + err.message, 'error');
         }
     };
 
@@ -15333,12 +15333,12 @@ window.carregarFinanceiroView = async function() {
         try {
             const JSClass = getJsPDFClass();
             if (!JSClass) {
-                _apexNotify('Sistema', 'A biblioteca jsPDF n�o est� dispon�vel.', 'error');
+                _apexNotify('Sistema', 'A biblioteca jsPDF não está disponível.', 'error');
                 return;
             }
             const list = (localOPs && localOPs.length > 0) ? localOPs : (window.localOPs || []);
             if (list.length === 0) {
-                _apexNotify('Aten��o', 'Nenhuma Ordem de Produ��o (OP) cadastrada para imprimir.', 'info');
+                _apexNotify('Atenção', 'Nenhuma Ordem de Produção (OP) cadastrada para imprimir.', 'info');
                 return;
             }
 
@@ -15350,7 +15350,7 @@ window.carregarFinanceiroView = async function() {
             doc.setFontSize(16);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(255, 183, 77);
-            doc.text('APEXTECH METAIS ERP  RELAT�RIO GERAL DE ORDENS DE PRODU��O & PCP', 15, 18);
+            doc.text('APEXTECH METAIS ERP — RELATÓRIO GERAL DE ORDENS DE PRODUÇÃO & PCP', 15, 18);
 
             const body = list.map(op => {
                 const etapas = op.etapas || [];
@@ -15372,7 +15372,7 @@ window.carregarFinanceiroView = async function() {
 
             doc.autoTable({
                 startY: 34,
-                head: [['Nº OP', 'Mat. Entrada', 'Peso Entrada', 'Mat. Sa�da Esperado', 'Peso Sa�da Est.', 'Cronograma', 'Tempo Est.', 'Tempo Real', 'Status OP', 'Respons�vel']],
+                head: [['Nº OP', 'Mat. Entrada', 'Peso Entrada', 'Mat. Saída Esperado', 'Peso Saída Est.', 'Cronograma', 'Tempo Est.', 'Tempo Real', 'Status OP', 'Responsável']],
                 body: body,
                 theme: 'grid',
                 headStyles: { fillColor: [30, 78, 140], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
@@ -15384,10 +15384,10 @@ window.carregarFinanceiroView = async function() {
             }
 
             doc.save(`Relatorio_Ordens_Producao_PCP_${new Date().toISOString().split('T')[0]}.pdf`);
-            _apexNotify('Sucesso', 'Relat�rio Geral de Ordens de Produ��o baixado com marca d\'�gua!', 'success');
+            _apexNotify('Sucesso', 'Relatório Geral de Ordens de Produção baixado com marca d\'água!', 'success');
         } catch (err) {
-            console.error('Erro ao gerar relat�rio geral de OPs:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF: ' + err.message, 'error');
+            console.error('Erro ao gerar relatório geral de OPs:', err);
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 
@@ -15395,13 +15395,13 @@ window.carregarFinanceiroView = async function() {
         try {
             const JSClass = getJsPDFClass();
             if (!JSClass) {
-                _apexNotify('Sistema', 'A biblioteca jsPDF n�o est� dispon�vel.', 'error');
+                _apexNotify('Sistema', 'A biblioteca jsPDF não está disponível.', 'error');
                 return;
             }
             const list = (localMRP && localMRP.length > 0) ? localMRP : (window.localMRP || []);
             const item = list.find(x => x.id == id);
             if (!item) {
-                _apexNotify('Aten��o', 'Demanda de compra MRP n�o encontrada.', 'error');
+                _apexNotify('Atenção', 'Demanda de compra MRP não encontrada.', 'error');
                 return;
             }
 
@@ -15417,22 +15417,22 @@ window.carregarFinanceiroView = async function() {
 
             doc.setFontSize(11);
             doc.setTextColor(255, 255, 255);
-            doc.text(`DEMANDA DE COMPRA (MRP)  MAT�RIA-PRIMA`, 15, 24);
+            doc.text(`DEMANDA DE COMPRA (MRP) — MATÉRIA-PRIMA`, 15, 24);
 
             doc.autoTable({
                 startY: 38,
-                head: [['Item de Demanda', 'Especifica��o MRP']],
+                head: [['Item de Demanda', 'Especificação MRP']],
                 body: [
                     ['Material Requerido', item.material_nome || 'Material'],
                     ['Fornecedor Homologado', item.fornecedor_nome || 'Fornecedor'],
-                    ['Quantidade Necess�ria (kg)', parseFloat(item.quantidade_necessaria || 0).toLocaleString('pt-BR') + ' kg'],
-                    ['Ponto de Pedido / Est. M�nimo (kg)', parseFloat(item.ponto_pedido_kg || 0).toLocaleString('pt-BR') + ' kg'],
+                    ['Quantidade Necessária (kg)', parseFloat(item.quantidade_necessaria || 0).toLocaleString('pt-BR') + ' kg'],
+                    ['Ponto de Pedido / Est. Mínimo (kg)', parseFloat(item.ponto_pedido_kg || 0).toLocaleString('pt-BR') + ' kg'],
                     ['Lead Time de Entrega (Dias)', (item.lead_time_dias || 7) + ' dias'],
-                    ['Pre�o Estimado (R$/kg)', 'R$ ' + parseFloat(item.preco_estimado || 0).toFixed(2)],
+                    ['Preço Estimado (R$/kg)', 'R$ ' + parseFloat(item.preco_estimado || 0).toFixed(2)],
                     ['Custo Total Previsto (R$)', 'R$ ' + parseFloat(item.custo_total_estimado || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})],
-                    ['M�s Refer�ncia', item.mes_referencia || '-'],
+                    ['Mês Referência', item.mes_referencia || '-'],
                     ['Status da Demanda', item.status || 'Sugerido'],
-                    ['Observa��es', item.observacoes || '-']
+                    ['Observações', item.observacoes || '-']
                 ],
                 theme: 'grid',
                 headStyles: { fillColor: [42, 208, 122], textColor: [0, 0, 0], fontStyle: 'bold' },
@@ -15444,10 +15444,10 @@ window.carregarFinanceiroView = async function() {
             }
 
             doc.save(`Demanda_Compra_MRP_${item.id}_${new Date().toISOString().split('T')[0]}.pdf`);
-            _apexNotify('Sucesso', 'Demanda de compra MRP baixada em PDF com marca d\'�gua!', 'success');
+            _apexNotify('Sucesso', 'Demanda de compra MRP baixada em PDF com marca d\'água!', 'success');
         } catch (err) {
             console.error('Erro ao gerar PDF MRP:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF MRP: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao gerar PDF MRP: ' + err.message, 'error');
         }
     };
 
@@ -15455,12 +15455,12 @@ window.carregarFinanceiroView = async function() {
         try {
             const JSClass = getJsPDFClass();
             if (!JSClass) {
-                _apexNotify('Sistema', 'A biblioteca jsPDF n�o est� dispon�vel.', 'error');
+                _apexNotify('Sistema', 'A biblioteca jsPDF não está disponível.', 'error');
                 return;
             }
             const list = (localMRP && localMRP.length > 0) ? localMRP : (window.localMRP || []);
             if (list.length === 0) {
-                _apexNotify('Aten��o', 'Nenhuma demanda de compra (MRP) cadastrada para imprimir.', 'info');
+                _apexNotify('Atenção', 'Nenhuma demanda de compra (MRP) cadastrada para imprimir.', 'info');
                 return;
             }
 
@@ -15472,7 +15472,7 @@ window.carregarFinanceiroView = async function() {
             doc.setFontSize(16);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(42, 208, 122);
-            doc.text('APEXTECH METAIS ERP  PLANEJAMENTO DE NECESSIDADES DE COMPRA (MRP)', 15, 18);
+            doc.text('APEXTECH METAIS ERP — PLANEJAMENTO DE NECESSIDADES DE COMPRA (MRP)', 15, 18);
 
             const body = list.map(m => [
                 m.material_nome || '-',
@@ -15488,7 +15488,7 @@ window.carregarFinanceiroView = async function() {
 
             doc.autoTable({
                 startY: 34,
-                head: [['Material', 'Fornecedor', 'Qtd Necess�ria', 'Est. M�nimo', 'Lead Time', 'Pre�o Est.', 'Custo Total', 'M�s Ref.', 'Status']],
+                head: [['Material', 'Fornecedor', 'Qtd Necessária', 'Est. Mínimo', 'Lead Time', 'Preço Est.', 'Custo Total', 'Mês Ref.', 'Status']],
                 body: body,
                 theme: 'grid',
                 headStyles: { fillColor: [42, 208, 122], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 8.5 },
@@ -15500,10 +15500,10 @@ window.carregarFinanceiroView = async function() {
             }
 
             doc.save(`Relatorio_Planejamento_MRP_${new Date().toISOString().split('T')[0]}.pdf`);
-            _apexNotify('Sucesso', 'Relat�rio Geral MRP baixado em PDF com marca d\'�gua!', 'success');
+            _apexNotify('Sucesso', 'Relatório Geral MRP baixado em PDF com marca d\'água!', 'success');
         } catch (err) {
-            console.error('Erro ao gerar relat�rio MRP:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF: ' + err.message, 'error');
+            console.error('Erro ao gerar relatório MRP:', err);
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 
@@ -15511,13 +15511,13 @@ window.carregarFinanceiroView = async function() {
         try {
             const JSClass = getJsPDFClass();
             if (!JSClass) {
-                _apexNotify('Sistema', 'A biblioteca jsPDF n�o est� dispon�vel.', 'error');
+                _apexNotify('Sistema', 'A biblioteca jsPDF não está disponível.', 'error');
                 return;
             }
             const list = (localEquipamentos && localEquipamentos.length > 0) ? localEquipamentos : (window.localEquipamentos || []);
             const eq = list.find(x => x.id == id);
             if (!eq) {
-                _apexNotify('Aten��o', 'Equipamento n�o encontrado.', 'error');
+                _apexNotify('Atenção', 'Equipamento não encontrado.', 'error');
                 return;
             }
 
@@ -15533,21 +15533,21 @@ window.carregarFinanceiroView = async function() {
 
             doc.setFontSize(11);
             doc.setTextColor(255, 255, 255);
-            doc.text(`FICHA DE CAPACIDADE INDUSTRIAL  TAG: ${eq.codigo_tag || 'EQ'}`, 15, 24);
+            doc.text(`FICHA DE CAPACIDADE INDUSTRIAL — TAG: ${eq.codigo_tag || 'EQ'}`, 15, 24);
 
             doc.autoTable({
                 startY: 38,
-                head: [['Par�metro Operacional', 'Especifica��o da M�quina']],
+                head: [['Parâmetro Operacional', 'Especificação da Máquina']],
                 body: [
-                    ['C�digo / TAG', eq.codigo_tag || '-'],
+                    ['Código / TAG', eq.codigo_tag || '-'],
                     ['Nome do Equipamento', eq.nome_equipamento || '-'],
                     ['Setor Operacional', eq.setor || 'Processamento'],
                     ['Capacidade Nominal (kg/h)', parseFloat(eq.capacidade_nominal_kgh || 0).toLocaleString('pt-BR') + ' kg/h'],
                     ['Disponibilidade (h/dia)', (eq.disponibilidade_horas_dia || 16) + ' horas/dia'],
                     ['Tempo de Setup (Horas)', (eq.tempo_setup_horas || 1.0) + ' horas'],
-                    ['Efici�ncia OEE (%)', (eq.eficiencia_oee_pct || 85) + ' %'],
+                    ['Eficiência OEE (%)', (eq.eficiencia_oee_pct || 85) + ' %'],
                     ['Status Operacional', eq.status || 'Operacional'],
-                    ['Observa��es T�cnicas', eq.observacoes || '-']
+                    ['Observações Técnicas', eq.observacoes || '-']
                 ],
                 theme: 'grid',
                 headStyles: { fillColor: [62, 124, 177], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -15562,7 +15562,7 @@ window.carregarFinanceiroView = async function() {
             _apexNotify('Sucesso', `Ficha do equipamento ${eq.codigo_tag || eq.nome_equipamento} baixada em PDF!`, 'success');
         } catch (err) {
             console.error('Erro ao gerar ficha do equipamento:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 
@@ -15570,12 +15570,12 @@ window.carregarFinanceiroView = async function() {
         try {
             const JSClass = getJsPDFClass();
             if (!JSClass) {
-                _apexNotify('Sistema', 'A biblioteca jsPDF n�o est� dispon�vel.', 'error');
+                _apexNotify('Sistema', 'A biblioteca jsPDF não está disponível.', 'error');
                 return;
             }
             const list = (localEquipamentos && localEquipamentos.length > 0) ? localEquipamentos : (window.localEquipamentos || []);
             if (list.length === 0) {
-                _apexNotify('Aten��o', 'Nenhum equipamento industrial cadastrado para imprimir.', 'info');
+                _apexNotify('Atenção', 'Nenhum equipamento industrial cadastrado para imprimir.', 'info');
                 return;
             }
 
@@ -15587,7 +15587,7 @@ window.carregarFinanceiroView = async function() {
             doc.setFontSize(16);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(62, 124, 177);
-            doc.text('APEXTECH METAIS ERP  MAPEAMENTO DE CAPACIDADE & LINHAS INDUSTRIAIS', 15, 18);
+            doc.text('APEXTECH METAIS ERP — MAPEAMENTO DE CAPACIDADE & LINHAS INDUSTRIAIS', 15, 18);
 
             const body = list.map(e => [
                 e.codigo_tag || '-',
@@ -15614,10 +15614,10 @@ window.carregarFinanceiroView = async function() {
             }
 
             doc.save(`Relatorio_Capacidade_Industrial_${new Date().toISOString().split('T')[0]}.pdf`);
-            _apexNotify('Sucesso', 'Relat�rio Geral de Capacidade Industrial baixado em PDF com marca d\'�gua!', 'success');
+            _apexNotify('Sucesso', 'Relatório Geral de Capacidade Industrial baixado em PDF com marca d\'água!', 'success');
         } catch (err) {
-            console.error('Erro ao gerar relat�rio industrial:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar PDF: ' + err.message, 'error');
+            console.error('Erro ao gerar relatório industrial:', err);
+            _apexNotify('Atenção', 'Erro ao gerar PDF: ' + err.message, 'error');
         }
     };
 
@@ -15629,7 +15629,7 @@ window.carregarFinanceiroView = async function() {
 
     window.carregarPlanejamentoEstrategico = async function() {
         try {
-            // Buscar tabela de pre�os completa e metas estrat�gicas cadastradas
+            // Buscar tabela de preços completa e metas estratégicas cadastradas
             const [resPrecos, resMetas] = await Promise.all([
                 fetch('/api/tabela-precos'),
                 fetch('/api/planejamento-estrategico')
@@ -15639,19 +15639,19 @@ window.carregarFinanceiroView = async function() {
             const rawMetas = await resMetas.json();
             _listMetasEstrategicas = Array.isArray(rawMetas) ? rawMetas : [];
 
-            // Popular comboboxes de sele��o de produto
+            // Popular comboboxes de seleção de produto
             popularSelectsProdutoEstrategico();
 
             if (_mesEstrategicoAtivo) {
-                // Se um m�s est� ativo, renderiza os detalhes daquele m�s
+                // Se um mês está ativo, renderiza os detalhes daquele mês
                 renderDashboardEstrategico();
             } else {
-                // Caso contr�rio, mostra a vis�o geral dos 12 meses
+                // Caso contrário, mostra a visão geral dos 12 meses
                 renderVisualizacao12Meses();
             }
         } catch(e) {
-            console.error('Erro ao carregar planejamento estrat�gico:', e);
-            _apexNotify('Erro', 'N�o foi poss�vel carregar os dados estrat�gicos.', 'error');
+            console.error('Erro ao carregar planejamento estratégico:', e);
+            _apexNotify('Erro', 'Não foi possível carregar os dados estratégicos.', 'error');
         }
     };
 
@@ -15667,7 +15667,7 @@ window.carregarFinanceiroView = async function() {
         selectProd.innerHTML = '<option value="">-- Selecione um Produto --</option>';
         selectModal.innerHTML = '<option value="">-- Selecione o Insumo/Produto --</option>';
 
-        // Tabela de pre�os possui material_id e material_nome
+        // Tabela de preços possui material_id e material_nome
         _listTabelaPrecosEstrategica.forEach(tp => {
             const opt1 = document.createElement('option');
             opt1.value = tp.material_id;
@@ -15695,9 +15695,9 @@ window.carregarFinanceiroView = async function() {
         _mesEstrategicoAtivo = mes;
         document.getElementById('plest-view-12meses').style.display = 'none';
         document.getElementById('plest-view-detalhes-mes').style.display = 'block';
-        document.getElementById('plest-txt-mes-ativo').innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Planejamento Estrat�gico  ${formatarMesAnoLabel(mes)}`;
+        document.getElementById('plest-txt-mes-ativo').innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Planejamento Estratégico — ${formatarMesAnoLabel(mes)}`;
         
-        // Selecionar o primeiro produto por padr�o se n�o houver um selecionado
+        // Selecionar o primeiro produto por padrão se não houver um selecionado
         const selectProd = document.getElementById('plest-select-produto');
         if (selectProd && !selectProd.value && _listTabelaPrecosEstrategica.length > 0) {
             selectProd.value = _listTabelaPrecosEstrategica[0].material_id;
@@ -15710,7 +15710,7 @@ window.carregarFinanceiroView = async function() {
         if (!mesStr) return '';
         const [year, month] = mesStr.split('-');
         const mesesNomes = [
-            'Janeiro', 'Fevereiro', 'Mar�o', 'Abril', 'Maio', 'Junho',
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
             'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
         ];
         return `${mesesNomes[parseInt(month) - 1]} de ${year}`;
@@ -15726,7 +15726,7 @@ window.carregarFinanceiroView = async function() {
         let startYear = 2026;
         let startMonth = 8; // Agosto
 
-        // Obter data atual do sistema para comparar status do m�s
+        // Obter data atual do sistema para comparar status do mês
         const today = new Date();
         const currentYear = today.getFullYear();
         const currentMonth = today.getMonth() + 1; // 1-indexed
@@ -15744,7 +15744,7 @@ window.carregarFinanceiroView = async function() {
         }
 
         listMeses.forEach(mesKey => {
-            // Filtrar metas cadastradas neste m�s
+            // Filtrar metas cadastradas neste mês
             const metasMes = _listMetasEstrategicas.filter(m => m.mes === mesKey);
 
             let totalMetaCompra = 0;
@@ -15781,7 +15781,7 @@ window.carregarFinanceiroView = async function() {
             const isAtual = (y === currentYear && m === currentMonth);
 
             if (totalRealizado === 0 && isFuturo) {
-                statusStr = 'N�O INICIADO';
+                statusStr = 'NÃO INICIADO';
                 statusCor = '#aaa';
             } else if (isAtual) {
                 statusStr = 'EM ANDAMENTO';
@@ -15794,8 +15794,8 @@ window.carregarFinanceiroView = async function() {
                 statusCor = '#ff4d4d';
             }
 
-            // Posi��o entre os cen�rios
-            let cenarioAlcancado = '';
+            // Posição entre os cenários
+            let cenarioAlcancado = '—';
             if (totalRealizado > 0) {
                 if (totalRealizado >= totalAgressivo && totalAgressivo > 0) {
                     cenarioAlcancado = '<span style="color:#ff4d4d; font-weight:bold;">Agressivo</span>';
@@ -15820,7 +15820,7 @@ window.carregarFinanceiroView = async function() {
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${statusCor};">${statusStr}</td>
                 <td style="padding:10px 8px; text-align:center;">
                     <button onclick="detalharMesEstrategico('${mesKey}')" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#2AD07A; color:#0d1826; font-weight:bold;">
-                        <i class="fa-solid fa-magnifying-glass"></i> Detalhar M�s
+                        <i class="fa-solid fa-magnifying-glass"></i> Detalhar Mês
                     </button>
                 </td>
             `;
@@ -15859,9 +15859,9 @@ window.carregarFinanceiroView = async function() {
             lblVenda.textContent = 'R$ ' + pVenda.toFixed(2);
             lblMargem.textContent = margem.toFixed(1) + '%';
         } else {
-            lblCompra.textContent = '';
-            lblVenda.textContent = '';
-            lblMargem.textContent = '';
+            lblCompra.textContent = '—';
+            lblVenda.textContent = '—';
+            lblMargem.textContent = '—';
         }
     };
 
@@ -15870,10 +15870,10 @@ window.carregarFinanceiroView = async function() {
         const filterMes = _mesEstrategicoAtivo;
         const targetMatId = parseInt(document.getElementById('plest-select-produto').value) || null;
 
-        // Filtrar metas cadastradas para o m�s selecionado
+        // Filtrar metas cadastradas para o mês selecionado
         const metasMes = _listMetasEstrategicas.filter(m => m.mes === filterMes);
 
-        // Agregadores gerais do m�s para o dashboard KPI (Moderado)
+        // Agregadores gerais do mês para o dashboard KPI (Moderado)
         let totalFaturamentoProjetado = 0;
         let totalCustoCompraProjetado = 0;
         let totalLucroProjetado = 0;
@@ -15885,18 +15885,18 @@ window.carregarFinanceiroView = async function() {
         const tableBody = document.getElementById('plest-geral-table-body');
         if (tableBody) tableBody.innerHTML = '';
 
-        // Tabela de pre�os � a base de tudo
+        // Tabela de preços é a base de tudo
         _listTabelaPrecosEstrategica.forEach(tp => {
-            // Achar se existe meta cadastrada para este produto no m�s
+            // Achar se existe meta cadastrada para este produto no mês
             const meta = metasMes.find(m => m.material_id === tp.material_id);
             
-            // Metas de volume para os cen�rios (padr�o 0 se n�o cadastrado)
+            // Metas de volume para os cenários (padrão 0 se não cadastrado)
             const qCons = meta ? parseFloat(meta.qtd_conservador || 0) : 0;
             const qMod = meta ? parseFloat(meta.qtd_moderado || 0) : 0;
             const qAgr = meta ? parseFloat(meta.qtd_agressivo || 0) : 0;
             const qReal = meta ? parseFloat(meta.qtd_realizado || 0) : 0;
 
-            // Margem customizada definida pelo usu�rio
+            // Margem customizada definida pelo usuário
             const margemCustom = (meta && meta.margem_alvo !== null) ? parseFloat(meta.margem_alvo) : null;
 
             // Valores comerciais oficiais da tabela
@@ -15908,13 +15908,13 @@ window.carregarFinanceiroView = async function() {
             const icmsPct = parseFloat(tp.icms || 0);
             const freteColeta = parseFloat(tp.frete_coleta || 0);
 
-            // Custos unit�rios baseados nos percentuais
+            // Custos unitários baseados nos percentuais
             const custoImpostos = pVendaBase * ((pisCofinsPct + icmsPct) / 100);
             const custoComissao = pVendaBase * (comissaoPct / 100);
             const custoFidc = pVendaBase * (fidcPct / 100);
             const custoTotalUnit = pCompra + freteColeta + custoImpostos + custoComissao + custoFidc;
 
-            // Calcular pre�o de venda planejado se houver margem customizada
+            // Calcular preço de venda planejado se houver margem customizada
             let pVendaProjetado = pVendaBase;
             if (margemCustom !== null && margemCustom < 100) {
                 pVendaProjetado = custoTotalUnit / (1 - margemCustom / 100);
@@ -15924,7 +15924,7 @@ window.carregarFinanceiroView = async function() {
             const margemUnitPct = pVendaProjetado > 0 ? (lucroUnit / pVendaProjetado) * 100 : 0;
             const markupUnit = pCompra > 0 ? (pVendaProjetado / pCompra) : 0;
 
-            // Faturamento e custos totais projetados no cen�rio moderado (alvo)
+            // Faturamento e custos totais projetados no cenário moderado (alvo)
             const fatMod = qMod * pVendaProjetado;
             const custoMod = qMod * custoTotalUnit;
             const lucroMod = fatMod - custoMod;
@@ -15945,7 +15945,7 @@ window.carregarFinanceiroView = async function() {
             const atingimentoPct = qMod > 0 ? (qReal / qMod) * 100 : 0;
             const saldo = qMod - qReal;
 
-            // Compara��o de qual cen�rio de volume o realizado alcan�ou
+            // Comparação de qual cenário de volume o realizado alcançou
             let cenarioAlcancado = 'Abaixo';
             let cenarioCor = '#ff4d4d';
             if (qReal > 0) {
@@ -15964,7 +15964,7 @@ window.carregarFinanceiroView = async function() {
                 }
             }
 
-            // Detectar preju�zo unit�rio
+            // Detectar prejuízo unitário
             const isPrejuizo = lucroUnit < 0;
 
             // Inserir na planilha geral se houver meta
@@ -15973,7 +15973,7 @@ window.carregarFinanceiroView = async function() {
                 tr.innerHTML = `
                     <td style="padding:8px;">
                         <strong>${tp.material_nome}</strong>
-                        ${isPrejuizo ? '<span style="background:#ff4d4d; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PREJU�ZO</span>' : ''}
+                        ${isPrejuizo ? '<span style="background:#ff4d4d; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PREJUÍZO</span>' : ''}
                     </td>
                     <td style="padding:8px; text-align:right;">${qCons.toLocaleString('pt-BR')} kg</td>
                     <td style="padding:8px; text-align:right; font-weight:bold; color:#00e5ff;">${qMod.toLocaleString('pt-BR')} kg</td>
@@ -15985,7 +15985,7 @@ window.carregarFinanceiroView = async function() {
                     <td style="padding:8px; text-align:center; font-weight:bold; color:${margemUnitPct >= 10 ? '#2AD07A' : '#ff4d4d'};">${margemUnitPct.toFixed(1)}%</td>
                     <td style="padding:8px; text-align:right; color:#fff;">
                         ${qReal.toLocaleString('pt-BR')} kg
-                        <div style="font-size:0.7rem; color:${cenarioCor}; margin-top:2px;">Cen�rio: ${cenarioAlcancado}</div>
+                        <div style="font-size:0.7rem; color:${cenarioCor}; margin-top:2px;">Cenário: ${cenarioAlcancado}</div>
                     </td>
                     <td style="padding:8px; text-align:center; font-weight:bold;">
                         <span style="color:${atingimentoPct >= 100 ? '#2AD07A' : (atingimentoPct >= 75 ? '#ffb74d' : '#ff4d4d')};">${atingimentoPct.toFixed(1)}%</span>
@@ -16001,7 +16001,7 @@ window.carregarFinanceiroView = async function() {
         });
 
         if (tableBody && tableBody.children.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:#aaa;">Nenhuma meta cadastrada para este m�s. Clique em "Alterar Metas do M�s" no topo para planejar.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:#aaa;">Nenhuma meta cadastrada para este mês. Clique em "Alterar Metas do Mês" no topo para planejar.</td></tr>`;
         }
 
         // Renderizar KPIs no topo
@@ -16012,13 +16012,13 @@ window.carregarFinanceiroView = async function() {
         document.getElementById('est-kpi-markup-medio').textContent = (countMateriais > 0 ? (somaMarkup / countMateriais) : 0).toFixed(2) + 'x';
         document.getElementById('est-kpi-fidc-total').textContent = 'R$ ' + totalFidcProjetado.toLocaleString('pt-BR', {minimumFractionDigits:2});
 
-        // 3. Renderizar produto detalhado ativo e cen�rios individuais
+        // 3. Renderizar produto detalhado ativo e cenários individuais
         renderDetalhesProdutoSelecionado(targetMatId, filterMes);
 
         // 4. Renderizar rankings executivos
         renderRankingEstrategico();
 
-        // 5. Atualizar insights autom�ticos de IA
+        // 5. Atualizar insights automáticos de IA
         gerarInsightsIAEstrategicos(metasMes);
     }
 
@@ -16037,7 +16037,7 @@ window.carregarFinanceiroView = async function() {
                     Selecione um produto no combobox acima para avaliar custos, spreads e margens integradas.
                 </div>
             `;
-            cenBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto para visualizar cen�rios.</td></tr>`;
+            cenBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto para visualizar cenários.</td></tr>`;
             prBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:15px; color:#aaa;">Selecione um produto.</td></tr>`;
             if (_chartEstrategicoCenarios) { _chartEstrategicoCenarios.destroy(); _chartEstrategicoCenarios = null; }
             return;
@@ -16081,16 +16081,16 @@ window.carregarFinanceiroView = async function() {
                 <div style="font-weight:bold; color:#9b59b6; margin-top:2px;">${markup.toFixed(2)}x</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
-                <small style="color:#aaa; font-size:0.75rem;">Lucro Unit�rio</small>
+                <small style="color:#aaa; font-size:0.75rem;">Lucro Unitário</small>
                 <div style="font-weight:bold; color:${lucroUnit >= 0 ? '#00e5ff' : '#ff4d4d'}; margin-top:2px;">R$ ${lucroUnit.toFixed(2)}</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
-                <small style="color:#aaa; font-size:0.75rem;">Margem L�quida</small>
+                <small style="color:#aaa; font-size:0.75rem;">Margem Líquida</small>
                 <div style="font-weight:bold; color:${margem >= 10 ? '#3e7cb1' : '#ff4d4d'}; margin-top:2px;">${margem.toFixed(1)}%</div>
             </div>
         `;
 
-        // Cen�rios individuais
+        // Cenários individuais
         const qCons = meta ? parseFloat(meta.qtd_conservador || 0) : 0;
         const qMod = meta ? parseFloat(meta.qtd_moderado || 0) : 0;
         const qAgr = meta ? parseFloat(meta.qtd_agressivo || 0) : 0;
@@ -16123,7 +16123,7 @@ window.carregarFinanceiroView = async function() {
         const valCompraReal = meta ? parseFloat(meta.valor_compra_realizado || 0) : 0;
         const valVendaReal = meta ? parseFloat(meta.valor_venda_realizado || 0) : 0;
 
-        // Planejado vs Realizado (M�s Consolidado)
+        // Planejado vs Realizado (Mês Consolidado)
         const fatPlan = qMod * pVendaProjetado;
         const fatReal = valVendaReal > 0 ? valVendaReal : (qReal * pVendaProjetado);
         const investPlan = qMod * custoTotal;
@@ -16159,10 +16159,10 @@ window.carregarFinanceiroView = async function() {
             ${compRow('Faturamento', fatPlan, fatReal, '', true)}
             ${compRow('Investimento (Reserva)', investPlan, investReal, '', true)}
             ${compRow('Lucro Projetado', lucroPlan, lucroReal, '', true)}
-            ${compRow('Margem L�quida', margem, margemReal, '', false, true)}
+            ${compRow('Margem Líquida', margem, margemReal, '', false, true)}
         `;
 
-        // Renderizar gr�fico de cen�rios com Chart.js
+        // Renderizar gráfico de cenários com Chart.js
         renderGraficoCenariosEstrategicos(qCons, qMod, qAgr, qReal, preco.material_nome);
     }
 
@@ -16207,7 +16207,7 @@ window.carregarFinanceiroView = async function() {
         const tipo = select.value;
         tbody.innerHTML = '';
 
-        // Mapear produtos com c�lculos
+        // Mapear produtos com cálculos
         const dadosRanked = _listTabelaPrecosEstrategica.map(tp => {
             const pCompra = parseFloat(tp.preco_entregar || 0);
             const pVenda = parseFloat(tp.venda_ref || 0);
@@ -16237,7 +16237,7 @@ window.carregarFinanceiroView = async function() {
             };
         });
 
-        // Ordena��o com base no tipo selecionado
+        // Ordenação com base no tipo selecionado
         if (tipo === 'lucro') {
             dadosRanked.sort((a,b) => b.lucro - a.lucro);
         } else if (tipo === 'margem') {
@@ -16278,7 +16278,7 @@ window.carregarFinanceiroView = async function() {
         if (!insightsContainer) return;
 
         if (_listTabelaPrecosEstrategica.length === 0) {
-            insightsContainer.textContent = 'Sem dados de cota��es para formular insights estrat�gicos.';
+            insightsContainer.textContent = 'Sem dados de cotações para formular insights estratégicos.';
             return;
         }
 
@@ -16299,20 +16299,20 @@ window.carregarFinanceiroView = async function() {
             return { nome: tp.material_nome, margem, lucro, pCompra, pVenda };
         });
 
-        // Achar campe�o de margem
+        // Achar campeão de margem
         const melhorMargem = [...listCalculada].sort((a,b) => b.margem - a.margem)[0];
         // Achar risco de margem (margem negativa ou menor que 5%)
         const riscoMargem = listCalculada.filter(x => x.margem < 5);
 
         let html = `<ul style="margin:0; padding-left:16px; display:flex; flex-direction:column; gap:6px;">`;
         if (melhorMargem) {
-            html += `<li>�xa� <strong>Destaque Comercial</strong>: O produto <strong>${melhorMargem.nome}</strong> possui a melhor margem l�quida da tabela com <strong>${melhorMargem.margem.toFixed(1)}%</strong>. Focar volume nele aumenta exponencialmente o lucro.</li>`;
+            html += `<li>ðŸš€ <strong>Destaque Comercial</strong>: O produto <strong>${melhorMargem.nome}</strong> possui a melhor margem líquida da tabela com <strong>${melhorMargem.margem.toFixed(1)}%</strong>. Focar volume nele aumenta exponencialmente o lucro.</li>`;
         }
 
         if (riscoMargem.length > 0) {
-            html += `<li>��️ <strong>Alerta de Risco</strong>: Encontramos ${riscoMargem.length} produtos com margem cr�tica ou negativa (ex: <strong>${riscoMargem[0].nome}</strong> com ${riscoMargem[0].margem.toFixed(1)}%). Recomenda-se renegociar compra ou reajustar tabela de venda.</li>`;
+            html += `<li>⚠️ ï¸ <strong>Alerta de Risco</strong>: Encontramos ${riscoMargem.length} produtos com margem crítica ou negativa (ex: <strong>${riscoMargem[0].nome}</strong> com ${riscoMargem[0].margem.toFixed(1)}%). Recomenda-se renegociar compra ou reajustar tabela de venda.</li>`;
         } else {
-            html += `<li> <strong>Sa�de da Carteira</strong>: Todos os produtos da Tabela de Pre�os apresentam margens unit�rias saud�veis e seguras contra flutua��es.</li>`;
+            html += `<li>✅ <strong>Saúde da Carteira</strong>: Todos os produtos da Tabela de Preços apresentam margens unitárias saudáveis e seguras contra flutuações.</li>`;
         }
 
         // Acompanhar realizado
@@ -16323,10 +16323,10 @@ window.carregarFinanceiroView = async function() {
                 return acc + (mod > 0 ? (real / mod) * 100 : 0);
             }, 0) / metasMes.length;
 
-            html += `<li>�x` <strong>Atingimento</strong>: O atingimento m�dio das metas estrat�gicas do m�s atual est� em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
+            html += `<li>ðŸ“Š <strong>Atingimento</strong>: O atingimento médio das metas estratégicas do mês atual está em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
         }
 
-        // An�lises de progresso por produto
+        // Análises de progresso por produto
         metasMes.forEach(m => {
             const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === m.material_id);
             if (tp) {
@@ -16335,12 +16335,12 @@ window.carregarFinanceiroView = async function() {
                 const cons = parseFloat(m.qtd_conservador || 0);
 
                 if (real >= mod && mod > 0) {
-                    html += `<li>�x�  <strong>Meta Atingida</strong>: O produto <strong>${tp.material_nome}</strong> superou a meta moderada com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
+                    html += `<li>ðŸ† <strong>Meta Atingida</strong>: O produto <strong>${tp.material_nome}</strong> superou a meta moderada com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
                 } else if (real >= cons && cons > 0) {
-                    html += `<li>�x� <strong>Cen�rio Conservador</strong>: O produto <strong>${tp.material_nome}</strong> superou o cen�rio conservador e est� buscando a meta moderada.</li>`;
+                    html += `<li>ðŸ“ˆ <strong>Cenário Conservador</strong>: O produto <strong>${tp.material_nome}</strong> superou o cenário conservador e está buscando a meta moderada.</li>`;
                 } else if (mod > 0) {
                     const restante = mod - real;
-                    html += `<li>�x" <strong>Restante</strong>: Faltam <strong>${restante.toLocaleString('pt-BR')} kg</strong> de <strong>${tp.material_nome}</strong> para atingir a meta moderada do m�s.</li>`;
+                    html += `<li>ðŸ•’ <strong>Restante</strong>: Faltam <strong>${restante.toLocaleString('pt-BR')} kg</strong> de <strong>${tp.material_nome}</strong> para atingir a meta moderada do mês.</li>`;
                 }
             }
         });
@@ -16349,11 +16349,11 @@ window.carregarFinanceiroView = async function() {
         insightsContainer.innerHTML = html;
     }
 
-    // Modal meta estrat�gica handlers
+    // Modal meta estratégica handlers
     window.abrirModalMetaEstrategica = function() {
         const modal = document.getElementById('modal-meta-estrategica');
         if (modal) {
-            // Preencher m�s atual ou ativo no input
+            // Preencher mês atual ou ativo no input
             const mesInput = document.getElementById('metaest-mes');
             if (mesInput) {
                 if (_mesEstrategicoAtivo) {
@@ -16406,7 +16406,7 @@ window.carregarFinanceiroView = async function() {
             });
 
             if (res.ok) {
-                _apexNotify('Sucesso', 'Meta de planejamento estrat�gico salva com sucesso!', 'success');
+                _apexNotify('Sucesso', 'Meta de planejamento estratégico salva com sucesso!', 'success');
                 fecharModalMetaEstrategica();
                 await carregarPlanejamentoEstrategico();
             } else {
@@ -16414,30 +16414,30 @@ window.carregarFinanceiroView = async function() {
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'N�o foi poss�vel salvar a meta estrat�gica.', 'error');
+            _apexNotify('Erro', 'Não foi possível salvar a meta estratégica.', 'error');
         }
     };
 
     window.deletarMetaEstrategica = async function(id) {
-        if (!confirm('Deseja realmente remover esta meta de planejamento estrat�gico?')) return;
+        if (!confirm('Deseja realmente remover esta meta de planejamento estratégico?')) return;
         try {
             const res = await fetch(`/api/planejamento-estrategico/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                _apexNotify('Sucesso', 'Meta estrat�gica exclu�da.', 'success');
+                _apexNotify('Sucesso', 'Meta estratégica excluída.', 'success');
                 await carregarPlanejamentoEstrategico();
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'N�o foi poss�vel excluir a meta.', 'error');
+            _apexNotify('Erro', 'Não foi possível excluir a meta.', 'error');
         }
     };
 
 
-    // ������ M�DULO DE PLANEJAMENTO ESTRAT�GICO V3 (TESTE META FATURAMENTO -> INSUMO) ������������������
+    // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ─────────
     let _listMetasV3 = [];
     let _chartEstrategicoV3 = null;
-    let _mesV3Ativo = null; // null = vis�o de 12 meses
-    let _mixSimulacaoV3 = []; // Mix de produtos para simula��o: [{ material_id, fracaoPct }]
+    let _mesV3Ativo = null; // null = visão de 12 meses
+    let _mixSimulacaoV3 = []; // Mix de produtos para simulação: [{ material_id, fracaoPct }]
 
     window.carregarPlanejamentoEstrategicov3 = async function() {
         try {
@@ -16448,7 +16448,7 @@ window.carregarFinanceiroView = async function() {
             window.renderDashboardVisuaisEstrategicoV3();
         } catch (e) {
             console.error('Erro ao carregar planejamento V3:', e);
-            _apexNotify('Erro', 'N�o foi poss�vel carregar os dados estrat�gicos V3.', 'error');
+            _apexNotify('Erro', 'Não foi possível carregar os dados estratégicos V3.', 'error');
         }
     };
 
@@ -16655,16 +16655,16 @@ window.carregarFinanceiroView = async function() {
 
         let tp = _listTabelaPrecosEstrategica.find(x => x.material_id === matId);
         if (!tp) {
-            const materialNome = document.querySelector(`#plestv3-consulta-material option[value="${matId}"]`)?.textContent || 'Produto sem pre�o';
+            const materialNome = document.querySelector(`#plestv3-consulta-material option[value="${matId}"]`)?.textContent || 'Produto sem preço';
             tp = { material_id: matId, material_nome: materialNome, preco_venda: 0, preco_compra: 0 };
         }
 
         if (_mixSimulacaoV3.some(x => x.material_id === matId)) {
-            _apexNotify('Aviso', 'Este produto j� est� inclu�do no mix de simula��o.', 'warning');
+            _apexNotify('Aviso', 'Este produto já está incluído no mix de simulação.', 'warning');
             return;
         }
 
-        // Adiciona com fra��o padr�o dividindo igualmente
+        // Adiciona com fração padrão dividindo igualmente
         const count = _mixSimulacaoV3.length + 1;
         const defaultFracao = parseFloat((100 / count).toFixed(1));
         _mixSimulacaoV3.push({ material_id: matId, fracaoPct: defaultFracao });
@@ -16690,7 +16690,7 @@ window.carregarFinanceiroView = async function() {
             item.fracaoPct = parsed;
         }
 
-        // Recalcular totais sem travar para dar flexibilidade ao usu�rio
+        // Recalcular totais sem travar para dar flexibilidade ao usuário
         let sum = _mixSimulacaoV3.reduce((acc, x) => acc + x.fracaoPct, 0);
         const lblPct = document.getElementById('plestv3-mix-total-pct');
         if (lblPct) {
@@ -16746,7 +16746,7 @@ window.carregarFinanceiroView = async function() {
             </tr>
         `).join('');
 
-        // 2. Renderizar e Calcular Mix de Simula��o
+        // 2. Renderizar e Calcular Mix de Simulação
         if (redesenharTabela) {
             mixTbody.innerHTML = '';
         }
@@ -16764,20 +16764,20 @@ window.carregarFinanceiroView = async function() {
 
             const faturamentoAlvoProduto = fatTotalAlvo * (mixItem.fracaoPct / 100);
 
-            // Pre�o de venda (refer�ncia para calcular volume)
+            // Preço de venda (referência para calcular volume)
             const pRef = frente === 'venda'
                 ? parseFloat(tp.preco_venda || tp.venda_ref || 0)
                 : parseFloat(tp.preco_entregar || tp.preco_compra || 0);
 
-            // Pre�o de compra (quanto investe para adquirir o material)
+            // Preço de compra (quanto investe para adquirir o material)
             const pCompra = frente === 'venda'
                 ? parseFloat(tp.preco_entregar || tp.preco_compra || 0)
                 : parseFloat(tp.preco_coletar || tp.preco_compra || 0);
 
-            // Volume necess�rio em kg (baseado no pre�o de venda)
+            // Volume necessário em kg (baseado no preço de venda)
             const volumeKg = pRef > 0 ? (faturamentoAlvoProduto / pRef) : 0;
 
-            // Investimento necess�rio para comprar essa quantidade
+            // Investimento necessário para comprar essa quantidade
             const investimentoProduto = volumeKg * pCompra;
 
             totalKgCalculado += volumeKg;
@@ -16807,7 +16807,7 @@ window.carregarFinanceiroView = async function() {
                 `;
                 mixTbody.appendChild(tr);
             } else {
-                // Atualiza��o din�mica sem redesenhar toda a tabela
+                // Atualização dinâmica sem redesenhar toda a tabela
                 const lblKg = document.getElementById(`plestv3-mix-kg-${mixItem.material_id}`);
                 if (lblKg) lblKg.textContent = `${volumeKg.toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} kg`;
                 const lblInvest = document.getElementById(`plestv3-mix-invest-${mixItem.material_id}`);
@@ -16819,7 +16819,7 @@ window.carregarFinanceiroView = async function() {
             mixTbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:15px; color:#aaa;">Nenhum produto adicionado ao mix. Selecione acima e clique em "Adicionar ao Mix".</td></tr>`;
         }
 
-        // 3. Atualizar rodap�s (tfoot com Totais e M�dias), totais e indicadores estrat�gicos
+        // 3. Atualizar rodapés (tfoot com Totais e Médias), totais e indicadores estratégicos
         const lblPct    = document.getElementById('plestv3-mix-total-pct');
         const lblKg     = document.getElementById('plestv3-mix-total-kg');
         const lblInvest = document.getElementById('plestv3-mix-total-investimento');
@@ -16888,12 +16888,12 @@ window.carregarFinanceiroView = async function() {
 
         if (ftTotPct) ftTotPct.textContent = `${totalPctAlocado.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%`;
         if (ftTotFat) ftTotFat.textContent = `R$ ${fatTotalAlvo.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-        if (ftTotPVenda) ftTotPVenda.textContent = '';
+        if (ftTotPVenda) ftTotPVenda.textContent = '—';
         if (ftTotVol) ftTotVol.textContent = `${totalKgCalculado.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg`;
-        if (ftTotPCompra) ftTotPCompra.textContent = '';
+        if (ftTotPCompra) ftTotPCompra.textContent = '—';
         if (ftTotInvest) ftTotInvest.textContent = `R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
-        // Atualizar TFOOT - Linha de M�DIAS
+        // Atualizar TFOOT - Linha de MÉDIAS
         const ftMedPct = document.getElementById('plestv3-tfoot-med-pct');
         const ftMedFat = document.getElementById('plestv3-tfoot-med-fat');
         const ftMedPVenda = document.getElementById('plestv3-tfoot-med-pvenda');
@@ -16908,7 +16908,7 @@ window.carregarFinanceiroView = async function() {
         if (ftMedPCompra) ftMedPCompra.textContent = `R$ ${window.fmtBRL(pCompraMedioPonderado)}`;
         if (ftMedInvest) ftMedInvest.textContent = `R$ ${medInvestimento.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
-        // Atualizar Card de Indicadores (Margem Bruta, Margem L�quida, Ponto de Equil�brio)
+        // Atualizar Card de Indicadores (Margem Bruta, Margem Líquida, Ponto de Equilíbrio)
         const indBruta = document.getElementById('plestv3-ind-margem-bruta');
         const indLiquida = document.getElementById('plestv3-ind-margem-liquida');
         const indEquilibrio = document.getElementById('plestv3-ind-ponto-equilibrio');
@@ -16917,7 +16917,7 @@ window.carregarFinanceiroView = async function() {
         if (indLiquida) indLiquida.textContent = `R$ ${lucroLiquido.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})} (${margemLiquidaPct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%)`;
         if (indEquilibrio) indEquilibrio.textContent = `R$ ${pontoEquilibrioFat.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})} (${pontoEquilibrioKg.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})} kg)`;
 
-        // Feedback visual de aloca��o
+        // Feedback visual de alocação
         if (lblFeed && _mixSimulacaoV3.length > 0) {
             lblFeed.style.display = 'block';
             const diff = totalPctAlocado - 100;
@@ -16925,29 +16925,29 @@ window.carregarFinanceiroView = async function() {
                 lblFeed.style.background = 'rgba(42, 208, 122, 0.12)';
                 lblFeed.style.border = '1px solid rgba(42, 208, 122, 0.4)';
                 lblFeed.style.color = '#2AD07A';
-                lblFeed.innerHTML = ` Mix 100% alocado! Para atingir sua meta de <strong>R$ ${fatTotalAlvo.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>, voc� precisa investir <strong>R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> em compras e adquirir <strong>${totalKgCalculado.toLocaleString('pt-BR', {minimumFractionDigits:1})} kg</strong> de material.`;
+                lblFeed.innerHTML = `✅ Mix 100% alocado! Para atingir sua meta de <strong>R$ ${fatTotalAlvo.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>, você precisa investir <strong>R$ ${totalInvestimentoNecessario.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> em compras e adquirir <strong>${totalKgCalculado.toLocaleString('pt-BR', {minimumFractionDigits:1})} kg</strong> de material.`;
             } else if (diff < 0) {
                 lblFeed.style.background = 'rgba(255, 184, 0, 0.1)';
                 lblFeed.style.border = '1px solid rgba(255, 184, 0, 0.4)';
                 lblFeed.style.color = '#ffb74d';
                 const faltando = fatTotalAlvo * (Math.abs(diff) / 100);
-                lblFeed.innerHTML = `��️ Ainda faltam <strong>${Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong> para atingir 100% do mix  equivale a <strong>R$ ${faltando.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> de faturamento n�o coberto. Adicione mais produtos.`;
+                lblFeed.innerHTML = `⚠️ ï¸ Ainda faltam <strong>${Math.abs(diff).toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong> para atingir 100% do mix — equivale a <strong>R$ ${faltando.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> de faturamento não coberto. Adicione mais produtos.`;
             } else {
                 lblFeed.style.background = 'rgba(255, 77, 77, 0.1)';
                 lblFeed.style.border = '1px solid rgba(255, 77, 77, 0.4)';
                 lblFeed.style.color = '#ff4d4d';
-                lblFeed.innerHTML = `�R Mix ultrapassou 100% em <strong>${diff.toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong>. Reduza as fra��es para n�o exceder a meta.`;
+                lblFeed.innerHTML = `âŒ Mix ultrapassou 100% em <strong>${diff.toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong>. Reduza as frações para não exceder a meta.`;
             }
         } else if (lblFeed) {
             lblFeed.style.display = 'none';
         }
     };
 
-    // �"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"�
-    //  CICLOS DE SIMULA��O V3  Salvar / Lan�ar Resultado Real
-    // �"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"��"�
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    //  CICLOS DE SIMULAÇÃO V3 — Salvar / Lançar Resultado Real
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-    // Storage key espec�fico para ciclos desta empresa/usu�rio
+    // Storage key específico para ciclos desta empresa/usuário
     const _CICLOS_KEY = 'apextech_ciclos_simulacao_v3';
 
     function _getCiclos() {
@@ -16962,7 +16962,7 @@ window.carregarFinanceiroView = async function() {
         const el = document.getElementById('plestv3-ciclo-investimento-sim');
         const lblInvest = document.getElementById('plestv3-mix-total-investimento');
         if (el && lblInvest) {
-            // Pega o valor num�rico do span de total investimento
+            // Pega o valor numérico do span de total investimento
             const raw = lblInvest.textContent.replace('R$', '').trim().replace(/\./g, '').replace(',', '.');
             const val = parseFloat(raw) || 0;
             el.value = val > 0 ? val : '';
@@ -16975,22 +16975,22 @@ window.carregarFinanceiroView = async function() {
         const metaFatEl  = document.getElementById('plestv3-ciclo-meta-fat');
         let   metaFat    = parseFloat(metaFatEl?.value) || 0;
 
-        // Se n�o informou meta manual, usa o faturamento alvo configurado na simula��o
+        // Se não informou meta manual, usa o faturamento alvo configurado na simulação
         if (!metaFat) {
             const elFat = document.getElementById('plestv3-fat-alvo');
             metaFat = parseFloat(elFat?.value) || 0;
         }
 
         if (!dataInicio || !dataFim) {
-            (window._apexNotify ? window._apexNotify('Notifica��o', 'Informe a Data de In�cio e a Data de Fim do ciclo.', 'info') : alert('Informe a Data de In�cio e a Data de Fim do ciclo.'));
+            (window._apexNotify ? window._apexNotify('Notificação', 'Informe a Data de Início e a Data de Fim do ciclo.', 'info') : alert('Informe a Data de Início e a Data de Fim do ciclo.'));
             return;
         }
         if (new Date(dataFim) < new Date(dataInicio)) {
-            (window._apexNotify ? window._apexNotify('Notifica��o', 'A Data de Fim deve ser posterior à Data de In�cio.', 'info') : alert('A Data de Fim deve ser posterior à Data de In�cio.'));
+            (window._apexNotify ? window._apexNotify('Notificação', 'A Data de Fim deve ser posterior à Data de Início.', 'info') : alert('A Data de Fim deve ser posterior à Data de Início.'));
             return;
         }
         if (!metaFat || metaFat <= 0) {
-            (window._apexNotify ? window._apexNotify('Notifica��o', 'Informe a Meta de Faturamento do ciclo.', 'info') : alert('Informe a Meta de Faturamento do ciclo.'));
+            (window._apexNotify ? window._apexNotify('Notificação', 'Informe a Meta de Faturamento do ciclo.', 'info') : alert('Informe a Meta de Faturamento do ciclo.'));
             return;
         }
 
@@ -17028,19 +17028,19 @@ window.carregarFinanceiroView = async function() {
         if (nota) nota.style.display = 'block';
 
         _renderizarCiclosV3();
-        (window._apexNotify ? window._apexNotify('Notifica��o', ` Ciclo salvo! Per�odo: ${new Date(dataInicio + 'T12:00:00', 'info') : alert(` Ciclo salvo! Per�odo: ${new Date(dataInicio + 'T12:00:00')).toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+        (window._apexNotify ? window._apexNotify('Notificação', `✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00', 'info') : alert(`✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00')).toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
     };
 
     window.abrirModalResultadoRealV3 = function(cicloId) {
         const modal = document.getElementById('modal-resultado-real-v3');
         if (!modal) return;
 
-        // Se veio com ID espec�fico, usa ele; sen�o pega o primeiro ciclo simulado
+        // Se veio com ID específico, usa ele; senão pega o primeiro ciclo simulado
         let id = cicloId;
         if (!id) {
             const ciclos = _getCiclos();
             const pendente = ciclos.find(c => c.status === 'simulado');
-            if (!pendente) { (window._apexNotify ? window._apexNotify('Notifica��o', 'Nenhum ciclo simulado pendente. Salve primeiro uma simula��o.', 'info') : alert('Nenhum ciclo simulado pendente. Salve primeiro uma simula��o.')); return; }
+            if (!pendente) { (window._apexNotify ? window._apexNotify('Notificação', 'Nenhum ciclo simulado pendente. Salve primeiro uma simulação.', 'info') : alert('Nenhum ciclo simulado pendente. Salve primeiro uma simulação.')); return; }
             id = pendente.id;
         }
 
@@ -17064,12 +17064,12 @@ window.carregarFinanceiroView = async function() {
         const volReal  = parseFloat(document.getElementById('modal-rr-volume-real')?.value) || null;
         const obs      = document.getElementById('modal-rr-obs')?.value?.trim() || '';
 
-        if (!fatReal || fatReal <= 0) { (window._apexNotify ? window._apexNotify('Notifica��o', 'Informe o Faturamento Real alcan�ado.', 'info') : alert('Informe o Faturamento Real alcan�ado.')); return; }
-        if (!invReal || invReal <= 0) { (window._apexNotify ? window._apexNotify('Notifica��o', 'Informe o Investimento Real realizado em compras.', 'info') : alert('Informe o Investimento Real realizado em compras.')); return; }
+        if (!fatReal || fatReal <= 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Informe o Faturamento Real alcançado.', 'info') : alert('Informe o Faturamento Real alcançado.')); return; }
+        if (!invReal || invReal <= 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Informe o Investimento Real realizado em compras.', 'info') : alert('Informe o Investimento Real realizado em compras.')); return; }
 
         const ciclos = _getCiclos();
         const idx = ciclos.findIndex(c => c.id === cicloId);
-        if (idx < 0) { (window._apexNotify ? window._apexNotify('Notifica��o', 'Ciclo n�o encontrado.', 'info') : alert('Ciclo n�o encontrado.')); return; }
+        if (idx < 0) { (window._apexNotify ? window._apexNotify('Notificação', 'Ciclo não encontrado.', 'info') : alert('Ciclo não encontrado.')); return; }
 
         ciclos[idx].fatReal      = fatReal;
         ciclos[idx].investReal   = invReal;
@@ -17083,7 +17083,7 @@ window.carregarFinanceiroView = async function() {
     };
 
     window.excluirCicloV3 = function(cicloId) {
-        if (!confirm('Excluir este ciclo? Esta a��o n�o pode ser desfeita.')) return;
+        if (!confirm('Excluir este ciclo? Esta ação não pode ser desfeita.')) return;
         const ciclos = _getCiclos().filter(c => c.id !== cicloId);
         _saveCiclos(ciclos);
         _renderizarCiclosV3();
@@ -17095,7 +17095,7 @@ window.carregarFinanceiroView = async function() {
 
         const ciclos = _getCiclos();
         if (ciclos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:18px; color:#aaa;">Nenhum ciclo salvo ainda. Configure o per�odo e salve sua simula��o.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:18px; color:#aaa;">Nenhum ciclo salvo ainda. Configure o período e salve sua simulação.</td></tr>`;
             return;
         }
 
@@ -17104,25 +17104,25 @@ window.carregarFinanceiroView = async function() {
             const fmtData = d => {
                 try { return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR'); } catch { return d; }
             };
-            const periodo = `${fmtData(c.dataInicio)} �  ${fmtData(c.dataFim)}`;
-            const mixNomes = (c.mixSnapshot || []).map(m => `${m.nome} (${m.fracaoPct.toLocaleString('pt-BR', {maximumFractionDigits:1})}%)`).join(', ') || '';
+            const periodo = `${fmtData(c.dataInicio)} â†’ ${fmtData(c.dataFim)}`;
+            const mixNomes = (c.mixSnapshot || []).map(m => `${m.nome} (${m.fracaoPct.toLocaleString('pt-BR', {maximumFractionDigits:1})}%)`).join(', ') || '—';
 
-            let atingimentoHTML = '';
+            let atingimentoHTML = '—';
             let statusHTML = `<span style="color:#ffb74d; font-weight:bold;"><i class="fa-solid fa-clock"></i> Pendente</span>`;
 
             if (c.status === 'realizado' && c.fatReal != null) {
                 const pct = c.metaFaturamento > 0 ? (c.fatReal / c.metaFaturamento) * 100 : 0;
                 const cor = pct >= 100 ? '#2AD07A' : pct >= 80 ? '#ffb74d' : '#ff4d4d';
-                const icone = pct >= 100 ? '' : pct >= 80 ? '��️' : '�R';
+                const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️ ï¸' : 'âŒ';
                 atingimentoHTML = `<span style="color:${cor}; font-weight:bold;">${icone} ${pct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%</span>`;
                 statusHTML = `<span style="color:${cor}; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Realizado</span>`;
             }
 
-            const fatRealStr  = c.fatReal   != null ? `R$ ${c.fatReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '';
-            const invRealStr  = c.investReal != null ? `R$ ${c.investReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '';
+            const fatRealStr  = c.fatReal   != null ? `R$ ${c.fatReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '—';
+            const invRealStr  = c.investReal != null ? `R$ ${c.investReal.toLocaleString('pt-BR', {minimumFractionDigits:2})}` : '—';
 
             const acaoReal = c.status === 'simulado'
-                ? `<button onclick="window.abrirModalResultadoRealV3(${c.id})" title="Lan�ar Resultado Real" style="background:rgba(42,208,122,0.12); border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; cursor:pointer; font-size:0.78rem; margin-right:4px;"><i class="fa-solid fa-flag-checkered"></i> Real</button>`
+                ? `<button onclick="window.abrirModalResultadoRealV3(${c.id})" title="Lançar Resultado Real" style="background:rgba(42,208,122,0.12); border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; cursor:pointer; font-size:0.78rem; margin-right:4px;"><i class="fa-solid fa-flag-checkered"></i> Real</button>`
                 : '';
 
             const tr = document.createElement('tr');
@@ -17145,11 +17145,11 @@ window.carregarFinanceiroView = async function() {
         });
     }
 
-    // Inicializar ciclos ao carregar a se��o
+    // Inicializar ciclos ao carregar a seção
     function _initCiclosV3() {
         _syncInvestimentoSimuladoCiclo();
         _renderizarCiclosV3();
-        // Pr�-preenche datas com m�s corrente
+        // Pré-preenche datas com mês corrente
         const hoje = new Date();
         const dInicio = document.getElementById('plestv3-ciclo-data-inicio');
         const dFim    = document.getElementById('plestv3-ciclo-data-fim');
@@ -17169,7 +17169,7 @@ window.carregarFinanceiroView = async function() {
         
         const textAtivo = document.getElementById('plestv3-txt-mes-ativo');
         if (textAtivo) {
-            textAtivo.innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Planejamento Estrat�gico V3  ${formatarMesAnoLabel(mes)}`;
+            textAtivo.innerHTML = `<i class="fa-solid fa-calendar-days" style="color:#00e5ff;"></i> Planejamento Estratégico V3 — ${formatarMesAnoLabel(mes)}`;
         }
         
         const selectProd = document.getElementById('plestv3-select-produto');
@@ -17240,7 +17240,7 @@ window.carregarFinanceiroView = async function() {
                 const atingimentoPct = qPlan > 0 ? (qReal / qPlan) * 100 : 0;
                 const saldo = qPlan - qReal;
 
-                // Detectar preju�zo (se o pre�o de venda da tabela for menor que o de insumo)
+                // Detectar prejuízo (se o preço de venda da tabela for menor que o de insumo)
                 const isPrejuizo = (pVenda - pInsumo) < 0;
 
                 if (tableBody && meta) {
@@ -17248,7 +17248,7 @@ window.carregarFinanceiroView = async function() {
                     tr.innerHTML = `
                         <td style="padding:8px;">
                             <strong>${tp.material_nome}</strong>
-                            ${isPrejuizo ? '<span style="background:#ff4d4d; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PREJU�ZO</span>' : ''}
+                            ${isPrejuizo ? '<span style="background:#ff4d4d; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:bold;">PREJUÍZO</span>' : ''}
                         </td>
                         <td style="padding:8px; text-align:center; text-transform:capitalize; color:#aaa;">${op}</td>
                         <td style="padding:8px; text-align:right; color:#00e5ff; font-weight:bold;">R$ ${mFat.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
@@ -17258,7 +17258,7 @@ window.carregarFinanceiroView = async function() {
                         <td style="padding:8px; text-align:right; font-weight:bold;">${qPlan.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</td>
                         <td style="padding:8px; text-align:right; color:#fff;">${qReal.toLocaleString('pt-BR',{minimumFractionDigits:1})} kg</td>
                         <td style="padding:8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}%</td>
-                        <td style="padding:8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct >= 100 ? 'CONCLU�DO' : 'PENDENTE'}</td>
+                        <td style="padding:8px; text-align:center; font-weight:bold; color:${atingimentoPct >= 100 ? '#2AD07A' : '#ffb74d'};">${atingimentoPct >= 100 ? 'CONCLUÍDO' : 'PENDENTE'}</td>
                         <td style="padding:8px; text-align:center;">
                             <button onclick="editarMetaEstrategicav3Rapido(${tp.material_id}, '${mes}', ${mFat}, ${mMargem}, '${op}', ${qReal}, ${valVendaReal})" class="btn-primary" style="font-size:0.75rem; padding:4px 8px; border-radius:4px; background:#00e5ff; color:#0d1826;" title="Editar"><i class="fa-solid fa-edit"></i></button>
                             <button onclick="deletarMetaEstrategicav3(${meta.id})" style="background:none; border:none; color:#ff6b6b; margin-left:8px; cursor:pointer;" title="Remover Meta"><i class="fa-solid fa-trash"></i></button>
@@ -17270,7 +17270,7 @@ window.carregarFinanceiroView = async function() {
         });
 
         if (tableBody && tableBody.children.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:20px; color:#aaa;">Nenhuma meta cadastrada para este m�s. Clique em "Configurar Meta do M�s" no topo para planejar.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:20px; color:#aaa;">Nenhuma meta cadastrada para este mês. Clique em "Configurar Meta do Mês" no topo para planejar.</td></tr>`;
         }
 
         // Renderizar Cards de KPIs do topo V3
@@ -17327,11 +17327,11 @@ window.carregarFinanceiroView = async function() {
 
         container.innerHTML = `
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
-                <small style="color:#aaa; font-size:0.75rem;">Opera��o ativa</small>
+                <small style="color:#aaa; font-size:0.75rem;">Operação ativa</small>
                 <div style="font-weight:bold; color:#00e5ff; margin-top:2px; text-transform:capitalize;">${op}</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
-                <small style="color:#aaa; font-size:0.75rem;">Pre�o Insumo</small>
+                <small style="color:#aaa; font-size:0.75rem;">Preço Insumo</small>
                 <div style="font-weight:bold; color:#ffb74d; margin-top:2px;">R$ ${window.fmtBRL(pInsumo)}</div>
             </div>
             <div style="text-align:center; padding:8px; background:#101a24; border-radius:8px; border:1px solid #1e4e8c;">
@@ -17344,7 +17344,7 @@ window.carregarFinanceiroView = async function() {
             </div>
         `;
 
-        // Cen�rios de Proje��o (Conservador 80% / Moderado 100% / Agressivo 120%)
+        // Cenários de Projeção (Conservador 80% / Moderado 100% / Agressivo 120%)
         const fillCenarioRow = (nome, pct, cor) => {
             const fat = metaFatVal * (pct / 100);
             const custo = fat * (1 - margemDesejadaVal/100);
@@ -17391,11 +17391,11 @@ window.carregarFinanceiroView = async function() {
         prBody.innerHTML = `
             ${compRowV3('Meta de Faturamento (Venda)', metaFatVal, fatReal, '', true)}
             ${compRowV3('Reserva de Compra (Investimento)', custoPlan, custoReal, '', true)}
-            ${compRowV3('Volume Necess�rio (Compra)', qPlan, qReal, 'kg', false)}
+            ${compRowV3('Volume Necessário (Compra)', qPlan, qReal, 'kg', false)}
             ${compRowV3('Lucro Projetado', lucroPlan, lucroReal, '', true)}
         `;
 
-        // Renderizar gr�fico reativo do atingimento V3
+        // Renderizar gráfico reativo do atingimento V3
         const consVol = pInsumo > 0 ? ((metaFatVal * 0.8 * (1 - margemDesejadaVal/100)) / pInsumo) : 0;
         const agrVol = pInsumo > 0 ? ((metaFatVal * 1.2 * (1 - margemDesejadaVal/100)) / pInsumo) : 0;
 
@@ -17442,7 +17442,7 @@ window.carregarFinanceiroView = async function() {
         let html = `<ul style="margin:0; padding-left:16px; display:flex; flex-direction:column; gap:6px;">`;
 
         if (metasMes.length === 0) {
-            html += `<li>Defina uma meta de faturamento e margem no bot�o acima para simular e avaliar os insumos necess�rios.</li>`;
+            html += `<li>Defina uma meta de faturamento e margem no botão acima para simular e avaliar os insumos necessários.</li>`;
         } else {
             metasMes.forEach(m => {
                 const tp = _listTabelaPrecosEstrategica.find(x => x.material_id === m.material_id);
@@ -17458,10 +17458,10 @@ window.carregarFinanceiroView = async function() {
                     const real = parseFloat(m.qtd_realizado || 0);
 
                     if (real >= qPlan && qPlan > 0) {
-                        html += `<li>�x�  <strong>Meta Superada</strong>: O insumo <strong>${tp.material_nome}</strong> atingiu 100% da meta de compra com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
+                        html += `<li>ðŸ† <strong>Meta Superada</strong>: O insumo <strong>${tp.material_nome}</strong> atingiu 100% da meta de compra com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
                     } else if (qPlan > 0) {
                         const falta = qPlan - real;
-                        html += `<li>�x" <strong>Acompanhamento</strong>: Faltam comprar <strong>${falta.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg</strong> de <strong>${tp.material_nome}</strong> para cobrir a meta comercial.</li>`;
+                        html += `<li>ðŸ•’ <strong>Acompanhamento</strong>: Faltam comprar <strong>${falta.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg</strong> de <strong>${tp.material_nome}</strong> para cobrir a meta comercial.</li>`;
                     }
                 }
             });
@@ -17500,10 +17500,10 @@ window.carregarFinanceiroView = async function() {
             if (!res.ok) throw new Error('Erro do servidor: ' + res.status);
             const planos = await res.json();
             
-            if (!Array.isArray(planos)) throw new Error('A resposta da API n�o � um array v�lido.');
+            if (!Array.isArray(planos)) throw new Error('A resposta da API não é um array válido.');
 
             if (planos.length === 0) {
-                lista.innerHTML = '<div style="color:#aaa; text-align:center; padding:30px; font-size:1.2rem;">Nenhum planejamento salvo ainda. Voc� precisa salvar um planejamento primeiro!</div>';
+                lista.innerHTML = '<div style="color:#aaa; text-align:center; padding:30px; font-size:1.2rem;">Nenhum planejamento salvo ainda. Você precisa salvar um planejamento primeiro!</div>';
                 return;
             }
 
@@ -17513,14 +17513,14 @@ window.carregarFinanceiroView = async function() {
                     <div style="background:#162433; border:1px solid #1c2e3d; border-radius:8px; padding:15px; margin-bottom:15px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
                             <div>
-                                <h3 style="margin:0; color:#2AD07A; font-size:1.1rem;">${p.titulo || 'Sem T�tulo'}</h3>
-                                <small style="color:#aaa;">Per�odo: ${window.fmtD(p.data_inicial)} at� ${window.fmtD(p.data_final)}</small>
+                                <h3 style="margin:0; color:#2AD07A; font-size:1.1rem;">${p.titulo || 'Sem Título'}</h3>
+                                <small style="color:#aaa;">Período: ${window.fmtD(p.data_inicial)} até ${window.fmtD(p.data_final)}</small>
                             </div>
                             <button onclick="window.gerarPdfEstrategiaV3(${p.id})" style="background:#2AD07A; color:#0d1826; border:none; padding:8px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.8rem;">GERAR PDF</button>
                         </div>
                         <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:10px;">
                             <div style="background:#0d1826; padding:10px; border-radius:6px; flex:1; min-width:180px;">
-                                <span style="display:block; color:#aaa; font-size:0.8rem; margin-bottom:4px;">Estrat�gia Principal</span>
+                                <span style="display:block; color:#aaa; font-size:0.8rem; margin-bottom:4px;">Estratégia Principal</span>
                                 <span style="display:block; color:#fff; font-weight:bold;">${p.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}</span>
                             </div>
                             <div style="background:#0d1826; padding:10px; border-radius:6px; flex:1; min-width:180px;">
@@ -17528,17 +17528,17 @@ window.carregarFinanceiroView = async function() {
                                 <span style="display:block; color:#00e5ff; font-weight:bold; font-size:1.1rem;">Meta Total: R$ ${window.fmtBRL(p.meta_faturamento)}</span>
                             </div>
                         </div>
-                        <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.9rem; border-bottom:1px solid #1c2e3d; padding-bottom:5px;">Composi��o do Mix</h4>
+                        <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.9rem; border-bottom:1px solid #1c2e3d; padding-bottom:5px;">Composição do Mix</h4>
                         <div style="overflow-x:auto;">
                             <table style="width:100%; border-collapse:collapse; font-size:0.8rem; min-width:500px;">
                                 <thead>
                                     <tr style="background:#0d1826; color:#aaa; text-align:left;">
                                         <th style="padding:6px;">Produto</th>
-                                        <th style="padding:6px; text-align:right;">Fra��o</th>
+                                        <th style="padding:6px; text-align:right;">Fração</th>
                                         <th style="padding:6px; text-align:right;">Meta (R$)</th>
                                         <th style="padding:6px; text-align:right;">Realizado (R$)</th>
                                         <th style="padding:6px; text-align:center;">Progresso</th>
-                                        <th style="padding:6px; text-align:center;">A��es</th>
+                                        <th style="padding:6px; text-align:center;">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -17577,7 +17577,7 @@ window.carregarFinanceiroView = async function() {
 
         } catch(e) {
             console.error('ERRO ABRIR MODAL:', e);
-            (window._apexNotify ? window._apexNotify('Notifica��o', 'Aviso: ' + e.message, 'info') : alert('Aviso: ' + e.message));
+            (window._apexNotify ? window._apexNotify('Notificação', 'Aviso: ' + e.message, 'info') : alert('Aviso: ' + e.message));
             if (lista) {
                 lista.innerHTML = `<div style="color:#ff4d4d; text-align:center; padding: 20px;">
                     <b>Erro ao carregar dados do servidor.</b><br><br>
@@ -17748,7 +17748,7 @@ window.carregarFinanceiroView = async function() {
                 _apexNotify('Sucesso', msgSucesso, 'success');
                 fecharModalMetaEstrategicav3();
                 
-                // Recarregar conforme a aba vis�vel
+                // Recarregar conforme a aba visível
                 const secAtivos = document.getElementById('subaba-estr-ativos');
                 if (secAtivos && secAtivos.style.display === 'block' && window.renderPlanejamentosAtivosV3) {
                     await window.renderPlanejamentosAtivosV3();
@@ -17760,21 +17760,21 @@ window.carregarFinanceiroView = async function() {
             }
         } catch (e) {
             console.error(e);
-            _apexNotify('Erro', 'N�o foi poss�vel salvar.', 'error');
+            _apexNotify('Erro', 'Não foi possível salvar.', 'error');
         }
     };
 
     window.deletarMetaEstrategicav3 = async function(id) {
-        if (!confirm('Deseja realmente remover esta meta estrat�gica?')) return;
+        if (!confirm('Deseja realmente remover esta meta estratégica?')) return;
         try {
             const res = await fetch(`/api/planejamento-estrategicov3/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                _apexNotify('Sucesso', 'Meta estrat�gica V3 exclu�da.', 'success');
+                _apexNotify('Sucesso', 'Meta estratégica V3 excluída.', 'success');
                 await carregarPlanejamentoEstrategicov3();
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'N�o foi poss�vel excluir.', 'error');
+            _apexNotify('Erro', 'Não foi possível excluir.', 'error');
         }
     };
 
@@ -17790,7 +17790,7 @@ window.carregarFinanceiroView = async function() {
         if (parts.length !== 2) return mesStr;
         const ano = parts[0];
         const mesIdx = parseInt(parts[1], 10);
-        const nomes = ['', 'Janeiro', 'Fevereiro', 'Mar�o', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const nomes = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         return (nomes[mesIdx] || '') + ' / ' + ano;
     }
 
@@ -17832,7 +17832,7 @@ window.carregarFinanceiroView = async function() {
         const fatTotalAlvo = parseFloat(metaFat.replace(/\./g, '').replace(',', '.')) || 0;
 
         if (!titulo || !data_inicial || !data_final || _mixSimulacaoV3.length === 0) {
-            _apexNotify('Aviso', 'Preencha o T�tulo, Datas e adicione pelo menos um item ao Mix.', 'warning');
+            _apexNotify('Aviso', 'Preencha o Título, Datas e adicione pelo menos um item ao Mix.', 'warning');
             return;
         }
 
@@ -17865,7 +17865,7 @@ window.carregarFinanceiroView = async function() {
                 body: JSON.stringify(payload)
             });
             if (res.ok) {
-                _apexNotify('Sucesso', 'Estrat�gia salva com sucesso!', 'success');
+                _apexNotify('Sucesso', 'Estratégia salva com sucesso!', 'success');
                 const navEstrategico = document.getElementById('nav-planejamento-estrategicov3');
                 if (navEstrategico) navEstrategico.click();
                 if (window.alternarSubAbaEstrategico) window.alternarSubAbaEstrategico('ativos');
@@ -17874,7 +17874,7 @@ window.carregarFinanceiroView = async function() {
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'N�o foi poss�vel salvar a estrat�gia.', 'error');
+            _apexNotify('Erro', 'Não foi possível salvar a estratégia.', 'error');
         }
     };
 
@@ -17921,11 +17921,11 @@ window.carregarFinanceiroView = async function() {
 
                             if (metaAlvo > 0) {
                                 if (totalReal >= tAgr) {
-                                    _apexNotify('Cen�rio Atingido!', `Parab�ns! O Cen�rio AGRESSIVO (${agrPct}%) foi alcan�ado na estrat�gia: ${currentPlan.titulo}.`, 'error');
+                                    _apexNotify('Cenário Atingido!', `Parabéns! O Cenário AGRESSIVO (${agrPct}%) foi alcançado na estratégia: ${currentPlan.titulo}.`, 'error');
                                 } else if (totalReal >= tMod) {
-                                    _apexNotify('Cen�rio Atingido!', `�timo! O Cen�rio MODERADO (${modPct}%) foi alcan�ado na estrat�gia: ${currentPlan.titulo}.`, 'warning');
+                                    _apexNotify('Cenário Atingido!', `Ótimo! O Cenário MODERADO (${modPct}%) foi alcançado na estratégia: ${currentPlan.titulo}.`, 'warning');
                                 } else if (totalReal >= tCons) {
-                                    _apexNotify('Cen�rio Atingido!', `Muito bem! O Cen�rio CONSERVADOR (${consPct}%) foi alcan�ado na estrat�gia: ${currentPlan.titulo}.`, 'info');
+                                    _apexNotify('Cenário Atingido!', `Muito bem! O Cenário CONSERVADOR (${consPct}%) foi alcançado na estratégia: ${currentPlan.titulo}.`, 'info');
                                 }
                             }
                         }
@@ -17938,7 +17938,7 @@ window.carregarFinanceiroView = async function() {
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'N�o salvou o realizado.', 'error');
+            _apexNotify('Erro', 'Não salvou o realizado.', 'error');
         }
     };
 
@@ -18059,7 +18059,7 @@ window.carregarFinanceiroView = async function() {
                 `;
             });
 
-            // C�lculos de Totais, M�dias e Indicadores Estrat�gicos do Plano Ativo
+            // Cálculos de Totais, Médias e Indicadores Estratégicos do Plano Ativo
             const countAtivos = p.itens.length || 1;
             const mediaFracaoAtivo = totalFracaoPct / countAtivos;
             const mediaAlvoAtivo = totalAlvo / countAtivos;
@@ -18096,7 +18096,7 @@ window.carregarFinanceiroView = async function() {
                                 ${p.titulo} 
                                 ${p.status === 'FINALIZADO' ? '<span style="background:#4a4a4a; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">FINALIZADO</span>' : ''}
                             </h3>
-                            <small style="color:#aaa;">Per�odo: ${window.fmtD(p.data_inicial)} at� ${window.fmtD(p.data_final)}</small>
+                            <small style="color:#aaa;">Período: ${window.fmtD(p.data_inicial)} até ${window.fmtD(p.data_final)}</small>
                         </div>
                         <div style="display:flex; gap:10px;">
                             ${p.status !== 'FINALIZADO' ? `<button onclick="window.finalizarPlanejamentoV3(${p.id})" style="background:#ffb74d; color:#0d1826; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Finalizar</button>` : ''}
@@ -18124,18 +18124,18 @@ window.carregarFinanceiroView = async function() {
                         </div>
                     </div>
 
-                    <!-- Card de Indicadores Estrat�gicos para o Plano Ativo -->
+                    <!-- Card de Indicadores Estratégicos para o Plano Ativo -->
                     <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:16px; padding:10px; background:#0d1826; border:1px solid #1a3a5c; border-radius:8px;">
                         <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #2AD07A;">
                             <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-chart-line" style="color:#2AD07A;"></i> Margem Bruta</span>
                             <span style="font-size:13px; color:#2AD07A; font-weight:bold;">R$ ${window.fmtBRL(lucroBrutoAtivo)} (${margemBrutaPctAtivo.toFixed(1)}%)</span>
                         </div>
                         <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #00e5ff;">
-                            <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-scale-balanced" style="color:#00e5ff;"></i> Margem L�quida Est.</span>
+                            <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-scale-balanced" style="color:#00e5ff;"></i> Margem Líquida Est.</span>
                             <span style="font-size:13px; color:#00e5ff; font-weight:bold;">R$ ${window.fmtBRL(lucroLiquidoAtivo)} (${margemLiquidaPctAtivo.toFixed(1)}%)</span>
                         </div>
                         <div style="background:#162433; padding:8px 12px; border-radius:6px; border-left:3px solid #ffb74d;">
-                            <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Ponto de Equil�brio</span>
+                            <span style="font-size:11px; color:#aaa; display:block; text-transform:uppercase; font-weight:bold;"><i class="fa-solid fa-bullseye" style="color:#ffb74d;"></i> Ponto de Equilíbrio</span>
                             <span style="font-size:13px; color:#ffb74d; font-weight:bold;">R$ ${window.fmtBRL(pontoEquilibrioFatAtivo)} (${pontoEquilibrioVolAtivo.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg)</span>
                         </div>
                     </div>
@@ -18155,11 +18155,11 @@ window.carregarFinanceiroView = async function() {
                         <thead>
                             <tr style="background:#0d1826; border-bottom:1px solid #2a4158;">
                                 <th style="padding:10px; color:#aaa;">Produto</th>
-                                <th style="padding:10px; color:#aaa;">Fra��o</th>
+                                <th style="padding:10px; color:#aaa;">Fração</th>
                                 <th style="padding:10px; color:#aaa;">Meta (R$)</th>
                                 <th style="padding:10px; color:#aaa;">Realizado (R$)</th>
                                 <th style="padding:10px; color:#aaa;">Progresso</th>
-                                <th style="padding:10px; color:#aaa;">A��es</th>
+                                <th style="padding:10px; color:#aaa;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -18175,7 +18175,7 @@ window.carregarFinanceiroView = async function() {
                                 <td style="padding:10px;"></td>
                             </tr>
                             <tr style="color:#e0e0e0; background:rgba(0,229,255,0.06);">
-                                <td style="padding:10px; color:#00e5ff;"><i class="fa-solid fa-calculator"></i> M�DIAS</td>
+                                <td style="padding:10px; color:#00e5ff;"><i class="fa-solid fa-calculator"></i> MÉDIAS</td>
                                 <td style="padding:10px;">${mediaFracaoAtivo.toFixed(1)}%</td>
                                 <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaAlvoAtivo)}</td>
                                 <td style="padding:10px; color:#00e5ff;">R$ ${window.fmtBRL(mediaRealAtivo)}</td>
@@ -18208,7 +18208,7 @@ window.carregarFinanceiroView = async function() {
         const busca = (document.getElementById('plestv3-filtro-busca')?.value || '').toLowerCase().trim();
 
         const monthNamesMap = {
-            '01': 'janeiro', '02': 'fevereiro', '03': 'mar�o', '04': 'abril',
+            '01': 'janeiro', '02': 'fevereiro', '03': 'março', '04': 'abril',
             '05': 'maio', '06': 'junho', '07': 'julho', '08': 'agosto',
             '09': 'setembro', '10': 'outubro', '11': 'novembro', '12': 'dezembro'
         };
@@ -18259,7 +18259,7 @@ window.carregarFinanceiroView = async function() {
                 <div style="text-align:center; padding:30px; background:#162433; border-radius:10px; border:1px dashed #2a4158; color:#aaa;">
                     <i class="fa-solid fa-calendar-xmark" style="font-size:2rem; color:#ffb74d; margin-bottom:10px; display:block;"></i>
                     Nenhum planejamento encontrado para os filtros selecionados.<br>
-                    <small style="color:#666;">Tente alterar o M�s, Ano ou termo de busca.</small>
+                    <small style="color:#666;">Tente alterar o Mês, Ano ou termo de busca.</small>
                 </div>
             `;
             return;
@@ -18315,19 +18315,19 @@ window.carregarFinanceiroView = async function() {
         try {
             const res = await fetch(`/api/estrategiav3_planos/${id}`, { method: 'DELETE' });
             if(res.ok) {
-                _apexNotify('Sucesso', 'Planejamento exclu�do.', 'success');
+                _apexNotify('Sucesso', 'Planejamento excluído.', 'success');
                 window.renderPlanejamentosAtivosV3();
             } else {
-                _apexNotify('Erro', 'N�o foi poss�vel excluir.', 'error');
+                _apexNotify('Erro', 'Não foi possível excluir.', 'error');
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'Falha na exclus�o.', 'error');
+            _apexNotify('Erro', 'Falha na exclusão.', 'error');
         }
     };
 
     window.finalizarPlanejamentoV3 = async function(id) {
-        if(!confirm('Deseja finalizar este planejamento? Voc� n�o poder� mais editar os valores realizados.')) return;
+        if(!confirm('Deseja finalizar este planejamento? Você não poderá mais editar os valores realizados.')) return;
         try {
             const res = await fetch(`/api/estrategiav3_planos/${id}/status`, { 
                 method: 'PUT',
@@ -18338,11 +18338,11 @@ window.carregarFinanceiroView = async function() {
                 _apexNotify('Sucesso', 'Planejamento finalizado.', 'success');
                 window.renderPlanejamentosAtivosV3();
             } else {
-                _apexNotify('Erro', 'N�o foi poss�vel finalizar.', 'error');
+                _apexNotify('Erro', 'Não foi possível finalizar.', 'error');
             }
         } catch(e) {
             console.error(e);
-            _apexNotify('Erro', 'Falha na finaliza��o.', 'error');
+            _apexNotify('Erro', 'Falha na finalização.', 'error');
         }
     };
 
@@ -18457,7 +18457,7 @@ window.carregarFinanceiroView = async function() {
         tfoot.innerHTML = '';
 
         if (mapProdutos.size === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">Nenhum planejamento encontrado para este m�s.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">Nenhum planejamento encontrado para este mês.</td></tr>`;
             return;
         }
 
@@ -18551,8 +18551,8 @@ window.carregarFinanceiroView = async function() {
                 <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #ffb74d;padding-bottom:20px;margin-bottom:25px;">
                     <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:50px;"></div>
                     <div style="text-align:right;">
-                        <h1 style="margin:0;color:#333;font-size:1.8rem;text-transform:uppercase;">Planejamento Estrat�gico - M�s</h1>
-                        <p style="margin:5px 0 0 0;color:#666;font-size:1rem;">M�s Refer�ncia: <strong>${mesLabel}</strong> | Gerado em: ${hojeStr}</p>
+                        <h1 style="margin:0;color:#333;font-size:1.8rem;text-transform:uppercase;">Planejamento Estratégico - Mês</h1>
+                        <p style="margin:5px 0 0 0;color:#666;font-size:1rem;">Mês Referência: <strong>${mesLabel}</strong> | Gerado em: ${hojeStr}</p>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:25px; background:#f5f5f5; padding:15px; border-radius:8px; border:1px solid #ddd;">
@@ -18677,7 +18677,7 @@ window.carregarFinanceiroView = async function() {
         doc.text(`Estrategia: ${plano.frente === 'venda' ? 'Foco em Venda' : 'Foco em Compra'}`, 15, 50);
 
         doc.setFont('helvetica', 'bold');
-        doc.text(`M�tricas Globais & Financeiras:`, 110, 33);
+        doc.text(`Métricas Globais & Financeiras:`, 110, 33);
         doc.setFont('helvetica', 'normal');
         doc.text(`Investimento Previsto: R$ ${window.fmtBRL(totalInvest)}`, 110, 39);
         doc.text(`Meta Global (Alvo): R$ ${window.fmtBRL(totalAlvo)}`, 110, 44);
@@ -18744,7 +18744,7 @@ window.carregarFinanceiroView = async function() {
 
         const finalY = doc.lastAutoTable.finalY + 15;
         doc.setFontSize(9);
-        doc.text(`Relatorio gerado em: ${new Date().toLocaleString('pt-BR')}  ApexTech Metais`, 15, finalY);
+        doc.text(`Relatorio gerado em: ${new Date().toLocaleString('pt-BR')} — ApexTech Metais`, 15, finalY);
 
         doc.save(`Planejamento_${plano.titulo.replace(/\s+/g, '_')}.pdf`);
     };

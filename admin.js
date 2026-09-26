@@ -9,7 +9,7 @@ var _listTabelaPrecosEstrategica = [];
         return null;
     };
 
-    // ������ TOGGLE MENU LATERAL RECOLH�VEL (DESKTOP) ������������������������������������������������������������
+    // ─── TOGGLE MENU LATERAL RECOLHÍVEL (DESKTOP) ──────────────────────────────
     window.toggleDesktopSidebar = function(forceState) {
         const container = document.getElementById('admin-dashboard-container');
         const icon = document.getElementById('sidebar-toggle-icon');
@@ -41,7 +41,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // Restaurar prefer�ncia do menu ao carregar
+    // Restaurar preferência do menu ao carregar
     try {
         const prefCollapsed = localStorage.getItem('apex_sidebar_collapsed') === 'true';
         if (prefCollapsed) {
@@ -49,14 +49,14 @@ var _listTabelaPrecosEstrategica = [];
         }
     } catch(e) {}
 
-    // ������ Utilit�rio global: formata n�mero no padr�o brasileiro com 2 casas ������
+    // ─── Utilitário global: formata número no padrão brasileiro com 2 casas ───
     window.fmtBRL = function(val) {
         const n = parseFloat(val);
         if (isNaN(n)) return '0,00';
         return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
-    // ������ SISTEMA DE NOTIFICA��O GLASSMORPHISM (substitui alert nativo) ����������������
+    // ─── SISTEMA DE NOTIFICAÇÃO GLASSMORPHISM (substitui alert nativo) ────────
     // Tipos: 'success' | 'error' | 'info' | 'warning'
     window._apexNotify = function(titulo, mensagem, tipo) {
         tipo = tipo || 'info';
@@ -67,10 +67,10 @@ var _listTabelaPrecosEstrategica = [];
         if (!overlay) { _apexNotify('Sistema', titulo + (mensagem ? '\n' + mensagem : ''), 'info'); return; }
 
         const configs = {
-            success: { icon:'', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
-            error:   { icon:'L', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
-            warning: { icon:'�', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
-            info:    { icon:'9', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
+            success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
+            error:   { icon:'❌', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            warning: { icon:'⚠️', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
+            info:    { icon:'ℹ️', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
         };
         const cfg = configs[tipo] || configs.info;
 
@@ -95,7 +95,7 @@ var _listTabelaPrecosEstrategica = [];
     document.getElementById('_apex_notify_overlay')?.addEventListener('click', function(e) {
         if (e.target === this) window._apexNotifyClose();
     });
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
 
 
     window.formatarDataSemFuso = function(dStr) {
@@ -112,7 +112,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ������ Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ������
+    // ─── Tecla ESC (Escape) para cancelar/fechar qualquer modal ou dropdown ───
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' || e.keyCode === 27) {
             const drop = document.getElementById('pedido-cliente-dropdown');
@@ -138,7 +138,7 @@ var _listTabelaPrecosEstrategica = [];
             document.getElementById('modal-preco-volume')?.remove();
             document.getElementById('modal-preco-fundicao')?.remove();
 
-            // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produ��o
+            // Fechar todos fullscreen-overlay EXCETO o modal de planejamento de produção
             document.querySelectorAll('.fullscreen-overlay').forEach(modal => {
                 if (modal.id !== 'modal-planejamento-producao') {
                     modal.style.display = 'none';
@@ -149,16 +149,16 @@ var _listTabelaPrecosEstrategica = [];
 
     let globalRolePermissions = {};
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
     // LOGIN
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
 
 
 
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
-    // NAVEGA��O
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
+    // NAVEGAÇÃO
+    // ─────────────────────────────────────────────────────────────────────────
     const navItems = document.querySelectorAll('.nav-item[data-target]');
     const sections = document.querySelectorAll('.view-section');
 
@@ -168,7 +168,7 @@ var _listTabelaPrecosEstrategica = [];
             console.log('[Nav] Clicked:', item.dataset.target);
 
             navItems.forEach(nav => nav.classList.remove('active'));
-            // Esconde todas as se��es EXCETO o hist�rico (que � gerenciado internamente pelo bot�o)
+            // Esconde todas as seções EXCETO o histórico (que é gerenciado internamente pelo botão)
             sections.forEach(sec => {
                 if (sec.id !== 'relatorio-diario-historico') {
                     sec.classList.remove('active');
@@ -188,7 +188,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
                 target.classList.add('active');
                 target.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 999999 !important;';
-                // Sempre volta ao topo ao trocar de se��o
+                // Sempre volta ao topo ao trocar de seção
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) mainContent.scrollTop = 0;
                 if (item.dataset.target === 'permissoes-view' && window.carregarPermissoesView) {
@@ -229,9 +229,9 @@ var _listTabelaPrecosEstrategica = [];
         });
     });
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
     // INIT ADMIN
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
     window.initAdmin = async function initAdmin() {
         try {
             const res = await fetch('/api/settings');
@@ -240,7 +240,7 @@ var _listTabelaPrecosEstrategica = [];
                 globalRolePermissions = JSON.parse(settings.role_permissions);
             }
         } catch (e) {
-            console.error('Erro ao buscar permiss�es:', e);
+            console.error('Erro ao buscar permissões:', e);
         }
 
         initLMEDashboard();
@@ -254,7 +254,7 @@ var _listTabelaPrecosEstrategica = [];
         initNoticias();
         initLMEEmailConfig();
         
-        // Apex Gest�o Inits (Safe Calls)
+        // Apex Gestão Inits (Safe Calls)
         if (typeof initApexFornecedores === 'function') initApexFornecedores();
         else if (window.initApexFornecedores) window.initApexFornecedores();
         
@@ -324,12 +324,12 @@ var _listTabelaPrecosEstrategica = [];
 
         if (!selector || !preview) return;
 
-        const MONTH_NAMES = ['','Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        const MONTH_NAMES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         let excelWeeks = [];
         let activeMetals = new Set(['cobre','zinco','aluminio','chumbo','estanho','niquel','dolar']);
         let allMetalsOn = true;
 
-        // ������ HELPERS ��������������������������������������������������������������������������������������������������������
+        // ─── HELPERS ────────────────────────────────────────────────────
         function showLoading() {
             if (loadingDiv)  { loadingDiv.style.display  = 'flex'; }
             if (errorDiv)    { errorDiv.style.display    = 'none'; }
@@ -347,7 +347,7 @@ var _listTabelaPrecosEstrategica = [];
             if (previewWrap) { previewWrap.style.display = 'block'; }
         }
 
-        // ������ LOAD DATA ����������������������������������������������������������������������������������������������������
+        // ─── LOAD DATA ──────────────────────────────────────────────────
         async function loadWeeks(mesOverride = null) {
             showLoading();
             try {
@@ -365,7 +365,7 @@ var _listTabelaPrecosEstrategica = [];
                         mesToFetch = mesesDisponiveis[0].valor;
                         filterMes.value = mesToFetch;
                     } else {
-                        throw new Error('Nenhum m�s dispon�vel na LME.');
+                        throw new Error('Nenhum mês disponível na LME.');
                     }
                 }
 
@@ -378,7 +378,7 @@ var _listTabelaPrecosEstrategica = [];
                 
                 if (excelWeeks.length === 0) {
                     selector.innerHTML = '<option value="">Nenhuma semana encontrada</option>';
-                    showError('Nenhuma semana encontrada neste m�s.');
+                    showError('Nenhuma semana encontrada neste mês.');
                     if (countNum) countNum.textContent = '0';
                     return;
                 }
@@ -386,8 +386,8 @@ var _listTabelaPrecosEstrategica = [];
                 if (countNum) countNum.textContent = excelWeeks.length;
                 
                 selector.innerHTML = excelWeeks.map(w => {
-                    const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '';
-                    return `<option value="${w.header}">Semana ${w.header} �å�  ${lastDay}</option>`;
+                    const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '—';
+                    return `<option value="${w.header}">Semana ${w.header} ÔåÃ† ${lastDay}</option>`;
                 }).join('');
 
                 renderPreview(excelWeeks[0].header);
@@ -397,9 +397,9 @@ var _listTabelaPrecosEstrategica = [];
             }
         }
 
-        // ������ RENDER PREVIEW TABLE ��������������������������������������������������������������������������������
+        // ─── RENDER PREVIEW TABLE ────────────────────────────────────────
         const formatVal = (v, formatType) => {
-            if (v === null || v === undefined) return '';
+            if (v === null || v === undefined) return '—';
             if (v === 'feriado') return '<span class="excel-feriado">feriado</span>';
             if (typeof v === 'string') return v;
 
@@ -424,11 +424,11 @@ var _listTabelaPrecosEstrategica = [];
         };
 
         const renderOscilacao = (v, isDolar) => {
-            if (v === null || v === undefined || typeof v === 'string') return '';
+            if (v === null || v === undefined || typeof v === 'string') return '—';
             const isUp = v >= 0;
             const arrow = isUp ? '\u25B2' : '\u25BC';
             const cls = isUp ? 'excel-up' : 'excel-down';
-            // OSCILA\u00C7\u00C3O R$ � a varia��o convertida em reais brasileiros
+            // OSCILA\u00C7\u00C3O R$ é a variação convertida em reais brasileiros
             const prefix = 'R$ ';
             const formatted = Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             return `<span class="${cls}">${arrow} ${prefix}${formatted}</span>`;
@@ -438,11 +438,11 @@ var _listTabelaPrecosEstrategica = [];
         const COLS = [
             { k: 'cobre',    lbl: 'COBRE',    hcls: 'excel-hdr-cobre',    ccls: 'excel-col-cobre',    fmt: 'currency_usd', dolFmt: null       },
             { k: 'zinco',    lbl: 'ZINCO',    hcls: 'excel-hdr-zinco',    ccls: 'excel-col-zinco',    fmt: 'currency_usd', dolFmt: null       },
-            { k: 'aluminio', lbl: 'ALUM�NIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'currency_usd', dolFmt: null       },
+            { k: 'aluminio', lbl: 'ALUMÍNIO', hcls: 'excel-hdr-aluminio', ccls: 'excel-col-aluminio', fmt: 'currency_usd', dolFmt: null       },
             { k: 'chumbo',   lbl: 'CHUMBO',   hcls: 'excel-hdr-chumbo',   ccls: 'excel-col-chumbo',   fmt: 'currency_usd', dolFmt: null       },
             { k: 'estanho',  lbl: 'ESTANHO',  hcls: 'excel-hdr-estanho',  ccls: 'excel-col-estanho',  fmt: 'currency_usd', dolFmt: null       },
-            { k: 'niquel',   lbl: 'N�QUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
-            { k: 'dolar',    lbl: 'D�LAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'currency4',    dolFmt: 'currency4' },
+            { k: 'niquel',   lbl: 'NÍQUEL',   hcls: 'excel-hdr-niquel',   ccls: 'excel-col-niquel',   fmt: 'currency_usd', dolFmt: null       },
+            { k: 'dolar',    lbl: 'DÓLAR',    hcls: 'excel-hdr-dolar',    ccls: 'excel-col-dolar',    fmt: 'currency4',    dolFmt: 'currency4' },
         ];
 
         function visibleCols() {
@@ -465,7 +465,7 @@ var _listTabelaPrecosEstrategica = [];
             }).join('');
 
             const firstDate = d[0]?.data || headerVal;
-            const lastDate  = d[d.length - 1]?.data || '';
+            const lastDate  = d[d.length - 1]?.data || '—';
             const monthName = filterMes.options[filterMes.selectedIndex]?.text || '';
 
             let html = `
@@ -487,7 +487,7 @@ var _listTabelaPrecosEstrategica = [];
                 const day = d[i] || {};
                 const isFeriado = vc.every(c => day[c.k] === 'feriado' || day[c.k] === null);
                 const rowCls = isFeriado ? ' class="excel-row-feriado"' : '';
-                const dateTd = `<td class="excel-date-cell">${day.data || ''}</td>`;
+                const dateTd = `<td class="excel-date-cell">${day.data || '—'}</td>`;
                 const valTds = vc.map(c => `<td class="${c.ccls}">${formatVal(day[c.k], c.fmt)}</td>`).join('');
                 html += `<tr${rowCls}>${dateTd}${valTds}</tr>`;
             }
@@ -507,7 +507,7 @@ var _listTabelaPrecosEstrategica = [];
                 const vals = comp[row.key] || {};
                 const isAnterior = row.cls === 'excel-row-anterior';
                 const inlineStyle = isAnterior ? ' style="background-color:#1a1a1a;color:#ffffff;"' : '';
-                // Indicar feriado: se a semana teve menos de 5 dias \u00FA\u00FAteis, mostrar no label da m�dia
+                // Indicar feriado: se a semana teve menos de 5 dias \u00FA\u00FAteis, mostrar no label da média
                 let lbl = row.lbl;
                 if (row.key === 'MEDIA SEMANAL' && block.numDias !== undefined && block.numDias < 5) {
                     lbl += ` <span style="font-size:0.65em;font-weight:normal;opacity:0.7;font-style:italic">(${block.numDias} dias \u00FA\u00FAteis)</span>`;
@@ -550,7 +550,7 @@ var _listTabelaPrecosEstrategica = [];
             const oscTds = vc.map(c => `<td class="excel-col-${c.k}">${renderOscilacao(osc[c.k], false)}</td>`).join('');
             html += `
                 <tr class="excel-row-oscilacao-arrow">
-                    <td class="excel-label-cell" style="font-style:italic;">Oscila��o R$/kg</td>
+                    <td class="excel-label-cell" style="font-style:italic;">Oscilação R$/kg</td>
                     ${oscTds}
                 </tr>
             `;
@@ -560,7 +560,7 @@ var _listTabelaPrecosEstrategica = [];
             showTable();
         }
 
-        // ������ EVENT LISTENERS ������������������������������������������������������������������������������������������
+        // ─── EVENT LISTENERS ─────────────────────────────────────────────
         filterMes.addEventListener('change', () => {
             loadWeeks(filterMes.value);
         });
@@ -597,13 +597,13 @@ var _listTabelaPrecosEstrategica = [];
                 window.URL.revokeObjectURL(url);
             } catch(e) {
                 console.error(e);
-                _apexNotify('Aten��o', 'Erro ao baixar Excel: ' + e.message, 'error');
+                _apexNotify('Atenção', 'Erro ao baixar Excel: ' + e.message, 'error');
             } finally {
                 btnDownload.classList.remove('downloading');
             }
         });
 
-        // ���� PDF Download ����
+        // ── PDF Download ──
         if (btnDownloadPdf) {
             btnDownloadPdf.addEventListener('click', () => {
                 const val = selector.value;
@@ -613,7 +613,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 // Inject/update timestamp into the print area
                 const area = document.getElementById('pdf-print-area');
-                if (!area) { _apexNotify('Sistema', 'Visualize o relat�rio antes de baixar o PDF.', 'info'); return; }
+                if (!area) { _apexNotify('Sistema', 'Visualize o relatório antes de baixar o PDF.', 'info'); return; }
 
                 const now = new Date();
                 const ts = now.toLocaleString('pt-BR', {
@@ -628,7 +628,7 @@ var _listTabelaPrecosEstrategica = [];
                     tsEl.style.cssText = 'font-size:9pt;color:#555;margin-bottom:8px;text-align:right;font-family:Calibri,sans-serif;border-bottom:1px solid #ccc;padding-bottom:6px;';
                     area.insertBefore(tsEl, area.firstChild);
                 }
-                tsEl.textContent = `Relat�rio gerado em: ${ts}  ApexTech Metais`;
+                tsEl.textContent = `Relatório gerado em: ${ts} — ApexTech Metais`;
 
                 window.print();
             });
@@ -670,18 +670,18 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // ������ INITIAL LOAD ������������������������������������������������������������������������������������������������
+        // ─── INITIAL LOAD ────────────────────────────────────────────────
         await loadWeeks();
     }
 
     // =========================================================================
-    // LME DASHBOARD  20 ANALYSES
+    // LME DASHBOARD — 20 ANALYSES
     // =========================================================================
 
     const METALS = ['cobre', 'aluminio', 'zinco', 'chumbo', 'estanho', 'niquel'];
     const METAL_LABELS = {
-        cobre: 'Cobre', aluminio: 'Alum�nio', zinco: 'Zinco',
-        chumbo: 'Chumbo', estanho: 'Estanho', niquel: 'N�quel'
+        cobre: 'Cobre', aluminio: 'Alumínio', zinco: 'Zinco',
+        chumbo: 'Chumbo', estanho: 'Estanho', niquel: 'Níquel'
     };
     const METAL_COLORS = {
         cobre: '#e07b39', aluminio: '#7eb3d5', zinco: '#a8c5a0',
@@ -695,15 +695,15 @@ var _listTabelaPrecosEstrategica = [];
     let currentStats = null;
 
     function parsePrice(str) {
-        if (!str || str === '' || str === '-' || str.trim() === '') return null;
-        // Brazilian format: "9.234,56" �å�  9234.56
+        if (!str || str === '—' || str === '-' || str.trim() === '') return null;
+        // Brazilian format: "9.234,56" ÔåÃ† 9234.56
         const cleaned = str.replace(/\./g, '').replace(',', '.');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
     }
 
     function fmtPrice(val, dec = 2) {
-        if (val === null || val === undefined || isNaN(val)) return '';
+        if (val === null || val === undefined || isNaN(val)) return '—';
         return val.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
     }
 
@@ -739,7 +739,7 @@ var _listTabelaPrecosEstrategica = [];
         return output;
     }
 
-    // ������ Init LME Dashboard ��������������������������������������������������������������������������������������������������������
+    // ─── Init LME Dashboard ────────────────────────────────────────────────────
     async function initLMEDashboard() {
         const mesSel   = document.getElementById('mes-selector');
         const btnRefresh = document.getElementById('btn-refresh-lme');
@@ -761,7 +761,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             }
         } catch(e) {
-            mesSel.innerHTML = `<option value="${currentMes}">M�s atual</option>`;
+            mesSel.innerHTML = `<option value="${currentMes}">Mês atual</option>`;
         }
 
         // Setup filter bar and fullscreen events
@@ -812,7 +812,7 @@ var _listTabelaPrecosEstrategica = [];
                 
                 // Set title
                 const titleEl = block.querySelector('.analysis-title');
-                fsTitle.innerHTML = titleEl ? titleEl.innerHTML : `An�lise ${aid}`;
+                fsTitle.innerHTML = titleEl ? titleEl.innerHTML : `Análise ${aid}`;
                 
                 // Clone the chart container / content
                 const contentToClone = block.querySelector('.chart-container, .charts-grid-2, .kpi-grid, .ranking-container, .momentum-grid, .alertas-grid, .canal-container');
@@ -822,7 +822,7 @@ var _listTabelaPrecosEstrategica = [];
                     // but wait, chart.js canvas cannot be easily moved without redrawing. 
                     // Since it's easier, we just temporarily move the elements.
                     
-                    // Salva a refer�ncia original
+                    // Salva a referência original
                     const originalParent = contentToClone.parentNode;
                     const originalNextSibling = contentToClone.nextSibling;
                     
@@ -898,7 +898,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ������ Compute Stats ������������������������������������������������������������������������������������������������������������������
+    // ─── Compute Stats ─────────────────────────────────────────────────────────
     function computeStats(data) {
         const stats = {};
         const latest = data[data.length - 1];
@@ -949,7 +949,7 @@ var _listTabelaPrecosEstrategica = [];
             // Signal
             let signal, signalClass;
             if (channelPos >= 85)      { signal = 'VENDER';   signalClass = 'signal-sell';  }
-            else if (channelPos >= 60) { signal = 'ATEN��O';  signalClass = 'signal-watch'; }
+            else if (channelPos >= 60) { signal = 'ATENÇÃO';  signalClass = 'signal-watch'; }
             else if (channelPos >= 30) { signal = 'RETER';    signalClass = 'signal-hold';  }
             else                       { signal = 'ACUMULAR'; signalClass = 'signal-buy';   }
 
@@ -963,7 +963,7 @@ var _listTabelaPrecosEstrategica = [];
         return stats;
     }
 
-    // ������ Render All ������������������������������������������������������������������������������������������������������������������������
+    // ─── Render All ────────────────────────────────────────────────────────────
     function renderAllAnalyses(data, stats) {
         renderKPICards(stats);                         // Nova 01 (Antiga 01)
         renderTrendChart(data, activeMetalFilter);     // Nova 02 (Antiga 05)
@@ -993,13 +993,13 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 01: KPI Cards + Sinalizadores ����
+    // ── ANÁLISE 01: KPI Cards + Sinalizadores ──
     function renderKPICards(stats) {
         const container = document.getElementById('kpi-cards');
         if (!container) return;
 
         const icons = { cobre: 'fa-bolt', aluminio: 'fa-layer-group', zinco: 'fa-atom', chumbo: 'fa-weight-hanging', estanho: 'fa-microchip', niquel: 'fa-gem' };
-        const signalIcons = { 'VENDER': 'fa-arrow-up-right-dots', 'ATEN��O': 'fa-eye', 'RETER': 'fa-pause', 'ACUMULAR': 'fa-cart-shopping' };
+        const signalIcons = { 'VENDER': 'fa-arrow-up-right-dots', 'ATENÇÃO': 'fa-eye', 'RETER': 'fa-pause', 'ACUMULAR': 'fa-cart-shopping' };
 
         container.innerHTML = METALS.map(m => {
             const s = stats[m];
@@ -1030,7 +1030,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ���� ANÁLISE 02: Noble Basket Index ����
+    // ── ANÁLISE 02: Noble Basket Index ──
     function renderNobleBasket(data, stats) {
         const nbiVals = data.map(row => {
             let v = 0, ok = true;
@@ -1089,7 +1089,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ���� ANÁLISE 03: Canal de Pre�os ����
+    // ── ANÁLISE 03: Canal de Preços ──
     function renderChannelBars(stats) {
         const el = document.getElementById('canal-bars');
         if (!el) return;
@@ -1110,15 +1110,15 @@ var _listTabelaPrecosEstrategica = [];
                     <div class="canal-fill" style="width:${pct}%;background:${color};"></div>
                 </div>
                 <div class="canal-labels">
-                    <span>M�n: US$ ${fmtPrice(s.min)}</span>
+                    <span>Mín: US$ ${fmtPrice(s.min)}</span>
                     <span><strong>Atual: US$ ${fmtPrice(s.current)}</strong></span>
-                    <span>M�x: US$ ${fmtPrice(s.max)}</span>
+                    <span>Máx: US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ���� ANÁLISE 05: Tend�ncia de Pre�os ����
+    // ── ANÁLISE 05: Tendência de Preços ──
     function renderTrendChart(data, metal) {
         destroyChart('trendChart');
         const ctx = document.getElementById('trendChart');
@@ -1147,7 +1147,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 06: Varia��o Di�ria ����
+    // ── ANÁLISE 06: Variação Diária ──
     function renderDailyVariation(stats) {
         destroyChart('varDiariaChart');
         const ctx = document.getElementById('varDiariaChart');
@@ -1159,7 +1159,7 @@ var _listTabelaPrecosEstrategica = [];
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
                     datasets: [{
-                        label: 'Varia��o Di�ria (%)',
+                        label: 'Variação Diária (%)',
                         data: changes,
                         backgroundColor: colors,
                         borderRadius: 6
@@ -1191,7 +1191,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ���� ANÁLISE 07: Volatilidade ����
+    // ── ANÁLISE 07: Volatilidade ──
     function renderVolatility(stats) {
         destroyChart('volatChart');
         const ctx = document.getElementById('volatChart');
@@ -1224,7 +1224,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 08: Ranking de Performance ����
+    // ── ANÁLISE 08: Ranking de Performance ──
     function renderRanking(stats) {
         const el = document.getElementById('ranking-container');
         if (!el) return;
@@ -1234,13 +1234,13 @@ var _listTabelaPrecosEstrategica = [];
             .map(m => ({ m, chg: stats[m].monthChange, s: stats[m] }))
             .sort((a, b) => b.chg - a.chg);
 
-        const medals = ['­���', '­���', '­��ë'];
+        const medals = ['­Æ’Ñç', '­Æ’Ñê', '­Æ’Ñë'];
         el.innerHTML = ranked.map((item, i) => {
             const isPos = item.chg >= 0;
             const barW  = Math.min(100, Math.abs(item.chg) * 10);
             return `
             <div class="rank-item ${i === 0 ? 'rank-first' : ''}">
-                <span class="rank-pos">${medals[i] || (i + 1) + '���"'}</span>
+                <span class="rank-pos">${medals[i] || (i + 1) + 'â”¬â•‘'}</span>
                 <div class="rank-bar-wrap">
                     <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
                         <strong style="color:${METAL_COLORS[item.m]};font-size:0.95rem;">${METAL_LABELS[item.m]}</strong>
@@ -1251,17 +1251,17 @@ var _listTabelaPrecosEstrategica = [];
                     <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:7px;overflow:hidden;">
                         <div style="height:100%;width:${barW}%;background:${isPos ? '#2AD07A' : '#ff4d4d'};border-radius:4px;transition:width 1s;"></div>
                     </div>
-                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do m�s �å�  Hoje</small>
+                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês ÔåÃ† Hoje</small>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="color:#aaa;font-size:0.8rem;">US$ ${fmtPrice(item.s.current)}</div>
-                    <div style="color:#555;font-size:0.72rem;">M�dia: US$ ${fmtPrice(item.s.avg)}</div>
+                    <div style="color:#555;font-size:0.72rem;">Média: US$ ${fmtPrice(item.s.avg)}</div>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // ���� ANÁLISE 09: Score de Oportunidade ����
+    // ── ANÁLISE 09: Score de Oportunidade ──
     function renderOpportunityScore(stats) {
         destroyChart('scoreChart');
         const ctx = document.getElementById('scoreChart');
@@ -1285,7 +1285,7 @@ var _listTabelaPrecosEstrategica = [];
                 const s = stats[m];
                 const sc = s.score;
                 const color = sc >= 75 ? '#ff4d4d' : sc >= 55 ? '#ff9900' : sc >= 35 ? '#ffcc00' : '#2AD07A';
-                const label = sc >= 75 ? '­�ö�� VENDER AGORA' : sc >= 55 ? '­��� ATEN��O' : sc >= 35 ? '­��� RETER' : '­��� ACUMULAR';
+                const label = sc >= 75 ? '­Æ’öâ”¤ VENDER AGORA' : sc >= 55 ? '­Æ’Æ’á ATENÇÃO' : sc >= 35 ? '­Æ’Æ’í RETER' : '­Æ’Æ’ó ACUMULAR';
                 return `
                 <div class="score-item">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1301,7 +1301,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ���� ANÁLISE 05: Semana Atual vs Anterior ����
+    // ── ANÁLISE 05: Semana Atual vs Anterior ──
     function renderWeekComparison(stats) {
         destroyChart('semanaChart');
         const ctx = document.getElementById('semanaChart');
@@ -1436,7 +1436,7 @@ var _listTabelaPrecosEstrategica = [];
             })
         });
 
-        // ���� Render directional badges below the chart ����
+        // ── Render directional badges below the chart ──
         const badges = document.getElementById('semana-badges');
         if (!badges) return;
         badges.innerHTML = METALS.map((m, i) => {
@@ -1468,7 +1468,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ���� ANÁLISE 11: Melhor Dia da Semana ����
+    // ── ANÁLISE 11: Melhor Dia da Semana ──
     function renderBestDayOfWeek(data) {
         destroyChart('diaSemanaChart');
         const ctx = document.getElementById('diaSemanaChart');
@@ -1479,7 +1479,7 @@ var _listTabelaPrecosEstrategica = [];
         const [mesN, anoN] = mesVal.split('-').map(Number);
 
         const dow = { 'Seg': { sum: 0, cnt: 0 }, 'Ter': { sum: 0, cnt: 0 }, 'Qua': { sum: 0, cnt: 0 }, 'Qui': { sum: 0, cnt: 0 }, 'Sex': { sum: 0, cnt: 0 } };
-        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S�b'];
+        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
         data.forEach(row => {
             const d = parseInt(row.dia);
@@ -1498,7 +1498,7 @@ var _listTabelaPrecosEstrategica = [];
             type: 'bar',
             data: {
                 labels: workDays,
-                datasets: [{ label: 'M�dia do Cobre (US$/t)', data: avgs, backgroundColor: colors, borderRadius: 8 }]
+                datasets: [{ label: 'Média do Cobre (US$/t)', data: avgs, backgroundColor: colors, borderRadius: 8 }]
             },
             options: deepMerge(baseChartOpts, {
                 plugins: { tooltip: { callbacks: { label: ctx => `US$ ${fmtPrice(ctx.raw)}/t` } } }
@@ -1506,7 +1506,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 12: Momentum ����
+    // ── ANÁLISE 12: Momentum ──
     function renderMomentum(stats) {
         const el = document.getElementById('momentum-grid');
         if (!el) return;
@@ -1518,7 +1518,7 @@ var _listTabelaPrecosEstrategica = [];
             const up    = mom >= 0;
             const color = up ? '#2AD07A' : '#ff4d4d';
             const icon  = up ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-            const label = Math.abs(mom) > 2 ? (up ? 'Alta Expressiva' : 'Queda Expressiva') : Math.abs(mom) > 0.5 ? (up ? 'Leve Alta' : 'Leve Queda') : 'Est�vel';
+            const label = Math.abs(mom) > 2 ? (up ? 'Alta Expressiva' : 'Queda Expressiva') : Math.abs(mom) > 0.5 ? (up ? 'Leve Alta' : 'Leve Queda') : 'Estável';
             return `
             <div class="momentum-card">
                 <div style="color:${METAL_COLORS[m]};font-weight:700;font-size:0.9rem;margin-bottom:10px;">${METAL_LABELS[m]}</div>
@@ -1533,7 +1533,7 @@ var _listTabelaPrecosEstrategica = [];
         }).join('');
     }
 
-    // ���� ANÁLISE 13: D�lar ����
+    // ── ANÁLISE 13: Dólar ──
     function renderDolarChart(data) {
         destroyChart('dolarChart');
         const ctx = document.getElementById('dolarChart');
@@ -1541,7 +1541,7 @@ var _listTabelaPrecosEstrategica = [];
 
         const dolarRows = data.filter(r => r.dolar !== null);
         if (!dolarRows.length) {
-            ctx.closest('.chart-container').innerHTML = '<p style="color:#666;text-align:center;padding:40px 20px;">Dados do c�mbio n�o dispon�veis neste per�odo.</p>';
+            ctx.closest('.chart-container').innerHTML = '<p style="color:#666;text-align:center;padding:40px 20px;">Dados do câmbio não disponíveis neste período.</p>';
             return;
         }
 
@@ -1550,7 +1550,7 @@ var _listTabelaPrecosEstrategica = [];
             data: {
                 labels: dolarRows.map(r => r.dia),
                 datasets: [{
-                    label: 'D�lar (BRL/USD)',
+                    label: 'Dólar (BRL/USD)',
                     data: dolarRows.map(r => r.dolar),
                     borderColor: '#f5c518',
                     backgroundColor: 'rgba(245,197,24,0.08)',
@@ -1563,7 +1563,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 14: SMA-5 ����
+    // ── ANÁLISE 14: SMA-5 ──
     function renderSMAChart(data, stats) {
         destroyChart('smaChart');
         const ctx = document.getElementById('smaChart');
@@ -1596,7 +1596,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 15: Pre�o Atual vs. M�dia Mensal ����
+    // ── ANÁLISE 15: Preço Atual vs. Média Mensal ──
     function renderVsMedia(stats) {
         destroyChart('vsMediaChart');
         const ctx = document.getElementById('vsMediaChart');
@@ -1612,15 +1612,15 @@ var _listTabelaPrecosEstrategica = [];
             data: {
                 labels: METALS.map(m => METAL_LABELS[m]),
                 datasets: [
-                    { label: 'Pre�o Atual', data: currents, backgroundColor: curColors, borderRadius: 5 },
-                    { label: 'M�dia Mensal', data: avgs, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, borderColor: 'rgba(255,255,255,0.25)', borderWidth: 1 }
+                    { label: 'Preço Atual', data: currents, backgroundColor: curColors, borderRadius: 5 },
+                    { label: 'Média Mensal', data: avgs, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, borderColor: 'rgba(255,255,255,0.25)', borderWidth: 1 }
                 ]
             },
             options: { ...baseChartOpts }
         });
     }
 
-    // ���� ANÁLISE 16: �ndice de Risco (Polar Area) ����
+    // ── ANÁLISE 16: Índice de Risco (Polar Area) ──
     function renderRiskChart(stats) {
         destroyChart('riscoChart');
         const ctx = document.getElementById('riscoChart');
@@ -1654,7 +1654,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 17: Radar Comparativo ����
+    // ── ANÁLISE 17: Radar Comparativo ──
     function renderRadar(stats) {
         destroyChart('radarChart');
         const ctx = document.getElementById('radarChart');
@@ -1700,7 +1700,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 18: Z-Score ����
+    // ── ANÁLISE 18: Z-Score ──
     function renderZscore(stats) {
         const el = document.getElementById('zscore-container');
         if (!el) return;
@@ -1712,7 +1712,7 @@ var _listTabelaPrecosEstrategica = [];
             const z = s.zscore;
             const color = z > 1 ? '#ff4d4d' : z > 0 ? '#ffcc00' : z > -1 ? '#ff9900' : '#2AD07A';
             const pct   = Math.max(0, Math.min(100, 50 + z * 25)); // Center=50%, 1 std = 25%
-            const label = z > 1.5 ? 'Muito acima da m�dia  VENDER' : z > 0.5 ? 'Acima da m�dia  Momento favor�vel' : z < -1.5 ? 'Muito abaixo da m�dia  ACUMULAR' : z < -0.5 ? 'Abaixo da m�dia  Aguardar' : 'Na m�dia  Neutro';
+            const label = z > 1.5 ? 'Muito acima da média — VENDER' : z > 0.5 ? 'Acima da média — Momento favorável' : z < -1.5 ? 'Muito abaixo da média — ACUMULAR' : z < -0.5 ? 'Abaixo da média — Aguardar' : 'Na média — Neutro';
             return `
             <div class="zscore-item">
                 <div class="zscore-name" style="color:${METAL_COLORS[m]};">${METAL_LABELS[m]}</div>
@@ -1726,12 +1726,12 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <small style="color:#555;font-size:0.72rem;margin-top:5px;display:block;">${label}</small>
                 </div>
-                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}¤�</div>
+                <div class="zscore-val" style="color:${color};">${z >= 0 ? '+' : ''}${z.toFixed(2)}¤â</div>
             </div>`;
         }).join('');
     }
 
-    // ���� ANÁLISE 19: Alertas de Pre�o ����
+    // ── ANÁLISE 19: Alertas de Preço ──
     function renderAlerts(stats) {
         const el = document.getElementById('alertas-grid');
         if (!el) return;
@@ -1747,13 +1747,13 @@ var _listTabelaPrecosEstrategica = [];
             <div class="alerta-card ${triggered ? 'alerta-triggered' : ''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <strong style="color:${METAL_COLORS[m]};font-size:0.95rem;">${METAL_LABELS[m]}</strong>
-                    ${triggered ? '<span class="badge-triggered">­�öö ALERTA!</span>' : ''}
+                    ${triggered ? '<span class="badge-triggered">­Æ’öö ALERTA!</span>' : ''}
                 </div>
                 <p style="font-size:0.82rem;color:#888;margin-bottom:10px;">Atual: <strong style="color:#ddd;">US$ ${fmtPrice(s.current)}</strong></p>
                 ${alertVal ? `<p style="font-size:0.78rem;color:#666;margin-bottom:10px;">Alvo: US$ ${fmtPrice(alertVal)} | Gap: ${((s.current - alertVal) / alertVal * 100).toFixed(1)}%</p>` : ''}
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input type="number" class="alert-input" data-metal="${m}"
-                        value="${alertVal || ''}" placeholder="Pre�o alvo (US$)" step="10"
+                        value="${alertVal || ''}" placeholder="Preço alvo (US$)" step="10"
                         style="flex:1;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:inherit;">
                     <button class="btn-set-alert" data-metal="${m}"
                         style="padding:8px 12px;background:${METAL_COLORS[m]}33;color:${METAL_COLORS[m]};border:1px solid ${METAL_COLORS[m]}55;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.82rem;white-space:nowrap;transition:all 0.2s;">
@@ -1775,7 +1775,7 @@ var _listTabelaPrecosEstrategica = [];
         });
     }
 
-    // ���� ANÁLISE 20: Resumo Executivo ����
+    // ── ANÁLISE 20: Resumo Executivo ──
     function renderResumo(stats) {
         const el = document.getElementById('resumo-executivo');
         if (!el) return;
@@ -1784,9 +1784,9 @@ var _listTabelaPrecosEstrategica = [];
 
         const groups = {
             'VENDER':   { items: [], color: '#ff4d4d',  icon: 'fa-arrow-up-right-dots', label: 'VENDER AGORA' },
-            'ATEN��O':  { items: [], color: '#ff9900',  icon: 'fa-eye',                 label: 'ATEN��O  Perto do Topo' },
-            'RETER':    { items: [], color: '#ffcc00',  icon: 'fa-pause',               label: 'RETER  Aguardar Alta' },
-            'ACUMULAR': { items: [], color: '#2AD07A',  icon: 'fa-cart-shopping',       label: 'ACUMULAR  Pre�o em Baixa' }
+            'ATENÇÃO':  { items: [], color: '#ff9900',  icon: 'fa-eye',                 label: 'ATENÇÃO — Perto do Topo' },
+            'RETER':    { items: [], color: '#ffcc00',  icon: 'fa-pause',               label: 'RETER — Aguardar Alta' },
+            'ACUMULAR': { items: [], color: '#2AD07A',  icon: 'fa-cart-shopping',       label: 'ACUMULAR — Preço em Baixa' }
         };
         sorted.forEach(x => { if (groups[x.s.signal]) groups[x.s.signal].items.push(x); });
 
@@ -1807,7 +1807,7 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                         <div style="text-align:right;">
                             <div style="color:#ddd;font-size:0.85rem;">US$ ${fmtPrice(x.s.current)}</div>
-                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} ��� Canal: ${x.s.channelPos.toFixed(0)}%</div>
+                            <div style="color:#555;font-size:0.72rem;">Score: ${x.s.score.toFixed(0)} â”¬À Canal: ${x.s.channelPos.toFixed(0)}%</div>
                         </div>
                     </div>`).join('')}
                 </div>
@@ -1816,7 +1816,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // SETTINGS  Configurar Homepage
+    // SETTINGS — Configurar Homepage
     // =========================================================================
     async function initSettings() {
         try {
@@ -1834,10 +1834,10 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
         } catch(e) {
-            console.warn('N�o foi poss�vel carregar settings:', e);
+            console.warn('Não foi possível carregar settings:', e);
         }
 
-        // Configura��o Local - Painel Admin
+        // Configuração Local - Painel Admin
         const toggleLME = document.getElementById('toggle-relatorio-lme');
         const navLME = document.querySelector('a.nav-item[data-target="lme-excel-report"]');
         
@@ -1860,7 +1860,7 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // Preview Gen�rico de Imagens
+        // Preview Genérico de Imagens
         document.querySelectorAll('.preview-trigger').forEach(input => {
             const updatePreview = () => {
                 const previewId = input.dataset.preview;
@@ -1883,7 +1883,7 @@ var _listTabelaPrecosEstrategica = [];
             setTimeout(updatePreview, 500); // Aguarda carregar dados
         });
 
-        // Upload Gen�rico de Imagens
+        // Upload Genérico de Imagens
         document.querySelectorAll('.image-file-input').forEach(fileInput => {
             fileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
@@ -1917,7 +1917,7 @@ var _listTabelaPrecosEstrategica = [];
                     }
                 } catch(err) {
                     console.error('Upload falhou:', err);
-                    _apexNotify('Aten��o', 'Erro ao enviar imagem. Verifique o tamanho (Max 10MB).', 'error');
+                    _apexNotify('Atenção', 'Erro ao enviar imagem. Verifique o tamanho (Max 10MB).', 'error');
                 } finally {
                     if (targetInput) targetInput.placeholder = originalPlaceholder;
                     e.target.value = ''; // Reset input
@@ -1946,7 +1946,7 @@ var _listTabelaPrecosEstrategica = [];
                     });
 
                     if (res.ok) {
-                        msgEl.textContent = ' Configura��es salvas!';
+                        msgEl.textContent = '✅ Configurações salvas!';
                         msgEl.style.color = '#2AD07A';
                         msgEl.style.display = 'block';
                         setTimeout(() => msgEl.style.display = 'none', 5000);
@@ -1954,7 +1954,7 @@ var _listTabelaPrecosEstrategica = [];
                         throw new Error('API error');
                     }
                 } catch(e) {
-                    msgEl.textContent = 'L Erro ao salvar. Tente novamente.';
+                    msgEl.textContent = '❌ Erro ao salvar. Tente novamente.';
                     msgEl.style.color = '#ff4d4d';
                     msgEl.style.display = 'block';
                 }
@@ -2003,7 +2003,7 @@ var _listTabelaPrecosEstrategica = [];
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    _apexNotify('Aten��o', 'L Erro ao adicionar foto. Verifique os dados.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -2104,8 +2104,8 @@ var _listTabelaPrecosEstrategica = [];
             div.className   = 'location-item';
             div.innerHTML   = `
                 <button type="button" class="btn-remove-loc"><i class="fa-solid fa-xmark"></i></button>
-                <div class="form-group"><label>T�tulo do Local</label><input type="text" class="loc-title" required placeholder="Ex: Ind�stria"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>Descri��o</label><textarea class="loc-desc" rows="2" required placeholder="Descri��o detalhada..."></textarea></div>`;
+                <div class="form-group"><label>Título do Local</label><input type="text" class="loc-title" required placeholder="Ex: Indústria"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>Descrição</label><textarea class="loc-desc" rows="2" required placeholder="Descrição detalhada..."></textarea></div>`;
             div.querySelector('.btn-remove-loc').addEventListener('click', () => div.remove());
             if (locationsWrapper) locationsWrapper.appendChild(div);
         }
@@ -2137,9 +2137,9 @@ var _listTabelaPrecosEstrategica = [];
                     if (locationsWrapper) locationsWrapper.innerHTML = '';
                     createLocationField();
                     renderMateriais();
-                    _apexNotify('Sistema', ' Material cadastrado com sucesso!', 'info');
+                    _apexNotify('Sistema', '✅ Material cadastrado com sucesso!', 'info');
                 } else {
-                    _apexNotify('Aten��o', 'L Erro ao salvar material.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2148,7 +2148,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // SOLU��ES
+    // SOLUÇÕES
     // =========================================================================
     function initSolucoes() {
         const formSolucao      = document.getElementById('form-solucao');
@@ -2168,7 +2168,7 @@ var _listTabelaPrecosEstrategica = [];
                 solucoesAdminList.innerHTML = '';
 
                 if (!items.length) {
-                    solucoesAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma solu��o cadastrada.</p>';
+                    solucoesAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma solução cadastrada.</p>';
                     return;
                 }
 
@@ -2209,13 +2209,13 @@ var _listTabelaPrecosEstrategica = [];
 
                 solucoesAdminList.querySelectorAll('.btn-delete-solucao').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover esta solu��o?')) return;
+                        if (!confirm('Remover esta solução?')) return;
                         await fetch(`/api/solucoes/${btn.dataset.id}`, { method: 'DELETE' });
                         renderSolucoesAdmin();
                     });
                 });
             } catch(err) {
-                solucoesAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar solu��es.</p>';
+                solucoesAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar soluções.</p>';
             }
         }
 
@@ -2240,9 +2240,9 @@ var _listTabelaPrecosEstrategica = [];
                     solIdInput.value = '';
                     if (btnCancelSolucao) btnCancelSolucao.style.display = 'none';
                     renderSolucoesAdmin();
-                    _apexNotify('Sistema', ' Solu��o salva com sucesso!', 'info');
+                    _apexNotify('Sistema', '✅ Solução salva com sucesso!', 'info');
                 } else {
-                    _apexNotify('Aten��o', 'L Erro ao salvar a solu��o.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao salvar a solução.', 'error');
                 }
             });
         }
@@ -2259,7 +2259,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // NOT�CIAS
+    // NOTÍCIAS
     // =========================================================================
     function initNoticias() {
         const formNoticia       = document.getElementById('form-noticia');
@@ -2274,14 +2274,14 @@ var _listTabelaPrecosEstrategica = [];
                 noticiasAdminList.innerHTML = '';
 
                 if (!items.length) {
-                    noticiasAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma not�cia publicada ainda.</p>';
+                    noticiasAdminList.innerHTML = '<p style="color:#666;padding:10px 0;">Nenhuma notícia publicada ainda.</p>';
                     return;
                 }
 
                 items.forEach(n => {
                     const div   = document.createElement('div');
                     div.className = 'noticia-admin-item';
-                    const dataF = n.data_pub ? new Date(n.data_pub + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+                    const dataF = n.data_pub ? new Date(n.data_pub + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
                     div.innerHTML = `
                         <div class="noticia-admin-info">
                             ${n.categoria ? `<span class="noticia-admin-cat">${n.categoria}</span>` : ''}
@@ -2295,13 +2295,13 @@ var _listTabelaPrecosEstrategica = [];
 
                 noticiasAdminList.querySelectorAll('.btn-delete-noticia').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover esta not�cia?')) return;
+                        if (!confirm('Remover esta notícia?')) return;
                         await fetch(`/api/noticias/${btn.dataset.id}`, { method: 'DELETE' });
                         renderNoticiasAdmin();
                     });
                 });
             } catch(err) {
-                noticiasAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar not�cias.</p>';
+                noticiasAdminList.innerHTML = '<p style="color:#f55;">Erro ao carregar notícias.</p>';
             }
         }
 
@@ -2328,9 +2328,9 @@ var _listTabelaPrecosEstrategica = [];
                     const dEl = document.getElementById('not-data');
                     if (dEl) dEl.value = new Date().toISOString().split('T')[0];
                     renderNoticiasAdmin();
-                    _apexNotify('Sistema', ' Not�cia publicada!', 'info');
+                    _apexNotify('Sistema', '✅ Notícia publicada!', 'info');
                 } else {
-                    _apexNotify('Aten��o', 'L Erro ao publicar not�cia.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao publicar notícia.', 'error');
                 }
             });
         }
@@ -2339,7 +2339,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // CONFIGURA��O DE E-MAIL LME E TABELAS DE PRE�OS
+    // CONFIGURAÇÃO DE E-MAIL LME E TABELAS DE PREÇOS
     // =========================================================================
     async function initLMEEmailConfig() {
         const schedAtivo    = document.getElementById('sched-ativo');
@@ -2374,7 +2374,7 @@ var _listTabelaPrecosEstrategica = [];
         const btnCancelDest = document.getElementById('btn-cancel-destinatario');
         const listDest      = document.getElementById('lme-destinatarios-list');
 
-        // ������ 1. M�DULO LME ����������������������������������������������������������������������������������������������������
+        // ─── 1. MÓDULO LME ──────────────────────────────────────────────────
         async function loadConfigLME() {
             try {
                 const res = await fetch('/api/settings');
@@ -2392,7 +2392,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 loadDestinatariosLME();
             } catch (err) {
-                console.error('Erro ao carregar configura��es LME:', err);
+                console.error('Erro ao carregar configurações LME:', err);
             }
         }
 
@@ -2404,7 +2404,7 @@ var _listTabelaPrecosEstrategica = [];
                 listDest.innerHTML = '';
 
                 if (!items.length) {
-                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinat�rio LME cadastrado.</td></tr>';
+                    listDest.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#aaa;">Nenhum destinatário LME cadastrado.</td></tr>';
                     return;
                 }
 
@@ -2424,7 +2424,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 listDest.querySelectorAll('.btn-delete-dest').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover este destinat�rio LME?')) return;
+                        if (!confirm('Remover este destinatário LME?')) return;
                         await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
                         loadDestinatariosLME();
                     });
@@ -2435,7 +2435,7 @@ var _listTabelaPrecosEstrategica = [];
                         destId.value = btn.dataset.id;
                         destNome.value = btn.dataset.nome;
                         destEmail.value = btn.dataset.email;
-                        if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinat�rio LME';
+                        if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário LME';
                         if (btnCancelDest) btnCancelDest.style.display = 'inline-block';
                         destNome.focus();
                     });
@@ -2455,7 +2455,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_envio_dias: selectedDias
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', ' Agendamento LME salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento LME salvo com sucesso!', 'info');
             });
         }
 
@@ -2467,7 +2467,7 @@ var _listTabelaPrecosEstrategica = [];
                     lme_resend_from:    resendFrom.value.trim()
                 };
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                if (res.ok) _apexNotify('Sistema', ' Resend API salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Resend API salvo com sucesso!', 'info');
             });
         }
 
@@ -2481,7 +2481,7 @@ var _listTabelaPrecosEstrategica = [];
                 const captureArea = document.getElementById('capture-area');
                 if (!captureArea) {
                     testEmailMsg.style.color = '#ff4d4d';
-                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro: Relat�rio n�o carregado.';
+                    testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erro: Relatório não carregado.';
                     btnEnviarTest.disabled = false;
                     return;
                 }
@@ -2497,13 +2497,13 @@ var _listTabelaPrecosEstrategica = [];
                     curr = curr.parentElement;
                 }
 
-                // Mostrar rodap�
+                // Mostrar rodapé
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                     + ' às ' + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${tsStr}`;
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
@@ -2540,7 +2540,7 @@ var _listTabelaPrecosEstrategica = [];
                     });
                     
                     if (canvas.width === 0 || canvas.height === 0) {
-                        throw new Error('html2canvas gerou imagem 0x0. A aba est� oculta?');
+                        throw new Error('html2canvas gerou imagem 0x0. A aba está oculta?');
                     }
 
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -2564,7 +2564,7 @@ var _listTabelaPrecosEstrategica = [];
                     
                     if (res.ok) {
                         testEmailMsg.style.color = '#2AD07A';
-                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relat�rio PDF enviado!');
+                        testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (result.message || 'Relatório PDF enviado!');
                     } else {
                         testEmailMsg.style.color = '#ff4d4d';
                         testEmailMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + (result.error || 'Erro ao enviar.');
@@ -2597,7 +2597,7 @@ var _listTabelaPrecosEstrategica = [];
                 if (res.ok) {
                     destId.value = ''; destNome.value = ''; destEmail.value = '';
                     if (btnCancelDest) btnCancelDest.style.display = 'none';
-                    if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio LME';
+                    if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
                     loadDestinatariosLME();
                 }
             });
@@ -2607,11 +2607,11 @@ var _listTabelaPrecosEstrategica = [];
             btnCancelDest.addEventListener('click', () => {
                 destId.value = ''; destNome.value = ''; destEmail.value = '';
                 btnCancelDest.style.display = 'none';
-                if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio LME';
+                if (destFormTitle) destFormTitle.innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário LME';
             });
         }
 
-        // ������ 2. M�DULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ��������������������
+        // ─── 2. MÓDULO TABELA GERAL COMPLETA & TABELA DO FORNECEDOR ──────────
         async function loadConfigTabelas() {
             try {
                 const res = await fetch('/api/settings');
@@ -2638,7 +2638,7 @@ var _listTabelaPrecosEstrategica = [];
                 loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
                 loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
             } catch (err) {
-                console.error('Erro ao carregar configura��es de tabelas:', err);
+                console.error('Erro ao carregar configurações de tabelas:', err);
             }
         }
 
@@ -2651,7 +2651,7 @@ var _listTabelaPrecosEstrategica = [];
                 listEl.innerHTML = '';
 
                 if (!items.length) {
-                    listEl.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:12px; color:#aaa;">Nenhum destinat�rio cadastrado.</td></tr>';
+                    listEl.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:12px; color:#aaa;">Nenhum destinatário cadastrado.</td></tr>';
                     return;
                 }
 
@@ -2671,7 +2671,7 @@ var _listTabelaPrecosEstrategica = [];
 
                 listEl.querySelectorAll('.btn-del-tb-dest').forEach(btn => {
                     btn.addEventListener('click', async () => {
-                        if (!confirm('Remover destinat�rio?')) return;
+                        if (!confirm('Remover destinatário?')) return;
                         await fetch(`/api/lme/destinatarios/${btn.dataset.id}`, { method: 'DELETE' });
                         loadDestinatariosTabela(tipo, listId, inputId, inputNome, inputEmail, titleId);
                     });
@@ -2682,7 +2682,7 @@ var _listTabelaPrecosEstrategica = [];
                         document.getElementById(inputId).value = btn.dataset.id;
                         document.getElementById(inputNome).value = btn.dataset.nome;
                         document.getElementById(inputEmail).value = btn.dataset.email;
-                        document.getElementById(titleId).innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinat�rio';
+                        document.getElementById(titleId).innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Destinatário';
                         document.getElementById(inputNome).focus();
                     });
                 });
@@ -2700,7 +2700,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-geral-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-geral-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_geral_envio_ativo: ativo, tabela_geral_envio_horario: horario, tabela_geral_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', ' Agendamento da Tabela Geral salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Geral salvo com sucesso!', 'info');
             });
         }
 
@@ -2718,7 +2718,7 @@ var _listTabelaPrecosEstrategica = [];
                     document.getElementById('dest-geral-id').value = '';
                     document.getElementById('dest-geral-nome').value = '';
                     document.getElementById('dest-geral-email').value = '';
-                    document.getElementById('dest-geral-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio';
+                    document.getElementById('dest-geral-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
                     loadDestinatariosTabela('tabela_geral', 'dest-geral-list', 'dest-geral-id', 'dest-geral-nome', 'dest-geral-email', 'dest-geral-title');
                 }
             });
@@ -2733,7 +2733,7 @@ var _listTabelaPrecosEstrategica = [];
                 const horario = document.getElementById('sched-forn-horario').value;
                 const dias = Array.from(document.querySelectorAll('.sched-forn-dia:checked')).map(c => c.value).join(',');
                 const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tabela_fornecedor_envio_ativo: ativo, tabela_fornecedor_envio_horario: horario, tabela_fornecedor_envio_dias: dias }) });
-                if (res.ok) _apexNotify('Sistema', ' Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
+                if (res.ok) _apexNotify('Sistema', '✅ Agendamento da Tabela Fornecedor salvo com sucesso!', 'info');
             });
         }
 
@@ -2751,24 +2751,24 @@ var _listTabelaPrecosEstrategica = [];
                     document.getElementById('dest-forn-id').value = '';
                     document.getElementById('dest-forn-nome').value = '';
                     document.getElementById('dest-forn-email').value = '';
-                    document.getElementById('dest-forn-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinat�rio';
+                    document.getElementById('dest-forn-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Novo Destinatário';
                     loadDestinatariosTabela('tabela_fornecedor', 'dest-forn-list', 'dest-forn-id', 'dest-forn-nome', 'dest-forn-email', 'dest-forn-title');
                 }
             });
         }
 
-        // Carrega as configura��es dos 3 m�dulos
+        // Carrega as configurações dos 3 módulos
         await loadConfigLME();
         await loadConfigTabelas();
 
-        //     CRON NO FRONTEND: Disparo autom�tico se o painel estiver aberto    
+        // ─── CRON NO FRONTEND: Disparo automático se o painel estiver aberto ───
         setInterval(() => {
             const chkAtivo = document.getElementById('sched-ativo');
             const inpHorario = document.getElementById('sched-horario');
             const btnTest = document.getElementById('btn-enviar-teste-lme');
 
             if (!chkAtivo || !chkAtivo.checked || !inpHorario || !inpHorario.value || !btnTest) return;
-            if (btnTest.disabled) return; // Evita clicar se j� estiver enviando
+            if (btnTest.disabled) return; // Evita clicar se já estiver enviando
             
             const horario = inpHorario.value;
             const diasAtivos = Array.from(document.querySelectorAll('.sched-dia')).filter(cb => cb.checked).map(cb => Number(cb.value));
@@ -2785,12 +2785,12 @@ var _listTabelaPrecosEstrategica = [];
                 if (window.__lastLmeCronRun === horaAtual) return;
                 window.__lastLmeCronRun = horaAtual;
 
-                console.log(`[FRONTEND CRON] Hor�rio LME atingido (${horaAtual}). Backend encarregado do envio.`);
+                console.log(`[FRONTEND CRON] Horário LME atingido (${horaAtual}). Backend encarregado do envio.`);
                 if (typeof _apexNotify === 'function') {
-                    _apexNotify('Sistema', `Hor�rio programado atingido (${horaAtual}). Servidor gerando e enviando PDF...`, 'info');
+                    _apexNotify('Sistema', `Horário programado atingido (${horaAtual}). Servidor gerando e enviando PDF...`, 'info');
                 }
                 
-                // For�a o clique no bot�o que faz todo o processo do html2pdf (Desativado para evitar duplicidade)
+                // Força o clique no botão que faz todo o processo do html2pdf (Desativado para evitar duplicidade)
                 // btnTest.click();
             }
         }, 15000); // Checa a cada 15 segundos
@@ -2834,7 +2834,7 @@ var _listTabelaPrecosEstrategica = [];
                         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                         const ano = d.getFullYear();
                         const mes = String(d.getMonth() + 1).padStart(2, '0');
-                        const nomes = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
                         meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
                     }
                     return meses;
@@ -2864,7 +2864,7 @@ var _listTabelaPrecosEstrategica = [];
                     await loadRelatorioSemanas(mesToFetch, force);
                 }
             } catch (e) {
-                console.error('Erro ao carregar meses do relat�rio', e);
+                console.error('Erro ao carregar meses do relatório', e);
             }
         }
 
@@ -2880,7 +2880,7 @@ var _listTabelaPrecosEstrategica = [];
                 const data = await res.json();
                 weeksData = data.semanas || [];
                 if (weeksData.length === 0) {
-                    if (selectSemana) selectSemana.innerHTML = '<option value="">Nenhuma semana dispon�vel</option>';
+                    if (selectSemana) selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
                     return;
                 }
 
@@ -2893,8 +2893,8 @@ var _listTabelaPrecosEstrategica = [];
                 currentSelectedWeek = weeksData[0];
                 renderRelatorioDiario(currentSelectedWeek);
             } catch (e) {
-                console.error('Erro ao carregar semanas do relat�rio', e);
-                if (selectSemana) selectSemana.innerHTML = '<option value="">Erro de conex�o</option>';
+                console.error('Erro ao carregar semanas do relatório', e);
+                if (selectSemana) selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
             }
         }
 
@@ -2918,14 +2918,14 @@ var _listTabelaPrecosEstrategica = [];
 
         btnGerar.addEventListener('click', async () => {
             const captureArea = document.getElementById('capture-area');
-            // Mostrar rodap� com timestamp
+            // Mostrar rodapé com timestamp
             const now = new Date();
             const ts = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                 + ' às '
                 + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const rodape = document.getElementById('rel-rodape');
             if (rodape) {
-                rodape.textContent = `Relat�rio gerado em: ${ts}  Apex Tech Metais`;
+                rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
                 rodape.style.display = 'block';
             }
 
@@ -2956,7 +2956,7 @@ var _listTabelaPrecosEstrategica = [];
                 // Restore styling
                 captureArea.style.width = originalWidth;
                 captureArea.style.maxWidth = originalMaxWidth;
-                // Ocultar rodap� ap�s download
+                // Ocultar rodapé após download
                 if (rodape) rodape.style.display = 'none';
             }
         });
@@ -2967,9 +2967,9 @@ var _listTabelaPrecosEstrategica = [];
             const comp = week.computed || {};
             const d = week.days || [];
             const lastDate = d[d.length - 1]?.data || '';
-            let txt = `*COTA��O LME - APEXTECH METAIS*\n`;
+            let txt = `*COTAÇÃO LME - APEXTECH METAIS*\n`;
             txt += `Semana de ${d[0]?.data} a ${lastDate}\n\n`;
-            txt += `*Varia��o Di�ria (Grupo 6):*\n`;
+            txt += `*Variação Diária (Grupo 6):*\n`;
             
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
@@ -2982,10 +2982,10 @@ var _listTabelaPrecosEstrategica = [];
             const dolarOsc = comp['OSCILA\u00C7\u00C3O R$']?.['dolar'] ?? 0;
             const dSetinha = dolarOsc >= 0 ? '\u25B2' : '\u25BC';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-            txt += `- D�LAR: ${dSetinha} ${dMoney}\n`;
+            txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
             navigator.clipboard.writeText(txt).then(() => {
-                alert('Resumo copiado para a �rea de transfer�ncia!');
+                alert('Resumo copiado para a área de transferência!');
             }).catch(err => {
                 alert('Erro ao copiar texto.');
                 console.error(err);
@@ -2999,18 +2999,18 @@ var _listTabelaPrecosEstrategica = [];
             btnPdf.addEventListener('click', async () => {
                 const captureArea = document.getElementById('capture-area');
 
-                // Mostrar rodap� com timestamp
+                // Mostrar rodapé com timestamp
                 const nowTs = new Date();
                 const tsStr = nowTs.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
                     + ' às '
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${tsStr}`;
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
-                // Corre��o do Bug do SVG Preto:
+                // Correção do Bug do SVG Preto:
                 const logoImg = captureArea.querySelector('.rel-logo img');
                 let originalSrc = '';
                 if (logoImg && logoImg.src.endsWith('.svg')) {
@@ -3020,7 +3020,7 @@ var _listTabelaPrecosEstrategica = [];
                         tempCanvas.width = logoImg.naturalWidth || 400;
                         tempCanvas.height = logoImg.naturalHeight || 133;
                         const tCtx = tempCanvas.getContext('2d');
-                        tCtx.fillStyle = '#ffffff'; // Fundo branco p/ seguran�a
+                        tCtx.fillStyle = '#ffffff'; // Fundo branco p/ segurança
                         tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
                         tCtx.drawImage(logoImg, 0, 0, tempCanvas.width, tempCanvas.height);
                         logoImg.src = tempCanvas.toDataURL('image/png');
@@ -3043,7 +3043,7 @@ var _listTabelaPrecosEstrategica = [];
                 await new Promise(r => setTimeout(r, 100));
 
                 try {
-                    // Captura a altura TOTAL do conte�do
+                    // Captura a altura TOTAL do conteúdo
                     const canvas = await html2canvas(captureArea, {
                         scale: 2,
                         backgroundColor: '#ffffff',
@@ -3057,11 +3057,11 @@ var _listTabelaPrecosEstrategica = [];
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const { jsPDF } = window.jspdf;
 
-                    // Calcular dimens�es: usar largura A4, mas altura proporcional ao conte�do total para n�o quebrar a p�gina
+                    // Calcular dimensões: usar largura A4, mas altura proporcional ao conteúdo total para não quebrar a página
                     const pdfWidthMm = 210; // A4 largura em mm
                     const pdfHeightMm = (canvas.height * pdfWidthMm) / canvas.width;
 
-                    // Criar PDF vertical de p�gina �nica sem cortes
+                    // Criar PDF vertical de página única sem cortes
                     const pdf = new jsPDF({
                         orientation: 'portrait',
                         unit: 'mm',
@@ -3069,7 +3069,7 @@ var _listTabelaPrecosEstrategica = [];
                     });
                     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm);
 
-                    // Nome de arquivo din�mico (ex: relatorio-lme-DD-MM-AAAA.pdf)
+                    // Nome de arquivo dinâmico (ex: relatorio-lme-DD-MM-AAAA.pdf)
                     let dateStr = '';
                     if (currentSelectedWeek) {
                         const week = currentSelectedWeek;
@@ -3101,14 +3101,14 @@ var _listTabelaPrecosEstrategica = [];
                     const filename = `Relatorio_LME.pdf`;
                     pdf.save(filename);
                 } finally {
-                    // Restaura o SVG original ap�s gerar o PDF
+                    // Restaura o SVG original após gerar o PDF
                     if (originalSrc) {
                         logoImg.src = originalSrc;
                     }
                     // Restore styling
                     captureArea.style.width = originalWidth;
                     captureArea.style.maxWidth = originalMaxWidth;
-                    // Ocultar rodap� ap�s exporta��o
+                    // Ocultar rodapé após exportação
                     if (rodape) rodape.style.display = 'none';
                 }
             });
@@ -3125,7 +3125,7 @@ var _listTabelaPrecosEstrategica = [];
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             semana: block,
-                            mesLabel: 'Relat�rio Di�rio LME'
+                            mesLabel: 'Relatório Diário LME'
                         })
                     });
 
@@ -3144,7 +3144,7 @@ var _listTabelaPrecosEstrategica = [];
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Erro na conex�o com o servidor.');
+                    alert('Erro na conexão com o servidor.');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -3168,9 +3168,9 @@ var _listTabelaPrecosEstrategica = [];
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        // Tentar obter a data da semana a partir do primeiro dia �til dela
+        // Tentar obter a data da semana a partir do primeiro dia útil dela
         let referenceDate = new Date();
-        if (d.length > 0 && d[0].data && d[0].data !== '') {
+        if (d.length > 0 && d[0].data && d[0].data !== '—') {
             const parts = d[0].data.split('/');
             if (parts.length >= 2) {
                 const selectMes = document.getElementById('rel-filter-mes');
@@ -3213,7 +3213,7 @@ var _listTabelaPrecosEstrategica = [];
             return (val * 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + '%';
         };
 
-        // Fun��o reutiliz�vel para formatar indicadores de varia��o
+        // Função reutilizável para formatar indicadores de variação
         function formatVariacaoCell(element, value, type, decimals = 3) {
             if (!element) return;
             if (value === null || value === undefined || isNaN(value)) {
@@ -3244,7 +3244,7 @@ var _listTabelaPrecosEstrategica = [];
             element.style.setProperty('color', '#000000', 'important'); // Texto sempre em preto
         }
 
-        // Fix 1: Indicar feriado na label da m�dia semanal se semana teve < 5 dias \u00FA\u00FAteis
+        // Fix 1: Indicar feriado na label da média semanal se semana teve < 5 dias \u00FA\u00FAteis
         const mediaLabelEl = document.querySelector('.rel-summary-body .rel-label-col');
         if (mediaLabelEl) {
             if (week.numDias !== undefined && week.numDias < 5) {
@@ -3320,7 +3320,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             }
             
-            // CORRE��O CR�TICA: LME ATUAL � o valor de '100% LME' (R$/kg) da semana em curso, n�o a m�dia semanal bruta em US$/t!
+            // CORREÇÃO CRÍTICA: LME ATUAL é o valor de '100% LME' (R$/kg) da semana em curso, não a média semanal bruta em US$/t!
             const elCompAtu = document.getElementById('rel-comp-atu-' + m);
             if (elCompAtu) {
                 if (isDolar) {
@@ -3333,7 +3333,7 @@ var _listTabelaPrecosEstrategica = [];
             formatVariacaoCell(elCompOsc, oscRs, 'currency', isDolar ? 4 : 3);
         });
 
-        // Aplica overrides de cores nas linhas espec�ficas por label
+        // Aplica overrides de cores nas linhas específicas por label
         const summaryRows = document.querySelectorAll('.rel-summary-body tr');
         summaryRows.forEach(row => {
             const firstCell = row.cells[0];
@@ -3361,11 +3361,11 @@ var _listTabelaPrecosEstrategica = [];
     function renderRelatorioCharts(week) {
         const comp = week.computed || {};
 
-        // ���� helpers ��������������������������������������������������������������������������������������������������������������������
+        // ── helpers ──────────────────────────────────────────────────────────
         const fmtR = v =>
             'R$ ' + Number(Math.abs(v)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-        // Plugin inline de r�tulos acima das barras
+        // Plugin inline de rótulos acima das barras
         const datalabelPlugin = {
             id: 'apexBarLabels',
             afterDatasetsDraw(chart) {
@@ -3397,11 +3397,11 @@ var _listTabelaPrecosEstrategica = [];
             }
         };
 
-        // ���� Configura��o comum dos dois gr�ficos ����������������������������������������������������������
+        // ── Configuração comum dos dois gráficos ─────────────────────────────
         function buildBarChart(canvasId, labels, dataAnt, dataAtu) {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
-            // Destruir inst�ncia anterior se existir
+            // Destruir instância anterior se existir
             const key = '__apexChart_' + canvasId;
             if (window[key]) { window[key].destroy(); }
 
@@ -3487,11 +3487,11 @@ var _listTabelaPrecosEstrategica = [];
             });
         }
 
-        // ���� Grupo 1: Cobre ��� Zinco ��� Alum�nio ��� Chumbo ����������������������������������������������
+        // ── Grupo 1: Cobre â”¬À Zinco â”¬À Alumínio â”¬À Chumbo ───────────────────────
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
-            { key: 'aluminio', label: 'ALUM�NIO' },
+            { key: 'aluminio', label: 'ALUMÍNIO' },
             { key: 'chumbo',   label: 'CHUMBO' }
         ];
         buildBarChart(
@@ -3501,10 +3501,10 @@ var _listTabelaPrecosEstrategica = [];
             group1.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ���� Grupo 2: Estanho ��� N�quel ����������������������������������������������������������������������������������
+        // ── Grupo 2: Estanho â”¬À Níquel ─────────────────────────────────────────
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
-            { key: 'niquel',  label: 'N�QUEL' }
+            { key: 'niquel',  label: 'NÍQUEL' }
         ];
         buildBarChart(
             'relChartOsc',
@@ -3513,7 +3513,7 @@ var _listTabelaPrecosEstrategica = [];
             group2.map(m => comp['100% LME']?.[m.key]        || 0)
         );
 
-        // ���� Cards de compara��o ����������������������������������������������������������������������������������������������
+        // ── Cards de comparação ───────────────────────────────────────────────
         function buildCards(containerId, group) {
             const el = document.getElementById(containerId);
             if (!el) return;
@@ -3561,7 +3561,7 @@ var _listTabelaPrecosEstrategica = [];
             let colsHtml = `<td>${pLabel}</td>`;
 
             metals.forEach(m => {
-                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1��¬ semana do m�s  exibe '-'
+                // Base SEMPRE = SEMANA ANTERIOR congelada; null na 1â”¬¬ semana do mês — exibe '-'
                 const lme = comp['SEMANA ANTERIOR']?.[m] ?? null;
                 const colClass = `rel-col-${m}`;
                 if (lme === null) {
@@ -3579,7 +3579,7 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     // =========================================================================
-    // HIST�RICO DO RELAT\u00D3RIO DI\u00C1RIO LME (WHATSAPP/EMAIL)
+    // HISTÓRICO DO RELAT\u00D3RIO DI\u00C1RIO LME (WHATSAPP/EMAIL)
     // =========================================================================
     async function initRelatorioDiarioHistorico() {
         const btnVerHistorico = document.getElementById('btn-ver-historico');
@@ -3610,7 +3610,7 @@ var _listTabelaPrecosEstrategica = [];
 
         async function loadHistoricoMeses() {
             try {
-                // Gera lista de meses dos �ltimos 12 meses como fallback
+                // Gera lista de meses dos últimos 12 meses como fallback
                 function gerarMesesFallback() {
                     const meses = [];
                     const now = new Date();
@@ -3618,7 +3618,7 @@ var _listTabelaPrecosEstrategica = [];
                         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                         const ano = d.getFullYear();
                         const mes = String(d.getMonth() + 1).padStart(2, '0');
-                        const nomes = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                        const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
                         meses.push({ valor: `${ano}-${mes}`, texto: `${nomes[d.getMonth()]}/${ano}` });
                     }
                     return meses;
@@ -3647,7 +3647,7 @@ var _listTabelaPrecosEstrategica = [];
                 selectMes.value = mesToFetch;
                 await loadHistoricoSemanas(mesToFetch);
             } catch (e) {
-                console.error('Erro ao carregar meses do hist�rico', e);
+                console.error('Erro ao carregar meses do histórico', e);
                 selectMes.innerHTML = '<option value="">Erro ao carregar meses</option>';
             }
         }
@@ -3665,7 +3665,7 @@ var _listTabelaPrecosEstrategica = [];
                 const data = await res.json();
                 weeksData = data.semanas || [];
                 if (weeksData.length === 0) {
-                    selectSemana.innerHTML = '<option value="">Nenhuma semana dispon�vel</option>';
+                    selectSemana.innerHTML = '<option value="">Nenhuma semana disponível</option>';
                     return;
                 }
 
@@ -3677,8 +3677,8 @@ var _listTabelaPrecosEstrategica = [];
                 currentSelectedWeek = weeksData[0];
                 renderRelatorioDiarioHistorico(currentSelectedWeek);
             } catch (e) {
-                console.error('Erro ao carregar semanas do hist�rico', e);
-                selectSemana.innerHTML = '<option value="">Erro de conex�o</option>';
+                console.error('Erro ao carregar semanas do histórico', e);
+                selectSemana.innerHTML = '<option value="">Erro de conexão</option>';
             }
         }
 
@@ -3694,7 +3694,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
 
-        // A��es de exporta��o do hist�rico (usando o capture-area-historico e currentSelectedWeek)
+        // Ações de exportação do histórico (usando o capture-area-historico e currentSelectedWeek)
         if (btnGerar) {
             btnGerar.addEventListener('click', async () => {
                 if (!currentSelectedWeek) return;
@@ -3705,7 +3705,7 @@ var _listTabelaPrecosEstrategica = [];
                     + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${ts}  Apex Tech Metais`;
+                    rodape.textContent = `Relatório gerado em: ${ts} — Apex Tech Metais`;
                     rodape.style.display = 'block';
                 }
 
@@ -3744,9 +3744,9 @@ var _listTabelaPrecosEstrategica = [];
                 const comp = currentSelectedWeek.computed || {};
                 const d = currentSelectedWeek.days || [];
                 const lastDate = d[d.length - 1]?.data || '';
-                let txt = `*COTA��O LME HIST�RICO - APEXTECH METAIS*\n`;
+                let txt = `*COTAÇÃO LME HISTÓRICO - APEXTECH METAIS*\n`;
                 txt += `Semana de ${d[0]?.data} a ${lastDate}\n\n`;
-                txt += `*Varia��o Di�ria (Grupo 6):*\n`;
+                txt += `*Variação Diária (Grupo 6):*\n`;
                 
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
@@ -3759,10 +3759,10 @@ var _listTabelaPrecosEstrategica = [];
                 const dolarOsc = comp['OSCILA\u00C7\u00C3O R$']?.['dolar'] ?? 0;
                 const dSetinha = dolarOsc >= 0 ? '\u25B2' : '\u25BC';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-                txt += `- D�LAR: ${dSetinha} ${dMoney}\n`;
+                txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
                 navigator.clipboard.writeText(txt).then(() => {
-                    alert('Resumo hist�rico copiado!');
+                    alert('Resumo histórico copiado!');
                 }).catch(err => {
                     alert('Erro ao copiar texto.');
                     console.error(err);
@@ -3780,7 +3780,7 @@ var _listTabelaPrecosEstrategica = [];
                     + nowTs.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const rodape = document.getElementById('rel-hist-rodape');
                 if (rodape) {
-                    rodape.textContent = `Relat�rio gerado em: ${tsStr}`;
+                    rodape.textContent = `Relatório gerado em: ${tsStr}`;
                     rodape.style.display = 'block';
                 }
 
@@ -3858,7 +3858,7 @@ var _listTabelaPrecosEstrategica = [];
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             semana: currentSelectedWeek,
-                            mesLabel: 'Relat�rio Hist�rico LME'
+                            mesLabel: 'Relatório Histórico LME'
                         })
                     });
 
@@ -3873,11 +3873,11 @@ var _listTabelaPrecosEstrategica = [];
                         a.remove();
                         window.URL.revokeObjectURL(url);
                     } else {
-                        alert('Erro ao gerar Excel do hist�rico.');
+                        alert('Erro ao gerar Excel do histórico.');
                     }
                 } catch (err) {
                     console.error(err);
-                    alert('Erro na conex�o com o servidor.');
+                    alert('Erro na conexão com o servidor.');
                 } finally {
                     btnExcel.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
                 }
@@ -3900,9 +3900,9 @@ var _listTabelaPrecosEstrategica = [];
             return Math.ceil((((dObj - yearStart) / 86400000) + 1) / 7);
         }
 
-        // Tentar obter a data da semana a partir do primeiro dia �til dela
+        // Tentar obter a data da semana a partir do primeiro dia útil dela
         let referenceDate = new Date();
-        if (d.length > 0 && d[0].data && d[0].data !== '') {
+        if (d.length > 0 && d[0].data && d[0].data !== '—') {
             const parts = d[0].data.split('/');
             if (parts.length >= 2) {
                 const selectMes = document.getElementById('rel-hist-filter-mes');
@@ -3921,7 +3921,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         }
         
-        const monthNames = ["janeiro", "fevereiro", "mar�o", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+        const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
         const dataTexto = `${week.label}`;
         const weekNum = getISOWeek(referenceDate);
         
@@ -4211,7 +4211,7 @@ var _listTabelaPrecosEstrategica = [];
         const group1 = [
             { key: 'cobre',    label: 'COBRE' },
             { key: 'zinco',    label: 'ZINCO' },
-            { key: 'aluminio', label: 'ALUM�NIO' },
+            { key: 'aluminio', label: 'ALUMÍNIO' },
             { key: 'chumbo',   label: 'CHUMBO' }
         ];
         buildBarChart(
@@ -4223,7 +4223,7 @@ var _listTabelaPrecosEstrategica = [];
 
         const group2 = [
             { key: 'estanho', label: 'ESTANHO' },
-            { key: 'niquel',  label: 'N�QUEL' }
+            { key: 'niquel',  label: 'NÍQUEL' }
         ];
         buildBarChart(
             'rel-hist-ChartOsc',
@@ -4296,9 +4296,9 @@ var _listTabelaPrecosEstrategica = [];
     }
 
 
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
-    // APEX GEST�O  SISTEMA DE PERMISS�ES, ANÁLISE, FINANCEIRO E ESTOQUE
-    // ��������������������������������������������������������������������������������������������������������������������������������������������������
+    // ─────────────────────────────────────────────────────────────────────────
+    // APEX GESTÃO — SISTEMA DE PERMISSÕES, ANÁLISE, FINANCEIRO E ESTOQUE
+    // ─────────────────────────────────────────────────────────────────────────
     let currentSimulatedRole = sessionStorage.getItem('apex_user_role') || 'Administrador';
     let localFornecedores = [];
     let localMateriais = [];
@@ -4307,7 +4307,7 @@ var _listTabelaPrecosEstrategica = [];
     let localPlanejamento = [];
     let activeAmostraIdForDesmonte = null;
 
-    // --- Role Switcher & Permiss�es ---
+    // --- Role Switcher & Permissões ---
     window.switchSimulatedRole = function(role) {
         currentSimulatedRole = role;
         sessionStorage.setItem('apex_user_role', role);
@@ -4321,9 +4321,9 @@ var _listTabelaPrecosEstrategica = [];
         
         const mapRoleToBtn = {
             'Administrador': 'sim-admin',
-            'Laborat�rio': 'sim-lab',
+            'Laboratório': 'sim-lab',
             'Compras': 'sim-compras',
-            'Produ��o': 'sim-producao',
+            'Produção': 'sim-producao',
             'Financeiro': 'sim-financeiro',
             'Diretoria': 'sim-diretoria'
         };
@@ -4359,13 +4359,13 @@ var _listTabelaPrecosEstrategica = [];
 
         const temPermissao = (p) => permissoes.includes(p);
 
-        // Fun��es auxiliares para esconder/mostrar navega��o
+        // Funções auxiliares para esconder/mostrar navegação
         const setNav = (idOrSelector, isVisible) => {
             const el = document.getElementById(idOrSelector) || document.querySelector(idOrSelector);
             if (el) el.style.display = isVisible ? 'flex' : 'none';
         };
 
-        // Tabs Visibility (Apex Gest�o)
+        // Tabs Visibility (Apex Gestão)
         setNav('nav-fornecedores', temPermissao('view_fornecedores'));
         setNav('nav-clientes', temPermissao('view_clientes'));
         setNav('nav-materiais', temPermissao('view_catalogo'));
@@ -4380,7 +4380,7 @@ var _listTabelaPrecosEstrategica = [];
         setNav('nav-financeiro', temPermissao('view_financeiro'));
         setNav('nav-pedidos-venda', temPermissao('view_pedidos') || role === 'Administrador' || role === 'admin');
 
-        // Tabs Visibility (LME - como os originais n�o tem ID, usamos querySelector)
+        // Tabs Visibility (LME - como os originais não tem ID, usamos querySelector)
         setNav('.nav-item[data-target="dashboard"]', temPermissao('view_lme'));
         setNav('.nav-item[data-target="relatorio-diario"]', temPermissao('view_lme'));
         
@@ -4393,7 +4393,7 @@ var _listTabelaPrecosEstrategica = [];
         setNav('.nav-item[data-target="lme-email-config"]', temPermissao('view_site') || temPermissao('view_lme'));
         setNav('.nav-item[data-target="tabela-email-config"]', temPermissao('view_site') || temPermissao('view_precos'));
 
-        // Oculta a se��o ativa se o usu�rio perdeu acesso a ela e redireciona para a primeira dispon�vel
+        // Oculta a seção ativa se o usuário perdeu acesso a ela e redireciona para a primeira disponível
         const activeNav = document.querySelector('.nav-item.active');
         if (activeNav && activeNav.style.display === 'none') {
             activeNav.classList.remove('active');
@@ -4411,17 +4411,17 @@ var _listTabelaPrecosEstrategica = [];
         // Restrito Financeiro (Valores, margens, custos)
         const restritoFin = document.querySelectorAll('.restrito-financeiro');
         restritoFin.forEach(el => {
-            // Alguns elementos podem usar flex ou table-cell ou block, ent�o restauramos o valor limpo '' em vez de fixar
+            // Alguns elementos podem usar flex ou table-cell ou block, então restauramos o valor limpo '' em vez de fixar
             el.style.display = temPermissao('edit_financeiro') ? '' : 'none';
         });
 
-        // Restrito Produ��o (PCP)
+        // Restrito Produção (PCP)
         const restritoProd = document.querySelectorAll('.restrito-producao');
         restritoProd.forEach(el => {
             el.style.display = temPermissao('edit_producao') ? '' : 'none';
         });
 
-        // Atualiza bot�es no desmonte se aberto
+        // Atualiza botões no desmonte se aberto
         if (activeAmostraIdForDesmonte) {
             const amostra = localAmostras.find(x => x.id === activeAmostraIdForDesmonte);
             if (amostra) renderizarBotoesAcoesAmostra(amostra.status);
@@ -4510,7 +4510,7 @@ var _listTabelaPrecosEstrategica = [];
             let amostrasHtml = '<span style="color:#666;font-style:italic;font-size:0.8rem;">Nenhuma</span>';
             if (amostrasForn.length > 0) {
                 amostrasHtml = `<select style="background:#0d1a24; color:#4fc3f7; border:1px solid #1e3a5f; padding:6px; border-radius:6px; font-size:0.85rem; cursor:pointer; min-width:120px;" onchange="if(this.value) window.abrirAmostraPorNumero(this.value); this.value='';">
-                    <option value="">${amostrasForn.length} Amostra(s) ��¥</option>
+                    <option value="">${amostrasForn.length} Amostra(s) Ôû¥</option>
                     ${amostrasForn.map(a => `<option value="${a.numero_amostra}">${a.numero_amostra}</option>`).join('')}
                 </select>`;
             }
@@ -4521,7 +4521,7 @@ var _listTabelaPrecosEstrategica = [];
                 : `<button style="background:#1c252e;border:1px solid #334155;color:#64748b;padding:6px 10px;border-radius:6px;cursor:not-allowed;margin-right:4px;" disabled title="Sem e-mail cadastrado"><i class="fa-solid fa-paper-plane"></i> Tabela</button>`;
 
             const tr = document.createElement('tr');
-            tr.title = 'Clique na linha para editar este fornecedor (exceto bot�es e selects)';
+            tr.title = 'Clique na linha para editar este fornecedor (exceto botões e selects)';
             tr.style.cursor = 'pointer';
             tr.onclick = (e) => {
                 if (e.target.closest('button') || e.target.closest('select')) return;
@@ -4563,7 +4563,7 @@ var _listTabelaPrecosEstrategica = [];
 
     window.editarFornecedor = function(id) {
         const f = localFornecedores.find(x => x.id === id);
-        if (!f) { _apexNotify('Sistema', 'Fornecedor n�o encontrado na lista local. Recarregue a p�gina.', 'info'); return; }
+        if (!f) { _apexNotify('Sistema', 'Fornecedor não encontrado na lista local. Recarregue a página.', 'info'); return; }
         document.getElementById('modal-forn-titulo').textContent = 'Editar Fornecedor';
         document.getElementById('forn-id').value = f.id;
         document.getElementById('forn-codfor').value = f.codfor || '';
@@ -4632,7 +4632,7 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalFornecedor();
             carregarFornecedores();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao salvar fornecedor: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar fornecedor: ' + err.message, 'error');
             console.error('Erro ao salvar fornecedor:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Fornecedor'; }
@@ -4649,9 +4649,9 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ���������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
-    // CLIENTES  CRUD COMPLETO
-    // ���������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+    // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+    // CLIENTES — CRUD COMPLETO
+    // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
     let localClientes = [];
 
     window.initApexClientes = async function() {
@@ -4833,7 +4833,7 @@ var _listTabelaPrecosEstrategica = [];
                 window.clienteCadastradoCallback = null;
             }
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao salvar cliente: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar cliente: ' + err.message, 'error');
             console.error('Erro ao salvar cliente:', err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar Cliente'; }
@@ -4873,7 +4873,7 @@ var _listTabelaPrecosEstrategica = [];
                 const cells = row.querySelectorAll('td');
                 if (cells.length > colIndex) {
                     const text = cells[colIndex].textContent.toLowerCase().trim();
-                    // Conforme solicitado, busca pelas iniciais do termo na coluna espec�fica
+                    // Conforme solicitado, busca pelas iniciais do termo na coluna específica
                     match = text.startsWith(search) || text.includes(search);
                 }
             }
@@ -4980,7 +4980,7 @@ var _listTabelaPrecosEstrategica = [];
     window.buscarNcmManual = function() {
         const valor = document.getElementById('mat-ncm').value;
         if (!valor) {
-            _apexNotify('Sistema', 'Digite um termo ou c�digo para buscar.', 'info');
+            _apexNotify('Sistema', 'Digite um termo ou código para buscar.', 'info');
             return;
         }
         executarBuscaNcm(valor);
@@ -5010,7 +5010,7 @@ var _listTabelaPrecosEstrategica = [];
                 `).join('');
             }
 
-            // Sempre adiciona a op��o de usar o valor digitado manualmente
+            // Sempre adiciona a opção de usar o valor digitado manualmente
             const termoSanitizado = termo.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             html += `
                 <div style="padding:10px; cursor:pointer; background:#1a3045; border-top:1px solid #3e7cb1;" 
@@ -5031,7 +5031,7 @@ var _listTabelaPrecosEstrategica = [];
     window.usarNcmManual = function(valor) {
         const input = document.getElementById('mat-ncm');
         if (input) {
-            // Formata o valor manual se parecer com um n�mero de 8 d�gitos
+            // Formata o valor manual se parecer com um número de 8 dígitos
             input.value = formatarCodigoNcm(valor);
         }
         fecharNcmDropdown();
@@ -5171,7 +5171,7 @@ var _listTabelaPrecosEstrategica = [];
             });
             if (!resp.ok) {
                 const errData = await resp.json().catch(() => ({}));
-                _apexNotify('Aten��o', 'Erro ao salvar material: ' + (errData.error || resp.statusText), 'error');
+                _apexNotify('Atenção', 'Erro ao salvar material: ' + (errData.error || resp.statusText), 'error');
                 return;
             }
             fecharModalMaterial();
@@ -5180,12 +5180,12 @@ var _listTabelaPrecosEstrategica = [];
             if (window.carregarPrecos) await window.carregarPrecos();
         } catch (err) {
             console.error(err);
-            _apexNotify('Aten��o', 'Erro de conex�o ao salvar material: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro de conexão ao salvar material: ' + err.message, 'error');
         }
     };
 
     window.deletarMaterial = async function(id) {
-        if (!confirm('Excluir este material do cat�logo? O pre�o correspondente tamb�m ser� removido.')) return;
+        if (!confirm('Excluir este material do catálogo? O preço correspondente também será removido.')) return;
         try {
             await fetch(`/api/materiais-catalogo/${id}`, { method: 'DELETE' });
             await carregarMateriais();
@@ -5212,7 +5212,7 @@ var _listTabelaPrecosEstrategica = [];
             prcM.innerHTML = '';
             localMateriais.forEach(m => {
                 const c = (m.categoria || '').toUpperCase();
-                if (c.includes('LIGA') || c.includes('RESIDUO') || c.includes('RES�DUO')) return;
+                if (c.includes('LIGA') || c.includes('RESIDUO') || c.includes('RESÍDUO')) return;
                 prcM.innerHTML += `<option value="${m.id}">${m.nome} (${m.categoria})</option>`;
             });
         }
@@ -5229,7 +5229,7 @@ var _listTabelaPrecosEstrategica = [];
         const badgesDiv = document.getElementById('mat-categoria-badges');
         if (!matCat) return;
         
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try {
                 cats = JSON.parse(settingsPrecos['categorias_materiais']);
@@ -5249,10 +5249,10 @@ var _listTabelaPrecosEstrategica = [];
 
         // Renderiza badges visuais
         if (badgesDiv) {
-            const catsDefault = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+            const catsDefault = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
             const corPaleta = {
-                'Alum�nio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
-                'A�o': '#7ea374', 'Chumbo': '#7a8a99', 'Lat�o/Bronze': '#c8a240',
+                'Alumínio': '#5a92b5', 'Cobre': '#e07b39', 'Tomada/Conectores': '#d4b896',
+                'Aço': '#7ea374', 'Chumbo': '#7a8a99', 'Latão/Bronze': '#c8a240',
                 'Zamac': '#8a7ba8', 'Outros': '#6b7280'
             };
             badgesDiv.innerHTML = cats.map(cat => {
@@ -5265,11 +5265,11 @@ var _listTabelaPrecosEstrategica = [];
                         <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
-                        ></span>
+                        >✅„</span>
                         <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
-                        >�S�</span>
+                        >â”œù</span>
                     </span>` : '';
                 return `<button type="button" class="cat-badge-btn"
                     data-cat="${cat}" data-color="${cor}" data-custom="${isCustom}"
@@ -5295,7 +5295,7 @@ var _listTabelaPrecosEstrategica = [];
         const trim = nova.trim();
         if (trim === '') return;
         
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -5319,7 +5319,7 @@ var _listTabelaPrecosEstrategica = [];
     window.excluirCategoria = async function(cat) {
         const materiaisDoGrupo = localMateriais.filter(m => m.categoria === cat);
         if (materiaisDoGrupo.length > 0) {
-            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  ��� ' + m.nome).join('\n')}\n\nExcluir o grupo tamb�m remover� esses materiais e seus pre�os. Deseja continuar?`;
+            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  ÔÇó ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
             if (!confirm(confirmMsg)) return;
             for (const m of materiaisDoGrupo) {
                 await fetch(`/api/materiais-catalogo/${m.id}`, { method: 'DELETE' });
@@ -5328,7 +5328,7 @@ var _listTabelaPrecosEstrategica = [];
             if (!confirm(`Excluir o grupo "${cat}"?`)) return;
         }
 
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -5345,7 +5345,7 @@ var _listTabelaPrecosEstrategica = [];
 
         await carregarMateriais();
         if (window.carregarPrecos) await window.carregarPrecos();
-        // Se o grupo exclu�do estava selecionado, limpa
+        // Se o grupo excluído estava selecionado, limpa
         const select = document.getElementById('mat-categoria');
         if (select && select.value === cat) selecionarCategoriaBadge(null);
         popularSeletoresCategorias();
@@ -5357,7 +5357,7 @@ var _listTabelaPrecosEstrategica = [];
         const trim = novoNome.trim();
 
         // Atualiza a lista de categorias
-        let cats = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let cats = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try { cats = JSON.parse(settingsPrecos['categorias_materiais']); } catch(e) {}
         }
@@ -5453,7 +5453,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // --- 3. TABELA DE PRE�OS ---
+    // --- 3. TABELA DE PREÇOS ---
     let settingsPrecos = {};
     let visualizacaoTabelaPrecos = 'completa';
 
@@ -5530,7 +5530,7 @@ var _listTabelaPrecosEstrategica = [];
         container.innerHTML = '';
 
         // Agrupar por categorias
-        let categorias = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (settingsPrecos && settingsPrecos['categorias_materiais']) {
             try {
                 categorias = JSON.parse(settingsPrecos['categorias_materiais']);
@@ -5557,35 +5557,35 @@ var _listTabelaPrecosEstrategica = [];
                 <div class="categoria-preco-header" style="background: ${corCategoria};">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span>${cat.toUpperCase()}</span>
-                        <input type="color" value="${corCategoria}" title="Alterar cor do cabe�alho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
+                        <input type="color" value="${corCategoria}" title="Alterar cor do cabeçalho" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoria('${cat}', this.value)">
                     </div>
-                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vig�ncia geral com calend�rio" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIG�NCIA AT�: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
+                    <button type="button" class="restrito-financeiro" onclick="abrirModalVigenciaGeral()" title="Clique para alterar a vigência geral com calendário" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'"><i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem; opacity:0.8;"></i></button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg. | OBS: Varia��o de pre�o conforme atualiza��o de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descri��o</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color: #ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color: #aaa;">Comiss�o (%)</th>
+                                <th style="padding:10px; text-align:right; color: #aaa;">Comissão (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color: #aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda L�quida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro L�q. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem L�q. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L�q. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L�q. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color: #4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A��es</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5643,7 +5643,7 @@ var _listTabelaPrecosEstrategica = [];
                             }).join('')}
                             <tr style="background:#131c26;">
                                 <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">
-                                    DEMAIS MATERIAIS PRE�O SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -5768,18 +5768,18 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalPreco();
             carregarPrecos();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao salvar pre�o: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar preço: ' + err.message, 'error');
             console.error(err);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
-    // ������ Calend�rio Visual Interativo de Vig�ncia ������
+    // ─── Calendário Visual Interativo de Vigência ───
     let calVigenciaAno = 2026;
     let calVigenciaMes = 6;
     let calVigenciaDataSelecionada = new Date().toISOString().split('T')[0];
-    const mesesNomes = ['Janeiro','Fevereiro','Mar�o','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
     window.renderCalendarioVigencia = function() {
         const titulo = document.getElementById('cal-vigencia-titulo');
@@ -5878,7 +5878,7 @@ var _listTabelaPrecosEstrategica = [];
     window.salvarVigenciaGeralModal = async function() {
         const novaData = calVigenciaDataSelecionada || document.getElementById('input-vigencia-geral-data').value;
         if (!novaData) {
-            _apexNotify('Sistema', 'Por favor, clique em um dia no calend�rio.', 'info');
+            _apexNotify('Sistema', 'Por favor, clique em um dia no calendário.', 'info');
             return;
         }
         const tipo = window.vigenciaGeralTipoAtual || 'vigente';
@@ -5898,16 +5898,16 @@ var _listTabelaPrecosEstrategica = [];
             });
             if (!res.ok) throw new Error(await res.text());
             fecharModalVigenciaGeral();
-            _apexNotify('Sistema', 'Vig�ncia atualizada para todos os materiais com sucesso!', 'info');
+            _apexNotify('Sistema', 'Vigência atualizada para todos os materiais com sucesso!', 'info');
             if (tipo === 'vigente') await carregarPrecos();
             else if (tipo === 'residuo') carregarPrecosResiduos();
             else if (tipo === 'liga') carregarPrecosLigas();
             else if (tipo === 'volume') carregarPrecosVolume();
             else if (tipo === 'fundicao') carregarPrecosFundicao();
         } catch (err) {
-            _apexNotify('Aten��o', 'Erro ao atualizar vig�ncia geral: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao atualizar vigência geral: ' + err.message, 'error');
         } finally {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vig�ncia'; }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Aplicar e Salvar Vigência'; }
         }
     };
 
@@ -5916,7 +5916,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.deletarPreco = async function(id) {
-        if (!confirm('Excluir este pre�o?')) return;
+        if (!confirm('Excluir este preço?')) return;
         try {
             await fetch(`/api/tabela-precos/${id}`, { method: 'DELETE' });
             carregarPrecos();
@@ -5926,13 +5926,13 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.exportarTabelaPrecosExcel = function() {
-        _apexNotify('Sistema', 'Tabela de Pre�os exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
+        _apexNotify('Sistema', 'Tabela de Preços exportada com sucesso (LME-ApexTech-Precos.xlsx)', 'info');
     };
 
     function gerarHtmlTabelaPrecosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const activeSettings = settings || settingsPrecos || {};
         const isCompleta = modo === 'completa';
-        let categorias = ["Alum�nio", "Cobre", "Tomada/Conectores", "Chumbo", "Lat�o/Bronze", "Zamac", "A�o", "Outros"];
+        let categorias = ["Alumínio", "Cobre", "Tomada/Conectores", "Chumbo", "Latão/Bronze", "Zamac", "Aço", "Outros"];
         if (activeSettings && activeSettings['categorias_materiais']) {
             try {
                 categorias = JSON.parse(activeSettings['categorias_materiais']);
@@ -5945,9 +5945,9 @@ var _listTabelaPrecosEstrategica = [];
         });
 
 
-        const tituloPdf = isCompleta ? 'Tabela Geral de Pre�os Vigente (Vis�o Completa)' : 'Tabela de Pre�os Vigente';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Preços Vigente (Visão Completa)' : 'Tabela de Preços Vigente';
         const maxWidthContainer = '100%';
-        // Marca d'�gua aplicada diretamente no container (zero elementos extras, zero altura extra)
+        // Marca d'água aplicada diretamente no container (zero elementos extras, zero altura extra)
         const wmStyle = logoBase64
             ? `background-image: url('${logoBase64}'); background-repeat: repeat; background-size: 200px auto; background-position: 0 0;`
             : '';
@@ -5962,19 +5962,19 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                         <div style="text-align: right;">
                             <h1 style="margin: 0; color: #1e4e8c; font-size: ${isCompleta ? '1.6rem' : '1.8rem'}; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">${tituloPdf}</h1>
-                            <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">�ltima Atualiza��o: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin: 6px 0 0 0; font-size: 0.95rem; color: #666; font-weight: 500;">Última Atualização: <span style="color: #1e4e8c; font-weight: bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
 
                     <!-- Diretrizes -->
                     <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                            �x9 Diretrizes Gerais de Compra
+                            ðŸ“‹ Diretrizes Gerais de Compra
                         </h4>
                         <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
-                            <li>Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg.</li>
-                            <li>OBS: Varia��o de pre�o conforme atualiza��o de mercado.</li>
-                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PRE�O SOBRE ANÁLISE (FOTO)</li>
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight: bold; color: #c0392b;">DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)</li>
                         </ul>
                     </div>
         `;
@@ -5990,25 +5990,25 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="margin-bottom: 30px; border: 1px solid ${corCategoria}; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background: ${corCategoria}; color: #ffffff; padding: 10px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIG�NCIA AT�: ${validadeStr}</span>
+                        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; font-size: ${isCompleta ? '0.75rem' : '0.8rem'}; text-align: left;">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #ddd;">
-                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">Descri��o</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">Descrição</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Preço Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Comiss�o (%)</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Comissão (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">PIS/COFINS (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">FIDC (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">ICMS (%)</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #555;">Frete Coleta</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #0284c7;">Venda L�q.</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Lucro L�q. Ent.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #0284c7;">Venda Líq.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Lucro Líq. Ent.</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #16a34a;">Margem Ent (%)</th>
-                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Lucro L�q. Col.</th>
+                                <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Lucro Líq. Col.</th>
                                 <th style="padding: 8px; text-align: right; border: 1px solid #eee; font-weight: 600; color: #2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding: 8px; border: 1px solid #eee; font-weight: 600; color: #555;">NCM</th>
@@ -6061,7 +6061,7 @@ var _listTabelaPrecosEstrategica = [];
             html += `
                             <tr style="background: #fafafa;">
                                 <td colspan="${isCompleta ? 15 : 4}" style="padding: 10px; text-align: right; font-style: italic; color: #777; border: 1px solid #eee;">
-                                    DEMAIS MATERIAIS PRE�O SOBRE ANÁLISE (FOTO)
+                                    DEMAIS MATERIAIS PREÇO SOBRE ANÁLISE (FOTO)
                                 </td>
                             </tr>
                         </tbody>
@@ -6074,7 +6074,7 @@ var _listTabelaPrecosEstrategica = [];
         html += `
                     <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555;">
                         <div style="font-weight: bold; color: #1e4e8c; font-size: 0.95rem;">
-                             Aprovado pelo CEO Jose Tiago
+                            ✅ Aprovado pelo CEO Jose Tiago
                         </div>
                         <div style="text-align: right; color: #888;">
                             Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}
@@ -6122,10 +6122,10 @@ var _listTabelaPrecosEstrategica = [];
                 });
             }
         } catch(e) {
-            console.warn('Logo watermark n�o carregou, usando fallback:', e);
+            console.warn('Logo watermark não carregou, usando fallback:', e);
         }
 
-        // Reduz opacidade da logo para 7% (marca d'�gua sutil) via canvas
+        // Reduz opacidade da logo para 7% (marca d'água sutil) via canvas
         let fadedLogo = null;
         if (logoWatermarkBase64) {
             fadedLogo = await new Promise(resolve => {
@@ -6159,7 +6159,7 @@ var _listTabelaPrecosEstrategica = [];
         try {
             const base64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!base64) {
-                _apexNotify('Aten��o', 'Erro ao gerar o PDF da tabela de pre�os.', 'error');
+                _apexNotify('Atenção', 'Erro ao gerar o PDF da tabela de preços.', 'error');
                 return;
             }
             const linkSource = `data:application/pdf;base64,${base64}`;
@@ -6170,7 +6170,7 @@ var _listTabelaPrecosEstrategica = [];
             downloadLink.click();
         } catch (err) {
             console.error(err);
-            _apexNotify('Aten��o', 'Erro ao exportar PDF: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao exportar PDF: ' + err.message, 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -6200,13 +6200,13 @@ var _listTabelaPrecosEstrategica = [];
             if (btnConfig) btnConfig.disabled = loading;
         };
 
-        const destText = emailDestino ? `para ${emailDestino}` : 'para os destinat�rios cadastrados';
+        const destText = emailDestino ? `para ${emailDestino}` : 'para os destinatários cadastrados';
         setUIState(true, `<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF (${nomeModo}) e enviando ${destText}...`);
 
         try {
             const pdfBase64 = await window.gerarPdfTabelaPrecosBase64(modoPDF);
             if (!pdfBase64) {
-                throw new Error('Falha ao gerar o PDF da tabela de pre�os.');
+                throw new Error('Falha ao gerar o PDF da tabela de preços.');
             }
 
             const res = await fetch('/api/tabela-precos/enviar-email', {
@@ -6217,19 +6217,19 @@ var _listTabelaPrecosEstrategica = [];
 
             const result = await res.json();
             if (res.ok) {
-                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de pre�os (${nomeModo}) enviada com sucesso!`), '#2AD07A');
-                _apexNotify('Sistema', ` Tabela de pre�os (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
+                setUIState(false, '<i class="fa-solid fa-circle-check"></i> ' + (result.message || `Tabela de preços (${nomeModo}) enviada com sucesso!`), '#2AD07A');
+                _apexNotify('Sistema', `✅ Tabela de preços (${nomeModo}) enviada por e-mail ${destText} com sucesso!`, 'info');
             } else {
                 throw new Error(result.error || 'Erro desconhecido ao enviar e-mail.');
             }
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            _apexNotify('Aten��o', 'L Erro ao enviar e-mail: ' + err.message, 'error');
+            _apexNotify('Atenção', '❌ Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
-    // --- 3b. TABELA DE PRE�OS  RES�DUOS ---
+    // --- 3b. TABELA DE PREÇOS — RESÍDUOS ---
     let localPrecosResiduos = [];
     let settingsPrecosResiduos = {};
     let visualizacaoResiduos = 'completa';
@@ -6267,7 +6267,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-recycle" style="font-size:2rem; margin-bottom:16px; display:block; color:#2AD07A;"></i>Nenhum res�duo cadastrado ainda. Clique em <strong>Novo Item de Pre�o</strong> para come�ar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-recycle" style="font-size:2rem; margin-bottom:16px; display:block; color:#2AD07A;"></i>Nenhum resíduo cadastrado ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
             return;
         }
 
@@ -6289,34 +6289,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaResiduo('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralResiduo()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIG�NCIA AT�: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg. | OBS: Varia��o de pre�o conforme atualiza��o de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descri��o</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss�o (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L�quida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro L�q. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem L�q. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L�q. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L�q. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A��es</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -6363,7 +6363,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS RES�DUOS PRE�O SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6393,7 +6393,7 @@ var _listTabelaPrecosEstrategica = [];
         if (idSelect === 'prc-res-material-id') {
             filteredMats = mats.filter(m => {
                 const c = (m.categoria || '').toUpperCase();
-                return c.includes('RESIDUO') || c.includes('RES�DUO') || c.includes('PLÁSTICO');
+                return c.includes('RESIDUO') || c.includes('RESÍDUO') || c.includes('PLÁSTICO');
             });
         } else if (idSelect === 'prc-lig-material-id') {
             filteredMats = mats.filter(m => {
@@ -6558,14 +6558,14 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalPrecoResiduo();
             carregarPrecosResiduos();
         } catch(err) {
-            _apexNotify('Aten��o', 'Erro ao salvar pre�o do res�duo: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar preço do resíduo: ' + err.message, 'error');
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
     window.deletarPrecoResiduo = async function(id) {
-        if (!confirm('Excluir este pre�o de res�duo?')) return;
+        if (!confirm('Excluir este preço de resíduo?')) return;
         try {
             await fetch(`/api/tabela-precos-residuos/${id}`, { method: 'DELETE' });
             carregarPrecosResiduos();
@@ -6577,10 +6577,10 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.exportarTabelaResiduo = function() {
-        _apexNotify('Sistema', 'Tabela de Res�duos exportada com sucesso!', 'info');
+        _apexNotify('Sistema', 'Tabela de Resíduos exportada com sucesso!', 'info');
     };
 
-    // --- 3c. TABELA DE PRE�OS  LIGAS ---
+    // --- 3c. TABELA DE PREÇOS — LIGAS ---
     let localPrecosLigas = [];
     let settingsPrecosLigas = {};
     let visualizacaoLigas = 'completa';
@@ -6618,7 +6618,7 @@ var _listTabelaPrecosEstrategica = [];
             }
         });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-atom" style="font-size:2rem; margin-bottom:16px; display:block; color:#4fc3f7;"></i>Nenhuma liga cadastrada ainda. Clique em <strong>Novo Item de Pre�o</strong> para come�ar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-atom" style="font-size:2rem; margin-bottom:16px; display:block; color:#4fc3f7;"></i>Nenhuma liga cadastrada ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
             return;
         }
 
@@ -6640,34 +6640,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaLiga('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralLiga()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIG�NCIA AT�: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg. | OBS: Varia��o de pre�o conforme atualiza��o de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descri��o</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss�o (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L�quida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro L�q. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem L�q. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L�q. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L�q. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#2AD07A;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A��es</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -6714,7 +6714,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS LIGAS PRE�O SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6884,14 +6884,14 @@ var _listTabelaPrecosEstrategica = [];
             fecharModalPrecoLiga();
             carregarPrecosLigas();
         } catch(err) {
-            _apexNotify('Aten��o', 'Erro ao salvar pre�o da liga: ' + err.message, 'error');
+            _apexNotify('Atenção', 'Erro ao salvar preço da liga: ' + err.message, 'error');
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar'; }
         }
     };
 
     window.deletarPrecoLiga = async function(id) {
-        if (!confirm('Excluir este pre�o de liga?')) return;
+        if (!confirm('Excluir este preço de liga?')) return;
         try {
             await fetch(`/api/tabela-precos-ligas/${id}`, { method: 'DELETE' });
             carregarPrecosLigas();
@@ -6907,7 +6907,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     // =============================================================================
-    // --- 3c. TABELA DE PRE�OS  VOLUME ---
+    // --- 3c. TABELA DE PREÇOS — VOLUME ---
     // =============================================================================
     let localPrecosVolume = [];
     let settingsPrecosVolume = {};
@@ -6943,7 +6943,7 @@ var _listTabelaPrecosEstrategica = [];
             if (p.material_categoria && !categorias.includes(p.material_categoria)) categorias.push(p.material_categoria);
         });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-boxes-stacked" style="font-size:2rem; margin-bottom:16px; display:block; color:#f97316;"></i>Nenhum item de volume cadastrado ainda. Clique em <strong>Novo Item de Pre�o</strong> para come�ar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-boxes-stacked" style="font-size:2rem; margin-bottom:16px; display:block; color:#f97316;"></i>Nenhum item de volume cadastrado ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
             return;
         }
         const showCompleta = visualizacaoVolume === 'completa';
@@ -6962,34 +6962,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaVolume('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralVolume()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIG�NCIA AT�: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg. | OBS: Varia��o de pre�o conforme atualiza��o de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descri��o</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss�o (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L�quida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#f97316;">Lucro L�q. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#f97316;">Margem L�q. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L�q. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L�q. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#f97316;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#f97316;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A��es</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -7036,7 +7036,7 @@ var _listTabelaPrecosEstrategica = [];
                                 `;
                             }).join('')}
                             <tr style="background:#131c26;">
-                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE VOLUME PRE�O SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -7064,7 +7064,7 @@ var _listTabelaPrecosEstrategica = [];
         <div id="modal-preco-volume" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
             <div style="background:#101a24;border:1px solid #f97316;border-radius:12px;padding:18px 22px 16px;width:540px;max-width:96vw;max-height:92vh;overflow-y:auto;">
                 <h3 style="margin-top:0;border-bottom:1px solid #2d3f52;padding-bottom:8px;color:#fff;font-size:1rem;">
-                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i> Definir Pre�o  Volume
+                    <i class="fa-solid fa-boxes-stacked" style="color:#f97316;"></i> Definir Preço — Volume
                 </h3>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
@@ -7072,37 +7072,37 @@ var _listTabelaPrecosEstrategica = [];
                         <select id="prc-vol-material-id" class="noble-input" onchange="calcularMargemLiquidaModalVolume()"><option value="">Selecione...</option></select>
                     </div>
                     <div class="form-group">
-                        <label style="font-size:0.8rem;">Pre�o Venda Ref. (R\$/kg) *</label>
+                        <label style="font-size:0.8rem;">Preço Venda Ref. (R\$/kg) *</label>
                         <input id="prc-vol-venda-ref" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularValoresDeAcordoComPorcentagemVolume()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Pre�o Entregar (R\$/kg) *</label>
+                        <label>Preço Entregar (R\$/kg) *</label>
                         <input id="prc-vol-entregar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeEntregarVolume()">
                     </div>
                     <div class="form-group">
-                        <label>Pre�o Entregar (%)</label>
+                        <label>Preço Entregar (%)</label>
                         <input id="prc-vol-entregar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 90" oninput="calcularValorDeEntregarVolume()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Pre�o Coletar (R\$/kg) *</label>
+                        <label>Preço Coletar (R\$/kg) *</label>
                         <input id="prc-vol-coletar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeColetarVolume()">
                     </div>
                     <div class="form-group">
-                        <label>Pre�o Coletar (%)</label>
+                        <label>Preço Coletar (%)</label>
                         <input id="prc-vol-coletar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetarVolume()">
                     </div>
                 </div>
                 <div style="background:#162432;padding:8px 12px;border-radius:8px;border:1px solid #7c3a12;margin-bottom:10px;">
                     <div style="font-weight:bold;color:#f97316;font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                        <i class="fa-solid fa-percent"></i> Composi��o Fiscal &amp; Dedu��es (% e R\$/kg)
+                        <i class="fa-solid fa-percent"></i> Composição Fiscal &amp; Deduções (% e R\$/kg)
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
                         <div class="form-group">
-                            <label style="font-size:0.75rem;">Comiss�o (%)</label>
+                            <label style="font-size:0.75rem;">Comissão (%)</label>
                             <input id="prc-vol-comissao" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalVolume()">
                         </div>
                         <div class="form-group">
@@ -7125,15 +7125,15 @@ var _listTabelaPrecosEstrategica = [];
                 </div>
                 <div style="background:#0a1622;padding:8px 12px;border-radius:8px;border-left:4px solid #f97316;margin-bottom:10px;">
                     <div style="font-size:0.8rem;text-transform:uppercase;font-weight:bold;color:#aaa;margin-bottom:6px;">
-                        <i class="fa-solid fa-calculator" style="color:#f97316;"></i> Simula��o de Margem L�quida Real
+                        <i class="fa-solid fa-calculator" style="color:#f97316;"></i> Simulação de Margem Líquida Real
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:0.82rem;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1a2a3a;">
                         <div>
-                            <span style="color:#888;">Total Dedu��es:</span>
+                            <span style="color:#888;">Total Deduções:</span>
                             <div style="color:#ff6b6b;font-weight:bold;" id="prc-vol-live-deducoes">0.00% (R\$ 0,00)</div>
                         </div>
                         <div>
-                            <span style="color:#888;">Venda L�quida:</span>
+                            <span style="color:#888;">Venda Líquida:</span>
                             <div style="color:#ffeb3b;font-weight:bold;" id="prc-vol-live-venda-liq">R\$ 0,00/kg</div>
                         </div>
                         <div>
@@ -7143,19 +7143,19 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
                         <div style="background:#0f251d;padding:8px;border-radius:6px;border:1px solid #1a4d36;">
-                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L�quida Entrega</span>
+                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Entrega</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#2AD07A;" id="prc-vol-live-margem-ent">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-vol-live-lucro-ent">Lucro: R\$ 0,00/kg</div>
                         </div>
                         <div style="background:#2a1800;padding:8px;border-radius:6px;border:1px solid #7c3a12;">
-                            <span style="color:#ffd4a3;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L�quida Coleta</span>
+                            <span style="color:#ffd4a3;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Coleta</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#f97316;" id="prc-vol-live-margem-col">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-vol-live-lucro-col">Lucro: R\$ 0,00/kg</div>
                         </div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:4px;">
-                    <label style="font-size:0.8rem;">V�lido At� * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
+                    <label style="font-size:0.8rem;">Válido Até * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
                     <input id="prc-vol-validade" type="date" class="noble-input" value="${validadeDefault}" onchange="atualizarPreviewDataVolume()">
                     <div style="display:flex;justify-content:space-between;align-items:center;background:#162738;padding:8px 12px;border-radius:6px;border:1px solid #7c3a12;margin-top:6px;">
                         <span style="color:#aaa;font-size:0.82rem;">Data Selecionada:</span>
@@ -7269,7 +7269,7 @@ var _listTabelaPrecosEstrategica = [];
             icms:           parseVal(document.getElementById('prc-vol-icms').value),
             frete_coleta:   parseVal(document.getElementById('prc-vol-frete').value)
         };
-        if (!body.material_id || !body.validade) return _apexNotify('Aten��o', 'Material e validade s�o obrigat�rios.', 'warning');
+        if (!body.material_id || !body.validade) return _apexNotify('Atenção', 'Material e validade são obrigatórios.', 'warning');
         const btn = document.querySelector('#modal-preco-volume .btn-primary');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
         try {
@@ -7333,10 +7333,10 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     window.deletarPrecoVolume = async function(id) {
-        if (!confirm('Confirma exclus�o deste item de volume?')) return;
+        if (!confirm('Confirma exclusão deste item de volume?')) return;
         try {
             await fetch(`/api/tabela-precos-volume/${id}`, { method: 'DELETE' });
-            _apexNotify('Sucesso', 'Item exclu�do!', 'success');
+            _apexNotify('Sucesso', 'Item excluído!', 'success');
             window.carregarPrecosVolume();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
     };
@@ -7382,9 +7382,9 @@ var _listTabelaPrecosEstrategica = [];
                     }
                 }
             } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, fadedLogo, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PRE�O SOBRE ANÁLISE (FOTO)', 'cor_categoria_volume_');
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosVolume, lastUpdate, settings, fadedLogo, modo, 'Volume', '#f97316', 'DEMAIS MATERIAIS DE VOLUME PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_volume_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
-            if (!base64) return _apexNotify('Aten��o', 'Erro ao gerar PDF.', 'error');
+            if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
             a.download = isCompleta ? 'Tabela_Volume_Geral.pdf' : 'Tabela_Volume_Fornecedor.pdf'; a.click();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
@@ -7392,7 +7392,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     // =============================================================================
-    // --- 3d. TABELA DE PRE�OS  FUNDI��O ---
+    // --- 3d. TABELA DE PREÇOS — FUNDIÇÃO ---
     // =============================================================================
     let localPrecosFundicao = [];
     let settingsPrecosFundicao = {};
@@ -7423,7 +7423,7 @@ var _listTabelaPrecosEstrategica = [];
         const categorias = [];
         localPrecosFundicao.forEach(p => { if (p.material_categoria && !categorias.includes(p.material_categoria)) categorias.push(p.material_categoria); });
         if (categorias.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-fire-flame-curved" style="font-size:2rem; margin-bottom:16px; display:block; color:#ef4444;"></i>Nenhum item de fundi��o cadastrado ainda. Clique em <strong>Novo Item de Pre�o</strong> para come�ar.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#aaa;"><i class="fa-solid fa-fire-flame-curved" style="font-size:2rem; margin-bottom:16px; display:block; color:#ef4444;"></i>Nenhum item de fundição cadastrado ainda. Clique em <strong>Novo Item de Preço</strong> para começar.</div>';
             return;
         }
         const showCompleta = visualizacaoFundicao === 'completa';
@@ -7442,34 +7442,34 @@ var _listTabelaPrecosEstrategica = [];
                         <input type="color" value="${corCategoria}" title="Alterar cor" style="border:none; background:none; cursor:pointer; width:22px; height:22px; padding:0; outline:none; border-radius:4px; vertical-align:middle;" onchange="alterarCorCategoriaFundicao('${cat}', this.value)">
                     </div>
                     <button type="button" class="restrito-financeiro" onclick="alterarValidadeGeralFundicao()" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-calendar-days"></i> VIG�NCIA AT�: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
+                        <i class="fa-solid fa-calendar-days"></i> VIGÊNCIA ATÉ: ${validadeStr} <i class="fa-solid fa-pen-to-square" style="font-size:0.78rem;"></i>
                     </button>
                 </div>
                 <div class="categoria-preco-observacao">
-                    <i class="fa-solid fa-circle-info"></i> Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg. | OBS: Varia��o de pre�o conforme atualiza��o de mercado.
+                    <i class="fa-solid fa-circle-info"></i> Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg. | OBS: Variação de preço conforme atualização de mercado.
                 </div>
                 <div style="overflow-x:auto;">
                     <table class="admin-table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
                         <thead>
                             <tr style="background:#172635; text-align:left;">
-                                <th style="padding:10px;">Descri��o</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:10px; text-align:right;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:10px;">Descrição</th>
+                                <th style="padding:10px; text-align:right;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:10px; text-align:right;">Preço Coletar (R$/kg)</th>
                                 ${showCompleta ? `
                                 <th style="padding:10px; text-align:right; color:#ffeb3b;">Venda Ref (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#aaa;">Comiss�o (%)</th>
+                                <th style="padding:10px; text-align:right; color:#aaa;">Comissão (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">PIS/COFINS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">FIDC (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">ICMS (%)</th>
                                 <th style="padding:10px; text-align:right; color:#aaa;">Frete Coleta (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda L�quida (R$/kg)</th>
-                                <th style="padding:10px; text-align:right; color:#ef4444;">Lucro L�q. Ent.</th>
-                                <th style="padding:10px; text-align:right; color:#ef4444;">Margem L�q. Ent (%)</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro L�q. Col.</th>
-                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem L�q. Col (%)</th>
+                                <th style="padding:10px; text-align:right; color:#4fc3f7;">Venda Líquida (R$/kg)</th>
+                                <th style="padding:10px; text-align:right; color:#ef4444;">Lucro Líq. Ent.</th>
+                                <th style="padding:10px; text-align:right; color:#ef4444;">Margem Líq. Ent (%)</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Lucro Líq. Col.</th>
+                                <th style="padding:10px; text-align:right; color:#3e7cb1;">Margem Líq. Col (%)</th>
                                 ` : ''}
                                 <th style="padding:10px;">NCM</th>
-                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">A��es</th>
+                                <th style="padding:10px; text-align:center; width:150px; min-width:150px; position:sticky; right:0; background:#172635; z-index:2; box-shadow:-3px 0 6px rgba(0,0,0,0.4); border-left:1px solid #283e56;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -7511,7 +7511,7 @@ var _listTabelaPrecosEstrategica = [];
                                     </tr>
                                 `;
                             }).join('')}
-                            <tr style="background:#131c26;"><td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE FUNDI��O PRE�O SOBRE ANÁLISE (FOTO)</td></tr>
+                            <tr style="background:#131c26;"><td colspan="${showCompleta ? 16 : 5}" style="padding:10px; text-align:right; font-style:italic; color:#aaa;">DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -7538,7 +7538,7 @@ var _listTabelaPrecosEstrategica = [];
         <div id="modal-preco-fundicao" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;">
             <div style="background:#101a24;border:1px solid #ef4444;border-radius:12px;padding:18px 22px 16px;width:540px;max-width:96vw;max-height:92vh;overflow-y:auto;">
                 <h3 style="margin-top:0;border-bottom:1px solid #2d3f52;padding-bottom:8px;color:#fff;font-size:1rem;">
-                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i> Definir Pre�o  Fundi��o
+                    <i class="fa-solid fa-fire-flame-curved" style="color:#ef4444;"></i> Definir Preço — Fundição
                 </h3>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
@@ -7546,37 +7546,37 @@ var _listTabelaPrecosEstrategica = [];
                         <select id="prc-fund-material-id" class="noble-input" onchange="calcularMargemLiquidaModalFundicao()"><option value="">Selecione...</option></select>
                     </div>
                     <div class="form-group">
-                        <label style="font-size:0.8rem;">Pre�o Venda Ref. (R\$/kg) *</label>
+                        <label style="font-size:0.8rem;">Preço Venda Ref. (R\$/kg) *</label>
                         <input id="prc-fund-venda-ref" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularValoresDeAcordoComPorcentagemFundicao()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Pre�o Entregar (R\$/kg) *</label>
+                        <label>Preço Entregar (R\$/kg) *</label>
                         <input id="prc-fund-entregar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeEntregarFundicao()">
                     </div>
                     <div class="form-group">
-                        <label>Pre�o Entregar (%)</label>
+                        <label>Preço Entregar (%)</label>
                         <input id="prc-fund-entregar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 90" oninput="calcularValorDeEntregarFundicao()">
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                     <div class="form-group">
-                        <label>Pre�o Coletar (R\$/kg) *</label>
+                        <label>Preço Coletar (R\$/kg) *</label>
                         <input id="prc-fund-coletar" type="number" step="0.01" class="noble-input" placeholder="0.00" oninput="calcularPorcentagemDeColetarFundicao()">
                     </div>
                     <div class="form-group">
-                        <label>Pre�o Coletar (%)</label>
+                        <label>Preço Coletar (%)</label>
                         <input id="prc-fund-coletar-pct" type="number" step="0.1" class="noble-input" placeholder="Ex: 85" oninput="calcularValorDeColetarFundicao()">
                     </div>
                 </div>
                 <div style="background:#162432;padding:8px 12px;border-radius:8px;border:1px solid #7f1d1d;margin-bottom:10px;">
                     <div style="font-weight:bold;color:#ef4444;font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                        <i class="fa-solid fa-percent"></i> Composi��o Fiscal &amp; Dedu��es (% e R\$/kg)
+                        <i class="fa-solid fa-percent"></i> Composição Fiscal &amp; Deduções (% e R\$/kg)
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
                         <div class="form-group">
-                            <label style="font-size:0.75rem;">Comiss�o (%)</label>
+                            <label style="font-size:0.75rem;">Comissão (%)</label>
                             <input id="prc-fund-comissao" type="number" step="0.1" class="noble-input" placeholder="0.0" oninput="calcularMargemLiquidaModalFundicao()">
                         </div>
                         <div class="form-group">
@@ -7599,15 +7599,15 @@ var _listTabelaPrecosEstrategica = [];
                 </div>
                 <div style="background:#0a1622;padding:8px 12px;border-radius:8px;border-left:4px solid #ef4444;margin-bottom:10px;">
                     <div style="font-size:0.8rem;text-transform:uppercase;font-weight:bold;color:#aaa;margin-bottom:6px;">
-                        <i class="fa-solid fa-calculator" style="color:#ef4444;"></i> Simula��o de Margem L�quida Real
+                        <i class="fa-solid fa-calculator" style="color:#ef4444;"></i> Simulação de Margem Líquida Real
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:0.82rem;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1a2a3a;">
                         <div>
-                            <span style="color:#888;">Total Dedu��es:</span>
+                            <span style="color:#888;">Total Deduções:</span>
                             <div style="color:#ff6b6b;font-weight:bold;" id="prc-fund-live-deducoes">0.00% (R\$ 0,00)</div>
                         </div>
                         <div>
-                            <span style="color:#888;">Venda L�quida:</span>
+                            <span style="color:#888;">Venda Líquida:</span>
                             <div style="color:#ffeb3b;font-weight:bold;" id="prc-fund-live-venda-liq">R\$ 0,00/kg</div>
                         </div>
                         <div>
@@ -7617,19 +7617,19 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
                         <div style="background:#0f251d;padding:8px;border-radius:6px;border:1px solid #1a4d36;">
-                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L�quida Entrega</span>
+                            <span style="color:#a8e6cf;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Entrega</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#2AD07A;" id="prc-fund-live-margem-ent">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-fund-live-lucro-ent">Lucro: R\$ 0,00/kg</div>
                         </div>
                         <div style="background:#250f0f;padding:8px;border-radius:6px;border:1px solid #7f1d1d;">
-                            <span style="color:#fca5a5;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem L�quida Coleta</span>
+                            <span style="color:#fca5a5;font-size:0.75rem;text-transform:uppercase;font-weight:bold;">Margem Líquida Coleta</span>
                             <div style="font-size:1.05rem;font-weight:bold;color:#ef4444;" id="prc-fund-live-margem-col">0.00%</div>
                             <div style="font-size:0.75rem;color:#aaa;" id="prc-fund-live-lucro-col">Lucro: R\$ 0,00/kg</div>
                         </div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:4px;">
-                    <label style="font-size:0.8rem;">V�lido At� * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
+                    <label style="font-size:0.8rem;">Válido Até * <span style="color:#aaa;font-size:0.75rem;font-weight:normal;">(aplicado a todos os materiais)</span></label>
                     <input id="prc-fund-validade" type="date" class="noble-input" value="${validadeDefault}" onchange="atualizarPreviewDataFundicao()">
                     <div style="display:flex;justify-content:space-between;align-items:center;background:#162738;padding:8px 12px;border-radius:6px;border:1px solid #7f1d1d;margin-top:6px;">
                         <span style="color:#aaa;font-size:0.82rem;">Data Selecionada:</span>
@@ -7743,14 +7743,14 @@ var _listTabelaPrecosEstrategica = [];
             icms:           parseVal(document.getElementById('prc-fund-icms').value),
             frete_coleta:   parseVal(document.getElementById('prc-fund-frete').value)
         };
-        if (!body.material_id || !body.validade) return _apexNotify('Aten��o', 'Material e validade s�o obrigat�rios.', 'warning');
+        if (!body.material_id || !body.validade) return _apexNotify('Atenção', 'Material e validade são obrigatórios.', 'warning');
         const btn = document.querySelector('#modal-preco-fundicao .btn-primary');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
         try {
             const res = await fetch('/api/tabela-precos-fundicao', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error(await res.text());
             document.getElementById('modal-preco-fundicao')?.remove();
-            _apexNotify('Sucesso', 'Item de fundi��o salvo!', 'success');
+            _apexNotify('Sucesso', 'Item de fundição salvo!', 'success');
             window.carregarPrecosFundicao();
         } catch(err) {
             _apexNotify('Erro', err.message, 'error');
@@ -7790,21 +7790,21 @@ var _listTabelaPrecosEstrategica = [];
             const res = await fetch(`/api/tabela-precos-fundicao/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error(await res.text());
             document.getElementById('modal-preco-fundicao')?.remove();
-            _apexNotify('Sucesso', 'Item de fundi��o atualizado!', 'success');
+            _apexNotify('Sucesso', 'Item de fundição atualizado!', 'success');
             window.carregarPrecosFundicao();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
     };
 
     window.deletarPrecoFundicao = async function(id) {
-        if (!confirm('Confirma exclus�o deste item de fundi��o?')) return;
-        try { await fetch(`/api/tabela-precos-fundicao/${id}`, { method: 'DELETE' }); _apexNotify('Sucesso', 'Item exclu�do!', 'success'); window.carregarPrecosFundicao(); } catch(e) { _apexNotify('Erro', e.message, 'error'); }
+        if (!confirm('Confirma exclusão deste item de fundição?')) return;
+        try { await fetch(`/api/tabela-precos-fundicao/${id}`, { method: 'DELETE' }); _apexNotify('Sucesso', 'Item excluído!', 'success'); window.carregarPrecosFundicao(); } catch(e) { _apexNotify('Erro', e.message, 'error'); }
     };
 
     window.alterarValidadeGeralFundicao = async function() {
         abrirModalVigenciaGeral('fundicao');
     };
 
-    window.exportarTabelaFundicao = function() { _apexNotify('Sistema', 'Tabela de Fundi��o exportada!', 'info'); };
+    window.exportarTabelaFundicao = function() { _apexNotify('Sistema', 'Tabela de Fundição exportada!', 'info'); };
 
     window.exportarTabelaFundicaoPdf = async function(modo) {
         const isCompleta = modo === 'completa';
@@ -7839,9 +7839,9 @@ var _listTabelaPrecosEstrategica = [];
                     }
                 } 
             } catch(e) {}
-            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, fadedLogo, modo, 'Fundi��o', '#ef4444', 'DEMAIS MATERIAIS DE FUNDI��O PRE�O SOBRE ANÁLISE (FOTO)', 'cor_categoria_fundicao_');
+            const html = gerarHtmlTabelaGenericaParaPdf(localPrecosFundicao, lastUpdate, settings, fadedLogo, modo, 'Fundição', '#ef4444', 'DEMAIS MATERIAIS DE FUNDIÇÃO PREÇO SOBRE ANÁLISE (FOTO)', 'cor_categoria_fundicao_');
             const base64 = await renderHtmlToPdfBase64(html, isCompleta);
-            if (!base64) return _apexNotify('Aten��o', 'Erro ao gerar PDF.', 'error');
+            if (!base64) return _apexNotify('Atenção', 'Erro ao gerar PDF.', 'error');
             const a = document.createElement('a'); a.href = `data:application/pdf;base64,${base64}`;
             a.download = isCompleta ? 'Tabela_Fundicao_Geral.pdf' : 'Tabela_Fundicao_Fornecedor.pdf'; a.click();
         } catch(e) { _apexNotify('Erro', e.message, 'error'); }
@@ -7849,7 +7849,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     // =============================================================================
-    // --- HELPER: Gerador de HTML PDF Gen�rico (shared por Volume e Fundi��o) ---
+    // --- HELPER: Gerador de HTML PDF Genérico (shared por Volume e Fundição) ---
     // =============================================================================
     function gerarHtmlTabelaGenericaParaPdf(precos, lastUpdate, settings, logoBase64, modo, titulo, corPrimaria, textoRodape, prefixoCor) {
         const isCompleta = modo === 'completa';
@@ -7858,21 +7858,21 @@ var _listTabelaPrecosEstrategica = [];
 
         const wmStyle = logoBase64 ? `background-image:url('${logoBase64}');background-repeat:repeat;background-size:200px auto;background-position:0 0;` : '';
 
-        const tituloPdf = isCompleta ? `Tabela Geral  ${titulo} (Vis�o Completa)` : `Tabela de ${titulo}`;
+        const tituloPdf = isCompleta ? `Tabela Geral — ${titulo} (Visão Completa)` : `Tabela de ${titulo}`;
         let html = `<div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;padding:25px;color:#333;background-color:#ffffff;${wmStyle}width:100%;margin:0 auto;box-sizing:border-box;position:relative;">
             <div style="position:relative;z-index:1;">
                 <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid ${corPrimaria};padding-bottom:20px;margin-bottom:25px;">
                     <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                     <div style="text-align:right;">
                         <h1 style="margin:0;color:${corPrimaria};font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                        <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">�ltima Atualiza��o: <span style="color:${corPrimaria};font-weight:bold;">${lastUpdate}</span></p>
+                        <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:${corPrimaria};font-weight:bold;">${lastUpdate}</span></p>
                     </div>
                 </div>
                 <div style="background:#f4f7fa;border-left:5px solid ${corPrimaria};border-radius:4px;padding:15px;margin-bottom:30px;">
-                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">�x9 Diretrizes Gerais de Compra</h4>
+                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra</h4>
                     <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                        <li>Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg.</li>
-                        <li>OBS: Varia��o de pre�o conforme atualiza��o de mercado.</li>
+                        <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                        <li>OBS: Variação de preço conforme atualização de mercado.</li>
                         <li style="font-weight:bold;color:#c0392b;">${textoRodape}</li>
                     </ul>
                 </div>`;
@@ -7884,24 +7884,24 @@ var _listTabelaPrecosEstrategica = [];
             const corCat = (settings && settings[`${prefixoCor}${cat}`]) || corPrimaria;
             html += `<div style="margin-bottom:30px;border:1px solid ${corCat};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                 <div style="background:${corCat};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;">
-                    <span>${cat}</span><span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG�NCIA AT�: ${validadeStr}</span>
+                    <span>${cat}</span><span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                     <thead><tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                        <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri��o</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Entregar (R$/kg)</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Coletar (R$/kg)</th>
+                        <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
                         ${isCompleta ? `
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss�o (%)</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L�q.</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L�q. Ent.</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L�q. Col.</th>
+                        <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
                         <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                         ` : ''}
                         <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -7941,7 +7941,7 @@ var _listTabelaPrecosEstrategica = [];
                     </tbody></table></div>`;
         });
         html += `<div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-            <div style="font-weight:bold;color:${corPrimaria};font-size:0.95rem;"> Aprovado pelo CEO Jose Tiago</div>
+            <div style="font-weight:bold;color:${corPrimaria};font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
             <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
         </div></div></div>`;
         return html;
@@ -7988,14 +7988,14 @@ var _listTabelaPrecosEstrategica = [];
     };
 
     
-// MODULE_EXTRACTED: // ������ COTA��ES AO VIVO D�LAR & LME (USD / BRL) ����������������������������������������������������������
+// MODULE_EXTRACTED: // ─── COTAÇÕES AO VIVO DÓLAR & LME (USD / BRL) ─────────────────────────────
 
-// ������ MOTOR DE NOTIFICA��ES DO SININHO (DIRETORIA / ADM) ������������������������������������������
+// ─── MOTOR DE NOTIFICAÇÕES DO SININHO (DIRETORIA / ADM) ─────────────────────
     window.atualizarNotificacoesAprovacao = function() {
         if (!Array.isArray(localAmostras)) return;
 
         const pendentes = localAmostras.filter(a => 
-            a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decis�o de Compra'
+            a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra'
         );
 
         const count = pendentes.length;
@@ -8026,7 +8026,7 @@ var _listTabelaPrecosEstrategica = [];
 
         if (listEl) {
             if (count === 0) {
-                listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprova��o pendente no momento.</div>';
+                listEl.innerHTML = '<div style="color:#aaa; font-size:0.8rem; text-align:center; padding:12px;"><i class="fa-solid fa-check-circle" style="color:#2AD07A;"></i> Nenhuma aprovação pendente no momento.</div>';
             } else {
                 listEl.innerHTML = pendentes.map(p => `
                     <div style="background:#162432; border:1px solid #1e4e8c; border-radius:6px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:all 0.2s;" onclick="abrirAmostraEDesmonte(${p.id})" onmouseover="this.style.borderColor='#2AD07A'" onmouseout="this.style.borderColor='#1e4e8c'" title="Clique para abrir e ver os detalhes desta amostra">
@@ -8059,7 +8059,7 @@ var _listTabelaPrecosEstrategica = [];
         abrirAnaliseDesmonte(id);
     };
 
-    // Polling autom�tico a cada 10 segundos
+    // Polling automático a cada 10 segundos
     setInterval(() => {
         if (typeof carregarAmostras === 'function') carregarAmostras();
     }, 10000);
@@ -8124,9 +8124,9 @@ var _listTabelaPrecosEstrategica = [];
                 statusBadgeHtml = `<span class="badge-status aprovado-compra-autorizada" style="background:rgba(42,208,122,0.15); color:#2AD07A; border:1px solid #2AD07A; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Aprovado por ${a.autorizado_por || 'Diretoria'} em ${dtDec}. Clique para ver os detalhes.">
                     <i class="fa-solid fa-check-circle"></i> Aprovado por ${a.autorizado_por || 'Diretoria'}${dtDec ? ' (' + dtDec + ')' : ''}
                 </span>`;
-            } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decis�o de Compra') {
+            } else if (a.decisao_diretoria === 'Aguardando' || a.status === 'Aguardando Decisão de Compra') {
                 statusBadgeHtml = `<span class="badge-status aguardando-decisao-de-compra" style="background:rgba(240,180,0,0.15); color:#f0c040; border:1px solid #f0b800; padding:4px 8px; border-radius:4px; font-size:0.75rem; display:inline-block; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Clique para analisar e aprovar">
-                    <i class="fa-solid fa-clock"></i> Aguardando Aprova��o Diretoria
+                    <i class="fa-solid fa-clock"></i> Aguardando Aprovação Diretoria
                 </span>`;
             }
 
@@ -8201,19 +8201,19 @@ var _listTabelaPrecosEstrategica = [];
 
     window.deletarAmostra = async function(id) {
         if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-            _apexNotify('Aten��o', 'Erro: Apenas o Administrador ou Diretoria podem excluir amostras.', 'error');
+            _apexNotify('Atenção', 'Erro: Apenas o Administrador ou Diretoria podem excluir amostras.', 'error');
             return;
         }
-        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas an�lises de componentes?')) return;
+        if (!confirm('Tem certeza de que deseja excluir permanentemente esta amostra e todas as suas análises de componentes?')) return;
         try {
             const res = await fetch(`/api/amostras/${id}?user_perfil=${currentSimulatedRole}`, { method: 'DELETE' });
             if (res.ok) {
-                _apexNotify('Sistema', 'Amostra exclu�da com sucesso!', 'info');
+                _apexNotify('Sistema', 'Amostra excluída com sucesso!', 'info');
                 carregarAmostras();
                 fecharAnaliseDesmonte();
             } else {
                 const data = await res.json();
-                _apexNotify('Aten��o', 'Erro ao excluir: ' + (data.error || 'Erro desconhecido.'), 'error');
+                _apexNotify('Atenção', 'Erro ao excluir: ' + (data.error || 'Erro desconhecido.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -8246,14 +8246,14 @@ var _listTabelaPrecosEstrategica = [];
         const modal = document.getElementById('modal-amostra');
         if (modal) modal.style.display = 'flex';
         if (dataEl) {
-            // Usa hor�rio local (n�o UTC) para evitar erro de data com fuso -03:00
+            // Usa horário local (não UTC) para evitar erro de data com fuso -03:00
             const hoje = new Date();
             const ano  = hoje.getFullYear();
             const mes  = String(hoje.getMonth() + 1).padStart(2, '0');
             const dia  = String(hoje.getDate()).padStart(2, '0');
             dataEl.value = `${ano}-${mes}-${dia}`;
         }
-        // Limpa fotos acumuladas de sess�es anteriores
+        // Limpa fotos acumuladas de sessões anteriores
         if (typeof window._limparFotosRecebimento === 'function') window._limparFotosRecebimento();
     };
 
@@ -8262,7 +8262,7 @@ var _listTabelaPrecosEstrategica = [];
         if (modal) modal.style.display = 'none';
     };
 
-    // ������ FOTOS DO RECEBIMENTO (Etapa 1  M�ltiplas fotos via arquivo ou webcam) ����������������������������������
+    // ─── FOTOS DO RECEBIMENTO (Etapa 1 — Múltiplas fotos via arquivo ou webcam) ─────────────────
     let _fotosRecebimento = []; // Array de { base64, blob, nome }
 
     // Limpa o array ao abrir o modal (chamado em abrirModalAmostra)
@@ -8271,7 +8271,7 @@ var _listTabelaPrecosEstrategica = [];
         renderFotosRecebimentoPreview();
     };
 
-    // Adiciona fotos via sele��o de arquivo
+    // Adiciona fotos via seleção de arquivo
     window.adicionarFotosRecebimento = function(input) {
         if (!input.files || input.files.length === 0) return;
         const tasks = Array.from(input.files).map(file => {
@@ -8290,7 +8290,7 @@ var _listTabelaPrecosEstrategica = [];
 
     // Abre a webcam e, ao confirmar, adiciona a foto ao array _fotosRecebimento
     window.abrirWebcamRecebimento = function() {
-        if (!window._WCM) { _apexNotify('Sistema', 'M�dulo de webcam n�o inicializado. Tente recarregar a p�gina.', 'info'); return; }
+        if (!window._WCM) { _apexNotify('Sistema', 'Módulo de webcam não inicializado. Tente recarregar a página.', 'info'); return; }
         window._WCM.abrirParaRecebimento(function(img64, blob) {
             const nome = 'webcam_recebimento_' + Date.now() + '.jpg';
             _fotosRecebimento.push({ base64: img64, blob: blob, nome: nome });
@@ -8299,7 +8299,7 @@ var _listTabelaPrecosEstrategica = [];
     };
 
 
-    // Renderiza as miniaturas na galeria do formul�rio
+    // Renderiza as miniaturas na galeria do formulário
     function renderFotosRecebimentoPreview() {
         const container = document.getElementById('amo-fotos-preview');
         if (!container) return;
@@ -8311,7 +8311,7 @@ var _listTabelaPrecosEstrategica = [];
             <div style="position:relative; display:inline-block;">
                 <img src="${f.base64}" style="width:72px; height:72px; object-fit:cover; border-radius:6px; border:2px solid #2AD07A; display:block;" title="${f.nome}">
                 <button type="button" onclick="removerFotoRecebimento(${i})"
-                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">�£�</button>
+                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">Ô£ò</button>
             </div>
         `).join('');
     }
@@ -8352,7 +8352,7 @@ var _listTabelaPrecosEstrategica = [];
                 for (const fotoObj of _fotosRecebimento) {
                     let blobToSend;
                     if (fotoObj.base64 && fotoObj.base64.startsWith('data:')) {
-                        // Reconverter do base64 armazenado para garantir bytes �ntegros
+                        // Reconverter do base64 armazenado para garantir bytes íntegros
                         try {
                             const byteStr = atob(fotoObj.base64.split(',')[1]);
                             const mime    = fotoObj.base64.split(',')[0].split(':')[1].split(';')[0];
@@ -8374,7 +8374,7 @@ var _listTabelaPrecosEstrategica = [];
                 });
             }
 
-            // Limpa as fotos ap�s salvar
+            // Limpa as fotos após salvar
             _fotosRecebimento = [];
             renderFotosRecebimentoPreview();
 
@@ -8386,8 +8386,8 @@ var _listTabelaPrecosEstrategica = [];
     };
 
 
-    // ������ NAVEGA��O DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ������������
-    // ������ NAVEGA��O DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ������������
+    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
+    // ─── NAVEGAÇÃO DE TELAS ESTILO ERP ENTERPRISE (SAP / ORACLE / SANKHYA) ──────
     window.mudarTelaEtapa = function(etapaNum) {
         const idMap = {
             1: 'tela-etapa-1',
@@ -8401,7 +8401,7 @@ var _listTabelaPrecosEstrategica = [];
         // Etapa 4: acesso restrito
         if (etapaNum === 4) {
             if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                _apexNotify('Sistema', '­�ö�  Acesso Restrito ao N�vel de Diretoria / Administrador (ERP Security Level).\n\nUsu�rios operacionais do laborat�rio n�o possuem permiss�o para visualizar ou definir pre�os estrat�gicos.', 'info');
+                _apexNotify('Sistema', '­Æ’öÃ† Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
@@ -8411,7 +8411,7 @@ var _listTabelaPrecosEstrategica = [];
 
         const el = document.getElementById(targetId);
         if (el) {
-            // Garante que o elemento est� vis�vel antes de rolar
+            // Garante que o elemento está visível antes de rolar
             if (el.style.display === 'none') el.style.display = 'block';
             // Scroll com pequeno offset do topo da janela
             const yOffset = -80;
@@ -8430,13 +8430,13 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ������ ETIQUETA QR CODE FISICA DE LOTE ����������������������������������������������������������������������������������
+    // ─── ETIQUETA QR CODE FISICA DE LOTE ─────────────────────────────────────────
     window.gerarEtiquetaQRAmostra = function(id) {
         const amostra = localAmostras.find(a => a.id === id);
         if (!amostra) return;
 
         document.getElementById('qr-amostra-codigo').textContent = amostra.numero_amostra;
-        document.getElementById('qr-amostra-material').textContent = amostra.nome_material || 'Material N�o Especificado';
+        document.getElementById('qr-amostra-material').textContent = amostra.nome_material || 'Material Não Especificado';
         document.getElementById('qr-amostra-detalhes').textContent = `Fornecedor: ${amostra.fornecedor_nome} | Peso: ${parseFloat(amostra.peso_inicial).toFixed(3)} kg`;
 
         const qrCanvas = document.createElement('canvas');
@@ -8455,7 +8455,7 @@ var _listTabelaPrecosEstrategica = [];
                 if (!err) document.getElementById('qr-code-img').src = url;
             });
         } else {
-            // Fallback via API r�pida de QR Code
+            // Fallback via API rápida de QR Code
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payloadText)}`;
         }
 
@@ -8473,7 +8473,7 @@ var _listTabelaPrecosEstrategica = [];
         win.document.close();
     };
 
-    // ������ EXPORTA��O EM BATCH DE LAUDOS PDF EM ZIP ��������������������������������������������������������������
+    // ─── EXPORTAÇÃO EM BATCH DE LAUDOS PDF EM ZIP ───────────────────────────────
     window.exportarLaudosEmLoteZip = async function() {
         const checkboxes = document.querySelectorAll('.chk-amostra-select:checked');
         if (checkboxes.length === 0) {
@@ -8482,14 +8482,14 @@ var _listTabelaPrecosEstrategica = [];
         }
 
         if (typeof JSZip === 'undefined') {
-            _apexNotify('Sistema', 'Biblioteca JSZip n�o carregada.', 'info');
+            _apexNotify('Sistema', 'Biblioteca JSZip não carregada.', 'info');
             return;
         }
 
         const zip = new JSZip();
         const folder = zip.folder('LAUDOS_APEXTECH');
 
-        _apexNotify('Sistema', `Iniciando gera��o de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclus�o.`, 'info');
+        _apexNotify('Sistema', `Iniciando geração de ${checkboxes.length} laudo(s) em PDF... Aguarde a conclusão.`, 'info');
 
         for (const chk of checkboxes) {
             const amostraId = parseInt(chk.value);
@@ -8497,13 +8497,13 @@ var _listTabelaPrecosEstrategica = [];
             if (!amostra) continue;
 
             try {
-                // Abre gera��o tempor�ria
+                // Abre geração temporária
                 await window.gerarLaudoPDF(amostraId);
             } catch(e) {
                 console.error(`Erro ao incluir amostra ${amostraId} no ZIP:`, e);
             }
         }
-        _apexNotify('Sistema', 'Gera��o em lote finalizada com sucesso!', 'info');
+        _apexNotify('Sistema', 'Geração em lote finalizada com sucesso!', 'info');
     };
 
     // Detalhes do Desmonte
@@ -8518,11 +8518,11 @@ var _listTabelaPrecosEstrategica = [];
 
             document.getElementById('analise-titulo-amostra').textContent = amostra.numero_amostra;
             const matNomeEl = document.getElementById('analise-material-nome');
-            if (matNomeEl) matNomeEl.textContent = amostra.nome_material || 'Material n�o informado';
+            if (matNomeEl) matNomeEl.textContent = amostra.nome_material || 'Material não informado';
             document.getElementById('analise-fornecedor-nome').textContent = amostra.fornecedor_nome;
             document.getElementById('analise-peso-inicial').textContent = parseFloat(amostra.peso_inicial).toFixed(3);
 
-            // Atualiza os n�s visuais do Stepper de Etapas
+            // Atualiza os nós visuais do Stepper de Etapas
             atualizarStepperAmostra(amostra.status, amostra.decisao_diretoria);
 
             componentesActivos = componentes.map((c, idx) => {
@@ -8531,7 +8531,7 @@ var _listTabelaPrecosEstrategica = [];
                     material_id:  c.material_id,
                     peso:         parseFloat(c.peso),
                     percentual:   parseFloat(c.percentual),
-                    dificuldade:  c.dificuldade || 'F�cil',
+                    dificuldade:  c.dificuldade || 'Fácil',
                     foto:         c.foto || '',
                     fotosUrl:     urls,
                     fotosBase64:  [],
@@ -8540,7 +8540,7 @@ var _listTabelaPrecosEstrategica = [];
                 };
             });
 
-            // Restaurar fotos do banco por componente_idx (garante que fotos anteriores n�o somem)
+            // Restaurar fotos do banco por componente_idx (garante que fotos anteriores não somem)
             try {
                 const ftRes  = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/fotos`);
                 const ftList = await ftRes.json();
@@ -8564,7 +8564,7 @@ var _listTabelaPrecosEstrategica = [];
             } catch(e) { console.warn('Erro ao restaurar fotos dos componentes:', e); }
 
 
-            // Inicializa cron�metro com tempo j� salvo (se houver) e inicia a contagem automaticamente
+            // Inicializa cronômetro com tempo já salvo (se houver) e inicia a contagem automaticamente
             resetCronometro();
             if (amostra.tempo_desmonte) {
                 cronSegundos = parseInt(amostra.tempo_desmonte);
@@ -8574,15 +8574,15 @@ var _listTabelaPrecosEstrategica = [];
                 window.toggleCronometro();
             }
 
-            // Parecer T�cnico
+            // Parecer Técnico
             document.getElementById('analise-parecer-tecnico').value = amostra.parecer_tecnico || '';
 
-            // Decis�o da Diretoria e campos de precifica��o autorizada
+            // Decisão da Diretoria e campos de precificação autorizada
             const painelDir = document.getElementById('painel-decisao-diretoria');
             const hContainer = document.getElementById('decisao-historica-container');
             const bannerAutonomia = document.getElementById('banner-autonomia-compra');
             
-            // Popula os inputs de precifica��o e obs. diretoria
+            // Popula os inputs de precificação e obs. diretoria
             document.getElementById('dir-preco-entregar').value = amostra.preco_compra_entregar || '';
             document.getElementById('dir-preco-coletar').value = amostra.preco_compra_coletar || '';
             const defaultDate = new Date();
@@ -8618,7 +8618,7 @@ var _listTabelaPrecosEstrategica = [];
                 tecnicoDiv.style.display = 'none';
             }
 
-            // Exibir banner de autonomia com detalhes expl�citos
+            // Exibir banner de autonomia com detalhes explícitos
             if (bannerAutonomia) {
                 if (amostra.decisao_diretoria === 'Aprovado') {
                     bannerAutonomia.style.display = 'flex';
@@ -8651,9 +8651,9 @@ var _listTabelaPrecosEstrategica = [];
         if (btnLiberar) btnLiberar.style.display = 'none';
         if (btnProcessar) btnProcessar.style.display = 'none';
 
-        if (status === 'Aguardando Libera��o PCP' || status === 'Aprovado - Compra Autorizada') {
+        if (status === 'Aguardando Liberação PCP' || status === 'Aprovado - Compra Autorizada') {
             if (btnLiberar) btnLiberar.style.display = '';
-        } else if (status === 'Liberado para Produ��o') {
+        } else if (status === 'Liberado para Produção') {
             if (btnProcessar) btnProcessar.style.display = '';
         }
     }
@@ -8664,7 +8664,7 @@ var _listTabelaPrecosEstrategica = [];
         resetCronometro();
     };
 
-    // Cron�metro
+    // Cronômetro
     let cronInterval = null;
     let cronSegundos = 0;
 
@@ -8725,7 +8725,7 @@ var _listTabelaPrecosEstrategica = [];
         const s4 = document.getElementById('step-node-4');
         if (!s1 || !s2 || !s3 || !s4) return;
 
-        // Exibe todas as etapas em uma �nica p�gina longa de forma cont�nua
+        // Exibe todas as etapas em uma única página longa de forma contínua
         const t1 = document.getElementById('tela-etapa-1');
         const t2 = document.getElementById('tela-etapa-2');
         const t3 = document.getElementById('tela-etapa-3');
@@ -8738,7 +8738,7 @@ var _listTabelaPrecosEstrategica = [];
             if (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria') {
                 t4.style.display = 'block';
             } else {
-                t4.style.display = 'none'; // Seguran�a ERP para usu�rios comuns
+                t4.style.display = 'none'; // Segurança ERP para usuários comuns
             }
         }
 
@@ -8759,11 +8759,11 @@ var _listTabelaPrecosEstrategica = [];
             }
         };
 
-        // Etapa 1 sempre conclu�da ap�s cria��o do recebimento
+        // Etapa 1 sempre concluída após criação do recebimento
         setStepState(s1, false, true);
 
-        // Etapa 2: Desmonte (Ativa se Em An�lise, Conclu�da se status for al�m de Em An�lise)
-        if (status === 'Em An�lise') {
+        // Etapa 2: Desmonte (Ativa se Em Análise, Concluída se status for além de Em Análise)
+        if (status === 'Em Análise') {
             setStepState(s2, true, false);
             setStepState(s3, false, false);
             setStepState(s4, false, false);
@@ -8771,10 +8771,10 @@ var _listTabelaPrecosEstrategica = [];
             setStepState(s2, false, true);
             setStepState(s3, true, false);
             
-            if (status === 'Aguardando Decis�o de Compra') {
+            if (status === 'Aguardando Decisão de Compra') {
                 setStepState(s3, false, true);
                 setStepState(s4, true, false);
-            } else if (decisaoDiretoria === 'Aprovado' || status === 'Aprovado - Compra Autorizada' || status === 'Aguardando Libera��o PCP' || status === 'Liberado para Produ��o' || status === 'Processado') {
+            } else if (decisaoDiretoria === 'Aprovado' || status === 'Aprovado - Compra Autorizada' || status === 'Aguardando Liberação PCP' || status === 'Liberado para Produção' || status === 'Processado') {
                 setStepState(s3, false, true);
                 setStepState(s4, false, true, '#2AD07A');
             } else if (decisaoDiretoria === 'Reprovado') {
@@ -8784,7 +8784,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     }
 
-    // ������ UPLOAD REAL DE FOTOS ������������������������������������������������������������������������������������������������������
+    // ─── UPLOAD REAL DE FOTOS ───────────────────────────────────────────────────
     window.uploadFotos = async function(input, tipo, etapa) {
         if (!activeAmostraIdForDesmonte || !input.files || input.files.length === 0) return;
         const spinner = document.getElementById('foto-input-spinner');
@@ -8799,7 +8799,7 @@ var _listTabelaPrecosEstrategica = [];
             if (result.success) {
                 await carregarFotosAmostra(activeAmostraIdForDesmonte);
             } else {
-                _apexNotify('Aten��o', 'Erro ao enviar foto: ' + (result.error || 'desconhecido'), 'error');
+                _apexNotify('Atenção', 'Erro ao enviar foto: ' + (result.error || 'desconhecido'), 'error');
             }
         } catch (err) {
             console.error('uploadFotos:', err);
@@ -8821,7 +8821,7 @@ var _listTabelaPrecosEstrategica = [];
         const gallery     = document.getElementById('fotos-gallery');
         const placeholder = document.getElementById('fotos-placeholder');
         if (!gallery) return;
-        // Remove thumbs anteriores mas mant�m placeholder
+        // Remove thumbs anteriores mas mantém placeholder
         Array.from(gallery.children).forEach(el => { if (el.id !== 'fotos-placeholder') el.remove(); });
         if (!fotos || fotos.length === 0) {
             if (placeholder) placeholder.style.display = 'block';
@@ -8829,7 +8829,7 @@ var _listTabelaPrecosEstrategica = [];
         }
         if (placeholder) placeholder.style.display = 'none';
 
-        // Ordena��o cronol�gica estrita (Ordem em que foram tiradas: Recebimento -> Desmonte -> Componentes)
+        // Ordenação cronológica estrita (Ordem em que foram tiradas: Recebimento -> Desmonte -> Componentes)
         const fotosOrdenadas = (fotos || []).slice().sort((a, b) => {
             const timeA = new Date(a.criado_em || 0).getTime() || a.id;
             const timeB = new Date(b.criado_em || 0).getTime() || b.id;
@@ -8844,14 +8844,14 @@ var _listTabelaPrecosEstrategica = [];
             if (etapaTexto.includes('Camada')) {
                 badge.textContent = etapaTexto;
             } else {
-                badge.textContent = `${index + 1}���" ${etapaTexto}`;
+                badge.textContent = `${index + 1}â”¬â•‘ ${etapaTexto}`;
             }
             
             let badgeBg = '#3e7cb1';
             if (etapaTexto === 'Recebimento') badgeBg = '#f0b800';
             else if (etapaTexto === 'Desmonte') badgeBg = '#3e7cb1';
             else if (etapaTexto === 'Viabilidade') badgeBg = '#9c27b0';
-            else if (etapaTexto === 'Aprova��o' || etapaTexto === 'Aprova��o Adm') badgeBg = '#2AD07A';
+            else if (etapaTexto === 'Aprovação' || etapaTexto === 'Aprovação Adm') badgeBg = '#2AD07A';
 
             badge.style.cssText = `position:absolute;top:4px;left:4px;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;background:${badgeBg};color:#000;z-index:2;box-shadow:0 2px 4px rgba(0,0,0,0.5);`;
             
@@ -8897,12 +8897,12 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     
-// MODULE_EXTRACTED: // ������ CALCULADORA FIDC ����������������������������������������������������������������������������������������������������������������
+// MODULE_EXTRACTED: // ─── CALCULADORA FIDC ────────────────────────────────────────────────────────
 
 
-// MODULE_EXTRACTED: // ������ TRILHA DE AUDITORIA ����������������������������������������������������������������������������������������������������������
+// MODULE_EXTRACTED: // ─── TRILHA DE AUDITORIA ─────────────────────────────────────────────────────
 
-// ������ PR�VIA VISUAL DO LAUDO ��������������������������������������������������������������������������������������������������
+// ─── PRÉVIA VISUAL DO LAUDO ─────────────────────────────────────────────────
     const previaLaudoItens = [];
 
     function adicionarPreviaLaudo(idx, imgBase64) {
@@ -8917,7 +8917,7 @@ var _listTabelaPrecosEstrategica = [];
             ts: Date.now(),
             nome: nomeMaterial,
             peso: comp.peso || 0,
-            dificuldade: comp.dificuldade || 'F�cil',
+            dificuldade: comp.dificuldade || 'Fácil',
             observacoes: comp.observacoes || '',
             img: imgBase64
         };
@@ -8935,14 +8935,14 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="position:relative;">
                     <img src="${item.img}" style="width:100%; height:180px; object-fit:cover; display:block;">
                     <div style="position:absolute; top:8px; left:8px; background:rgba(13,26,36,0.85); border:1px solid #2AD07A; border-radius:20px; padding:2px 10px; font-size:0.72rem; color:#2AD07A; font-weight:bold;">
-                        ­��© #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
+                        ­Æ’ô© #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
                     </div>
                 </div>
                 <div style="padding:12px;">
                     <div style="font-weight:bold; color:#fff; font-size:0.95rem; margin-bottom:6px;">${item.nome}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">��� ${parseFloat(item.peso).toFixed(3)} kg</span>
-                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">­�öº ${item.dificuldade}</span>
+                        <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">ÔÜû ${parseFloat(item.peso).toFixed(3)} kg</span>
+                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">­Æ’öº ${item.dificuldade}</span>
                     </div>
                     ${item.observacoes ? `<div style="color:#aaa; font-size:0.8rem; border-top:1px solid #223547; padding-top:8px;">${item.observacoes}</div>` : ''}
                 </div>
@@ -8980,7 +8980,7 @@ var _listTabelaPrecosEstrategica = [];
             material_id: localMateriais[0] ? localMateriais[0].id : null,
             peso: 0.0,
             percentual: 0.0,
-            dificuldade: 'F�cil',
+            dificuldade: 'Fácil',
             foto: '',
             fotosUrl: [],
             fotosBase64: [],
@@ -9014,7 +9014,7 @@ var _listTabelaPrecosEstrategica = [];
     window.calcularAnaliseAmostra = function() {
         const pesoInicial = parseFloat(document.getElementById('analise-peso-inicial').textContent) || 0.0;
         
-        // Executar c�lculo centralizado no ApexEngine
+        // Executar cálculo centralizado no ApexEngine
         const resEngine = window.ApexEngine.calcularViabilidadeCompleta({
             pesoBruto: pesoInicial,
             componentes: componentesActivos,
@@ -9035,22 +9035,22 @@ var _listTabelaPrecosEstrategica = [];
         });
 
         if (resEngine.totalPesoRecuperado > pesoInicial) {
-            _apexNotify('Sistema', 'Aten��o: A soma do peso dos componentes n�o pode exceder o peso inicial da amostra!', 'info');
+            _apexNotify('Sistema', 'Atenção: A soma do peso dos componentes não pode exceder o peso inicial da amostra!', 'info');
         }
 
         document.getElementById('resumo-peso-recuperado').textContent = resEngine.totalPesoRecuperado.toFixed(3);
         document.getElementById('resumo-peso-perda').textContent = resEngine.perdaFisicaKg.toFixed(3);
         document.getElementById('resumo-percentual-perda').textContent = fmtBRL(resEngine.percentualPerda);
 
-        // Formula Qu�mica
+        // Formula Química
         const formulaParts = componentesActivos.map(c => {
             const m = localMateriais.find(x => x.id === c.material_id);
             return `${c.percentual.toFixed(1)}% ${m ? m.nome : (c.custom_name || 'Desconhecido')}`;
         });
         if (resEngine.perdaFisicaKg > 0) {
-            formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Res�duos`);
+            formulaParts.push(`${resEngine.percentualPerda.toFixed(1)}% Perda/Resíduos`);
         }
-        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' ��� ');
+        document.getElementById('resumo-formula-quimica').textContent = formulaParts.join(' â”¬À ');
 
         if (window.recalcularFIDC) {
             window.recalcularFIDC();
@@ -9065,7 +9065,7 @@ var _listTabelaPrecosEstrategica = [];
         const totalPesos = componentesActivos.reduce((sum, c) => sum + c.peso, 0);
 
         if (totalPesos > pesoInicial) {
-            _apexNotify('Aten��o', 'Erro: A soma do peso dos componentes � maior do que o peso total dispon�vel.', 'error');
+            _apexNotify('Atenção', 'Erro: A soma do peso dos componentes é maior do que o peso total disponível.', 'error');
             return;
         }
         
@@ -9080,22 +9080,22 @@ var _listTabelaPrecosEstrategica = [];
                     tecnico_analise: sessionStorage.getItem('apex_logged_user_name') || currentSimulatedRole
                 })
             });
-            // Muda status para sinalizar que precisa de decis�o do Diretor
+            // Muda status para sinalizar que precisa de decisão do Diretor
             await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Aguardando Decis�o de Compra' })
+                body: JSON.stringify({ status: 'Aguardando Decisão de Compra' })
             });
-            // Disparo autom�tico de e-mail ao Diretor
+            // Disparo automático de e-mail ao Diretor
             try {
                 const emailRes = await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/enviar-laudo-email`, { method: 'POST' });
                 const emailData = await emailRes.json();
                 const emailMsg = emailData.enviado
-                    ? `E-mail enviado para ${emailData.destinatarios?.length || 0} destinat�rio(s).`
-                    : `E-mail n�o enviado (${emailData.motivo || 'sem config'}).`;
-                _apexNotify('An�lise Salva com Sucesso!', 'A amostra foi enviada para decis�o de compra pela Diretoria.\n\n' + emailMsg, 'success');
+                    ? `E-mail enviado para ${emailData.destinatarios?.length || 0} destinatário(s).`
+                    : `E-mail não enviado (${emailData.motivo || 'sem config'}).`;
+                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.\n\n' + emailMsg, 'success');
             } catch(e) {
-                _apexNotify('An�lise Salva com Sucesso!', 'A amostra foi enviada para decis�o de compra pela Diretoria.', 'success');
+                _apexNotify('Análise Salva com Sucesso!', 'A amostra foi enviada para decisão de compra pela Diretoria.', 'success');
             }
             fecharAnaliseDesmonte();
             carregarAmostras();
@@ -9104,7 +9104,7 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // A��es Diretoria
+    // Ações Diretoria
     window.abrirModalReprovacao = function() {
         document.getElementById('reprovacao-motivo-texto').value = '';
         document.getElementById('modal-reprovacao').style.display = 'flex';
@@ -9123,13 +9123,13 @@ var _listTabelaPrecosEstrategica = [];
         const obsDir = (document.getElementById('dir-obs-diretoria') || {}).value || '';
 
         if (decisao === 'Reprovado' && !motivo) {
-            _apexNotify('Sistema', 'Por favor, informe o motivo da reprova��o.', 'info');
+            _apexNotify('Sistema', 'Por favor, informe o motivo da reprovação.', 'info');
             return;
         }
 
         if (decisao === 'Aprovado') {
             if (isNaN(precoEntregar) || isNaN(precoColetar) || !validade) {
-                _apexNotify('Sistema', 'Por favor, preencha os pre�os autorizados de compra (Entregar e Coletar) e a validade.', 'info');
+                _apexNotify('Sistema', 'Por favor, preencha os preços autorizados de compra (Entregar e Coletar) e a validade.', 'info');
                 return;
             }
         }
@@ -9151,13 +9151,13 @@ var _listTabelaPrecosEstrategica = [];
             });
             const data = await res.json();
             if (res.ok) {
-                const emoji = decisao === 'Aprovado' ? '' : 'L';
-                _apexNotify('Sistema', `${emoji} Decis�o da Diretoria registrada: ${decisao}\n\nEsta decis�o foi permanentemente registrada no laudo da amostra.`, 'info');
+                const emoji = decisao === 'Aprovado' ? '✅' : '❌';
+                _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();
                 carregarAmostras();
             } else {
-                _apexNotify('Aten��o', 'Erro: ' + (data.error || 'N�o foi poss�vel registrar a decis�o.'), 'error');
+                _apexNotify('Atenção', 'Erro: ' + (data.error || 'Não foi possível registrar a decisão.'), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -9170,9 +9170,9 @@ var _listTabelaPrecosEstrategica = [];
             await fetch(`/api/amostras/${activeAmostraIdForDesmonte}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'Liberado para Produ��o' })
+                body: JSON.stringify({ status: 'Liberado para Produção' })
             });
-            _apexNotify('Sistema', 'Lote Aprovado e Liberado para Produ��o/PCP!', 'info');
+            _apexNotify('Sistema', 'Lote Aprovado e Liberado para Produção/PCP!', 'info');
             fecharAnaliseDesmonte();
             carregarAmostras();
         } catch (err) {
@@ -9222,7 +9222,7 @@ var _listTabelaPrecosEstrategica = [];
                 if (Array.isArray(ftData)) fotosAmostraList = ftData;
             } catch(e) { console.warn('Erro ao carregar fotos:', e); }
 
-            // Carregar logo do cabe�alho
+            // Carregar logo do cabeçalho
             let logoBase64 = null;
             try {
                 const logoRes = await fetch('/assets/img/apexlogo.png');
@@ -9232,7 +9232,7 @@ var _listTabelaPrecosEstrategica = [];
                     reader.onloadend = () => resolve(reader.result);
                     reader.readAsDataURL(logoBlob);
                 });
-            } catch(e) { console.warn('Logo cabe�alho n�o carregado:', e); }
+            } catch(e) { console.warn('Logo cabeçalho não carregado:', e); }
 
             // Carregar Marca d'Água: logo (2).png
             let watermarkBase64 = null;
@@ -9245,7 +9245,7 @@ var _listTabelaPrecosEstrategica = [];
                     reader.readAsDataURL(wBlob);
                 });
             } catch(e) {
-                console.warn('Watermark logo (2).png n�o carregado:', e);
+                console.warn('Watermark logo (2).png não carregado:', e);
                 watermarkBase64 = logoBase64;
             }
 
@@ -9277,7 +9277,7 @@ var _listTabelaPrecosEstrategica = [];
                 pdf.setTextColor(140, 210, 160);
                 pdf.text('Tecnologia e Sustentabilidade na Reciclagem de Metais', 60, 289);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('P�gina ' + pageNum, 195, 289, { align: 'right' });
+                pdf.text('Página ' + pageNum, 195, 289, { align: 'right' });
                 pdf.setFontSize(7);
                 pdf.setTextColor(120, 180, 140);
                 pdf.text('Laudo No. APX-' + (amostra.numero_amostra || '') + '  |  ' + new Date().toLocaleDateString('pt-BR'), 15, 293);
@@ -9311,7 +9311,7 @@ var _listTabelaPrecosEstrategica = [];
                 pdf.setFont('helvetica', 'normal');
                 pdf.setFontSize(8);
                 pdf.setTextColor(255, 255, 255);
-                pdf.text('EMISS�O: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
+                pdf.text('EMISSÃO: ' + new Date().toLocaleDateString('pt-BR'), 195, 20, { align: 'right' });
                 const decStatus = amostra.decisao_diretoria || 'AGUARDANDO';
                 const sc = decStatus === 'Aprovado' ? [42, 208, 122] : decStatus === 'Reprovado' ? [255, 80, 80] : [220, 200, 60];
                 pdf.setTextColor(...sc);
@@ -9335,7 +9335,7 @@ var _listTabelaPrecosEstrategica = [];
 
             let y = 50;
 
-            // ������ SE��O 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ������������������
+            // ─── SEÇÃO 1: DADOS COMPLETOS DO FORNECEDOR E REGISTRO DO LOTE ─────────
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -9367,7 +9367,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text('Material Recebido:', 17, y);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(10, 120, 50);
-            pdf.text((amostra.nome_material || 'Material n�o informado').toUpperCase(), 48, y);
+            pdf.text((amostra.nome_material || 'Material não informado').toUpperCase(), 48, y);
             pdf.setTextColor(50, 50, 50);
 
             pdf.setFont('helvetica', 'bold');
@@ -9379,7 +9379,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setFont('helvetica', 'bold');
             pdf.text('Comprador / Contato:', 17, y);
             pdf.setFont('helvetica', 'normal');
-            // Trunca para n�o sobrepor o campo Peso Inicial à direita
+            // Trunca para não sobrepor o campo Peso Inicial à direita
             const compTel = fcomp + (ftel ? ' (' + ftel + ')' : '');
             pdf.text(pdf.splitTextToSize(compTel, 110)[0], 52, y);
 
@@ -9390,13 +9390,13 @@ var _listTabelaPrecosEstrategica = [];
             y += 6;
 
             pdf.setFont('helvetica', 'bold');
-            pdf.text('Respons�vel T�c:', 17, y);
+            pdf.text('Responsável Téc:', 17, y);
             pdf.setFont('helvetica', 'normal');
             pdf.text(amostra.responsavel || 'Eng. Roberto', 48, y);
 
             if (fend) {
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Endere�o:', 138, y);
+                pdf.text('Endereço:', 138, y);
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(pdf.splitTextToSize(fend, 38)[0], 156, y);
             }
@@ -9404,7 +9404,7 @@ var _listTabelaPrecosEstrategica = [];
 
             if (amostra.observacoes) {
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Observa��es:', 17, y);
+                pdf.text('Observações:', 17, y);
                 pdf.setFont('helvetica', 'normal');
                 pdf.text(pdf.splitTextToSize(amostra.observacoes, 155)[0], 42, y);
                 y += 6;
@@ -9416,7 +9416,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.line(15, y, 195, y);
             y += 6;
 
-            // ������ SE��O 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ��������������������������������������������������������������������
+            // ─── SEÇÃO 2: REGISTRO FOTOGRÁFICO POR ETAPA E COMPONENTE ──────────────────────────────────
             checarNovaPagina(50);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 8, 'F');
@@ -9426,7 +9426,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text('RASTREABILIDADE E REGISTRO FOTOGRÁFICO POR ETAPA', 17, y + 5.5);
             y += 12;
 
-            // ���� Helper: carrega uma imagem da API e retorna base64 ����
+            // ── Helper: carrega uma imagem da API e retorna base64 ──
             async function _loadImgB64(url) {
                 try {
                     const r = await fetch(url);
@@ -9436,7 +9436,7 @@ var _listTabelaPrecosEstrategica = [];
                 } catch(e) { return null; }
             }
 
-            // ���� Helper: desenha um bloco de foto no PDF ����
+            // ── Helper: desenha um bloco de foto no PDF ──
             function _drawFotoBloco(srcB64, label, bY, bH) {
                 pdf.setFillColor(248, 252, 249);
                 pdf.setDrawColor(13, 36, 22);
@@ -9456,13 +9456,13 @@ var _listTabelaPrecosEstrategica = [];
                 pdf.text(pdf.splitTextToSize(label, 110), 76, bY + 9);
             }
 
-            // ���� ETAPA 1  RECEBIMENTO ����
+            // ── ETAPA 1 — RECEBIMENTO ──
             {
                 const blocoH = 42;
                 checarNovaPagina(blocoH + 6);
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text('ETAPA 1  PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
+                pdf.text('ETAPA 1 — PRODUTO BRUTO & RECEBIMENTO', 17, y + 4.3);
                 y += 8;
                 checarNovaPagina(blocoH + 4);
 
@@ -9472,7 +9472,7 @@ var _listTabelaPrecosEstrategica = [];
                     (f.componente_idx === null || f.componente_idx === undefined)
                 );
 
-                // Foto principal: foto_original da amostra OU, se vazia, a 1��¬ foto do banco
+                // Foto principal: foto_original da amostra OU, se vazia, a 1â”¬¬ foto do banco
                 let fotoOrigFinal = null;
                 if (amostra.foto_original) {
                     fotoOrigFinal = await _loadImgB64(amostra.foto_original).catch(() => amostra.foto_original);
@@ -9486,30 +9486,30 @@ var _listTabelaPrecosEstrategica = [];
                 }
 
                 const infoTextoRec = [
-                    `Produto: ${(amostra.nome_material || 'N�o informado').toUpperCase()}`,
-                    `C�digo: APX-${amostra.numero_amostra || '000'}`,
+                    `Produto: ${(amostra.nome_material || 'Não informado').toUpperCase()}`,
+                    `Código: APX-${amostra.numero_amostra || '000'}`,
                     `Data: ${new Date(amostra.data).toLocaleDateString('pt-BR')}`,
                     `Peso Bruto: ${parseFloat(amostra.peso_inicial || 0).toFixed(3)} kg`,
-                    `Respons�vel: ${amostra.responsavel || '---'}`,
-                    `Obs: ${(amostra.observacoes || 'Sem observa��es.').substring(0, 60)}`
+                    `Responsável: ${amostra.responsavel || '---'}`,
+                    `Obs: ${(amostra.observacoes || 'Sem observações.').substring(0, 60)}`
                 ].join('\n');
 
                 _drawFotoBloco(fotoOrigFinal, infoTextoRec, y, blocoH);
                 y += blocoH + 4;
 
-                // Fotos adicionais do Recebimento (2��¬ em diante)
+                // Fotos adicionais do Recebimento (2â”¬¬ em diante)
                 for (const f of recebimentoExtras) {
                     checarNovaPagina(blocoH + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `Foto Recebimento  ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
+                    if (b64) { _drawFotoBloco(b64, `Foto Recebimento — ${f.nome || 'Lote Bruto'}`, y, blocoH); y += blocoH + 4; }
                 }
             }
 
-            // ���� ETAPA 2  DESMONTE: uma subse��o por componente com TODAS as suas fotos ����
+            // ── ETAPA 2 — DESMONTE: uma subseção por componente com TODAS as suas fotos ──
             {
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text('ETAPA 2  DESMONTE F�SICO & TRIAGEM DE COMPONENTES', 17, y + 4.3);
+                pdf.text('ETAPA 2 — DESMONTE FÍSICO & TRIAGEM DE COMPONENTES', 17, y + 4.3);
                 y += 8;
 
                 // Agrupa fotos por componente_idx
@@ -9520,7 +9520,7 @@ var _listTabelaPrecosEstrategica = [];
                         fotosPorComp[f.componente_idx].push(f);
                     }
                 }
-                // Fotos do Desmonte n�o vinculadas a componente espec�fico
+                // Fotos do Desmonte não vinculadas a componente específico
                 const fotosDesmonteGeral = fotosAmostraList.filter(f =>
                     (f.etapa || 'Desmonte') === 'Desmonte' && (f.componente_idx === null || f.componente_idx === undefined)
                 );
@@ -9531,17 +9531,17 @@ var _listTabelaPrecosEstrategica = [];
                         const nomeComp = comp.material_nome || `Componente ${cIdx + 1}`;
                         const fotasComp = fotosPorComp[cIdx] || [];
                         const blocoH = 42;
-                        // Cabe�alho do componente
+                        // Cabeçalho do componente
                         checarNovaPagina(blocoH + 12);
                         pdf.setFillColor(30, 78, 140); pdf.rect(15, y, 180, 5, 'F');
                         pdf.setTextColor(255, 255, 255); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5);
-                        pdf.text(`COMPONENTE ${cIdx + 1}: ${nomeComp.toUpperCase()}  ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`, 17, y + 3.5);
+                        pdf.text(`COMPONENTE ${cIdx + 1}: ${nomeComp.toUpperCase()} — ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`, 17, y + 3.5);
                         y += 7;
 
                         if (fotasComp.length === 0) {
                             // Sem fotos para este componente
                             checarNovaPagina(blocoH + 4);
-                            _drawFotoBloco(null, `${nomeComp} | ${parseFloat(comp.peso).toFixed(3)} kg  ${parseFloat(comp.percentual).toFixed(1)}%\nDificuldade: ${comp.dificuldade || 'F�cil'}\nObs: ${(comp.observacoes || '').substring(0, 60) || 'Sem observa��es.'}`, y, blocoH);
+                            _drawFotoBloco(null, `${nomeComp} | ${parseFloat(comp.peso).toFixed(3)} kg — ${parseFloat(comp.percentual).toFixed(1)}%\nDificuldade: ${comp.dificuldade || 'Fácil'}\nObs: ${(comp.observacoes || '').substring(0, 60) || 'Sem observações.'}`, y, blocoH);
                             y += blocoH + 4;
                         } else {
                             // Exibe TODAS as fotos do componente
@@ -9550,10 +9550,10 @@ var _listTabelaPrecosEstrategica = [];
                                 checarNovaPagina(blocoH + 4);
                                 const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
                                 const label = [
-                                    `${nomeComp}  Foto ${fIdx + 1}/${fotasComp.length}`,
+                                    `${nomeComp} — Foto ${fIdx + 1}/${fotasComp.length}`,
                                     `Peso: ${parseFloat(comp.peso).toFixed(3)} kg (${parseFloat(comp.percentual).toFixed(1)}%)`,
-                                    `Dificuldade: ${comp.dificuldade || 'F�cil'}`,
-                                    `Obs: ${(comp.observacoes || 'Sem observa��es.').substring(0, 60)}`
+                                    `Dificuldade: ${comp.dificuldade || 'Fácil'}`,
+                                    `Obs: ${(comp.observacoes || 'Sem observações.').substring(0, 60)}`
                                 ].join('\n');
                                 _drawFotoBloco(b64, label, y, blocoH);
                                 y += blocoH + 4;
@@ -9561,32 +9561,32 @@ var _listTabelaPrecosEstrategica = [];
                         }
                     }
                 }
-                // Fotos de Desmonte gerais (n�o vinculadas a componente)
+                // Fotos de Desmonte gerais (não vinculadas a componente)
                 for (const f of fotosDesmonteGeral) {
                     checarNovaPagina(42 + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `Desmonte Geral  ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                    if (b64) { _drawFotoBloco(b64, `Desmonte Geral — ${f.nome || 'Foto'}`, y, 42); y += 46; }
                 }
             }
 
-            // ���� ETAPA 3 & 4: Viabilidade e Aprova��o ����
-            for (const etapaKey of ['Viabilidade', 'Aprova��o']) {
+            // ── ETAPA 3 & 4: Viabilidade e Aprovação ──
+            for (const etapaKey of ['Viabilidade', 'Aprovação']) {
                 const fotasEtapa = fotosAmostraList.filter(f => f.etapa === etapaKey);
                 if (fotasEtapa.length === 0) continue;
                 checarNovaPagina(50);
                 pdf.setFillColor(20, 60, 35); pdf.rect(15, y, 180, 6, 'F');
                 pdf.setTextColor(42, 208, 122); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
-                pdf.text(`ETAPA  ${etapaKey.toUpperCase()}`, 17, y + 4.3);
+                pdf.text(`ETAPA — ${etapaKey.toUpperCase()}`, 17, y + 4.3);
                 y += 8;
                 for (const f of fotasEtapa) {
                     checarNovaPagina(42 + 4);
                     const b64 = await _loadImgB64(`/api/amostras/${amostraId}/fotos/${f.id}/img`);
-                    if (b64) { _drawFotoBloco(b64, `${etapaKey}  ${f.nome || 'Foto'}`, y, 42); y += 46; }
+                    if (b64) { _drawFotoBloco(b64, `${etapaKey} — ${f.nome || 'Foto'}`, y, 42); y += 46; }
                 }
             }
 
 
-            // ������ SE��O 3: RESULTADO DA ANÁLISE F�SICA E DESMONTE ����������������������������������������
+            // ─── SEÇÃO 3: RESULTADO DA ANÁLISE FÍSICA E DESMONTE ────────────────────
             checarNovaPagina(55); // Garante 55mm livres para o bloco completo
 
             pdf.setFillColor(13, 36, 22);
@@ -9594,11 +9594,11 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(9);
-            pdf.text('RESULTADO DA ANÁLISE F�SICA E DESMONTE', 17, y + 5.5);
+            pdf.text('RESULTADO DA ANÁLISE FÍSICA E DESMONTE', 17, y + 5.5);
 
-            let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de t�tulo
+            let tableY = y + 11; // Inicia a tabela 11mm abaixo da barra de título
 
-            // Cabe�alho da Tabela de Componentes (Altura 7mm)
+            // Cabeçalho da Tabela de Componentes (Altura 7mm)
             pdf.setFillColor(20, 60, 35);
             pdf.rect(15, tableY, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
@@ -9609,7 +9609,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text('Rendimento', 145, tableY + 4.8);
             pdf.text('Dificuldade', 170, tableY + 4.8);
             
-            tableY += 10.0; // Avan�a 10mm (7mm da caixa + 3mm de margem livre)
+            tableY += 10.0; // Avança 10mm (7mm da caixa + 3mm de margem livre)
 
             let sumPeso = 0;
             pdf.setFont('helvetica', 'normal');
@@ -9627,7 +9627,7 @@ var _listTabelaPrecosEstrategica = [];
                     pdf.text(parseFloat(c.peso).toLocaleString('pt-BR') + ' kg', 110, tableY + 4.8);
                     pdf.text(fmtBRL(c.percentual) + ' %', 148, tableY + 4.8);
                     if (c.dificuldade) {
-                        const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'M�dia' ? [180,130,0] : [30,130,60];
+                        const dc = c.dificuldade === 'Alta' ? [200,50,50] : c.dificuldade === 'Média' ? [180,130,0] : [30,130,60];
                         pdf.setTextColor(...dc);
                         pdf.setFontSize(7.5);
                         pdf.text(c.dificuldade, 172, tableY + 4.8);
@@ -9637,7 +9637,7 @@ var _listTabelaPrecosEstrategica = [];
                 });
             }
 
-            // Linha de Perda F�sica / Res�duos Industriais (Altura 7mm, posicionada 10mm abaixo do cabe�alho)
+            // Linha de Perda Física / Resíduos Industriais (Altura 7mm, posicionada 10mm abaixo do cabeçalho)
             const perda = parseFloat(amostra.peso_inicial || 0) - sumPeso;
             const pctPerda = parseFloat(amostra.peso_inicial || 0) > 0 ? (perda / parseFloat(amostra.peso_inicial)) * 100 : 0;
             
@@ -9646,21 +9646,21 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(180, 40, 40);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('Res�duos Industriais / Perda F�sica', 18, tableY + 4.8);
+            pdf.text('Resíduos Industriais / Perda Física', 18, tableY + 4.8);
             pdf.text((perda > 0 ? perda : 0).toLocaleString('pt-BR') + ' kg', 110, tableY + 4.8);
             pdf.text(fmtBRL(pctPerda > 0 ? pctPerda : 0) + ' %', 148, tableY + 4.8);
             
             tableY += 12;
             y = tableY; // Atualiza o ponteiro global y com o valor acumulado em tableY
 
-            // Consolida��o qu�mica
+            // Consolidação química
             checarNovaPagina(20);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 15, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('COMPOSI��O CONSOLIDADA / F�RMULA QU�MICA:', 18, y + 5);
+            pdf.text('COMPOSIÇÃO CONSOLIDADA / FÓRMULA QUÍMICA:', 18, y + 5);
             pdf.setFont('courier', 'normal');
             pdf.setTextColor(170, 255, 200);
             pdf.setFontSize(7.5);
@@ -9668,17 +9668,17 @@ var _listTabelaPrecosEstrategica = [];
             pdf.text(pdf.splitTextToSize(fstr, 170)[0] || fstr, 18, y + 11);
             y += 19;
 
-            // ������ SE��O 4: PARECERES T�CNICOS E DECIS�O DE COMPRA ��������������������������������������
+            // ─── SEÇÃO 4: PARECERES TÉCNICOS E DECISÃO DE COMPRA ───────────────────
             checarNovaPagina(45);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('PARECERES T�CNICO E DECIS�O DE COMPRA', 17, y + 5);
+            pdf.text('PARECERES TÉCNICO E DECISÃO DE COMPRA', 17, y + 5);
             y += 10;
 
-            // Parecer t�cnico
+            // Parecer técnico
             pdf.setFillColor(235, 248, 240);
             pdf.rect(15, y, 180, 18, 'F');
             pdf.setFillColor(42, 140, 80);
@@ -9689,14 +9689,14 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(10, 70, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text('PARECER T�CNICO (LABORAT�RIO):', 22, y + 5);
+            pdf.text('PARECER TÉCNICO (LABORATÓRIO):', 22, y + 5);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
-            const pt = amostra.parecer_tecnico || '(sem observa��es informadas)';
+            const pt = amostra.parecer_tecnico || '(sem observações informadas)';
             pdf.text(pdf.splitTextToSize(pt, 168).slice(0, 2), 22, y + 11);
             y += 22;
 
-            // Decis�o diretoria
+            // Decisão diretoria
             const decAprovada = amostra.decisao_diretoria === 'Aprovado';
             const isReprov = amostra.decisao_diretoria === 'Reprovado';
             const bgDec = decAprovada ? [235, 252, 240] : isReprov ? [252, 235, 235] : [248, 248, 235];
@@ -9713,7 +9713,7 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setTextColor(...txtDec);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('DECIS�O DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
+            pdf.text('DECISÃO DA DIRETORIA: ' + (amostra.decisao_diretoria || 'AGUARDANDO').toUpperCase(), 22, y + 6);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(50, 50, 50);
             pdf.setFontSize(8);
@@ -9725,43 +9725,43 @@ var _listTabelaPrecosEstrategica = [];
             if (amostra.motivo_reprovacao) {
                 pdf.setTextColor(160, 30, 30);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Motivo da Reprova��o: ' + amostra.motivo_reprovacao, 22, dy);
+                pdf.text('Motivo da Reprovação: ' + amostra.motivo_reprovacao, 22, dy);
                 dy += 5;
             }
             if (decAprovada && amostra.preco_compra_entregar) {
                 pdf.setTextColor(10, 100, 40);
                 pdf.setFont('helvetica', 'bold');
-                pdf.text('Pre�o Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
+                pdf.text('Preço Autorizado - Entregar: R$ ' + fmtBRL(amostra.preco_compra_entregar) + '/kg  |  Coletar: R$ ' + fmtBRL(amostra.preco_compra_coletar || 0) + '/kg', 22, dy);
                 dy += 5;
             }
             y += 28;
 
-            // ������ SE��O 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETR�NICA ����������������
+            // ─── SEÇÃO 5: ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA ────────
             checarNovaPagina(40);
             pdf.setFillColor(13, 36, 22);
             pdf.rect(15, y, 180, 7, 'F');
             pdf.setTextColor(42, 208, 122);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8.5);
-            pdf.text('ASSINATURAS E RASTREABILIDADE DIGITAL / ELETR�NICA', 17, y + 5);
+            pdf.text('ASSINATURAS E RASTREABILIDADE DIGITAL / ELETRÔNICA', 17, y + 5);
             y += 12;
 
             const sigBoxWidth = 85;
             const sigY = y;
 
-            // Assinatura T�cnico Executor
+            // Assinatura Técnico Executor
             pdf.setDrawColor(42, 140, 80);
             pdf.setLineWidth(0.4);
             pdf.line(17, sigY + 12, 17 + sigBoxWidth, sigY + 12);
             pdf.setTextColor(30, 30, 30);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(8);
-            pdf.text((amostra.tecnico_analise || amostra.responsavel || 'Analista de Laborat�rio').toUpperCase(), 17, sigY + 16);
+            pdf.text((amostra.tecnico_analise || amostra.responsavel || 'Analista de Laboratório').toUpperCase(), 17, sigY + 16);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(100, 100, 100);
             pdf.setFontSize(7);
-            pdf.text('Perfil: T�cnico Respons�vel / Laborat�rio', 17, sigY + 20);
-            pdf.text('Status Execu��o: Desmonte e Triagem OK', 17, sigY + 24);
+            pdf.text('Perfil: Técnico Responsável / Laboratório', 17, sigY + 20);
+            pdf.text('Status Execução: Desmonte e Triagem OK', 17, sigY + 24);
 
             // Assinatura Diretoria / Aprovador
             const dirX = 110;
@@ -9775,19 +9775,19 @@ var _listTabelaPrecosEstrategica = [];
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(100, 100, 100);
             pdf.setFontSize(7);
-            pdf.text('Perfil: Diretoria / Autoriza��o Estrat�gica', dirX, sigY + 20);
-            pdf.text('Decis�o: ' + (amostra.decisao_diretoria || 'Aguardando'), dirX, sigY + 24);
+            pdf.text('Perfil: Diretoria / Autorização Estratégica', dirX, sigY + 20);
+            pdf.text('Decisão: ' + (amostra.decisao_diretoria || 'Aguardando'), dirX, sigY + 24);
 
             y += 30;
 
-            // Rodap� final com total de p�ginas
+            // Rodapé final com total de páginas
             drawFooter(currentPageNum);
 
             pdf.save('LAUDO_APEXTECH_' + (amostra.numero_amostra || 'PDF') + '.pdf');
 
         } catch (err) {
             console.error('Erro ao gerar laudo PDF:', err);
-            _apexNotify('Aten��o', 'Erro ao gerar o laudo. Tente novamente.', 'error');
+            _apexNotify('Atenção', 'Erro ao gerar o laudo. Tente novamente.', 'error');
         }
     };
 
@@ -9814,7 +9814,7 @@ var _listTabelaPrecosEstrategica = [];
             const resEst = await fetch('/api/estoque');
             const { estoque } = await resEst.json();
 
-            // ������ KPIs ������
+            // ─── KPIs ───
             let pesoTotal = 0;
             let totalCompra = 0;
             let faturamento = 0;
@@ -9836,7 +9836,7 @@ var _listTabelaPrecosEstrategica = [];
             let totalPesoPerdaAmostras = 0;
             
             amostras.forEach(a => {
-                if (a.status === 'Processado' || a.status === 'Liberado para Produ��o') {
+                if (a.status === 'Processado' || a.status === 'Liberado para Produção') {
                     const weight = parseFloat(a.peso_inicial) || 0;
                     totalPesoOriginalAmostras += weight;
                     
@@ -9857,7 +9857,7 @@ var _listTabelaPrecosEstrategica = [];
             document.getElementById('bi-kpi-margem').textContent = fmtBRL(margemConsolidada) + ' %';
             document.getElementById('bi-kpi-perda').textContent = fmtBRL(taxaPerdaIndustrial) + ' %';
 
-            // ���� Gr�fico 1: Evolu��o Mensal ����
+            // ── Gráfico 1: Evolução Mensal ──
             const mesesMap = {};
             planejamento.forEach(p => {
                 const m = p.mes || '2026-07';
@@ -9893,7 +9893,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ���� Gr�fico 2: Composi��o das Amostras ����
+            // ── Gráfico 2: Composição das Amostras ──
             const compMap = {};
             estoque.forEach(e => {
                 compMap[e.material_nome] = parseFloat(e.saldo) || 0;
@@ -9919,7 +9919,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ���� Gr�fico 3: Ranking de Fornecedores ����
+            // ── Gráfico 3: Ranking de Fornecedores ──
             const fornMap = {};
             planejamento.forEach(p => {
                 const f = p.fornecedor_nome || 'Desconhecido';
@@ -9955,7 +9955,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ���� Gr�fico 4: Margem de Compra Coleta vs Entrega ����
+            // ── Gráfico 4: Margem de Compra Coleta vs Entrega ──
             const catMargem = {};
             localPrecos.forEach(p => {
                 const cat = p.material_categoria;
@@ -9990,7 +9990,7 @@ var _listTabelaPrecosEstrategica = [];
                 }
             });
 
-            // ���� TOP 10 Melhores Produtos (Margem L�quida) ����
+            // ── TOP 10 Melhores Produtos (Margem Líquida) ──
             const topBody = document.getElementById('bi-top10-table-body');
             if (topBody && localPrecos && localPrecos.length > 0) {
                 const listComMargem = localPrecos.map(p => {
@@ -10033,7 +10033,7 @@ var _listTabelaPrecosEstrategica = [];
 
                     let statusBadge = '<span class="bi-status-badge" style="background:#0d3020; color:#2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Excelente</span>';
                     if (item.margemLiqEnt < 5) {
-                        statusBadge = '<span class="bi-status-badge" style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Aten��o/Baixa</span>';
+                        statusBadge = '<span class="bi-status-badge" style="background:#3a1515; color:#ff6b6b; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Atenção/Baixa</span>';
                     } else if (item.margemLiqEnt < 15) {
                         statusBadge = '<span class="bi-status-badge" style="background:#3a2e00; color:#f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Boa</span>';
                     }
@@ -10071,14 +10071,14 @@ var _listTabelaPrecosEstrategica = [];
     }
 
     
-// MODULE_EXTRACTED: // ������ 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ������
+// MODULE_EXTRACTED: // ─── 5. PLANEJAMENTO MENSAL DE FORNECEDORES & MOTOR PREDITIVO DE CENÁRIOS ───
 
-// MODULE_EXTRACTED: // ������ M�DULO DE PLANEJAMENTO ESTRAT�GICO V3 (TESTE META FATURAMENTO -> INSUMO) ������������������
+// MODULE_EXTRACTED: // ─── MÓDULO DE PLANEJAMENTO ESTRATÉGICO V3 (TESTE META FATURAMENTO -> INSUMO) ─────────
 
     function gerarHtmlTabelaResiduosParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
         const activeSettings = settings || settingsPrecosResiduos || {};
-        const tituloPdf = isCompleta ? 'Tabela Geral de Res�duos  Vis�o Completa' : 'Tabela de Pre�os  Res�duos';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Resíduos — Visão Completa' : 'Tabela de Preços — Resíduos';
 
         const categorias = [];
         precos.forEach(p => {
@@ -10109,15 +10109,15 @@ var _listTabelaPrecosEstrategica = [];
                         <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                         <div style="text-align:right;">
                             <h1 style="margin:0;color:#1a5c38;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">�ltima Atualiza��o: <span style="color:#1a5c38;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1a5c38;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
                     <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">�x9 Diretrizes Gerais de Compra  Res�duos</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra — Resíduos</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                            <li>Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg.</li>
-                            <li>OBS: Varia��o de pre�o conforme atualiza��o de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RES�DUOS PRE�O SOBRE ANÁLISE (FOTO)</li>
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -10131,25 +10131,25 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG�NCIA AT�: ${validadeStr}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                         <thead>
                             <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri��o</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss�o (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L�q.</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L�q. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L�q. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -10195,7 +10195,7 @@ var _listTabelaPrecosEstrategica = [];
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RES�DUOS PRE�O SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS RESÍDUOS PREÇO SOBRE ANÁLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -10204,7 +10204,7 @@ var _listTabelaPrecosEstrategica = [];
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;"> Aprovado pelo CEO Jose Tiago</div>
+                        <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
                         <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
@@ -10235,7 +10235,7 @@ var _listTabelaPrecosEstrategica = [];
                     reader.readAsDataURL(blob);
                 });
             }
-        } catch(e) { console.warn('Logo watermark n�o carregou:', e); }
+        } catch(e) { console.warn('Logo watermark não carregou:', e); }
 
         const htmlContent = gerarHtmlTabelaResiduosParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
         return await renderHtmlToPdfBase64(htmlContent, isCompleta);
@@ -10249,12 +10249,12 @@ var _listTabelaPrecosEstrategica = [];
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
         try {
             const base64 = await window.gerarPdfTabelaResiduosBase64(modoPDF);
-            if (!base64) { _apexNotify('Aten��o', 'Erro ao gerar o PDF de Res�duos.', 'error'); return; }
+            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Resíduos.', 'error'); return; }
             const link = document.createElement('a');
             link.href = `data:application/pdf;base64,${base64}`;
             link.download = isCompleta ? 'Tabela_Residuos_Completa.pdf' : 'Tabela_Residuos_Fornecedor.pdf';
             link.click();
-        } catch(err) { console.error(err); _apexNotify('Aten��o', 'Erro ao exportar PDF Res�duos: ' + err.message, 'error'); }
+        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Resíduos: ' + err.message, 'error'); }
         finally {
             if (btn) {
                 btn.disabled = false;
@@ -10265,12 +10265,12 @@ var _listTabelaPrecosEstrategica = [];
         }
     };
 
-    // ������ PDF LIGAS ��������������������������������������������������������������������������������������������������������������������������������
+    // ─── PDF LIGAS ────────────────────────────────────────────────────────────────
 
     function gerarHtmlTabelaLigasParaPdf(precos, dataUltimaAtualizacao, settings, logoBase64, modo = 'fornecedor') {
         const isCompleta = modo === 'completa';
         const activeSettings = settings || settingsPrecosLigas || {};
-        const tituloPdf = isCompleta ? 'Tabela Geral de Ligas Met�licas  Vis�o Completa' : 'Tabela de Pre�os  Ligas Met�licas';
+        const tituloPdf = isCompleta ? 'Tabela Geral de Ligas Metálicas — Visão Completa' : 'Tabela de Preços — Ligas Metálicas';
 
         const categorias = [];
         precos.forEach(p => {
@@ -10301,15 +10301,15 @@ var _listTabelaPrecosEstrategica = [];
                         <div><img src="assets/img/apexlogo.png" alt="ApexTech Metais" style="height:60px;"></div>
                         <div style="text-align:right;">
                             <h1 style="margin:0;color:#1565c0;font-size:${isCompleta ? '1.6rem' : '1.8rem'};font-weight:bold;text-transform:uppercase;letter-spacing:1px;">${tituloPdf}</h1>
-                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">�ltima Atualiza��o: <span style="color:#1565c0;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
+                            <p style="margin:6px 0 0 0;font-size:0.95rem;color:#666;font-weight:500;">Última Atualização: <span style="color:#1565c0;font-weight:bold;">${dataUltimaAtualizacao}</span></p>
                         </div>
                     </div>
                     <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">�x9 Diretrizes Gerais de Compra  Ligas</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra — Ligas</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
-                            <li>Aten��o: Quantidade m�nima para entrega 100kg por produto. Caso n�o atinja a quantidade ser� descontado R$ 1,00/kg.</li>
-                            <li>OBS: Varia��o de pre�o conforme atualiza��o de mercado.</li>
-                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PRE�O SOBRE ANÁLISE (FOTO)</li>
+                            <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
+                            <li>OBS: Variação de preço conforme atualização de mercado.</li>
+                            <li style="font-weight:bold;color:#c0392b;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</li>
                         </ul>
                     </div>`;
 
@@ -10323,25 +10323,25 @@ var _listTabelaPrecosEstrategica = [];
                 <div style="margin-bottom:30px;page-break-inside:avoid;border:1px solid ${corCategoria};border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);">
                     <div style="background:${corCategoria};color:#fff;padding:10px 15px;font-weight:bold;display:flex;justify-content:space-between;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.5px;">
                         <span>${cat}</span>
-                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIG�NCIA AT�: ${validadeStr}</span>
+                        <span style="font-size:0.85rem;font-weight:normal;opacity:0.9;">VIGÊNCIA ATÉ: ${validadeStr}</span>
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:${isCompleta ? '0.75rem' : '0.8rem'};text-align:left;">
                         <thead>
                             <tr style="background:#f8f9fa;border-bottom:2px solid #ddd;">
-                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descri��o</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Entregar (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Pre�o Coletar (R$/kg)</th>
+                                <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">Descrição</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Entregar (R$/kg)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Preço Coletar (R$/kg)</th>
                                 ${isCompleta ? `
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#d97706;">Venda Ref (R$/kg)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comiss�o (%)</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Comissão (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">PIS/COFINS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">FIDC (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">ICMS (%)</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#555;">Frete Coleta</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda L�q.</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro L�q. Ent.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#0284c7;">Venda Líq.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Lucro Líq. Ent.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#16a34a;">Margem Ent (%)</th>
-                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro L�q. Col.</th>
+                                <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Lucro Líq. Col.</th>
                                 <th style="padding:8px;text-align:right;border:1px solid #eee;font-weight:600;color:#2563eb;">Margem Col (%)</th>
                                 ` : ''}
                                 <th style="padding:8px;border:1px solid #eee;font-weight:600;color:#555;">NCM</th>
@@ -10387,7 +10387,7 @@ var _listTabelaPrecosEstrategica = [];
 
             html += `
                             <tr style="background:#fafafa;">
-                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PRE�O SOBRE ANÁLISE (FOTO)</td>
+                                <td colspan="${isCompleta ? 15 : 4}" style="padding:10px;text-align:right;font-style:italic;color:#777;border:1px solid #eee;">DEMAIS LIGAS PREÇO SOBRE ANÁLISE (FOTO)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -10396,7 +10396,7 @@ var _listTabelaPrecosEstrategica = [];
 
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
-                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;"> Aprovado pelo CEO Jose Tiago</div>
+                        <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
                         <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais &copy; Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
@@ -10427,7 +10427,7 @@ var _listTabelaPrecosEstrategica = [];
                     reader.readAsDataURL(blob);
                 });
             }
-        } catch(e) { console.warn('Logo watermark n�o carregou:', e); }
+        } catch(e) { console.warn('Logo watermark não carregou:', e); }
 
         const htmlContent = gerarHtmlTabelaLigasParaPdf(precos, hoje, settings, logoWatermarkBase64, modoPDF);
         return await renderHtmlToPdfBase64(htmlContent, isCompleta);
@@ -10441,12 +10441,12 @@ var _listTabelaPrecosEstrategica = [];
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...'; }
         try {
             const base64 = await window.gerarPdfTabelaLigasBase64(modoPDF);
-            if (!base64) { _apexNotify('Aten��o', 'Erro ao gerar o PDF de Ligas.', 'error'); return; }
+            if (!base64) { _apexNotify('Atenção', 'Erro ao gerar o PDF de Ligas.', 'error'); return; }
             const link = document.createElement('a');
             link.href = `data:application/pdf;base64,${base64}`;
             link.download = isCompleta ? 'Tabela_Ligas_Completa.pdf' : 'Tabela_Ligas_Fornecedor.pdf';
             link.click();
-        } catch(err) { console.error(err); _apexNotify('Aten��o', 'Erro ao exportar PDF Ligas: ' + err.message, 'error'); }
+        } catch(err) { console.error(err); _apexNotify('Atenção', 'Erro ao exportar PDF Ligas: ' + err.message, 'error'); }
         finally {
             if (btn) {
                 btn.disabled = false;
