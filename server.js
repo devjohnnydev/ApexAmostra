@@ -5484,7 +5484,7 @@ async function gerarExcelLMEBuffer(semana, mesLabel) {
 // Flag para evitar disparo duplo simultâneo (Bug 1 fix)
 let lmeCronRunning = false;
 
-async function disparaEmailLME() {
+async function disparaEmailLME(scheduledAtStr = null) {
     if (lmeCronRunning) {
         console.warn('⚠️ [LME CRON] Disparo ignorado: já existe um envio em andamento.');
         return;
@@ -5770,16 +5770,20 @@ ${computedKeys.map(ck=>`<tr>
         // Chunk de 100 emails por vez (limite da API do Resend)
         for (let i = 0; i < emailList.length; i += 100) {
             const lote = emailList.slice(i, i + 100);
-            const batchPayload = lote.map(email => ({
-                from: fromEmail,
-                to: [email],
-                subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
-                html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
-                attachments: [{
-                    filename: fileName,
-                    content: Buffer.from(pdfBuffer).toString('base64'),
-                }],
-            }));
+            const batchPayload = lote.map(email => {
+                const payload = {
+                    from: fromEmail,
+                    to: [email],
+                    subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
+                    html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+                    attachments: [{
+                        filename: fileName,
+                        content: Buffer.from(pdfBuffer).toString('base64'),
+                    }],
+                };
+                if (scheduledAtStr) payload.scheduledAt = scheduledAtStr;
+                return payload;
+            });
 
             try {
                 const sendResult = await resend.batch.send(batchPayload);
@@ -6756,13 +6760,30 @@ if (process.env.NODE_ENV !== 'test') {
                 // Normalizar horario configurado para garantir HH:MM
                 const horarioNorm = (horario.match(/^\d{1,2}:\d{2}$/) ? horario.trim().padStart(5, '0') : horario.trim());
 
-                // LOG DE DEBUG (ativo — remova para silenciar em produção)
-                console.log(`[LME CRON TICK] horaAtual=${horaAtual}, diaAtual=${diaAtual}, horarioAgendado=${horarioNorm}, ativo=${settingsObj.lme_envio_ativo}, diasAtivos=${diasAtivos}`);
+                // Calcular o horário de PRE-EXECUÇÃO (5 minutos antes)
+                // Usado para garantir que a API Batch ScheduledAt do Resend seja usada com antecedência
+                const [hNorm, mNorm] = horarioNorm.split(':').map(Number);
+                let mPre = mNorm - 5;
+                let hPre = hNorm;
+                if (mPre < 0) {
+                    mPre += 60;
+                    hPre -= 1;
+                    if (hPre < 0) hPre = 23;
+                }
+                const horarioPre = `${String(hPre).padStart(2, '0')}:${String(mPre).padStart(2, '0')}`;
 
-                if (horaAtual === horarioNorm && diasAtivos.includes(diaAtual)) {
+                // LOG DE DEBUG
+                console.log(`[LME CRON TICK] horaAtual=${horaAtual}, preExecucao=${horarioPre} (alvo=${horarioNorm}), diaAtual=${diaAtual}, ativo=${settingsObj.lme_envio_ativo}`);
 
-                    console.log(`⏰ [LME CRON] Horário de disparo atingido: ${horario} (dia ${diaAtual}). Enviando...`);
-                    await disparaEmailLME();
+                // Em vez de disparar no horário alvo, disparamos 5 minutos antes
+                if (horaAtual === horarioPre && diasAtivos.includes(diaAtual)) {
+                    console.log(`⏰ [LME CRON] Pré-execução atingida: ${horarioPre} para envio programado às ${horarioNorm}. Gerando arquivos...`);
+                    
+                    // Calcular a data ISO exata do horário programado
+                    const targetDate = new Date(now.getTime() + 5 * 60000);
+                    const scheduledAtStr = targetDate.toISOString();
+                    
+                    await disparaEmailLME(scheduledAtStr);
                 }
             } catch (err) {
                 console.error('❌ [LME CRON] Erro no cron de verificação:', err.message);
