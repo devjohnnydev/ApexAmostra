@@ -5759,28 +5759,16 @@ ${computedKeys.map(ck=>`<tr>
 <div class="footer">Apextech Metais – Indústria e Comércio de Resíduos Ltda &nbsp;|&nbsp; apextechmetais.com.br</div>
 </body></html>`;
 
-        let pdfBuffer;
-        let browser;
-        try {
-            const puppeteer = require('puppeteer');
-            browser = await puppeteer.launch({
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-                headless: true,
-                timeout: 30000
-            });
-            const page = await browser.newPage();
-            page.setDefaultTimeout(30000);
-            await page.setContent(pdfHtml, { waitUntil: 'networkidle0', timeout: 30000 });
-            pdfBuffer = await page.pdf({ format: 'A4', margin: { top:'15mm', bottom:'15mm', left:'10mm', right:'10mm' }, printBackground: true });
-        } catch(pdfErr) {
-            console.error('❌ [LME CRON] Erro Puppeteer (Não foi possível gerar PDF):', pdfErr.message);
-            throw new Error('Falha ao gerar o PDF da LME via Puppeteer: ' + pdfErr.message);
-        } finally {
-            if (browser) await browser.close().catch(() => {});
-        }
-
-        // 5. Enviar via Resend (log individual por destinatário)
-        const { Resend } = require('resend');
+        let emailHtml = `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.6;">
+            <p>Olá,</p>
+            <p>Segue abaixo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>:</p>
+            <br>
+            <div style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff;">
+                ${pdfHtml.replace('<!DOCTYPE html>', '').replace('<html lang="pt-BR"><head><meta charset="UTF-8">', '').replace('</head>', '').replace('<body>', '').replace('</body></html>', '')}
+            </div>
+            <br>
+            <p>Atenciosamente,<br><strong>Apextech Metais</strong></p>
+        </div>`;
         const resend = new Resend(resendKey);
 
 
@@ -5794,11 +5782,7 @@ ${computedKeys.map(ck=>`<tr>
                 from: fromEmail,
                 to: [email],
                 subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
-                html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
-                attachments: [{
-                    filename: fileName,
-                    content: pdfBuffer.toString('base64'),
-                }],
+                html: emailHtml
             }));
 
             let batchResendId = null;
