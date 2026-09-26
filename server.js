@@ -5766,28 +5766,33 @@ ${computedKeys.map(ck=>`<tr>
 
         const emailList = destinatarios.map(d => d.email);
         const resultados = [];
-        for (const email of emailList) {
+        
+        // Chunk de 100 emails por vez (limite da API do Resend)
+        for (let i = 0; i < emailList.length; i += 100) {
+            const lote = emailList.slice(i, i + 100);
+            const batchPayload = lote.map(email => ({
+                from: fromEmail,
+                to: [email],
+                subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
+                html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
+                attachments: [{
+                    filename: fileName,
+                    content: Buffer.from(pdfBuffer).toString('base64'),
+                }],
+            }));
+
             try {
-                const sendResult = await resend.emails.send({
-                    from: fromEmail,
-                    to: [email],
-                    subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
-                    html: `<p>Olá,</p><p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p><p>Atenciosamente,<br>Apextech Metais</p>`,
-                    attachments: [{
-                        filename: fileName,
-                        content: Buffer.from(pdfBuffer).toString('base64'),
-                    }],
-                });
+                const sendResult = await resend.batch.send(batchPayload);
                 if (sendResult.error) {
-                    console.error(`❌ [LME CRON] Falha ao enviar para ${email}: ${sendResult.error.message}`);
-                    resultados.push({ email, ok: false, erro: sendResult.error.message });
+                    console.error(`❌ [LME CRON] Falha no lote de e-mails: ${sendResult.error.message}`);
+                    lote.forEach(email => resultados.push({ email, ok: false, erro: sendResult.error.message }));
                 } else {
-                    console.log(`✉️ [LME CRON] Enviado para: ${email}`);
-                    resultados.push({ email, ok: true });
+                    console.log(`✉️ [LME CRON] Lote de ${lote.length} e-mails enviado.`);
+                    lote.forEach(email => resultados.push({ email, ok: true }));
                 }
             } catch (sendErr) {
-                console.error(`❌ [LME CRON] Exceção ao enviar para ${email}: ${sendErr.message}`);
-                resultados.push({ email, ok: false, erro: sendErr.message });
+                console.error(`❌ [LME CRON] Exceção no envio do lote: ${sendErr.message}`);
+                lote.forEach(email => resultados.push({ email, ok: false, erro: sendErr.message }));
             }
         }
 
@@ -5857,8 +5862,10 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
         const dateTitle = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
         const emailList = destinatarios.map(d => d.email);
 
-        for (const email of emailList) {
-            const sendResult = await resend.emails.send({
+        // Chunk de 100 emails por vez (limite da API do Resend)
+        for (let i = 0; i < emailList.length; i += 100) {
+            const lote = emailList.slice(i, i + 100);
+            const batchPayload = lote.map(email => ({
                 from: fromEmail,
                 to: [email],
                 subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateTitle}`,
@@ -5867,11 +5874,12 @@ app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
                     filename: `LME-ApexTech-${dataStr || dateTitle.replace(/\//g,'-')}.pdf`,
                     content: pdfBase64,
                 }],
-            });
+            }));
 
+            const sendResult = await resend.batch.send(batchPayload);
             if (sendResult.error) throw new Error(sendResult.error.message);
         }
-        res.json({ success: true, message: 'PDF enviado com sucesso!' });
+        res.json({ success: true, message: 'PDF enviado com sucesso em lote!' });
     } catch (err) {
         console.error('❌ [LME PDF] Erro:', err.message);
         res.status(500).json({ error: err.message });
