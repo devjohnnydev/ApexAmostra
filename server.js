@@ -7251,11 +7251,89 @@ if (process.env.NODE_ENV !== 'test') {
             console.log(`📦 Modo de dados: MySQL`);
         });
 
-        // O CRON EM MEMÓRIA FOI REMOVIDO EM PROL DO AMAZON EVENTBRIDGE SCHEDULER
-        console.log(`⏰ [CRON] Rotina de verificação em memória desativada (EventBridge ativo).`);
+        // ─── CRON: Agendador LME em memória (verifica a cada minuto) ─────────────
+        // Este cron é o mecanismo PRINCIPAL. O QStash é um reforço externo opcional.
+        cron.schedule('* * * * *', async () => {
+            try {
+                let settingsObj = {};
+                if (dbAvailable) {
+                    const [rows] = await pool.query('SELECT `key`, value FROM settings');
+                    rows.forEach(r => { settingsObj[r.key] = r.value; });
+                } else {
+                    settingsObj = memStore.settings || {};
+                }
 
+                const ativo = settingsObj.lme_envio_ativo === 'true' || settingsObj.lme_envio_ativo === true;
+                if (!ativo) return;
 
-        console.log('⏰ [LME CRON] Agendador de e-mail LME iniciado (verifica a cada minuto, fuso: America/Sao_Paulo)');
+                const horario = settingsObj.lme_envio_horario || '14:00';
+                const diasStr = settingsObj.lme_envio_dias || '1,2,3,4,5';
+                const diasAtivos = diasStr.split(',').map(Number);
+
+                // Hora atual no fuso de Brasília
+                const agora = new Date();
+                const spTime = new Date(agora.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+                const horaAtual = `${String(spTime.getHours()).padStart(2, '0')}:${String(spTime.getMinutes()).padStart(2, '0')}`;
+                const diaAtual = spTime.getDay(); // 0=Dom, 1=Seg...
+
+                if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
+                    // Verificar se já foi enviado hoje (idempotência via banco)
+                    let jaEnviou = false;
+                    if (dbAvailable) {
+                        // Usa data local de SP (não UTC)
+                        const ano = spTime.getFullYear();
+                        const mes = String(spTime.getMonth() + 1).padStart(2, '0');
+                        const dia = String(spTime.getDate()).padStart(2, '0');
+                        const hoje = `${ano}-${mes}-${dia}`;
+                        const [check] = await pool.query(
+                            "SELECT id FROM lme_agendamentos WHERE DATE(sent_at) = ? AND status = 'SENT' LIMIT 1",
+                            [hoje]
+                        );
+                        jaEnviou = check.length > 0;
+                    }
+
+                    if (!jaEnviou) {
+                        console.log(`⏰ [LME CRON] Disparando envio automático — ${horaAtual} | Dia: ${diaAtual}`);
+                        try {
+                            const result = await disparaEmailLME();
+                            if (dbAvailable) {
+                                const cronId = require('crypto').randomUUID();
+                                await pool.query(
+                                    "INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana, status, sent_at, resend_message_id) VALUES (?, ?, ?, 'SENT', NOW(), ?)",
+                                    [cronId, horario, diasStr, result ? result.resend_id : 'cron_sent']
+                                ).catch(() => {});
+                            }
+                        } catch (sendErr) {
+                            console.error('❌ [LME CRON] Falha no envio automático:', sendErr.message);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('❌ [LME CRON] Erro na rotina de verificação:', err.message);
+            }
+        }, { timezone: 'America/Sao_Paulo' });
+
+        console.log('✅ [LME CRON] Agendador em memória ativo (verifica a cada minuto | fuso: America/Sao_Paulo)');
+
+        // ─── Re-sincronizar QStash no boot (recria schedule se perdido) ─────────
+        try {
+            if (process.env.QSTASH_TOKEN && process.env.QSTASH_TARGET_URL) {
+                let settingsObj = {};
+                if (dbAvailable) {
+                    const [rows] = await pool.query('SELECT `key`, value FROM settings');
+                    rows.forEach(r => { settingsObj[r.key] = r.value; });
+                } else {
+                    settingsObj = memStore.settings || {};
+                }
+                const ativo = settingsObj.lme_envio_ativo || process.env.LME_ENVIO_ATIVO || 'false';
+                const horario = settingsObj.lme_envio_horario || process.env.LME_ENVIO_HORARIO || '14:00';
+                const diasStr = settingsObj.lme_envio_dias || process.env.LME_ENVIO_DIAS || '1,2,3,4,5';
+                await syncQStashSchedule(horario, diasStr.split(',').map(Number), ativo);
+                console.log('✅ [QSTASH] Re-sincronização de schedule executada no boot.');
+            }
+        } catch (bootErr) {
+            console.warn('⚠️ [QSTASH] Falha na re-sincronização no boot:', bootErr.message);
+        }
 
         // ─── CRON: Forecast Estratégico Semanal (Passo 8) ─────────────────────
         if (pool) {
@@ -7264,6 +7342,7 @@ if (process.env.NODE_ENV !== 'test') {
         }
     });
 }
+
 
 module.exports = { app, initDatabase, pool };
 
