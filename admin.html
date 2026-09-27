@@ -2800,6 +2800,24 @@
                         <h2 style="margin-top:0; color:#4fc3f7;"><i class="fa-solid fa-chart-pie"></i> Forecast e Estratégias de Compras (Dados Reais)</h2>
                         <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Análise inteligente baseada nos <strong>Pedidos de Venda</strong> (demanda real de 90 dias) e no estoque/pedidos pendentes atuais. Escolha sua estratégia para alavancar os negócios.</p>
                         
+                        <div class="glass-panel" style="background:#102235; padding:15px; border-radius:8px; margin-bottom:20px; border-left:4px solid #2AD07A;">
+                            <h3 style="margin-top:0; color:#2AD07A;"><i class="fa-solid fa-money-bill-trend-up"></i> Simulador de Alavancagem (Qual o mix ideal para bater minha meta?)</h3>
+                            <div style="display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap;">
+                                <div class="form-group" style="margin:0;">
+                                    <label style="color:#aaa; font-size:0.8rem; display:block; margin-bottom:4px;">Minha Meta Financeira (R$)</label>
+                                    <select id="alavancagem-tipo" class="noble-input" style="width:140px; display:inline-block;">
+                                        <option value="lucro">Meta de Lucro</option>
+                                        <option value="faturamento">Meta de Faturamento</option>
+                                    </select>
+                                    <input type="number" id="alavancagem-valor" class="noble-input" placeholder="Ex: 50000" style="width:150px; display:inline-block; margin-left:10px;">
+                                </div>
+                                <button type="button" class="btn-noble" onclick="calcularAlavancagemInteligente()" style="background:#2AD07A; color:#0d1826; font-weight:bold;">
+                                    <i class="fa-solid fa-calculator"></i> Gerar Plano de Compras Ideal
+                                </button>
+                            </div>
+                            <div id="alavancagem-resultado" style="margin-top:15px; display:none; background:#0d1826; padding:15px; border-radius:8px; border:1px solid #1e4e8c;"></div>
+                        </div>
+
                         <div class="noble-table-wrapper" style="max-height:600px; overflow-y:auto;">
                             <table class="noble-table" id="table-estr-forecast">
                                 <thead>
