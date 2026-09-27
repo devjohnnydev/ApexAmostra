@@ -3677,6 +3677,104 @@ app.delete('/api/planejamento-estrategico/:id', async (req, res) => {
 });
 */
 
+// ─── API: Forecast e Estratégia de Compras Baseada em Histórico Real ─────────
+app.get('/api/planejamento/compras/forecast', async (req, res) => {
+    let useDb = dbAvailable && pool;
+    if (!useDb) {
+        return res.json([]); // Retorna vazio se não tiver BD real, pois requer histórico
+    }
+    try {
+        const queryStr = `
+            SELECT 
+                mc.id, 
+                mc.nome, 
+                mc.categoria,
+                mc.estoque_atual, 
+                COALESCE(tp.preco_entregar, 0) as preco_compra, 
+                COALESCE(tp.venda_ref, 0) as preco_venda,
+                -- Demanda dos últimos 90 dias
+                (SELECT COALESCE(SUM(pvi.quantidade), 0) 
+                 FROM pedidos_venda_itens pvi 
+                 JOIN pedidos_venda pv ON pvi.pedido_id = pv.id 
+                 WHERE pv.status != 'Cancelado' 
+                 AND pvi.material_id = mc.id 
+                 AND pv.criado_em >= DATE_SUB(NOW(), INTERVAL 90 DAY)) as demanda_90d,
+                 
+                -- Compras pendentes (não recebidas/entregues)
+                (SELECT COALESCE(SUM(pci.quantidade), 0) 
+                 FROM pedidos_compra_itens pci 
+                 JOIN pedidos_compra pc ON pci.pedido_id = pc.id 
+                 WHERE pc.status NOT IN ('Cancelado', 'Entregue') 
+                 AND pci.material_id = mc.id) as compras_pendentes
+                 
+            FROM materiais_catalogo mc
+            LEFT JOIN tabela_precos tp ON mc.id = tp.material_id
+            ORDER BY mc.categoria, mc.nome;
+        `;
+        const result = await pool.query(queryStr);
+        const rows = result[0];
+
+        const forecast = rows.map(r => {
+            const margem = r.preco_venda > 0 ? ((r.preco_venda - r.preco_compra) / r.preco_venda) * 100 : 0;
+            const demanda_mensal_media = r.demanda_90d / 3.0; // 90 dias = 3 meses
+            
+            const estoque_projetado = parseFloat(r.estoque_atual) + parseFloat(r.compras_pendentes);
+            
+            // Sugestões de Compra baseadas na Demanda e Margem
+            // Conservador: Cobre 30 dias de demanda
+            let sug_conservadora = Math.max(0, demanda_mensal_media - estoque_projetado);
+            
+            // Moderado: Cobre 45 dias de demanda (1.5 meses). Se a margem for boa (> 20%), cobre 60 dias (2 meses)
+            let fator_moderado = margem > 20 ? 2.0 : 1.5;
+            let sug_moderada = Math.max(0, (demanda_mensal_media * fator_moderado) - estoque_projetado);
+            
+            // Agressivo: Cobre 90 dias (3 meses). Se margem for ALTA (> 30%), tenta dominar com 120 dias (4 meses)
+            let fator_agressivo = margem > 30 ? 4.0 : 3.0;
+            let sug_agressiva = Math.max(0, (demanda_mensal_media * fator_agressivo) - estoque_projetado);
+            
+            // Ação Recomendada
+            let acao = 'AGUARDAR';
+            let motivo = 'Estoque saudável para a demanda atual.';
+            if (sug_conservadora > 0) {
+                acao = 'COMPRAR';
+                motivo = 'Estoque projetado não cobre os próximos 30 dias.';
+            } else if (estoque_projetado > demanda_mensal_media * 5 && demanda_mensal_media > 0) {
+                acao = 'VENDER ESTOQUE';
+                motivo = 'Alto volume de estoque imobilizado (>5 meses).';
+            } else if (sug_moderada > 0 && margem > 25) {
+                acao = 'OPORTUNIDADE';
+                motivo = 'Margem alta, considere formar estoque moderado/agressivo.';
+            }
+
+            return {
+                id: r.id,
+                nome: r.nome,
+                categoria: r.categoria,
+                estoque_atual: r.estoque_atual,
+                compras_pendentes: r.compras_pendentes,
+                estoque_projetado: estoque_projetado,
+                demanda_90d: r.demanda_90d,
+                demanda_mensal: demanda_mensal_media.toFixed(2),
+                preco_compra: r.preco_compra,
+                preco_venda: r.preco_venda,
+                margem_pct: margem.toFixed(2),
+                cenarios: {
+                    conservador: Math.ceil(sug_conservadora),
+                    moderado: Math.ceil(sug_moderada),
+                    agressivo: Math.ceil(sug_agressiva)
+                },
+                acao_recomendada: acao,
+                motivo_acao: motivo
+            };
+        });
+
+        res.json(forecast);
+    } catch (err) {
+        console.error('Erro ao gerar forecast de compras:', err);
+        res.status(500).json({ error: 'Erro interno ao gerar forecast' });
+    }
+});
+
 
 // ─── API: Planejamento Estratégico V3 (Teste Meta Faturamento -> Insumo) ─────
 app.get('/api/planejamento-estrategicov3', async (req, res) => {

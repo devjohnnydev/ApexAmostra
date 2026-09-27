@@ -2532,7 +2532,7 @@ window.excluirCicloV3 = async function(cicloId) {
     };
 
     window.alternarSubAbaEstrategico = function(aba) {
-        const abas = ['margens', 'radar', 'payback', 'compra', 'venda', 'ativos'];
+        const abas = ['margens', 'radar', 'payback', 'compra', 'venda', 'ativos', 'forecast'];
         
         abas.forEach(nome => {
             const btn = document.getElementById(`tab-btn-estr-${nome}`);
@@ -2558,8 +2558,53 @@ window.excluirCicloV3 = async function(cicloId) {
             if (window.renderAnaliseComprarV3) window.renderAnaliseComprarV3();
         } else if (aba === 'venda') {
             if (window.renderAnaliseVenderV3) window.renderAnaliseVenderV3();
+        } else if (aba === 'forecast') {
+            carregarForecastEstrategico();
         }
     };
+
+    async function carregarForecastEstrategico() {
+        try {
+            const tbody = document.querySelector('#table-estr-forecast tbody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Carregando dados reais de vendas e estoque... <i class="fa-solid fa-spinner fa-spin"></i></td></tr>';
+            
+            const res = await fetch('/api/planejamento/compras/forecast', { cache: 'no-store' });
+            if (!res.ok) throw new Error('Falha ao buscar forecast');
+            const data = await res.json();
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum dado encontrado ou sem conexão com BD real.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                let badgeClass = 'bg-secondary';
+                if (item.acao_recomendada === 'COMPRAR') badgeClass = 'bg-primary';
+                else if (item.acao_recomendada === 'OPORTUNIDADE') badgeClass = 'bg-success';
+                else if (item.acao_recomendada === 'VENDER ESTOQUE') badgeClass = 'bg-danger';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${item.nome} <br><small style="color:#aaa;">${item.categoria}</small></td>
+                    <td>${item.estoque_projetado} kg</td>
+                    <td style="color:#aaa;">${item.demanda_mensal} kg</td>
+                    <td style="font-weight:bold; color:${item.margem_pct > 25 ? '#2AD07A' : '#fff'};">${item.margem_pct}%</td>
+                    <td style="color:#00e5ff; font-weight:bold;">${item.cenarios.conservador > 0 ? '+ ' + item.cenarios.conservador + ' kg' : 'OK'}</td>
+                    <td style="color:#2AD07A; font-weight:bold;">${item.cenarios.moderado > 0 ? '+ ' + item.cenarios.moderado + ' kg' : 'OK'}</td>
+                    <td style="color:#ffb74d; font-weight:bold;">${item.cenarios.agressivo > 0 ? '+ ' + item.cenarios.agressivo + ' kg' : 'OK'}</td>
+                    <td>
+                        <span class="badge ${badgeClass}">${item.acao_recomendada}</span>
+                        <br><small style="color:#aaa; font-size:0.75rem;">${item.motivo_acao}</small>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch(e) {
+            console.error(e);
+            document.querySelector('#table-estr-forecast tbody').innerHTML = '<tr><td colspan="8" style="text-align:center; color:#ff6b6b;">Erro ao carregar forecast. Verifique os logs.</td></tr>';
+        }
+    }
 
     window.gerarPdfEstrategiaV3 = function(planoId) {
         if (!window._lastPlanosConsultados) return;

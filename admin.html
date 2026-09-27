@@ -2790,8 +2790,38 @@
                     <button type="button" class="btn-subtab" id="tab-btn-estr-ativos" onclick="alternarSubAbaEstrategico('ativos')">
                         <i class="fa-solid fa-list-check"></i> Planos Ativos
                     </button>
+                    <button type="button" class="btn-subtab" style="color: #4fc3f7; border-color: #4fc3f7;" id="tab-btn-estr-forecast" onclick="alternarSubAbaEstrategico('forecast')">
+                        <i class="fa-solid fa-chart-pie"></i> Forecast & Compras
+                    </button>
                 </div>
                 
+                <div id="subaba-estr-forecast" style="display:none;">
+                    <div class="glass-panel" style="margin-bottom:20px;">
+                        <h2 style="margin-top:0; color:#4fc3f7;"><i class="fa-solid fa-chart-pie"></i> Forecast e Estratégias de Compras (Dados Reais)</h2>
+                        <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Análise inteligente baseada nos <strong>Pedidos de Venda</strong> (demanda real de 90 dias) e no estoque/pedidos pendentes atuais. Escolha sua estratégia para alavancar os negócios.</p>
+                        
+                        <div class="noble-table-wrapper" style="max-height:600px; overflow-y:auto;">
+                            <table class="noble-table" id="table-estr-forecast">
+                                <thead>
+                                    <tr>
+                                        <th>Material / Insumo</th>
+                                        <th>Estoque<br>Projetado</th>
+                                        <th>Demanda<br>(Mês)</th>
+                                        <th>Margem<br>(%)</th>
+                                        <th style="color:#00e5ff; background:#102235;">Conservador<br>(30 dias)</th>
+                                        <th style="color:#2AD07A; background:#0f2b23;">Moderado<br>(45-60 dias)</th>
+                                        <th style="color:#ffb74d; background:#2a2010;">Agressivo<br>(90-120 dias)</th>
+                                        <th>Ação Recomendada</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="8" style="text-align:center;">Carregando dados reais de vendas e estoque...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="subaba-estr-margens">
 
 
