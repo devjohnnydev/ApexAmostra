@@ -5814,23 +5814,33 @@
                 <input type="hidden" id="pedido-id">
 
                 <!-- Bloco: Emissor & Status do Pedido -->
-                <div style="background:#101a24; border-radius:10px; padding:14px 18px; margin-bottom:18px; border:1px solid #1e4e8c; display:grid; grid-template-columns:120px 1fr 1fr 160px; gap:12px; align-items:center;">
+                <div style="background:#101a24; border-radius:10px; padding:14px 18px; margin-bottom:18px; border:1px solid #1e4e8c; display:grid; grid-template-columns:100px 1fr 100px 120px 120px; gap:12px; align-items:center;">
                     <div class="form-group" style="margin:0;">
                         <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Número *</label>
                         <input type="text" id="pedido-numero" class="noble-input" readonly style="background:#162432; color:#2AD07A; font-weight:bold; padding:6px 10px;">
                     </div>
                     <div class="form-group" style="margin:0;">
-                        <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Vendedor / Emissor *</label>
+                        <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Vendedor/Emissor</label>
                         <input type="text" id="pedido-vendedor" class="noble-input" readonly style="background:#162432; color:#fff; font-weight:600; padding:6px 10px;">
                     </div>
                     <div class="form-group" style="margin:0;">
-                        <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Perfil de Acesso</label>
-                        <input type="text" id="pedido-perfil" class="noble-input" readonly style="background:#162432; color:#7fa8c8; padding:6px 10px;">
+                        <input type="text" id="pedido-status-header" class="noble-input" readonly style="background:#162432; color:#7fa8c8; font-weight:bold; padding:6px 10px;">
                     </div>
                     <div class="form-group" style="margin:0;">
                         <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Data Emissão *</label>
                         <input type="date" id="pedido-data-emissao" class="noble-input" style="padding:6px 8px; font-size:0.85rem;" required>
                     </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Data Entrega</label>
+                        <input type="date" id="pedido-data-entrega" class="noble-input" style="padding:6px 8px; font-size:0.85rem;">
+                    </div>
+                </div>
+
+                <!-- Rastreamento do Pedido -->
+                <div id="pedido-rastreamento-box" style="display:none; background:rgba(42,208,122,0.05); border-radius:8px; padding:10px 15px; margin-bottom:18px; border:1px solid rgba(42,208,122,0.2); font-size:0.8rem; color:#888; display:flex; gap:20px; flex-wrap:wrap;">
+                    <div><strong>Criado em:</strong> <span id="pedido-criado-em">-</span></div>
+                    <div><strong>Última Atualização:</strong> <span id="pedido-atualizado-em">-</span></div>
+                    <div><strong>Aprovado por:</strong> <span id="pedido-aprovado-por">-</span> <span id="pedido-data-aprovacao"></span></div>
                 </div>
 
                 <!-- Linha 2: Cliente & Cadastro -->
@@ -5986,7 +5996,8 @@
                 <div style="display:flex; gap:10px; justify-content:flex-end;">
                     <button type="button" class="btn-secondary" onclick="fecharModalPedido()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                     <button type="button" class="btn-secondary" onclick="imprimirPedido()" style="background:#3e7cb1;"><i class="fa-solid fa-print"></i> Imprimir PDF</button>
-                    <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Pedido</button>
+                    <button type="button" id="btn-aprovar-pedido" class="btn-primary" onclick="aprovarPedido()" style="display:none; background:#2AD07A; color:#000;"><i class="fa-solid fa-check-double"></i> Aprovar Pedido</button>
+                    <button type="submit" id="btn-salvar-pedido" class="btn-primary"><i class="fa-solid fa-save"></i> Salvar Pedido</button>
                 </div>
             </form>
         </div>

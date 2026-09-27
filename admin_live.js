@@ -14291,7 +14291,7 @@ window.carregarFinanceiroView = async function() {
         renderPedidos(filtrado);
     };
 
-    window.abrirNovoPedido = async function() {
+    window.abrirNovoPedido = async function() { window._aprovar_pedido_flag = false;
         itensPedido = [];
 
         // 1. Abrir o modal IMEDIATAMENTE ao clicar no botão
@@ -14319,6 +14319,10 @@ window.carregarFinanceiroView = async function() {
 
         // Número provisório imediato
         document.getElementById('pedido-numero').value = 'PV-' + String(Math.floor(Date.now()/1000)%10000).padStart(4,'0');
+        if(document.getElementById('pedido-rastreamento-box')) document.getElementById('pedido-rastreamento-box').style.display = 'none';
+        if(document.getElementById('btn-aprovar-pedido')) document.getElementById('btn-aprovar-pedido').style.display = 'none';
+        if(document.getElementById('pedido-status-header')) document.getElementById('pedido-status-header').value = 'Rascunho';
+        if(document.getElementById('pedido-data-entrega')) document.getElementById('pedido-data-entrega').value = '';
 
         // 2. Buscar dados em segundo plano com validação de status HTTP
         try {
@@ -14668,7 +14672,7 @@ window.carregarFinanceiroView = async function() {
         }
     };
 
-    window.editarPedido = async function(id) {
+    window.editarPedido = async function(id) { window._aprovar_pedido_flag = false;
         try {
             const res  = await fetch(`/api/pedidos-venda/${id}`);
             const data = await res.json();
@@ -14677,6 +14681,23 @@ window.carregarFinanceiroView = async function() {
             document.getElementById('pedido-numero').value          = data.numero;
             document.getElementById('pedido-data-emissao').value    = (data.data_emissao||'').slice(0,10);
             document.getElementById('pedido-data-entrega').value    = (data.data_entrega||'').slice(0,10);
+            if(document.getElementById('pedido-status-header')) document.getElementById('pedido-status-header').value = data.status || 'Rascunho';
+            
+            if(document.getElementById('pedido-rastreamento-box')) {
+                document.getElementById('pedido-rastreamento-box').style.display = 'flex';
+                document.getElementById('pedido-criado-em').textContent = data.criado_em ? new Date(data.criado_em).toLocaleString('pt-BR') : '-';
+                document.getElementById('pedido-atualizado-em').textContent = data.atualizado_em ? new Date(data.atualizado_em).toLocaleString('pt-BR') : '-';
+                document.getElementById('pedido-aprovado-por').textContent = data.aprovado_por || 'Pendente';
+                document.getElementById('pedido-data-aprovacao').textContent = data.data_aprovacao ? '(' + new Date(data.data_aprovacao).toLocaleString('pt-BR') + ')' : '';
+            }
+            if(document.getElementById('btn-aprovar-pedido')) {
+                const isDiretoria = globalRolePermissions && globalRolePermissions['Pedidos de Venda'] === 'Escrita';
+                if (data.status !== 'Aprovado' && isDiretoria) {
+                    document.getElementById('btn-aprovar-pedido').style.display = 'inline-block';
+                } else {
+                    document.getElementById('btn-aprovar-pedido').style.display = 'none';
+                }
+            }
             document.getElementById('pedido-desconto').value        = data.desconto_pct||0;
             document.getElementById('pedido-frete').value           = data.frete||0;
             document.getElementById('pedido-obs').value             = data.observacoes||'';
@@ -18750,3 +18771,9 @@ window.carregarFinanceiroView = async function() {
     };
 
 })();
+
+    window.aprovarPedido = function() {
+        if (!confirm('Deseja realmente aprovar este pedido? O status mudará para Aprovado e você será registrado como o aprovador.')) return;
+        window._aprovar_pedido_flag = true;
+        document.getElementById('form-pedido-venda').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    };

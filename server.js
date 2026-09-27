@@ -6608,7 +6608,7 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         const { cliente_id, cliente_nome, data_emissao, data_entrega, status, condicao_pagamento,
                 observacoes, desconto_pct, frete, itens, criado_por_perfil,
-                endereco_entrega, responsavel_recebimento, tipo_frete } = req.body;
+                endereco_entrega, responsavel_recebimento, tipo_frete, aprovado_por } = req.body;
         const total_itens = (itens || []).reduce((s, i) => s + parseFloat(i.total_item || 0), 0);
         const desc = parseFloat(desconto_pct || 0);
         const fr = parseFloat(frete || 0);
@@ -6644,15 +6644,21 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
         const client = await pool.getConnection();
         try {
             await client.query('BEGIN');
+            let updateAprovacao = '';
+            let paramsAprovacao = [];
+            if (aprovado_por) {
+                updateAprovacao = ', aprovado_por=?, data_aprovacao=NOW()';
+                paramsAprovacao.push(aprovado_por);
+            }
             await client.query(`
                 UPDATE pedidos_venda SET cliente_id=?, cliente_nome=?, data_emissao=?, data_entrega=?, status=?,
                     condicao_pagamento=?, observacoes=?, desconto_pct=?, frete=?,
                     total_itens=?, total_geral=?, criado_por_perfil=?, endereco_entrega=?,
-                    responsavel_recebimento=?, tipo_frete=?, atualizado_em=NOW()
+                    responsavel_recebimento=?, tipo_frete=?, atualizado_em=NOW()${updateAprovacao}
                 WHERE id=?
             `, [cid, cliente_nome || '', data_emissao, data_entrega || null, status, condicao_pagamento,
                  observacoes, desc, fr, total_itens, total_geral, criado_por_perfil,
-                 endereco_entrega, responsavel_recebimento, tipo_frete, id]);
+                 endereco_entrega, responsavel_recebimento, tipo_frete, ...paramsAprovacao, id]);
             await client.query('DELETE FROM pedidos_venda_itens WHERE pedido_id = ?', [id]);
             for (const item of (itens || [])) {
                 await client.query(`
