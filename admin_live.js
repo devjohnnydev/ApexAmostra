@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const configs = {
             success: { icon:'✅', bg:'rgba(42,208,122,0.18)', border:'rgba(42,208,122,0.5)', glow:'rgba(42,208,122,0.25)' },
-            error:   { icon:'âŒ', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
+            error:   { icon:'❌', bg:'rgba(224,80,80,0.18)',  border:'rgba(224,80,80,0.5)',  glow:'rgba(224,80,80,0.25)' },
             warning: { icon:'⚠️ ï¸', bg:'rgba(240,184,0,0.18)',  border:'rgba(240,184,0,0.5)',  glow:'rgba(240,184,0,0.25)' },
             info:    { icon:'â„¹ï¸', bg:'rgba(30,78,140,0.25)',  border:'rgba(42,140,208,0.5)', glow:'rgba(42,140,208,0.2)' },
         };
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 selector.innerHTML = excelWeeks.map(w => {
                     const lastDay = w.days && w.days.length > 0 ? w.days[w.days.length - 1]?.data : '—';
-                    return `<option value="${w.header}">Semana ${w.header} â†’ ${lastDay}</option>`;
+                    return `<option value="${w.header}">Semana ${w.header} → ${lastDay}</option>`;
                 }).join('');
 
                 renderPreview(excelWeeks[0].header);
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const renderOscilacao = (v, isDolar) => {
             if (v === null || v === undefined || typeof v === 'string') return '—';
             const isUp = v >= 0;
-            const arrow = isUp ? 'â–²' : 'â–¼';
+            const arrow = isUp ? '▲' : '▼';
             const cls = isUp ? 'excel-up' : 'excel-down';
             // OSCILAÇÃO R$ é a variação convertida em reais brasileiros
             const prefix = 'R$ ';
@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function parsePrice(str) {
         if (!str || str === '—' || str === '-' || str.trim() === '') return null;
-        // Brazilian format: "9.234,56" â†’ 9234.56
+        // Brazilian format: "9.234,56" → 9234.56
         const cleaned = str.replace(/\./g, '').replace(',', '.');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const avgPrev5  = prev5Vals.length ? prev5Vals.reduce((a, b) => a + b, 0) / prev5Vals.length : avg;
             const momentum  = avgPrev5 ? ((avg5 - avgPrev5) / avgPrev5) * 100 : 0;
 
-            // Opportunity Score (0â€“100)
+            // Opportunity Score (0–100)
             const chanScore = (channelPos / 100) * 40;
             const momScore  = Math.max(0, Math.min(1, (momentum + 5) / 10)) * 30;
             const dayScore  = Math.max(0, Math.min(1, (dayChange + 2) / 4)) * 30;
@@ -965,9 +965,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fa-solid ${upIcon}"></i> ${Math.abs(s.dayChange).toFixed(2)}% hoje
                 </div>
                 <div class="kpi-footer">
-                    <span>â†“ US$ ${fmtPrice(s.min)}</span>
+                    <span>↓ US$ ${fmtPrice(s.min)}</span>
                     <span style="color:#555;">|</span>
-                    <span>â†‘ US$ ${fmtPrice(s.max)}</span>
+                    <span>↑ US$ ${fmtPrice(s.max)}</span>
                 </div>
             </div>`;
         }).join('');
@@ -1177,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(m => ({ m, chg: stats[m].monthChange, s: stats[m] }))
             .sort((a, b) => b.chg - a.chg);
 
-        const medals = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰'];
+        const medals = ['🥇', '🥈', '🥉'];
         el.innerHTML = ranked.map((item, i) => {
             const isPos = item.chg >= 0;
             const barW  = Math.min(100, Math.abs(item.chg) * 10);
@@ -1194,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:7px;overflow:hidden;">
                         <div style="height:100%;width:${barW}%;background:${isPos ? '#2AD07A' : '#ff4d4d'};border-radius:4px;transition:width 1s;"></div>
                     </div>
-                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês â†’ Hoje</small>
+                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês → Hoje</small>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="color:#aaa;font-size:0.8rem;">US$ ${fmtPrice(item.s.current)}</div>
@@ -1215,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'bar',
                 data: {
                     labels: METALS.map(m => METAL_LABELS[m]),
-                    datasets: [{ label: 'Score (0â€“100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
+                    datasets: [{ label: 'Score (0–100)', data: scores, backgroundColor: colors, borderRadius: 8 }]
                 },
                 options: deepMerge(baseChartOpts, { scales: { y: { min: 0, max: 100 } } })
             });
@@ -1228,7 +1228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const s = stats[m];
                 const sc = s.score;
                 const color = sc >= 75 ? '#ff4d4d' : sc >= 55 ? '#ff9900' : sc >= 35 ? '#ffcc00' : '#2AD07A';
-                const label = sc >= 75 ? 'ðŸ”´ VENDER AGORA' : sc >= 55 ? 'ðŸŸ  ATENÇÃO' : sc >= 35 ? 'ðŸŸ¡ RETER' : 'ðŸŸ¢ ACUMULAR';
+                const label = sc >= 75 ? '🔴 VENDER AGORA' : sc >= 55 ? '🟠 ATENÇÃO' : sc >= 35 ? '🟡 RETER' : '🟢 ACUMULAR';
                 return `
                 <div class="score-item">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1387,7 +1387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const diff   = last5[i] - prev5[i];
             const pct    = prev5[i] ? ((diff / prev5[i]) * 100) : 0;
             const isUp   = diff >= 0;
-            const arrow  = isUp ? 'â–²' : 'â–¼';
+            const arrow  = isUp ? '▲' : '▼';
             const color  = isUp ? '#2AD07A' : '#ff4d4d';
             const bgClr  = isUp ? 'rgba(42,208,122,0.12)' : 'rgba(255,77,77,0.12)';
             const border = isUp ? 'rgba(42,208,122,0.4)' : 'rgba(255,77,77,0.4)';
@@ -1690,7 +1690,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="alerta-card ${triggered ? 'alerta-triggered' : ''}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                     <strong style="color:${METAL_COLORS[m]};font-size:0.95rem;">${METAL_LABELS[m]}</strong>
-                    ${triggered ? '<span class="badge-triggered">ðŸ”” ALERTA!</span>' : ''}
+                    ${triggered ? '<span class="badge-triggered">🔔 ALERTA!</span>' : ''}
                 </div>
                 <p style="font-size:0.82rem;color:#888;margin-bottom:10px;">Atual: <strong style="color:#ddd;">US$ ${fmtPrice(s.current)}</strong></p>
                 ${alertVal ? `<p style="font-size:0.78rem;color:#666;margin-bottom:10px;">Alvo: US$ ${fmtPrice(alertVal)} | Gap: ${((s.current - alertVal) / alertVal * 100).toFixed(1)}%</p>` : ''}
@@ -1823,7 +1823,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error('API error');
                     }
                 } catch(e) {
-                    msgEl.textContent = 'âŒ Erro ao salvar. Tente novamente.';
+                    msgEl.textContent = '❌ Erro ao salvar. Tente novamente.';
                     msgEl.style.color = '#ff4d4d';
                     msgEl.style.display = 'block';
                 }
@@ -1872,7 +1872,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (preview) preview.style.display = 'none';
                     await renderGaleriaAdmin();
                 } else {
-                    _apexNotify('Atenção', 'âŒ Erro ao adicionar foto. Verifique os dados.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao adicionar foto. Verifique os dados.', 'error');
                 }
             });
         }
@@ -2008,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderMateriais();
                     _apexNotify('Sistema', '✅ Material cadastrado com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'âŒ Erro ao salvar material.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao salvar material.', 'error');
                 }
             });
         }
@@ -2111,7 +2111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderSolucoesAdmin();
                     _apexNotify('Sistema', '✅ Solução salva com sucesso!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'âŒ Erro ao salvar a solução.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao salvar a solução.', 'error');
                 }
             });
         }
@@ -2199,7 +2199,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderNoticiasAdmin();
                     _apexNotify('Sistema', '✅ Notícia publicada!', 'info');
                 } else {
-                    _apexNotify('Atenção', 'âŒ Erro ao publicar notícia.', 'error');
+                    _apexNotify('Atenção', '❌ Erro ao publicar notícia.', 'error');
                 }
             });
         }
@@ -2797,13 +2797,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
             metals.forEach(m => {
                 const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                const setinha = osc >= 0 ? 'â¬†' : 'â¬‡';
+                const setinha = osc >= 0 ? '⬆️' : '⬇️';
                 const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
             });
 
             const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-            const dSetinha = dolarOsc >= 0 ? 'â¬†' : 'â¬‡';
+            const dSetinha = dolarOsc >= 0 ? '⬆️' : '⬇️';
             const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
             txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
@@ -3058,9 +3058,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">â–²</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">â–¼</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
@@ -3346,7 +3346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? 'â†‘' : isDown ? 'â†“' : 'â€“';
+                const arrow    = isUp ? '↑' : isDown ? '↓' : '–';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -3574,13 +3574,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const metals = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
                 metals.forEach(m => {
                     const osc = comp['OSCILAÇÃO R$']?.[m] ?? 0;
-                    const setinha = osc >= 0 ? 'â¬†' : 'â¬‡';
+                    const setinha = osc >= 0 ? '⬆️' : '⬇️';
                     const money = 'R$ ' + Math.abs(osc).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     txt += `- ${m.toUpperCase()}: ${setinha} ${money}\n`;
                 });
 
                 const dolarOsc = comp['OSCILAÇÃO R$']?.['dolar'] ?? 0;
-                const dSetinha = dolarOsc >= 0 ? 'â¬†' : 'â¬‡';
+                const dSetinha = dolarOsc >= 0 ? '⬆️' : '⬇️';
                 const dMoney = '$ ' + Math.abs(dolarOsc).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
                 txt += `- DÓLAR: ${dSetinha} ${dMoney}\n`;
 
@@ -3790,9 +3790,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let arrow = '';
             if (numVal > 0) {
-                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">â–²</span>`;
+                arrow = `<span style="color: #2E7D32 !important; margin-right: 4px; font-weight: bold;">▲</span>`;
             } else if (numVal < 0) {
-                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">â–¼</span>`;
+                arrow = `<span style="color: #D32F2F !important; margin-right: 4px; font-weight: bold;">▼</span>`;
             }
             
             element.innerHTML = `${arrow}${formattedText}`;
@@ -4064,7 +4064,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diff     = atual - anterior;
                 const isUp     = diff > 0;
                 const isDown   = diff < 0;
-                const arrow    = isUp ? 'â†‘' : isDown ? 'â†“' : 'â€“';
+                const arrow    = isUp ? '↑' : isDown ? '↓' : '–';
                 const color    = isUp ? '#1a7f4b' : isDown ? '#c0392b' : '#555';
                 const bg       = isUp ? '#e9f7f0' : isDown ? '#fdecea' : '#f5f5f5';
                 const border   = isUp ? '#a8dfc4' : isDown ? '#f5b8b2' : '#ddd';
@@ -5067,7 +5067,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span onclick="event.stopPropagation(); renomearCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Renomear grupo" style="cursor:pointer; font-size:0.75rem; color:#ffd54f; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,213,79,0.15)'" onmouseout="this.style.background='none'"
-                        >âœŽ</span>
+                        >✏️</span>
                         <span onclick="event.stopPropagation(); excluirCategoria('${cat.replace(/'/g, "\\'")}')"
                             title="Excluir grupo" style="cursor:pointer; font-size:0.82rem; color:#ff5555; padding:1px 4px; border-radius:3px;"
                             onmouseover="this.style.background='rgba(255,85,85,0.15)'" onmouseout="this.style.background='none'"
@@ -5121,7 +5121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.excluirCategoria = async function(cat) {
         const materiaisDoGrupo = localMateriais.filter(m => m.categoria === cat);
         if (materiaisDoGrupo.length > 0) {
-            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  â€¢ ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
+            const confirmMsg = `O grupo "${cat}" possui ${materiaisDoGrupo.length} material(is) vinculado(s):\n${materiaisDoGrupo.map(m => '  • ' + m.nome).join('\n')}\n\nExcluir o grupo também removerá esses materiais e seus preços. Deseja continuar?`;
             if (!confirm(confirmMsg)) return;
             for (const m of materiaisDoGrupo) {
                 await fetch(`/api/materiais-catalogo/${m.id}`, { method: 'DELETE' });
@@ -5861,7 +5861,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ✅ Aprovado pelo CEO Jose Tiago
                         </div>
                         <div style="text-align: right; color: #888;">
-                            Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}
+                            Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}
                         </div>
                     </div>
                 </div>
@@ -6152,7 +6152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
                         <div style="font-weight:bold;color:#1a5c38;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -6362,7 +6362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `
                     <div style="margin-top:40px;border-top:2px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:#555;">
                         <div style="font-weight:bold;color:#1565c0;font-size:0.95rem;">✅ Aprovado pelo CEO Jose Tiago</div>
-                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais â€¢ Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+                        <div style="text-align:right;color:#888;">Documento oficial ApexTech Metais • Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                 </div>
             </div>`;
@@ -6485,7 +6485,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error(err);
             setUIState(false, '<i class="fa-solid fa-circle-exclamation"></i> ' + err.message, '#ff4d4d');
-            _apexNotify('Atenção', 'âŒ Erro ao enviar e-mail: ' + err.message, 'error');
+            _apexNotify('Atenção', '❌ Erro ao enviar e-mail: ' + err.message, 'error');
         }
     };
 
@@ -6502,7 +6502,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data && data.dolar) {
                 window.currentDolarRate = data.dolar;
-                console.log(`ðŸ’µ Cotação Dólar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
+                console.log(`💵 Cotação Dólar Comercial: R$ ${data.dolar.toFixed(2)} | LME Cobre: R$ ${data.lme_brl_kg?.cobre}/kg`);
 
                 const alertaEl = document.getElementById('alerta-cotacao-mercado');
                 const alertaTexto = document.getElementById('alerta-cotacao-texto');
@@ -6851,7 +6851,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="position:relative; display:inline-block;">
                 <img src="${f.base64}" style="width:72px; height:72px; object-fit:cover; border-radius:6px; border:2px solid #2AD07A; display:block;" title="${f.nome}">
                 <button type="button" onclick="removerFotoRecebimento(${i})"
-                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">âœ•</button>
+                    style="position:absolute; top:-6px; right:-6px; background:#e05050; border:none; color:#fff; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; text-align:center; cursor:pointer; padding:0;">✕</button>
             </div>
         `).join('');
     }
@@ -6926,7 +6926,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Etapa 4: acesso restrito
         if (etapaNum === 4) {
             if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                _apexNotify('Sistema', 'ðŸ”’ Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
+                _apexNotify('Sistema', '🔒 Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
@@ -7555,7 +7555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   </h3>
                   <button id="_wcm_fechar" style="background:#e63946;color:#fff;border:none;
                     border-radius:6px;padding:7px 16px;font-weight:bold;cursor:pointer;font-size:0.9rem;">
-                    âœ• Desligar e Sair
+                    ✕ Desligar e Sair
                   </button>
                 </div>
                 <!-- área de vídeo -->
@@ -7585,7 +7585,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <button id="_wcm_ok" style="display:none;background:#2AD07A;color:#000;border:none;
                       border-radius:8px;padding:10px 26px;font-size:1.05rem;cursor:pointer;font-weight:bold;">
-                      <i class='fa-solid fa-check'></i> âœ” Usar esta Foto
+                      <i class='fa-solid fa-check'></i> ✔ Usar esta Foto
                     </button>
                   </div>
                 </div>
@@ -7631,14 +7631,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 _video.srcObject = _stream;
                 await _video.play().catch(() => {});
             } catch(e) {
-                _apexNotify('Sistema', 'Câmera não disponível: ' + e.message, 'info');
+                _apexNotify('Sistema', 'CCâmera não disponível: ' + e.message, 'info');
                 _fechar();
             }
         }
 
         /* ── Captura o frame atual para o canvas ── */
         function _capturar() {
-            if (!_stream || !_video.srcObject) { _apexNotify('Sistema', 'Câmera não ativa.', 'info'); return; }
+            if (!_stream || !_video.srcObject) { _apexNotify('Sistema', 'CCâmera não ativa.', 'info'); return; }
 
             const w = _video.videoWidth  || 1280;
             const h = _video.videoHeight || 720;
@@ -7676,7 +7676,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const img64   = _captured;
             const cIdx    = _compIdx;
 
-            // 1. Fecha a câmera imediatamente
+            // 1. FFecha a câmera imediatamente
             _fechar();
 
             // 2. Se há um callback especial (ex: Recebimento), delega a ele e encerra
@@ -7738,7 +7738,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        /* ── Fecha e desliga a câmera ── */
+        /* ── FFecha e desliga a câmera ── */
         function _fechar() {
             if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
             if (_video)  { _video.srcObject = null; }
@@ -7763,7 +7763,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   '</div>' +
                   '<button type="button" onclick="_WCM.removerFotoDoComponente(' + idx + ',' + fIdx + ')" title="Remover esta foto" ' +
                     'style="position:absolute; top:-4px; right:-4px; background:#ff4d4d; color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">' +
-                    'âœ•</button>' +
+                    '✕</button>' +
                 '</div>';
             });
 
@@ -7952,14 +7952,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="position:relative;">
                     <img src="${item.img}" style="width:100%; height:180px; object-fit:cover; display:block;">
                     <div style="position:absolute; top:8px; left:8px; background:rgba(13,26,36,0.85); border:1px solid #2AD07A; border-radius:20px; padding:2px 10px; font-size:0.72rem; color:#2AD07A; font-weight:bold;">
-                        ðŸ“¸ #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
+                        📸 #${i + 1} &nbsp;${new Date(item.ts).toLocaleTimeString('pt-BR')}
                     </div>
                 </div>
                 <div style="padding:12px;">
                     <div style="font-weight:bold; color:#fff; font-size:0.95rem; margin-bottom:6px;">${item.nome}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
                         <span style="background:#1e3a5f; color:#7ec8e3; border-radius:4px; padding:2px 8px; font-size:0.78rem;">⚠️– ${parseFloat(item.peso).toFixed(3)} kg</span>
-                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">ðŸ”§ ${item.dificuldade}</span>
+                        <span style="background:#1e3a20; color:#2AD07A; border-radius:4px; padding:2px 8px; font-size:0.78rem;">🔧 ${item.dificuldade}</span>
                     </div>
                     ${item.observacoes ? `<div style="color:#aaa; font-size:0.8rem; border-top:1px solid #223547; padding-top:8px;">${item.observacoes}</div>` : ''}
                 </div>
@@ -8168,7 +8168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             if (res.ok) {
-                const emoji = decisao === 'Aprovado' ? '✅' : 'âŒ';
+                const emoji = decisao === 'Aprovado' ? '✅' : '❌';
                 _apexNotify('Sistema', `${emoji} Decisão da Diretoria registrada: ${decisao}\n\nEsta decisão foi permanentemente registrada no laudo da amostra.`, 'info');
                 fecharModalReprovacao();
                 fecharAnaliseDesmonte();
@@ -9362,9 +9362,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (badge && cenarioAtivo) {
             badge.style.display = 'flex';
             const infoCenarios = {
-                conservador: { nome: 'ðŸ›¡ï¸ Conservador (-10% Volume / +5% Margem)', det: 'Alocação prudente com redução de teto de custos para menor risco financeiro.' },
+                conservador: { nome: '🛡️ Conservador (-10% Volume / +5% Margem)', det: 'Alocação prudente com redução de teto de custos para menor risco financeiro.' },
                 moderado: { nome: '⚠️–ï¸ Moderado (Média Histórica Móvel)', det: 'Projeção contínua baseada no desempenho médio recente.' },
-                agressivo: { nome: 'ðŸš€ Agressivo (+20% Volume / Expansão)', det: 'Meta de captação ampliada e alocação máxima de trabalho industrial.' }
+                agressivo: { nome: '🚀 Agressivo (+20% Volume / Expansão)', det: 'Meta de captação ampliada e alocação máxima de trabalho industrial.' }
             };
             const c = infoCenarios[cenarioAtivo] || infoCenarios.moderado;
             if (txtNome) txtNome.textContent = c.nome;
@@ -9701,15 +9701,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Inteligencia
-        let indicador = 'ðŸŸ¢';
+        let indicador = '🟢';
         let titulo = 'Excelente para antecipar';
         let cor = '#2AD07A';
         
         const impactoFidcNoLucro = data.lucroB > 0 ? (data.valorFidc / data.lucroB) : 1;
         if (impactoFidcNoLucro > 0.4 || data.margem < 5) {
-            indicador = 'ðŸ”´'; titulo = 'Não recomendado'; cor = '#ff4d4d';
+            indicador = '🔴'; titulo = 'Não recomendado'; cor = '#ff4d4d';
         } else if (impactoFidcNoLucro > 0.2) {
-            indicador = 'ðŸŸ¡'; titulo = 'Avaliar necessidade'; cor = '#f0b800';
+            indicador = '🟡'; titulo = 'Avaliar necessidade'; cor = '#f0b800';
         }
 
         const dif = data.lucroLiqSemFidc - data.lucroLiqComFidc;
@@ -9720,9 +9720,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let txt = `A antecipação via FIDC reduzirá seu lucro em <strong>R$ ${dif.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong> (${fmtBRL(data.fidc)}%), porém disponibilizará o capital imediatamente (economia de ${prazo} dias), aumentando a liquidez da empresa. `;
         
-        if (indicador === 'ðŸ”´') {
+        if (indicador === '🔴') {
             txt += "Como o impacto do FIDC no lucro bruto é alto ou a margem da operação é baixa, recomenda-se <strong>NÃO antecipar</strong> os recebíveis a menos que haja urgência de caixa.";
-        } else if (indicador === 'ðŸŸ¡') {
+        } else if (indicador === '🟡') {
             txt += "O impacto financeiro é moderado. Avalie a real necessidade de capital de giro antes de realizar a antecipação.";
         } else {
             txt += "Excelente oportunidade de antecipação. O custo financeiro não compromete a lucratividade e fortalece o fluxo de caixa.";
@@ -10042,10 +10042,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const tipo = p.tipo_planejamento || 'COMPRA_VENDA';
 
             let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Sugerido</span>';
-            if (p.status === 'Em Cotação') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸ” Em Cotação</span>';
+            if (p.status === 'Em Cotação') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🔍 Em Cotação</span>';
             if (p.status === 'Aprovado') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Aprovado</span>';
-            if (p.status === 'Em Trânsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸšš Em Trânsito</span>';
-            if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">ðŸ“¦ Recebido</span>';
+            if (p.status === 'Em Trânsito') statusBadge = '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:3px 8px; border-radius:12px; font-size:0.75rem;">🚚 Em Trânsito</span>';
+            if (p.status === 'Recebido') statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:3px 8px; border-radius:12px; font-size:0.75rem;">📦 Recebido</span>';
 
             if (tipo === 'COMPRA_VENDA') {
                 totalQtyCompras += qty;
@@ -10398,8 +10398,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isVermelho = qLiq > 0;
             const statusBadge = isVermelho ?
-                '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ NECESSIDADE DE COMPRA</span>' :
-                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ ESTOQUE SUFICIENTE</span>';
+                '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 NECESSIDADE DE COMPRA</span>' :
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 ESTOQUE SUFICIENTE</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -10614,12 +10614,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const markup = custoTotal > 0 ? ((meta - custoTotal) / custoTotal) * 100 : 0;
 
         const cards = [
-            { label: 'ðŸŽ¯ Meta de Faturamento', val: 'R$ ' + meta.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1' },
-            { label: 'ðŸ“¦ Produto Final', val: nomeProd, cor: '#2AD07A', small: periodo },
+            { label: '🎯 Meta de Faturamento', val: 'R$ ' + meta.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1' },
+            { label: '📦 Produto Final', val: nomeProd, cor: '#2AD07A', small: periodo },
             { label: '⚠️–ï¸ Qtd Necessária', val: qtdProd.toLocaleString('pt-BR', {minimumFractionDigits:3}) + ' kg', cor: '#2AD07A' },
-            { label: 'ðŸ’° Custo Total Insumos', val: 'R$ ' + custoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800' },
-            { label: 'ðŸ“ˆ Margem Projetada', val: markup.toFixed(1) + '%', cor: markup >= 0 ? '#2AD07A' : '#ff4d4d' },
-            { label: 'ðŸ§® Nº de Insumos', val: _simLinhas.length + ' insumo(s)', cor: '#9b59b6' },
+            { label: '💰 Custo Total Insumos', val: 'R$ ' + custoTotal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800' },
+            { label: '📈 Margem Projetada', val: markup.toFixed(1) + '%', cor: markup >= 0 ? '#2AD07A' : '#ff4d4d' },
+            { label: '🧮 Nº de Insumos', val: _simLinhas.length + ' insumo(s)', cor: '#9b59b6' },
         ];
 
         document.getElementById('sim-preview-cards').innerHTML = cards.map(c => `
@@ -10818,7 +10818,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const atrasoC = prazoC < hoje && comprasInsumosReal < custoPrevisto;
                 bannerHtml += `
                     <div style="flex:1; background:${atrasoC ? '#3b1818' : '#162432'}; border:1px solid ${atrasoC ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.1rem;">${atrasoC ? '⚠️ ï¸' : 'ðŸ“…'}</span>
+                        <span style="font-size:1.1rem;">${atrasoC ? '⚠️ ï¸' : '📅'}</span>
                         <div style="font-size:0.8rem;">
                             <span style="color:#aaa;">Prazo Limite Compra Insumos:</span>
                             <strong style="color:#fff; margin-left:5px;">${prazoC}</strong>
@@ -10830,7 +10830,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const atrasoV = prazoV < hoje && vendasReal < metaFaturamento;
                 bannerHtml += `
                     <div style="flex:1; background:${atrasoV ? '#3b1818' : '#162432'}; border:1px solid ${atrasoV ? '#ff4d4d' : '#1e4e8c'}; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.1rem;">${atrasoV ? '⚠️ ï¸' : 'ðŸ“…'}</span>
+                        <span style="font-size:1.1rem;">${atrasoV ? '⚠️ ï¸' : '📅'}</span>
                         <div style="font-size:0.8rem;">
                             <span style="color:#aaa;">Prazo Limite Faturamento/Venda:</span>
                             <strong style="color:#fff; margin-left:5px;">${prazoV}</strong>
@@ -10849,11 +10849,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Renderizar KPI Cards
         const kpis = [
-            { label: 'ðŸŽ¯ Meta Faturamento', val: 'R$ ' + metaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1', desc: 'Planejado' },
-            { label: 'ðŸ’° Realizado (Vendas)', val: 'R$ ' + vendasReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#2AD07A', desc: `${metaProgressoPct.toFixed(1)}% da Meta` },
-            { label: 'ðŸ›’ Custo Previsto Insumos', val: 'R$ ' + custoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800', desc: 'Simulado' },
-            { label: 'ðŸ’¸ Investido Real Insumos', val: 'R$ ' + comprasInsumosReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff9f43', desc: `${custoPrevisto > 0 ? ((comprasInsumosReal/custoPrevisto)*100).toFixed(1) : 0}% do orçado` },
-            { label: 'ðŸ“ˆ Markup Realizado', val: markupReal.toFixed(1) + '%', cor: markupReal >= 0 ? '#2AD07A' : '#ff4d4d', desc: 'Vendas vs Compras Reais' },
+            { label: '🎯 Meta Faturamento', val: 'R$ ' + metaFaturamento.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#3e7cb1', desc: 'Planejado' },
+            { label: '💰 Realizado (Vendas)', val: 'R$ ' + vendasReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#2AD07A', desc: `${metaProgressoPct.toFixed(1)}% da Meta` },
+            { label: '🛒 Custo Previsto Insumos', val: 'R$ ' + custoPrevisto.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#f0b800', desc: 'Simulado' },
+            { label: '💸 Investido Real Insumos', val: 'R$ ' + comprasInsumosReal.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff9f43', desc: `${custoPrevisto > 0 ? ((comprasInsumosReal/custoPrevisto)*100).toFixed(1) : 0}% do orçado` },
+            { label: '📈 Markup Realizado', val: markupReal.toFixed(1) + '%', cor: markupReal >= 0 ? '#2AD07A' : '#ff4d4d', desc: 'Vendas vs Compras Reais' },
             { label: '⚠️ ï¸ Compras Fora do Planejado', val: 'R$ ' + comprasAcima.toLocaleString('pt-BR', {minimumFractionDigits:2}), cor: '#ff4d4d', desc: 'Preço Real > Preço Simulado' }
         ];
 
@@ -10953,8 +10953,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const refVenda = parseFloat(plan.preco_venda_produto_rs || 0);
                                     if (refVenda > 0) {
                                         const diff = ((m.preco_unitario - refVenda) / refVenda) * 100;
-                                        if (diff > 0) ef = `<span style="color:#2AD07A; font-weight:700;">ðŸ“ˆ +${diff.toFixed(1)}% (Alta)</span>`;
-                                        else if (diff < 0) ef = `<span style="color:#ff4d4d; font-weight:700;">ðŸ“‰ ${diff.toFixed(1)}% (Baixa)</span>`;
+                                        if (diff > 0) ef = `<span style="color:#2AD07A; font-weight:700;">📈 +${diff.toFixed(1)}% (Alta)</span>`;
+                                        else if (diff < 0) ef = `<span style="color:#ff4d4d; font-weight:700;">📉 ${diff.toFixed(1)}% (Baixa)</span>`;
                                         else ef = `<span style="color:#aaa;">= Tabela</span>`;
                                     }
                                 }
@@ -11252,7 +11252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isAltoGiro = fat >= 1000000;
             const giroBadge = isAltoGiro ?
-                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”¥ ALTO GIRO</span>' :
+                '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 6px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔥 ALTO GIRO</span>' :
                 '<span style="background:#122a3f; color:#3e7cb1; border:1px solid #3e7cb1; padding:2px 6px; border-radius:12px; font-size:0.75rem;">GIRO NORMAL</span>';
 
             const markupColor = markup >= 0 ? '#2AD07A' : '#ff4d4d';
@@ -11268,8 +11268,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <strong>${item.produto_nome || 'Produto'}</strong>
                     <div style="font-size:0.72rem; color:#aaa;">${item.mes_referencia || ''}</div>
                     <div style="font-size:0.7rem; color:#8eaabf; margin-top:4px; line-height:1.2;">
-                        ðŸ›’ Compra: ${prazoCompraStr}<br>
-                        ðŸ’° Venda: ${prazoVendaStr}
+                        🛒 Compra: ${prazoCompraStr}<br>
+                        💰 Venda: ${prazoVendaStr}
                     </div>
                 </td>
                 <td style="padding:10px 8px; text-align:right;">
@@ -11293,7 +11293,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td style="padding:10px 8px; text-align:center; font-weight:bold; color:${markupColor};">${markup.toFixed(1)}%</td>
                 <td style="padding:10px 8px; text-align:center;">${giroBadge} <small style="color:#aaa;">(${partPct.toFixed(1)}% Meta)</small></td>
-                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">ðŸ”µ ${item.status || 'Meta Definida'}</span></td>
+                <td style="padding:10px 8px; text-align:center;"><span style="background:#1e4e8c; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">🔵 ${item.status || 'Meta Definida'}</span></td>
                 <td style="padding:10px 8px; text-align:center;">
                     <button type="button" onclick="abrirModalTransacaoComercial(${item.id})" style="background:#1b382b; border:1px solid #2AD07A; color:#2AD07A; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Lançar Movimentação"><i class="fa-solid fa-plus-minus"></i> Movimentar</button>
                     <button type="button" onclick="abrirModalExtratoComercial(${item.id})" style="background:#122a3f; border:1px solid #3e7cb1; color:#3e7cb1; border-radius:4px; padding:3px 8px; font-size:0.75rem; font-weight:bold; cursor:pointer; margin-right:4px; margin-bottom:3px;" title="Extrato & Análise"><i class="fa-solid fa-chart-mixed"></i> Extrato</button>
@@ -11341,7 +11341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             itemDiv.style.padding = '4px 0';
             itemDiv.style.borderBottom = '1px solid #162433';
             itemDiv.innerHTML = `
-                <span>ðŸŒŸ <strong>${c.nome}</strong></span>
+                <span>🌟 <strong>${c.nome}</strong></span>
                 <span style="color:#2AD07A; font-weight:bold;">Fat. Projetado: R$ ${c.fat.toLocaleString('pt-BR', {maximumFractionDigits:0})}</span>
             `;
             lucroBox.appendChild(itemDiv);
@@ -11364,7 +11364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     alertaText += `⚠️ ï¸ Compra real (R$ ${o.mediaCompra.toFixed(2)}) acima do planejado (R$ ${o.pCompra.toFixed(2)}). `;
                 }
                 if (o.desvioPrecoVenda < 0) {
-                    alertaText += `ðŸ“‰ Venda real (R$ ${o.mediaVenda.toFixed(2)}) abaixo do planejado (R$ ${o.pVenda.toFixed(2)}).`;
+                    alertaText += `📉 Venda real (R$ ${o.mediaVenda.toFixed(2)}) abaixo do planejado (R$ ${o.pVenda.toFixed(2)}).`;
                 }
 
                 itemDiv.innerHTML = `
@@ -11841,7 +11841,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!data) return;
                 const diff = Math.ceil((data - hoje) / (1000*60*60*24));
                 const urgCor = diff <= 3 ? '#ff4d4d' : diff <= 7 ? '#f0b800' : cor;
-                const icon = diff <= 3 ? 'ðŸš¨' : diff <= 7 ? '⚠️ ï¸' : 'ðŸ“…';
+                const icon = diff <= 3 ? '🚨' : diff <= 7 ? '⚠️ ï¸' : '📅';
                 bannerHtml += `<div style="flex:1; min-width:220px; background:#0d1826; border:1px solid ${urgCor}; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
                     <span style="font-size:1.3rem;">${icon}</span>
                     <div>
@@ -11851,8 +11851,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>`;
             };
-            addPrazo('ðŸ›’ Prazo Limite de Compra', prazoCompra, faltaComprar, '#3e7cb1');
-            addPrazo('ðŸ’° Prazo Limite de Venda',  prazoVenda,  faltaVender,  '#2AD07A');
+            addPrazo('🛒 Prazo Limite de Compra', prazoCompra, faltaComprar, '#3e7cb1');
+            addPrazo('💰 Prazo Limite de Venda',  prazoVenda,  faltaVender,  '#2AD07A');
             bannerHtml += '</div>';
             bannerEl.innerHTML = bannerHtml;
             bannerEl.style.display = (prazoCompra || prazoVenda) ? 'block' : 'none';
@@ -11903,25 +11903,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let html = '';
-        html += card('ðŸ›’', 'Meta de Compra',       fmtKg(cPlan),             '', '#3e7cb1');
+        html += card('🛒', 'Meta de Compra',       fmtKg(cPlan),             '', '#3e7cb1');
         html += card('✅', 'Comprado Real',         fmtKg(totalCompraKg),
             `${metaCompPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaComprar)}`,
             metaCompPct >= 100 ? '#2AD07A' : metaCompPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('ðŸ’°', 'Total Gasto (Compras)', fmtRs(totalCompraRs),      'Capital já investido em estoque', '#ff4d4d');
-        html += card('ðŸ’µ', 'Reserva p/ Comprar',   fmtRs(reservaNecessaria),
+        html += card('💰', 'Total Gasto (Compras)', fmtRs(totalCompraRs),      'Capital já investido em estoque', '#ff4d4d');
+        html += card('💵', 'Reserva p/ Comprar',   fmtRs(reservaNecessaria),
             `${fmtKg(kgRestCompra)} Ã— R$ ${pCompraTab.toFixed(2)}/kg (tab)`, '#f0b800');
-        html += card('ðŸ“Š', 'Eficiência de Compra',  statusCompraTxt,          mediaCompra > 0 ? `Média Real: ${fmtRs(mediaCompra)}/kg vs Tab: ${fmtRs(pCompraTab)}` : 'Nenhuma compra lançada', statusCompraCor);
-        html += card('ðŸ’°', 'Meta de Venda',        fmtKg(vPlan),             '', '#3e7cb1');
+        html += card('📊', 'Eficiência de Compra',  statusCompraTxt,          mediaCompra > 0 ? `Média Real: ${fmtRs(mediaCompra)}/kg vs Tab: ${fmtRs(pCompraTab)}` : 'Nenhuma compra lançada', statusCompraCor);
+        html += card('💰', 'Meta de Venda',        fmtKg(vPlan),             '', '#3e7cb1');
         html += card('✅', 'Vendido Real',          fmtKg(totalVendaKg),
             `${metaVendPct.toFixed(1)}% da meta | Falta: ${fmtKg(faltaVender)}`,
             metaVendPct >= 100 ? '#2AD07A' : metaVendPct >= 50 ? '#f0b800' : '#ff4d4d');
-        html += card('ðŸ’µ', 'Faturamento Real',     fmtRs(totalVendaRs),      `Investido: ${fmtRs(totalCompraRs)}`, '#2AD07A');
-        html += card('ðŸ”®', 'Faturamento Projetado',fmtRs(fatProjetado),
+        html += card('💵', 'Faturamento Real',     fmtRs(totalVendaRs),      `Investido: ${fmtRs(totalCompraRs)}`, '#2AD07A');
+        html += card('🔮', 'Faturamento Projetado',fmtRs(fatProjetado),
             `Restante ${fmtKg(kgRestVenda)} Ã— R$ ${pVendaTab.toFixed(2)}/kg`, '#9b59b6');
-        html += card('ðŸ“Š', 'Eficiência de Venda',   statusVendaTxt,           mediaVenda > 0 ? `Média Real: ${fmtRs(mediaVenda)}/kg vs Tab: ${fmtRs(pVendaTab)}` : 'Nenhuma venda lançada', statusVendaCor);
-        html += card('ðŸ“ˆ', 'Markup Planejado',     fmtPct(markupPlan),       `R$ ${pCompraTab.toFixed(2)} â†’ R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
-        html += card('ðŸ“ˆ', 'Markup Médio Real',    markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
-            mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} â†’ R$ ${mediaVenda.toFixed(2)}` : '',
+        html += card('📊', 'Eficiência de Venda',   statusVendaTxt,           mediaVenda > 0 ? `Média Real: ${fmtRs(mediaVenda)}/kg vs Tab: ${fmtRs(pVendaTab)}` : 'Nenhuma venda lançada', statusVendaCor);
+        html += card('📈', 'Markup Planejado',     fmtPct(markupPlan),       `R$ ${pCompraTab.toFixed(2)} → R$ ${pVendaTab.toFixed(2)}`, '#3e7cb1');
+        html += card('📈', 'Markup Médio Real',    markupReal !== 0 ? fmtPct(markupReal) : 'Sem dados',
+            mediaCompra > 0 ? `R$ ${mediaCompra.toFixed(2)} → R$ ${mediaVenda.toFixed(2)}` : '',
             markupReal >= markupPlan ? '#2AD07A' : '#ff4d4d');
 
         document.getElementById('extrato-painel-analise').innerHTML = html;
@@ -12155,9 +12155,9 @@ document.addEventListener('DOMContentLoaded', () => {
             chartDataPlan.push(planKg);
             chartDataReal.push(realKg);
 
-            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ DENTRO DO PLANEJADO</span>';
-            if (desvioPct < -10) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ ABAIXO DO PLANEJADO</span>';
-            else if (desvioPct > 10) statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ ACIMA DO PLANEJADO</span>';
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 DENTRO DO PLANEJADO</span>';
+            if (desvioPct < -10) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 ABAIXO DO PLANEJADO</span>';
+            else if (desvioPct > 10) statusBadge = '<span style="background:#2a1b3f; color:#9b59b6; border:1px solid #9b59b6; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 ACIMA DO PLANEJADO</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -12197,8 +12197,8 @@ document.addEventListener('DOMContentLoaded', () => {
             totPlanKg += planKg; totRealKg += realKg;
             totPlanRs += planRs;
 
-            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸŸ¢ DENTRO DO PLANEJADO</span>';
-            if (desvioPct < 0) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">ðŸ”´ NECESSIDADE DE INSUMO</span>';
+            let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🟢 DENTRO DO PLANEJADO</span>';
+            if (desvioPct < 0) statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">🔴 NECESSIDADE DE INSUMO</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -12866,9 +12866,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         tbody.innerHTML =
-            buildRow('ðŸ”´ CONSERVADOR', pCons, '#ff4d4d') +
-            buildRow('ðŸŸ¡ MODERADO', pMod, '#f0b800') +
-            buildRow('ðŸŸ¢ AGRESSIVO', pAgr, '#2AD07A');
+            buildRow('🔴 CONSERVADOR', pCons, '#ff4d4d') +
+            buildRow('🟡 MODERADO', pMod, '#f0b800') +
+            buildRow('🟢 AGRESSIVO', pAgr, '#2AD07A');
     }
 
     window.imprimirCenariosPdf = async function() {
@@ -13186,7 +13186,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Operacional</span>';
             if (eq.status === 'Manutenção') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⚠️ ï¸ Manutenção</span>';
-            if (eq.status === 'Parado') statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem;">âŒ Parado</span>';
+            if (eq.status === 'Parado') statusBadge = '<span style="background:#3b1818; color:#ff4d4d; border:1px solid #ff4d4d; padding:3px 8px; border-radius:12px; font-size:0.75rem;">❌ Parado</span>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -13355,7 +13355,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tempoRealTotal += opRealHours;
 
             let statusBadge = '<span style="background:#1e3650; color:#aaa; padding:3px 8px; border-radius:12px; font-size:0.75rem;">Planejada</span>';
-            if (op.status === 'Em Execução') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">â³ Em Execução</span>';
+            if (op.status === 'Em Execução') statusBadge = '<span style="background:#3b2d18; color:#f0b800; border:1px solid #f0b800; padding:3px 8px; border-radius:12px; font-size:0.75rem;">⏳ Em Execução</span>';
             if (op.status === 'Concluída') statusBadge = '<span style="background:#1b382b; color:#2AD07A; border:1px solid #2AD07A; padding:3px 8px; border-radius:12px; font-size:0.75rem;">✅ Concluída</span>';
 
             const tr = document.createElement('tr');
@@ -16306,7 +16306,7 @@ window.carregarFinanceiroView = async function() {
 
         let html = `<ul style="margin:0; padding-left:16px; display:flex; flex-direction:column; gap:6px;">`;
         if (melhorMargem) {
-            html += `<li>ðŸš€ <strong>Destaque Comercial</strong>: O produto <strong>${melhorMargem.nome}</strong> possui a melhor margem líquida da tabela com <strong>${melhorMargem.margem.toFixed(1)}%</strong>. Focar volume nele aumenta exponencialmente o lucro.</li>`;
+            html += `<li>🚀 <strong>Destaque Comercial</strong>: O produto <strong>${melhorMargem.nome}</strong> possui a melhor margem líquida da tabela com <strong>${melhorMargem.margem.toFixed(1)}%</strong>. Focar volume nele aumenta exponencialmente o lucro.</li>`;
         }
 
         if (riscoMargem.length > 0) {
@@ -16323,7 +16323,7 @@ window.carregarFinanceiroView = async function() {
                 return acc + (mod > 0 ? (real / mod) * 100 : 0);
             }, 0) / metasMes.length;
 
-            html += `<li>ðŸ“Š <strong>Atingimento</strong>: O atingimento médio das metas estratégicas do mês atual está em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
+            html += `<li>📊 <strong>Atingimento</strong>: O atingimento médio das metas estratégicas do mês atual está em <strong>${atingimentoMedio.toFixed(1)}%</strong>.</li>`;
         }
 
         // Análises de progresso por produto
@@ -16335,12 +16335,12 @@ window.carregarFinanceiroView = async function() {
                 const cons = parseFloat(m.qtd_conservador || 0);
 
                 if (real >= mod && mod > 0) {
-                    html += `<li>ðŸ† <strong>Meta Atingida</strong>: O produto <strong>${tp.material_nome}</strong> superou a meta moderada com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
+                    html += `<li>🏆 <strong>Meta Atingida</strong>: O produto <strong>${tp.material_nome}</strong> superou a meta moderada com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
                 } else if (real >= cons && cons > 0) {
-                    html += `<li>ðŸ“ˆ <strong>Cenário Conservador</strong>: O produto <strong>${tp.material_nome}</strong> superou o cenário conservador e está buscando a meta moderada.</li>`;
+                    html += `<li>📈 <strong>Cenário Conservador</strong>: O produto <strong>${tp.material_nome}</strong> superou o cenário conservador e está buscando a meta moderada.</li>`;
                 } else if (mod > 0) {
                     const restante = mod - real;
-                    html += `<li>ðŸ•’ <strong>Restante</strong>: Faltam <strong>${restante.toLocaleString('pt-BR')} kg</strong> de <strong>${tp.material_nome}</strong> para atingir a meta moderada do mês.</li>`;
+                    html += `<li>🕒 <strong>Restante</strong>: Faltam <strong>${restante.toLocaleString('pt-BR')} kg</strong> de <strong>${tp.material_nome}</strong> para atingir a meta moderada do mês.</li>`;
                 }
             }
         });
@@ -16936,7 +16936,7 @@ window.carregarFinanceiroView = async function() {
                 lblFeed.style.background = 'rgba(255, 77, 77, 0.1)';
                 lblFeed.style.border = '1px solid rgba(255, 77, 77, 0.4)';
                 lblFeed.style.color = '#ff4d4d';
-                lblFeed.innerHTML = `âŒ Mix ultrapassou 100% em <strong>${diff.toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong>. Reduza as frações para não exceder a meta.`;
+                lblFeed.innerHTML = `❌ Mix ultrapassou 100% em <strong>${diff.toLocaleString('pt-BR', {minimumFractionDigits:1})}%</strong>. Reduza as frações para não exceder a meta.`;
             }
         } else if (lblFeed) {
             lblFeed.style.display = 'none';
@@ -17104,7 +17104,7 @@ window.carregarFinanceiroView = async function() {
             const fmtData = d => {
                 try { return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR'); } catch { return d; }
             };
-            const periodo = `${fmtData(c.dataInicio)} â†’ ${fmtData(c.dataFim)}`;
+            const periodo = `${fmtData(c.dataInicio)} → ${fmtData(c.dataFim)}`;
             const mixNomes = (c.mixSnapshot || []).map(m => `${m.nome} (${m.fracaoPct.toLocaleString('pt-BR', {maximumFractionDigits:1})}%)`).join(', ') || '—';
 
             let atingimentoHTML = '—';
@@ -17113,7 +17113,7 @@ window.carregarFinanceiroView = async function() {
             if (c.status === 'realizado' && c.fatReal != null) {
                 const pct = c.metaFaturamento > 0 ? (c.fatReal / c.metaFaturamento) * 100 : 0;
                 const cor = pct >= 100 ? '#2AD07A' : pct >= 80 ? '#ffb74d' : '#ff4d4d';
-                const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️ ï¸' : 'âŒ';
+                const icone = pct >= 100 ? '✅' : pct >= 80 ? '⚠️ ï¸' : '❌';
                 atingimentoHTML = `<span style="color:${cor}; font-weight:bold;">${icone} ${pct.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})}%</span>`;
                 statusHTML = `<span style="color:${cor}; font-weight:bold;"><i class="fa-solid fa-flag-checkered"></i> Realizado</span>`;
             }
@@ -17458,10 +17458,10 @@ window.carregarFinanceiroView = async function() {
                     const real = parseFloat(m.qtd_realizado || 0);
 
                     if (real >= qPlan && qPlan > 0) {
-                        html += `<li>ðŸ† <strong>Meta Superada</strong>: O insumo <strong>${tp.material_nome}</strong> atingiu 100% da meta de compra com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
+                        html += `<li>🏆 <strong>Meta Superada</strong>: O insumo <strong>${tp.material_nome}</strong> atingiu 100% da meta de compra com <strong>${real.toLocaleString('pt-BR')} kg</strong> realizados.</li>`;
                     } else if (qPlan > 0) {
                         const falta = qPlan - real;
-                        html += `<li>ðŸ•’ <strong>Acompanhamento</strong>: Faltam comprar <strong>${falta.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg</strong> de <strong>${tp.material_nome}</strong> para cobrir a meta comercial.</li>`;
+                        html += `<li>🕒 <strong>Acompanhamento</strong>: Faltam comprar <strong>${falta.toLocaleString('pt-BR', {maximumFractionDigits:1})} kg</strong> de <strong>${tp.material_nome}</strong> para cobrir a meta comercial.</li>`;
                     }
                 }
             });

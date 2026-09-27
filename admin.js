@@ -1234,13 +1234,13 @@ var _listTabelaPrecosEstrategica = [];
             .map(m => ({ m, chg: stats[m].monthChange, s: stats[m] }))
             .sort((a, b) => b.chg - a.chg);
 
-        const medals = ['­Æ’Ñç', '­Æ’Ñê', '­Æ’Ñë'];
+        const medals = ['🥇', '🥈', '🥉'];
         el.innerHTML = ranked.map((item, i) => {
             const isPos = item.chg >= 0;
             const barW  = Math.min(100, Math.abs(item.chg) * 10);
             return `
             <div class="rank-item ${i === 0 ? 'rank-first' : ''}">
-                <span class="rank-pos">${medals[i] || (i + 1) + 'â”¬â•‘'}</span>
+                <span class="rank-pos">${medals[i] || (i + 1) + 'º'}</span>
                 <div class="rank-bar-wrap">
                     <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
                         <strong style="color:${METAL_COLORS[item.m]};font-size:0.95rem;">${METAL_LABELS[item.m]}</strong>
@@ -1251,7 +1251,7 @@ var _listTabelaPrecosEstrategica = [];
                     <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:7px;overflow:hidden;">
                         <div style="height:100%;width:${barW}%;background:${isPos ? '#2AD07A' : '#ff4d4d'};border-radius:4px;transition:width 1s;"></div>
                     </div>
-                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês ÔåÃ† Hoje</small>
+                    <small style="color:#555;font-size:0.75rem;margin-top:4px;display:block;">Primeiro dia do mês → Hoje</small>
                 </div>
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="color:#aaa;font-size:0.8rem;">US$ ${fmtPrice(item.s.current)}</div>
@@ -5969,7 +5969,7 @@ var _listTabelaPrecosEstrategica = [];
                     <!-- Diretrizes -->
                     <div style="background: #f4f7fa; border-left: 5px solid #1e4e8c; border-radius: 4px; padding: 15px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <h4 style="margin: 0 0 10px 0; color: #1e4e8c; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                            ðŸ“‹ Diretrizes Gerais de Compra
+                            📋 Diretrizes Gerais de Compra
                         </h4>
                         <ul style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #444; line-height: 1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
@@ -7869,7 +7869,7 @@ var _listTabelaPrecosEstrategica = [];
                     </div>
                 </div>
                 <div style="background:#f4f7fa;border-left:5px solid ${corPrimaria};border-radius:4px;padding:15px;margin-bottom:30px;">
-                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra</h4>
+                    <h4 style="margin:0 0 10px 0;color:${corPrimaria};font-size:1rem;">📋 Diretrizes Gerais de Compra</h4>
                     <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                         <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                         <li>OBS: Variação de preço conforme atualização de mercado.</li>
@@ -10113,7 +10113,7 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                     </div>
                     <div style="background:#f4faf7;border-left:5px solid #2AD07A;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra — Resíduos</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1a5c38;font-size:1rem;">📋 Diretrizes Gerais de Compra — Resíduos</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
@@ -10305,7 +10305,7 @@ var _listTabelaPrecosEstrategica = [];
                         </div>
                     </div>
                     <div style="background:#f0f6ff;border-left:5px solid #4fc3f7;border-radius:4px;padding:15px;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">ðŸ“‹ Diretrizes Gerais de Compra — Ligas</h4>
+                        <h4 style="margin:0 0 10px 0;color:#1565c0;font-size:1rem;">📋 Diretrizes Gerais de Compra — Ligas</h4>
                         <ul style="margin:0;padding-left:20px;font-size:0.85rem;color:#444;line-height:1.5;">
                             <li>Atenção: Quantidade mínima para entrega 100kg por produto. Caso não atinja a quantidade será descontado R$ 1,00/kg.</li>
                             <li>OBS: Variação de preço conforme atualização de mercado.</li>
