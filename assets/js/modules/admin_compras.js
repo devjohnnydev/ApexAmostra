@@ -101,11 +101,11 @@ let itensPedidoCompra = [];
         renderPedidosCompra(filtrado);
     };
 
-    window.abrirNovoPedido = async function() { window._aprovar_pedido_compra_flag = false;
+    window.abrirNovoPedidoCompra = async function() { window._aprovar_pedido_compra_flag = false;
         itensPedidoCompra = [];
 
         // 1. Abrir o modal IMEDIATAMENTE ao clicar no botão
-        const modal = document.getElementById('modal-pedido-venda');
+        const modal = document.getElementById('modal-pedido-compra');
         if (modal) modal.style.display = 'flex';
 
         try { document.getElementById('form-pedido-compra')?.reset(); } catch(e){}
@@ -114,7 +114,7 @@ let itensPedidoCompra = [];
             document.getElementById('pedidoc-condicao-custom').value = '';
         }
         document.getElementById('pedidoc-id').value = '';
-        document.getElementById('modal-pedido-titulo').textContent = 'Novo Pedido de Venda';
+        document.getElementById('modal-pedido-titulo-compra').textContent = 'Novo Pedido de Compra';
         document.getElementById('pedidoc-data-emissao').value = new Date().toISOString().split('T')[0];
         
         // Auto-preencher usuário logado e perfil
@@ -128,7 +128,7 @@ let itensPedidoCompra = [];
         recalcularPedidoCompra();
 
         // Número provisório imediato
-        document.getElementById('pedidoc-numero').value = 'PV-' + String(Math.floor(Date.now()/1000)%10000).padStart(4,'0');
+        document.getElementById('pedidoc-numero').value = 'PC-' + String(Math.floor(Date.now()/1000)%10000).padStart(4,'0');
         if(document.getElementById('pedidoc-rastreamento-box')) document.getElementById('pedidoc-rastreamento-box').style.display = 'none';
         if(document.getElementById('btnc-aprovar-pedido')) document.getElementById('btnc-aprovar-pedido').style.display = 'none';
         if(document.getElementById('pedidoc-status-header')) document.getElementById('pedidoc-status-header').value = 'Rascunho';
@@ -149,8 +149,8 @@ let itensPedidoCompra = [];
         } catch(e){}
     };
 
-    window.fecharModalPedido = function() {
-        document.getElementById('modal-pedido-venda').style.display = 'none';
+    window.fecharModalPedidoCompra = function() {
+        document.getElementById('modal-pedido-compra').style.display = 'none';
     };
 
     const normalizeTxt = (str) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();

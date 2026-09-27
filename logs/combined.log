@@ -58,3 +58,4 @@
 2026-09-25 21:34:54 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 1, desvio 15%
 2026-09-25 21:34:55 [ERROR]: [PLANEJAMENTO] PUT /:id/aprovar: Access denied for user 'u843916585_Apex'@'localhost' (using password: YES)
 2026-09-25 21:34:55 [WARN]: [ESTRATEGICO] Desvio semanal do forecast acima de 10%%. Gerado flag de replanejamento. — semana 3, plano 10, desvio 15%
+2026-09-25 21:50:31 [INFO]: [FORECAST CRON] Agendador de forecast estratégico registrado (toda 2ª-feira às 06:00, fuso: America/Sao_Paulo)
