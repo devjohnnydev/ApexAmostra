@@ -14718,7 +14718,22 @@ window.carregarFinanceiroView = async function() {
             const selSt = document.getElementById('pedido-status');
             for(let i=0;i<selSt.options.length;i++) if(selSt.options[i].value===data.status){selSt.selectedIndex=i;break;}
             const selCond = document.getElementById('pedido-condicao');
-            for(let i=0;i<selCond.options.length;i++) if(selCond.options[i].value===data.condicao_pagamento){selCond.selectedIndex=i;break;}
+            let foundCond = false;
+            for(let i=0;i<selCond.options.length;i++) {
+                if(selCond.options[i].value===data.condicao_pagamento){
+                    selCond.selectedIndex=i;
+                    foundCond = true;
+                    break;
+                }
+            }
+            if (!foundCond && data.condicao_pagamento) {
+                selCond.value = 'CUSTOM';
+                document.getElementById('pedido-condicao-custom').value = data.condicao_pagamento;
+                document.getElementById('pedido-condicao-custom').style.display = 'block';
+            } else {
+                document.getElementById('pedido-condicao-custom').style.display = 'none';
+                document.getElementById('pedido-condicao-custom').value = '';
+            }
             
             if (data.cliente_id) {
                 window.selecionarClientePedido(data.cliente_id);

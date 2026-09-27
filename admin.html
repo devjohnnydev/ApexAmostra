@@ -5903,7 +5903,7 @@
                         </div>
                         <div class="form-group" style="margin:0;">
                             <label style="font-size:0.8rem;">Condição de Pagamento</label>
-                            <select id="pedido-condicao" class="noble-input">
+                            <select id="pedido-condicao" class="noble-input" onchange="document.getElementById('pedido-condicao-custom').style.display = this.value === 'CUSTOM' ? 'block' : 'none'">
                                 <option value="">Selecione...</option>
                                 <option value="À Vista">À Vista</option>
                                 <option value="7 dias">7 dias</option>
@@ -5915,7 +5915,9 @@
                                 <option value="60 dias">60 dias</option>
                                 <option value="90 dias">90 dias</option>
                                 <option value="FIDC">Antecipação FIDC</option>
+                                <option value="CUSTOM">Outro (Digitar manualmente)</option>
                             </select>
+                            <input type="text" id="pedido-condicao-custom" class="noble-input" placeholder="Digite a condição (Ex: 10/20/30 dias)" style="display:none; margin-top:8px;">
                         </div>
                     </div>
                 </div>
@@ -6104,7 +6106,7 @@
                         </div>
                         <div class="form-group" style="margin:0;">
                             <label style="font-size:0.8rem;">Condição de Pagamento</label>
-                            <select id="pedidoc-condicao" class="noble-input">
+                            <select id="pedidoc-condicao" class="noble-input" onchange="document.getElementById('pedidoc-condicao-custom').style.display = this.value === 'CUSTOM' ? 'block' : 'none'">
                                 <option value="">Selecione...</option>
                                 <option value="À Vista">À Vista</option>
                                 <option value="7 dias">7 dias</option>
@@ -6116,7 +6118,9 @@
                                 <option value="60 dias">60 dias</option>
                                 <option value="90 dias">90 dias</option>
                                 <option value="FIDC">Antecipação FIDC</option>
+                                <option value="CUSTOM">Outro (Digitar manualmente)</option>
                             </select>
+                            <input type="text" id="pedidoc-condicao-custom" class="noble-input" placeholder="Digite a condição (Ex: 10/20/30 dias)" style="display:none; margin-top:8px;">
                         </div>
                     </div>
                 </div>
