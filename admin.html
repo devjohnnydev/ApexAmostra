@@ -308,6 +308,10 @@
                     <i class="fa-solid fa-file-invoice-dollar" style="color:#34d399;"></i>
                     <span>Pedidos de Venda</span>
                 </a>
+                <a href="#" class="nav-item" data-target="pedidos-compra-view" id="nav-pedidos-compra" data-tooltip="Pedidos de Compra">
+                    <i class="fa-solid fa-file-invoice" style="color:#34d399;"></i>
+                    <span>Pedidos de Compra</span>
+                </a>
                 <a href="#" class="nav-item" data-target="financeiro-view" id="nav-financeiro" data-tooltip="Módulo Financeiro">
                     <i class="fa-solid fa-coins" style="color:#f0c040;"></i>
                     <span>Módulo Financeiro</span>
@@ -4074,6 +4078,56 @@
                 </div>
                 <div style="display:flex; gap:10px;">
                     <button type="button" class="btn-primary" onclick="document.getElementById('modal-pedido-venda').style.display='flex'; if(window.abrirNovoPedido) window.abrirNovoPedido();">
+                        <i class="fa-solid fa-plus"></i> Novo Pedido
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filtros -->
+        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="pedidos-search" class="noble-input" placeholder="🔍 Buscar por número, cliente..." style="flex:1; min-width:200px;" oninput="filtrarPedidos()">
+            <select id="pedidos-status-filter" class="noble-input" style="width:160px;" onchange="filtrarPedidos()">
+                <option value="">Todos os Status</option>
+                <option value="Rascunho">Rascunho</option>
+                <option value="Confirmado">Confirmado</option>
+                <option value="Em Separação">Em Separação</option>
+                <option value="Faturado">Faturado</option>
+                <option value="Entregue">Entregue</option>
+                <option value="Cancelado">Cancelado</option>
+            </select>
+        </div>
+
+        <!-- Tabela de pedidos -->
+        <div class="table-container" style="border-radius:10px; overflow:hidden;">
+            <table class="data-table" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Cliente (Destinatário)</th>
+                        <th>Emissor / Perfil</th>
+                        <th>Entrega & Logística</th>
+                        <th>Status / Aprovação</th>
+                        <th style="text-align:right;">Total</th>
+                        <th style="width:100px; text-align:center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="pedidos-tbody">
+                    <tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-circle-notch fa-spin"></i> Carregando pedidos de venda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+<section id="pedidos-compra-view" class="view-section" style="padding:20px;">
+        <header class="section-header">
+            <div class="section-header-row">
+                <div>
+                    <h1><i class="fa-solid fa-file-invoice-dollar" style="color:#2AD07A;"></i> Pedidos de Compra</h1>
+                    <p>Emita e gerencie pedidos vinculados aos clientes cadastrados.</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn-primary" onclick="document.getElementById('modal-pedido-venda').style.display='flex'; if(window.abrirNovoPedido) window.abrirNovoPedidoCompra();">
                         <i class="fa-solid fa-plus"></i> Novo Pedido
                     </button>
                 </div>
