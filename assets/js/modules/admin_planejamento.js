@@ -5793,6 +5793,13 @@ window.carregarFinanceiroView = async function() {
 
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(13, 36, 22);
+        doc.text('Data de Entrega: ', 115, 86);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(40, 40, 40);
+        doc.text(p.data_entrega ? fmtD(p.data_entrega) : 'Não informada', 143, 86);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(13, 36, 22);
         doc.text('Recebedor Destino: ', 18, 92);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);

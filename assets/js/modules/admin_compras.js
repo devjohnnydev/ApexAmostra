@@ -626,11 +626,11 @@ let itensPedidoCompra = [];
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
-        doc.text('PEDIDO DE VENDA / PROPOSTA COMERCIAL', 14, 21);
+        doc.text('PEDIDO DE COMPRA / ORDEM DE COMPRA', 14, 21);
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(14);
-        doc.text(p.numero || 'PV-0000', 196, 14, { align: 'right' });
+        doc.text(p.numero || 'PC-0000', 196, 14, { align: 'right' });
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.text(`Emissão: ${fmtD(p.data_emissao)}`, 196, 21, { align: 'right' });
@@ -640,11 +640,11 @@ let itensPedidoCompra = [];
         doc.setDrawColor(200, 212, 224);
         doc.roundedRect(14, 33, 182, 38, 2, 2, 'FD');
 
-        const cliStatusText = p.fornecedor_id ? 'CLIENTE CADASTRADO NO SISTEMA' : 'NOVO CLIENTE / PENDENTE';
+        const cliStatusText = p.fornecedor_id ? 'FORNECEDOR CADASTRADO NO SISTEMA' : 'NOVO FORNECEDOR / PENDENTE';
         doc.setTextColor(13, 36, 22);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.text('DADOS DO CLIENTE (DESTINATÁRIO)', 18, 40);
+        doc.text('DADOS DO FORNECEDOR (ORIGEM)', 18, 40);
         
         doc.setFontSize(8);
         doc.setTextColor(p.fornecedor_id ? 42 : 180, p.fornecedor_id ? 150 : 120, p.fornecedor_id ? 80 : 20);
@@ -704,6 +704,13 @@ let itensPedidoCompra = [];
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
         doc.text(String(p.endereco_entrega || endStr || 'Mesmo do cadastro'), 52, 86);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(13, 36, 22);
+        doc.text('Data de Entrega: ', 115, 86);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(40, 40, 40);
+        doc.text(p.data_entrega ? fmtD(p.data_entrega) : 'Não informada', 143, 86);
 
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(13, 36, 22);
@@ -803,7 +810,7 @@ let itensPedidoCompra = [];
         doc.setTextColor(80, 80, 80);
         doc.setFont('helvetica', 'normal');
         doc.text(`ApexTech Metais — Emissor: ${p.criado_por || 'Admin'}`, 55, sigY + 5, { align: 'center' });
-        doc.text('Aceito e De Acordo (Cliente)', 155, sigY + 5, { align: 'center' });
+        doc.text('Fornecedor / Aceite e Confirmação', 155, sigY + 5, { align: 'center' });
 
         // Aplicar Marca d'água oficial em todas as páginas
         if (typeof window.aplicarMarcaDaguaLogoJsPDF === 'function') {
@@ -818,10 +825,10 @@ let itensPedidoCompra = [];
             doc.setPage(i);
             doc.setFontSize(7.5);
             doc.setTextColor(130, 130, 130);
-            doc.text(`ApexTech Metais — Documento de Pedido de Venda ${p.numero || ''} | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+            doc.text(`ApexTech Metais — Documento de Pedido de Compra ${p.numero || ''} | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
         }
 
-        doc.save(`Pedido_Venda_${p.numero || 'PV'}.pdf`);
+        doc.save(`Pedido_Compra_${p.numero || 'PC'}.pdf`);
     }
 
     // =========================================================================
