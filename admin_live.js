@@ -14994,7 +14994,9 @@ window.carregarFinanceiroView = async function() {
         doc.text('Endereço de Entrega: ', 18, 86);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(40, 40, 40);
-        doc.text(String(p.endereco_entrega || endStr || 'Mesmo do cadastro'), 52, 86);
+        const _addrFull = String(p.endereco_entrega || endStr || 'Mesmo do cadastro');
+        const _addrLine = doc.splitTextToSize(_addrFull, 58);
+        doc.text(_addrLine[0] + (_addrLine.length > 1 ? '...' : ''), 52, 86);
 
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(13, 36, 22);
