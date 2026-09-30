@@ -507,12 +507,12 @@ let itensPedidoCompra = [];
         }
     };
 
-    window.editarPedido = async function(id) { window._aprovar_pedido_compra_flag = false;
+    window.editarPedidoCompra = async function(id) { window._aprovar_pedido_compra_flag = false;
         try {
             const res  = await fetch(`/api/pedidos-compra/${id}`);
             const data = await res.json();
             document.getElementById('pedidoc-id').value             = data.id;
-            document.getElementById('modal-pedido-titulo').textContent = `Editar Pedido ${data.numero}`;
+            document.getElementById('modal-pedido-titulo-compra').textContent = `Editar Pedido ${data.numero}`;
             document.getElementById('pedidoc-numero').value          = data.numero;
             document.getElementById('pedidoc-data-emissao').value    = (data.data_emissao||'').slice(0,10);
             document.getElementById('pedidoc-data-entrega').value    = (data.data_entrega||'').slice(0,10);
@@ -567,7 +567,7 @@ let itensPedidoCompra = [];
         }
     };
 
-    window.excluirPedido = async function(id, numero) {
+    window.excluirPedidoCompra = async function(id, numero) {
         if (!confirm(`Excluir o pedido ${numero}? Esta ação não pode ser desfeita.`)) return;
         try {
             await fetch(`/api/pedidos-compra/${id}`, {method:'DELETE'});
