@@ -380,9 +380,9 @@ let itensPedidoCompra = [];
     };
 
     function renderItensPedidoCompra() {
-        const tbody = document.getElementById('itens-pedido-tbody');
-        const meud = document.getElementById('itens-thead');
-        const vazio  = document.getElementById('itens-vazio');
+        const tbody = document.getElementById('itens-pedidoc-tbody');
+        const meud = document.getElementById('itens-pedidoc-thead');
+        const vazio  = document.getElementById('itens-pedidoc-vazio');
         if (meud) meud.style.display = 'table-header-group';
         if (!tbody) return;
         if (itensPedidoCompra.length === 0) {
@@ -577,7 +577,7 @@ let itensPedidoCompra = [];
         }
     };
 
-    window.imprimirPedido = function() {
+    window.imprimirPedidoCompra = function() {
         exportarPedidoPdfDoFormCompra();
     };
 
@@ -4617,7 +4617,7 @@ let itensPedidoCompra = [];
 
 })();
 
-    window.aprovarPedido = function() {
+    window.aprovarPedidoCompra = function() {
         if (!confirm('Deseja realmente aprovar este pedido? O status mudará para Aprovado e você será registrado como o aprovador.')) return;
         window._aprovar_pedido_compra_flag = true;
         document.getElementById('form-pedido-compra').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
