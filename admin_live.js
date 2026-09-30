@@ -14717,8 +14717,13 @@ window.carregarFinanceiroView = async function() {
             return;
         }
 
+        const numField = document.getElementById('pedido-numero');
+        if (!numField.value || numField.value.trim() === '') {
+            numField.value = 'PV-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
+        }
+
         const payload = {
-            numero:                  document.getElementById('pedido-numero').value,
+            numero:                  numField.value.trim(),
             cliente_id:              clienteId ? parseInt(clienteId) : null,
             cliente_nome:            clienteBusca,
             data_emissao:            document.getElementById('pedido-data-emissao').value,

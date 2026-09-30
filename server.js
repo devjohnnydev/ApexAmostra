@@ -6705,6 +6705,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
         }
 
         const client = await pool.getConnection();
+        const safeNumero = (numero && numero.trim() !== '') ? numero.trim() : ('PV-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000));
         try {
             await client.query('BEGIN');
             const pedido = await client.query(`
@@ -6712,7 +6713,7 @@ app.post('/api/pedidos-venda', async (req, res) => {
                     observacoes, desconto_pct, frete, total_itens, total_geral, criado_por, criado_por_perfil,
                     endereco_entrega, responsavel_recebimento, tipo_frete)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            `, [numero, cid, cliente_nome || '', data_emissao || new Date().toISOString().split('T')[0],
+            `, [safeNumero, cid, cliente_nome || '', data_emissao || new Date().toISOString().split('T')[0],
                  data_entrega || null, status || 'Rascunho', condicao_pagamento, observacoes,
                  desc, fr, total_itens, total_geral, criado_por, criado_por_perfil,
                  endereco_entrega, responsavel_recebimento, tipo_frete]);
