@@ -81,7 +81,7 @@ let itensPedidoCompra = [];
                 </td>
                 <td style="padding:12px 10px; text-align:right; color:#2AD07A; font-weight:bold; font-size:0.98rem;">${fmtR(p.total_geral)}</td>
                 <td style="padding:12px 10px; text-align:center;">
-                    <button onclick="exportarPedidoPdfPorId(${p.id})" style="background:none; border:none; color:#2AD07A; cursor:pointer; margin-right:6px; font-size:1.05rem;" title="Baixar PDF do Pedido"><i class="fa-solid fa-file-pdf"></i></button>
+                    <button onclick="exportarPedidoPdfCompraPorId(${p.id})" style="background:none; border:none; color:#2AD07A; cursor:pointer; margin-right:6px; font-size:1.05rem;" title="Baixar PDF do Pedido"><i class="fa-solid fa-file-pdf"></i></button>
                     <button onclick="editarPedidoCompra(${p.id})" style="background:none; border:none; color:#3e7cb1; cursor:pointer; margin-right:6px; font-size:1.05rem;" title="Editar Pedido"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="excluirPedidoCompra(${p.id}, '${p.numero}')" style="background:none; border:none; color:#ff6b6b; cursor:pointer; font-size:1.05rem;" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -581,7 +581,7 @@ let itensPedidoCompra = [];
         exportarPedidoPdfDoFormCompra();
     };
 
-    window.exportarPedidoPdfPorId = async function(id) {
+    window.exportarPedidoPdfCompraPorId = async function(id) {
         let p = null;
         try {
             const r = await fetch(`/api/pedidos-compra/${id}`);
@@ -593,8 +593,8 @@ let itensPedidoCompra = [];
         await gerarPdfPedidoCompra(p);
     };
 
-    window.exportarPedidoPdfDoForm = async function() {
-        const num    = document.getElementById('pedidoc-numero').value || 'PV-0000';
+    window.exportarPedidoPdfDoFormCompra = async function() {
+        const num    = document.getElementById('pedidoc-numero').value || 'PC-0000';
         const cliId  = document.getElementById('pedidoc-fornecedor-id').value;
         const c      = (window.localFornecedores||[]).find(x => x.id == cliId) || {};
         const p = {
@@ -641,7 +641,7 @@ let itensPedidoCompra = [];
         }
 
         // Cabeçalho da Empresa
-        doc.setFillColor(13, 36, 22);
+        doc.setFillColor(13, 26, 38);
         doc.rect(0, 0, 210, 28, 'F');
 
         doc.setTextColor(255, 255, 255);
@@ -4460,7 +4460,7 @@ let itensPedidoCompra = [];
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        doc.setFillColor(13, 36, 22);
+        doc.setFillColor(13, 26, 38);
         doc.rect(0, 0, 210, 25, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
