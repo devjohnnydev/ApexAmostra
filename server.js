@@ -98,7 +98,9 @@ if (process.env.DB_HOST || process.env.DATABASE_URL) {
         port: process.env.DB_PORT || 3306,
         waitForConnections: true,
         connectionLimit: 10,
-        queueLimit: 0
+        queueLimit: 0,
+        connectTimeout: 20000,
+        acquireTimeout: 20000
     });
     console.log(`🗄️  MySQL pool criado para ${process.env.DB_HOST}/${process.env.DB_NAME}`);
 }
@@ -6805,7 +6807,6 @@ app.put('/api/pedidos-venda/:id', async (req, res) => {
                      item.quantidade, item.preco_unitario, item.desconto_item || 0, item.total_item]);
             }
             await client.query('COMMIT');
-            const updated = await pool.query('SELECT * FROM pedidos_venda WHERE id=?', [id]);
             const [updRows] = await pool.query('SELECT * FROM pedidos_venda WHERE id = ? LIMIT 1', [id]);
             res.json(updRows[0]);
         } catch (err) {

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 
     window.getJsPDFClass = function() {
         if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
@@ -14707,7 +14707,7 @@ window.carregarFinanceiroView = async function() {
         e.preventDefault();
         const clienteId = document.getElementById('pedido-cliente-id').value;
         const clienteBusca = document.getElementById('pedido-cliente-busca').value;
-        
+
         if (!clienteId && !clienteBusca) {
             _apexNotify('Sistema', 'Selecione ou informe um cliente para o pedido.', 'info');
             return;
@@ -14736,16 +14736,32 @@ window.carregarFinanceiroView = async function() {
             itens:                   itensPedido
         };
 
+        // Se flag de aprovacao ativa, inclui aprovador no payload
+        if (window._aprovar_pedido_flag) {
+            payload.status = 'Aprovado';
+            payload.aprovado_por = sessionStorage.getItem('apex_logged_user_name') || 'Admin';
+        }
+
         const id  = document.getElementById('pedido-id').value;
         const url = id ? `/api/pedidos-venda/${id}` : '/api/pedidos-venda';
         const method = id ? 'PUT' : 'POST';
+
+        // Desabilita o botao e mostra loading para evitar duplo clique / loading infinito
+        const btn = document.getElementById('btn-salvar-pedido');
+        const originalBtnHtml = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // Timeout de 30s
 
         try {
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || 'Erro ao salvar pedido');
@@ -14754,7 +14770,14 @@ window.carregarFinanceiroView = async function() {
             fecharModalPedido();
             await carregarPedidos();
         } catch(err) {
-            _apexNotify('Atenção', 'Não foi possível salvar o pedido: '+err.message, 'error');
+            clearTimeout(timeoutId);
+            const msg = err.name === 'AbortError'
+                ? 'Tempo limite esgotado. Verifique sua conexao e tente novamente.'
+                : err.message;
+            _apexNotify('Atencao', 'Nao foi possivel salvar o pedido: ' + msg, 'error');
+        } finally {
+            // Sempre restaura o botao, mesmo em caso de erro
+            if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || '<i class="fa-solid fa-save"></i> Salvar Pedido'; }
         }
     };
 
