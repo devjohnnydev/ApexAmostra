@@ -418,7 +418,7 @@ let itensPedidoCompra = [];
         `).join('');
     }
 
-    window.recalcularPedido = function() {
+    window.recalcularPedidoCompra = function() {
         const subtotal  = itensPedidoCompra.reduce((s,it) => s+(it.total_item||0), 0);
         const desc      = parseFloat(document.getElementById('pedidoc-desconto')?.value)||0;
         const frete     = parseFloat(document.getElementById('pedidoc-frete')?.value)||0;
@@ -427,13 +427,13 @@ let itensPedidoCompra = [];
         if (document.getElementById('pedidoc-total-geral'))  document.getElementById('pedidoc-total-geral').textContent  = fmtR(total);
     };
 
-    window.salvarPedido = async function(e) {
+    window.salvarPedidoCompra = async function(e) {
         e.preventDefault();
         const clienteId = document.getElementById('pedidoc-fornecedor-id').value;
         const clienteBusca = document.getElementById('pedidoc-fornecedor-busca').value;
         
         if (!clienteId && !clienteBusca) {
-            _apexNotify('Sistema', 'Selecione ou informe um cliente para o pedido.', 'info');
+            _apexNotify('Sistema', 'Selecione ou informe um fornecedor para o pedido.', 'info');
             return;
         }
         if (itensPedidoCompra.length === 0) {
@@ -441,8 +441,13 @@ let itensPedidoCompra = [];
             return;
         }
 
+        const numField = document.getElementById('pedidoc-numero');
+        if (!numField.value || numField.value.trim() === '') {
+            numField.value = 'PC-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
+        }
+
         const payload = {
-            numero:                  document.getElementById('pedidoc-numero').value,
+            numero:                  numField.value.trim(),
             fornecedor_id:              clienteId ? parseInt(clienteId) : null,
             fornecedor_nome:            clienteBusca,
             data_emissao:            document.getElementById('pedidoc-data-emissao').value,
@@ -460,25 +465,45 @@ let itensPedidoCompra = [];
             itens:                   itensPedidoCompra
         };
 
+        if (window._aprovar_pedido_compra_flag) {
+            payload.status = 'Aprovado';
+            payload.aprovado_por = sessionStorage.getItem('apex_logged_user_name') || 'Admin';
+        }
+
         const id  = document.getElementById('pedidoc-id').value;
         const url = id ? `/api/pedidos-compra/${id}` : '/api/pedidos-compra';
         const method = id ? 'PUT' : 'POST';
+
+        const btn = document.getElementById('btn-salvar-pedido-compra') || document.querySelector('#form-pedido-compra button[type="submit"]') || document.getElementById('btnc-salvar-pedido');
+        const originalBtnHtml = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...'; }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
         try {
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.error || 'Erro ao salvar pedido');
+                throw new Error(errData.error || 'Erro ao salvar pedido de compra');
             }
-            _apexNotify('Sucesso', 'Pedido de Venda salvo com sucesso!', 'success');
+            _apexNotify('Sucesso', 'Pedido de Compra salvo com sucesso!', 'success');
             fecharModalPedidoCompra();
             await carregarPedidosCompra();
         } catch(err) {
-            _apexNotify('Atenção', 'Não foi possível salvar o pedido: '+err.message, 'error');
+            clearTimeout(timeoutId);
+            const msg = err.name === 'AbortError'
+                ? 'Tempo limite esgotado. Verifique sua conexao e tente novamente.'
+                : err.message;
+            _apexNotify('Atenção', 'Não foi possível salvar o pedido de compra: ' + msg, 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml || '<i class="fa-solid fa-save"></i> Salvar Pedido'; }
         }
     };
 
@@ -2868,7 +2893,8 @@ let itensPedidoCompra = [];
         if (nota) nota.style.display = 'block';
 
         _renderizarCiclosV3();
-        (window._apexNotify ? window._apexNotify('Notificação', `✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00', 'info') : alert(`✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00')).toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`);
+        const msg = `✅ Ciclo salvo! Período: ${new Date(dataInicio + 'T12:00:00').toLocaleDateString('pt-BR')} a ${new Date(dataFim + 'T12:00:00').toLocaleDateString('pt-BR')}\nMeta: R$ ${metaFat.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        window._apexNotify ? window._apexNotify('Notificação', msg, 'info') : alert(msg);
     };
 
     window.abrirModalResultadoRealV3 = function(cicloId) {

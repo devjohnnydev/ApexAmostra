@@ -6585,9 +6585,9 @@ app.get('/api/pedidos-venda/proximo-numero', async (req, res) => {
             const count = (memStore.pedidos_venda || []).length;
             return res.json({ numero: 'PV-' + String(count + 1).padStart(4, '0') });
         }
-        const r = await pool.query("SELECT numero FROM pedidos_venda ORDER BY id DESC LIMIT 1");
+        const r = await pool.query("SELECT numero FROM pedidos_venda WHERE length(numero) <= 10 AND numero LIKE 'PV-%' ORDER BY id DESC LIMIT 1");
         if (r[0].length === 0) return res.json({ numero: 'PV-0001' });
-        const last = parseInt(r[0][0].numero.replace('PV-', '')) || 0;
+        const last = parseInt((r[0][0].numero || '').replace('PV-', '')) || 0;
         const next = 'PV-' + String(last + 1).padStart(4, '0');
         return res.json({ numero: next });
     } catch (err) {
@@ -6914,7 +6914,7 @@ app.get('/api/pedidos-compra/proximo-numero', async (req, res) => {
             const count = (memStore.pedidos_compra || []).length;
             return res.json({ numero: 'PC-' + String(count + 1).padStart(4, '0') });
         }
-        const r = await pool.query("SELECT numero FROM pedidos_compra ORDER BY id DESC LIMIT 1");
+        const r = await pool.query("SELECT numero FROM pedidos_compra WHERE length(numero) <= 10 AND numero LIKE 'PC-%' ORDER BY id DESC LIMIT 1");
         if (r[0].length === 0) return res.json({ numero: 'PC-0001' });
         const last = parseInt((r[0][0].numero || '').replace(/PC-|PV-/g, '')) || 0;
         const next = 'PC-' + String(last + 1).padStart(4, '0');
