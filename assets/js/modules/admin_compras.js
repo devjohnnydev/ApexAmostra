@@ -1,4 +1,4 @@
-
+﻿
 let itensPedidoCompra = [];
 // PEDIDOS DE COMPRA
 // =============================================================================
@@ -155,7 +155,7 @@ let itensPedidoCompra = [];
 
     const normalizeTxt = (str) => (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
-    window.buscarClientePedido = async function(val) {
+    window.buscarFornecedorPedido = async function(val) {
         const drop = document.getElementById('pedidoc-fornecedor-dropdown');
         if (!drop) return;
 
@@ -191,13 +191,13 @@ let itensPedidoCompra = [];
 
         if (rawVal.length > 0) {
             html += `
-                <div onclick="abrirCadastroClienteExpress('${rawVal.replace(/'/g,"\\'")}')" style="padding:10px 14px; background:#1b382b; color:#2AD07A; cursor:pointer; font-weight:bold; border-bottom:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#224535'" onmouseout="this.style.background='#1b382b'">
+                <div onclick="abrirCadastroFornecedorExpress('${rawVal.replace(/'/g,"\\'")}')" style="padding:10px 14px; background:#1b382b; color:#2AD07A; cursor:pointer; font-weight:bold; border-bottom:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#224535'" onmouseout="this.style.background='#1b382b'">
                     <i class="fa-solid fa-user-plus"></i> + Cadastrar Novo Cliente "${rawVal}"
                 </div>
             `;
         } else {
             html += `
-                <div onclick="abrirCadastroClienteExpress('')" style="padding:10px 14px; background:#162738; color:#7fa8c8; cursor:pointer; font-size:0.85rem; border-bottom:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#1e354d'" onmouseout="this.style.background='#162738'">
+                <div onclick="abrirCadastroFornecedorExpress('')" style="padding:10px 14px; background:#162738; color:#7fa8c8; cursor:pointer; font-size:0.85rem; border-bottom:1px solid #1e4e8c; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#1e354d'" onmouseout="this.style.background='#162738'">
                     <i class="fa-solid fa-plus-circle"></i> + Cadastrar Novo Cliente do Zero
                 </div>
             `;
@@ -218,7 +218,7 @@ let itensPedidoCompra = [];
                 <div style="padding:14px; text-align:center; color:#aaa; font-size:0.88rem;">
                     Nenhum cliente encontrado com "<strong>${rawVal}</strong>".
                     <div style="margin-top:8px;">
-                        <button type="button" onclick="abrirCadastroClienteExpress('${rawVal.replace(/'/g,"\\'")}')" class="btn-primary" style="font-size:0.82rem; background:#2AD07A; color:#000; border:none; padding:6px 14px; font-weight:bold; cursor:pointer;">
+                        <button type="button" onclick="abrirCadastroFornecedorExpress('${rawVal.replace(/'/g,"\\'")}')" class="btn-primary" style="font-size:0.82rem; background:#2AD07A; color:#000; border:none; padding:6px 14px; font-weight:bold; cursor:pointer;">
                             <i class="fa-solid fa-user-plus"></i> Cadastrar "${rawVal}" Agora
                         </button>
                     </div>
@@ -230,7 +230,7 @@ let itensPedidoCompra = [];
         drop.style.display = 'block';
     };
 
-    window.redirecionarParaCadastroCliente = function(nomePrefill) {
+    window.redirecionarParaCadastroFornecedor = function(nomePrefill) {
         const drop = document.getElementById('pedidoc-fornecedor-dropdown');
         if (drop) drop.style.display = 'none';
 
@@ -258,11 +258,11 @@ let itensPedidoCompra = [];
         }, 150);
     };
 
-    window.abrirCadastroClienteExpress = function(nomePrefill) {
+    window.abrirCadastroFornecedorExpress = function(nomePrefill) {
         redirecionarParaCadastroFornecedor(nomePrefill);
     };
 
-    window.selecionarClientePedido = function(id) {
+    window.selecionarFornecedorPedido = function(id) {
         if (!window.localFornecedores || window.localFornecedores.length === 0) {
             fetch('/api/fornecedores').then(r=>r.json()).then(clis=>{
                 window.localFornecedores = clis;

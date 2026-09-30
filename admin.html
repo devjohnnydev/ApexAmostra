@@ -6126,7 +6126,7 @@
     </div>
 
     <div id="modal-pedido-compra" class="fullscreen-overlay" style="display:none; align-items:flex-start; justify-content:center; z-index:1100; padding-top:20px; overflow-y:auto;">
-        <div style="width:900px; max-width:98vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; padding:0; margin-bottom:30px;">
+        <div style="width:1200px; max-width:98vw; background:#0d1a26; border:1px solid #1e4e8c; border-radius:12px; padding:0; margin-bottom:30px;">
             <!-- Header do modal -->
             <div style="display:flex; justify-content:space-between; align-items:center; background:#101a24; border-radius:12px 12px 0 0; padding:18px 24px; border-bottom:1px solid #223547;">
                 <h3 style="margin:0; color:#fff; font-size:1.1rem;"><i class="fa-solid fa-file-invoice-dollar" style="color:#2AD07A;"></i> <span id="modal-pedido-titulo-compra">Novo Pedido de Compra</span></h3>
@@ -6137,7 +6137,7 @@
                 <input type="hidden" id="pedidoc-id">
 
                 <!-- Bloco: Emissor & Status do Pedido -->
-                <div style="background:#101a24; border-radius:10px; padding:14px 18px; margin-bottom:18px; border:1px solid #1e4e8c; display:grid; grid-template-columns:100px 1fr 100px 120px 120px; gap:12px; align-items:center;">
+                <div style="background:#101a24; border-radius:10px; padding:14px 18px; margin-bottom:18px; border:1px solid #1e4e8c; display:grid; grid-template-columns:100px 1fr 120px 150px; gap:12px; align-items:center;">
                     <div class="form-group" style="margin:0;">
                         <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Número *</label>
                         <input type="text" id="pedidoc-numero" class="noble-input" readonly style="background:#162432; color:#2AD07A; font-weight:bold; padding:6px 10px;">
@@ -6153,10 +6153,7 @@
                         <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Data Emissão *</label>
                         <input type="date" id="pedidoc-data-emissao" class="noble-input" style="padding:6px 8px; font-size:0.85rem;" required>
                     </div>
-                    <div class="form-group" style="margin:0;">
-                        <label style="font-size:0.78rem; color:#aaa; margin-bottom:2px;">Data Entrega</label>
-                        <input type="date" id="pedidoc-data-entrega" class="noble-input" style="padding:6px 8px; font-size:0.85rem;">
-                    </div>
+
                 </div>
 
                 <!-- Rastreamento do Pedido -->
