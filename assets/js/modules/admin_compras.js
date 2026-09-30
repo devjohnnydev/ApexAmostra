@@ -360,18 +360,18 @@ let itensPedidoCompra = [];
         document.getElementById('pedidoc-fornecedor-card').style.display = 'none';
     };
 
-    window.adicionarItemPedido = function() {
+    window.adicionarItemPedidoCompra = function() {
         itensPedidoCompra.push({ descricao:'', unidade:'kg', quantidade:0, preco_unitario:0, desconto_item:0, total_item:0 });
         renderItensPedidoCompra();
     };
 
-    window.removerItemPedido = function(idx) {
+    window.removerItemPedidoCompra = function(idx) {
         itensPedidoCompra.splice(idx,1);
         renderItensPedidoCompra();
         recalcularPedidoCompra();
     };
 
-    window.atualizarItemPedido = function(idx, campo, val) {
+    window.atualizarItemPedidoCompra = function(idx, campo, val) {
         itensPedidoCompra[idx][campo] = campo==='descricao'||campo==='unidade' ? val : parseFloat(val)||0;
         const it = itensPedidoCompra[idx];
         it.total_item = it.quantidade * it.preco_unitario * (1 - (it.desconto_item||0)/100);
@@ -394,21 +394,21 @@ let itensPedidoCompra = [];
         tbody.innerHTML = itensPedidoCompra.map((it,i) => `
             <tr style="border-bottom:1px solid #1a2a3a;">
                 <td style="padding:6px 4px;">
-                    <input value="${it.descricao||''}" onchange="atualizarItemPedido(${i},'descricao',this.value)" class="noble-input" style="width:100%; padding:5px 8px; font-size:0.82rem;" placeholder="Ex: Sucata de Cobre / Alumínio" />
+                    <input value="${it.descricao||''}" onchange="atualizarItemPedidoCompra(${i},'descricao',this.value)" class="noble-input" style="width:100%; padding:5px 8px; font-size:0.82rem;" placeholder="Ex: Sucata de Cobre / Alumínio" />
                 </td>
                 <td style="padding:6px 4px; text-align:center;">
-                    <select onchange="atualizarItemPedido(${i},'unidade',this.value)" class="noble-input" style="padding:5px 4px; font-size:0.82rem; width:65px;">
+                    <select onchange="atualizarItemPedidoCompra(${i},'unidade',this.value)" class="noble-input" style="padding:5px 4px; font-size:0.82rem; width:65px;">
                         ${['kg','t','un','m','m²','L'].map(u=>`<option value="${u}" ${it.unidade===u?'selected':''}>${u}</option>`).join('')}
                     </select>
                 </td>
                 <td style="padding:6px 4px;">
-                    <input type="number" min="0" step="0.001" value="${it.quantidade||''}" placeholder="Ex: 50.5" onchange="atualizarItemPedido(${i},'quantidade',this.value)" class="noble-input" style="width:100px; text-align:right; padding:5px 8px; font-size:0.82rem; font-weight:600; border-color:#1e4e8c;" />
+                    <input type="number" min="0" step="0.001" value="${it.quantidade||''}" placeholder="Ex: 50.5" onchange="atualizarItemPedidoCompra(${i},'quantidade',this.value)" class="noble-input" style="width:100px; text-align:right; padding:5px 8px; font-size:0.82rem; font-weight:600; border-color:#1e4e8c;" />
                 </td>
                 <td style="padding:6px 4px;">
-                    <input type="number" min="0" step="0.0001" value="${it.preco_unitario||''}" placeholder="R$ 0,00" onchange="atualizarItemPedido(${i},'preco_unitario',this.value)" class="noble-input" style="width:110px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
+                    <input type="number" min="0" step="0.0001" value="${it.preco_unitario||''}" placeholder="R$ 0,00" onchange="atualizarItemPedidoCompra(${i},'preco_unitario',this.value)" class="noble-input" style="width:110px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
                 </td>
                 <td style="padding:6px 4px;">
-                    <input type="number" min="0" max="100" step="0.01" value="${it.desconto_item||0}" onchange="atualizarItemPedido(${i},'desconto_item',this.value)" class="noble-input" style="width:75px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
+                    <input type="number" min="0" max="100" step="0.01" value="${it.desconto_item||0}" onchange="atualizarItemPedidoCompra(${i},'desconto_item',this.value)" class="noble-input" style="width:75px; text-align:right; padding:5px 8px; font-size:0.82rem;" />
                 </td>
                 <td style="padding:6px 4px; text-align:right; color:#2AD07A; font-weight:600;">${fmtR(it.total_item)}</td>
                 <td style="padding:6px 4px; text-align:center;">

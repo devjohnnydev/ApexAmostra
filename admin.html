@@ -6234,10 +6234,10 @@
                                 <option value="45 dias">45 dias</option>
                                 <option value="60 dias">60 dias</option>
                                 <option value="90 dias">90 dias</option>
-                                <option value="FIDC">Antecipação FIDC</option>
-                                <option value="CUSTOM">Outro (Digitar manualmente)</option>
+                                <option value="Antecipação FIDC">Antecipação FIDC</option>
+                                <option value="CUSTOM">Outro (Escolher data)</option>
                             </select>
-                            <input type="text" id="pedidoc-condicao-custom" class="noble-input" placeholder="Digite a condição (Ex: 10/20/30 dias)" style="display:none; margin-top:8px;">
+                            <input type="date" id="pedidoc-condicao-custom" class="noble-input" style="display:none; margin-top:8px;">
                         </div>
                     </div>
                 </div>
@@ -6262,7 +6262,7 @@
                 <div style="background:#101a24; border-radius:10px; padding:15px; margin-bottom:18px; border:1px solid #223547;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h4 style="margin:0; color:#fff;"><i class="fa-solid fa-list" style="color:#2AD07A;"></i> Itens do Pedido</h4>
-                        <button type="button" class="btn-primary" onclick="adicionarItemPedido()" style="padding:6px 14px; font-size:0.82rem;">
+                        <button type="button" class="btn-primary" onclick="adicionarItemPedidoCompra()" style="padding:6px 14px; font-size:0.82rem;">
                             <i class="fa-solid fa-plus"></i> Adicionar Item
                         </button>
                     </div>
