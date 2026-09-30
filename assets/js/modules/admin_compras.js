@@ -40,10 +40,10 @@ let itensPedidoCompra = [];
     }
 
     function renderPedidosCompra(lista) {
-        const tbody = document.getElementById('pedidos-tbody');
+        const tbody = document.getElementById('pedidos-compra-tbody');
         if (!tbody) return;
         if (!lista || lista.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-file-invoice-dollar" style="font-size:2rem; margin-bottom:10px; display:block; color:#2AD07A;"></i>Nenhum pedido cadastrado ainda.<br><small>Clique em <strong>+ Novo Pedido</strong> para emitir um novo pedido de venda.</small></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#5a738e;"><i class="fa-solid fa-file-invoice-dollar" style="font-size:2rem; margin-bottom:10px; display:block; color:#2AD07A;"></i>Nenhum pedido de compra cadastrado ainda.<br><small>Clique em <strong>+ Novo Pedido</strong> para emitir um novo pedido de compra.</small></td></tr>';
             return;
         }
         tbody.innerHTML = lista.map(p => {
@@ -353,7 +353,7 @@ let itensPedidoCompra = [];
         }
     }
 
-    window.limparClientePedido = function() {
+    window.limparFornecedorPedido = function() {
         document.getElementById('pedidoc-fornecedor-id').value = '';
         document.getElementById('pedidoc-fornecedor-busca').value = '';
         document.getElementById('pedidoc-fornecedor-dropdown').style.display = 'none';
