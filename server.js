@@ -5979,14 +5979,21 @@ app.post('/api/lme/enviar-agora', async (req, res) => {
     }
 });
 
-// ─── Rota: Gatilho Externo QStash (Idempotente) ─────────────────────────────
-app.post('/api/lme/cron-trigger', async (req, res) => {
-    const { scheduleId } = req.body;
+// ─── Rota: Gatilho Externo QStash / CronJob (Idempotente) ─────────────────────────────
+app.all('/api/lme/cron-trigger', async (req, res) => {
+    const { scheduleId } = req.body || {};
 
-    // Autenticação Bearer
+    // Autenticação flexível: Header Bearer OU query string ?secret=
     const authHeader = req.headers.authorization;
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        return res.status(401).json({ error: 'Unauthorized' });
+    const querySecret = req.query.secret;
+    const expectedSecret = process.env.CRON_SECRET;
+
+    if (expectedSecret) {
+        const isValidHeader = authHeader === `Bearer ${expectedSecret}`;
+        const isValidQuery = querySecret === expectedSecret;
+        if (!isValidHeader && !isValidQuery) {
+            return res.status(401).json({ error: 'Unauthorized. Verifique a senha ou o token.' });
+        }
     }
 
     try {
