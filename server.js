@@ -7351,15 +7351,65 @@ if (process.env.NODE_ENV !== 'test') {
             console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
             console.log(`📦 Modo de dados: MySQL`);
         });
+        // ─── CRON: Agendador LME Nativo (Verifica a cada minuto) ─────────────
+        // Restabelecido para ambientes contínuos (Hostinger, VPS) que não dependem de QStash
+        cron.schedule('* * * * *', async () => {
+            try {
+                let settingsObj = {};
+                if (dbAvailable) {
+                    const [rows] = await pool.query('SELECT `key`, value FROM settings');
+                    rows.forEach(r => { settingsObj[r['key']] = r.value; });
+                } else {
+                    settingsObj = memStore.settings || {};
+                }
 
-        // ─── AGENDAMENTO LME: QStash é o ÚNICO disparador ─────────────────────
-        // node-cron foi REMOVIDO pois é instável em containers efêmeros (Railway).
-        // O QStash (Upstash) chama /api/lme/cron-trigger via HTTP externo,
-        // sobrevivendo a reboots, deploys e hibernação do processo.
-        // A rota /api/lme/cron-trigger já faz toda a verificação de idempotência.
-        console.log('✅ [LME] Agendamento via QStash (externo). node-cron local removido.');
+                const ativo = settingsObj.lme_envio_ativo === 'true' || settingsObj.lme_envio_ativo === true;
+                if (!ativo) return;
 
-        // ─── Re-sincronizar QStash no boot (recria schedule se perdido) ────────
+                const horario = settingsObj.lme_envio_horario || '14:00';
+                const diasStr = settingsObj.lme_envio_dias || '1,2,3,4,5';
+                const diasAtivos = diasStr.split(',').map(Number);
+
+                // Hora atual no fuso de São Paulo
+                const agoraSP = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+                const horaAtual = `${String(agoraSP.getHours()).padStart(2, '0')}:${String(agoraSP.getMinutes()).padStart(2, '0')}`;
+                const diaAtual = agoraSP.getDay();
+
+                if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
+                    // Idempotência no banco: verifica se já enviou hoje
+                    let jaEnviou = false;
+                    if (dbAvailable) {
+                        const [check] = await pool.query(
+                            `SELECT id FROM lme_agendamentos 
+                             WHERE DATE(CONVERT_TZ(sent_at, '+00:00', '-03:00')) = DATE(CONVERT_TZ(NOW(), '+00:00', '-03:00'))
+                             AND status = 'SENT' LIMIT 1`
+                        );
+                        jaEnviou = check.length > 0;
+                    }
+
+                    if (!jaEnviou) {
+                        console.log(`⏰ [LME CRON NATIVO] Disparando envio automático — ${horaAtual} | Dia: ${diaAtual}`);
+                        try {
+                            const result = await disparaEmailLME();
+                            if (dbAvailable) {
+                                const cronId = require('crypto').randomUUID();
+                                await pool.query(
+                                    "INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana, status, sent_at, resend_message_id) VALUES (?, ?, ?, 'SENT', NOW(), ?)",
+                                    [cronId, horario, diasStr, result ? (result.resend_id || 'sent') : 'cron_sent']
+                                ).catch(() => {});
+                            }
+                        } catch (sendErr) {
+                            console.error('❌ [LME CRON NATIVO] Falha no envio automático:', sendErr.message);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('❌ [LME CRON NATIVO] Erro na rotina de verificação:', err.message);
+            }
+        });
+        console.log('✅ [LME] Agendador Nativo (node-cron) ativado (Fuso: America/Sao_Paulo).');
+
+        // ─── QStash (opcional/fallback se configurado) ────────
         try {
             if (process.env.QSTASH_TOKEN && process.env.QSTASH_TARGET_URL) {
                 let settingsObj = {};
@@ -7373,10 +7423,7 @@ if (process.env.NODE_ENV !== 'test') {
                 const horario = settingsObj.lme_envio_horario || process.env.LME_ENVIO_HORARIO || '14:00';
                 const diasStr = settingsObj.lme_envio_dias || process.env.LME_ENVIO_DIAS || '1,2,3,4,5';
                 await syncQStashSchedule(horario, diasStr.split(',').map(Number), ativo);
-                console.log(`✅ [QSTASH] Schedule sincronizado no boot: ${horario} BRT | Dias: ${diasStr} | Ativo: ${ativo}`);
-            } else {
-                console.warn('⚠️ [QSTASH] QSTASH_TOKEN ou QSTASH_TARGET_URL não configurados — envio automático LME desativado.');
-                console.warn('   Configure as variáveis de ambiente no Railway para ativar o envio agendado.');
+                console.log(`✅ [QSTASH] Schedule opcional sincronizado no boot.`);
             }
         } catch (bootErr) {
             console.warn('⚠️ [QSTASH] Falha na sincronização no boot:', bootErr.message);
