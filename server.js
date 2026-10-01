@@ -5943,123 +5943,271 @@ ${computedKeys.map(ck=>`<tr>
         try {
             const { jsPDF } = require('jspdf');
             const autoTable = require('jspdf-autotable').default;
+            const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 
-            const doc = new jsPDF();
-            
-            // Título e Subtítulo
-            doc.setFontSize(16);
-            doc.setTextColor(10, 74, 47);
-            doc.text("Relatório LME - Apextech Metais", 14, 20);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(85, 85, 85);
-            doc.text(`Semana: ${semana.label}   |   Gerado em: ${dateStr}`, 14, 28);
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const GREEN = [10, 74, 47];
+            const fmtBRL3 = (v) => v !== null && v !== undefined ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—';
+            const fmtUSD  = (v) => v !== null && v !== undefined ? '$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—';
+            const fmtPct  = (v) => v !== null && v !== undefined ? (v*100).toFixed(3)+'%' : '—';
+            const fmtBRL4 = (v) => v !== null && v !== undefined ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : '—';
 
-            // Tabela 1: Cotações Diárias
-            doc.setFontSize(12);
-            doc.setTextColor(10, 74, 47);
-            doc.text("Cotações Diárias (US$/t)", 14, 38);
+            // ─── CABEÇALHO ────────────────────────────────────────────────────
+            doc.setFontSize(18); doc.setTextColor(...GREEN);
+            doc.text('APEXTECH METAIS', 14, 18);
+            doc.setFontSize(11); doc.setTextColor(80, 80, 80);
+            const mesLabel = new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+            doc.text(`${mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1)} — Semana de ${semana.days[0]?.data || '—'} a ${semana.days.filter(d => d.data && d.data !== '—').pop()?.data || '—'}`, 14, 26);
+            doc.setFontSize(8); doc.setTextColor(120, 120, 120);
+            doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')} — ApexTech Metais`, 14, 32);
 
-            const head1 = [['Data', ...metals.map(m => metalLabels[m]), 'Dólar']];
-            const body1 = semana.days.map(d => [
-                d.data,
-                ...metals.map(m => fmt(d[m])),
-                fmt(d.dolar)
-            ]);
+            // ─── TABELA PRINCIPAL (Cotações + Computadas) ─────────────────────
+            const COLS_HEAD  = ['DATA', 'COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL', 'DÓLAR'];
+            const COL_COLORS = {
+                cobre: [219, 31, 31], zinco: [230, 184, 183], aluminio: [191, 191, 191],
+                chumbo: [201, 168, 232], estanho: [217, 234, 164], niquel: [238, 246, 216], dolar: [193, 225, 193]
+            };
+            const metalKeys = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
 
-            autoTable(doc, {
-                startY: 42,
-                head: head1,
-                body: body1,
-                theme: 'striped',
-                headStyles: { fillColor: [10, 74, 47], textColor: 255, halign: 'center', fontSize: 9 },
-                bodyStyles: { halign: 'center', fontSize: 9, cellPadding: 2 },
-                alternateRowStyles: { fillColor: [245, 245, 245] }
+            const mainHead = [COLS_HEAD];
+            const mainBody = [];
+
+            // Linhas de cotação diária (US$)
+            semana.days.forEach(d => {
+                mainBody.push([
+                    d.data || '—',
+                    fmtUSD(d.cobre), fmtUSD(d.zinco), fmtUSD(d.aluminio),
+                    fmtUSD(d.chumbo), fmtUSD(d.estanho), fmtUSD(d.niquel),
+                    fmtBRL4(d.dolar)
+                ]);
             });
 
-            // Tabela 2: Consolidado Semanal
-            const finalY = doc.lastAutoTable.finalY || 42;
-            doc.setFontSize(12);
-            doc.setTextColor(10, 74, 47);
-            doc.text("Consolidado Semanal", 14, finalY + 12);
+            // Espaçador
+            mainBody.push(Array(8).fill(''));
 
-            const head2 = [['Indicador', ...metals.map(m => metalLabels[m]), 'Dólar']];
-            const body2 = computedKeys.map(ck => [
-                ck.label,
-                ...metals.map(m => ck.fmt(semana.computed[ck.key] ? semana.computed[ck.key][m] : null)),
-                ck.fmt(semana.computed[ck.key] ? semana.computed[ck.key].dolar : null)
-            ]);
-
-            autoTable(doc, {
-                startY: finalY + 16,
-                head: head2,
-                body: body2,
-                theme: 'striped',
-                headStyles: { fillColor: [10, 74, 47], textColor: 255, halign: 'center', fontSize: 9 },
-                bodyStyles: { halign: 'center', fontSize: 9, cellPadding: 2 },
-                columnStyles: { 0: { fontStyle: 'bold', fillColor: [232, 245, 238], halign: 'left' } },
-                alternateRowStyles: { fillColor: [245, 245, 245] }
+            // Linhas computadas
+            const COMP_ROWS_CFG = [
+                { lbl: 'MÉDIA SEMANAL',                  key: 'MEDIA SEMANAL',                    mFmt: fmtUSD,  dFmt: fmtBRL4, dark: false },
+                { lbl: '100% LME (R$)',                  key: '100% LME',                         mFmt: fmtBRL3, dFmt: fmtBRL4, dark: false },
+                { lbl: 'SEMANA ANTERIOR',                key: 'SEMANA ANTERIOR',                  mFmt: fmtBRL3, dFmt: fmtBRL4, dark: true  },
+                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)', key: 'FECHAMENTO % ( SEMANA ANTERIOR )', mFmt: fmtPct,  dFmt: fmtPct,  dark: false },
+                { lbl: 'OSCILAÇÃO %',                    key: 'OSCILAÇÃO %',                      mFmt: fmtPct,  dFmt: fmtPct,  dark: false },
+                { lbl: 'OSCILAÇÃO R$',                   key: 'OSCILAÇÃO R$',                     mFmt: fmtBRL4, dFmt: fmtBRL4, dark: false },
+                { lbl: 'MÉDIA MENSAL',                   key: 'MEDIA MENSAL',                     mFmt: fmtBRL3, dFmt: fmtBRL4, dark: false },
+            ];
+            const darkRows = [];
+            COMP_ROWS_CFG.forEach((r, i) => {
+                const vals = semana.computed[r.key] || {};
+                mainBody.push([
+                    r.lbl,
+                    r.mFmt(vals.cobre), r.mFmt(vals.zinco), r.mFmt(vals.aluminio),
+                    r.mFmt(vals.chumbo), r.mFmt(vals.estanho), r.mFmt(vals.niquel),
+                    r.dFmt(vals.dolar)
+                ]);
+                if (r.dark) darkRows.push(mainBody.length - 1); // track dark rows
             });
 
-            // Tabela 3: Valores Base 90% a 110%
-            const finalY2 = doc.lastAutoTable.finalY || finalY + 16;
-            
-            // Adiciona nova página se não couber
-            if (finalY2 > 230) {
-                doc.addPage();
-            }
+            autoTable(doc, {
+                startY: 36,
+                head: mainHead,
+                body: mainBody,
+                theme: 'grid',
+                styles: { fontSize: 8, cellPadding: 1.5, halign: 'center' },
+                headStyles: { fillColor: GREEN, textColor: 255, fontStyle: 'bold', halign: 'center' },
+                columnStyles: { 0: { halign: 'left', cellWidth: 22 } },
+                didParseCell: function (data) {
+                    if (data.section === 'head') {
+                        const colMetal = ['cobre','zinco','aluminio','chumbo','estanho','niquel','dolar'];
+                        const metal = colMetal[data.column.index - 1];
+                        if (metal && COL_COLORS[metal]) data.cell.styles.fillColor = COL_COLORS[metal];
+                    }
+                    // Linhas diárias — alternado claro
+                    if (data.section === 'body' && data.row.index < 5) {
+                        if (data.row.index % 2 === 1) data.cell.styles.fillColor = [248, 248, 248];
+                    }
+                    // Linha SEMANA ANTERIOR — fundo escuro
+                    if (data.section === 'body' && darkRows.includes(data.row.index)) {
+                        data.cell.styles.fillColor = [26, 26, 26];
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                    // Espaçador
+                    if (data.section === 'body' && data.row.index === 5) {
+                        data.cell.styles.fillColor = [255, 255, 255];
+                    }
+                    // Label col nas computadas
+                    if (data.section === 'body' && data.row.index > 5 && data.column.index === 0) {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.halign = 'left';
+                    }
+                }
+            });
 
-            const currentY3 = finalY2 > 230 ? 20 : finalY2 + 12;
-            
-            doc.setFontSize(12);
-            doc.setTextColor(10, 74, 47);
-            doc.text("Valores Base de 90% a 110% X LME da Semana", 14, currentY3);
+            // ─── MINI-TABELA RESUMO (Semana Ant R$/kg × LME Atual R$/kg) ─────
+            const afterMain = doc.lastAutoTable.finalY + 3;
+            const SUMMARY_HEAD = [['TIPO', 'COBRE (R$/kg)', 'ZINCO (R$/kg)', 'ALUMÍNIO (R$/kg)', 'CHUMBO (R$/kg)', 'ESTANHO (R$/kg)', 'NÍQUEL (R$/kg)', 'DÓLAR (R$)']];
+            const ant = semana.computed['SEMANA ANTERIOR'] || {};
+            const lme = semana.computed['100% LME'] || {};
+            const oscRs = semana.computed['OSCILAÇÃO R$'] || {};
+            const SUMMARY_BODY = [
+                ['SEMANA ANTERIOR (R$/kg)', fmtBRL3(ant.cobre), fmtBRL3(ant.zinco), fmtBRL3(ant.aluminio), fmtBRL3(ant.chumbo), fmtBRL3(ant.estanho), fmtBRL3(ant.niquel), fmtBRL4(ant.dolar)],
+                ['LME ATUAL (R$/kg)',       fmtBRL3(lme.cobre), fmtBRL3(lme.zinco), fmtBRL3(lme.aluminio), fmtBRL3(lme.chumbo), fmtBRL3(lme.estanho), fmtBRL3(lme.niquel), fmtBRL4(lme.dolar)],
+                ['Oscilação R$/kg',
+                    (oscRs.cobre != null ? (oscRs.cobre >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.cobre)) : '—'),
+                    (oscRs.zinco != null ? (oscRs.zinco >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.zinco)) : '—'),
+                    (oscRs.aluminio != null ? (oscRs.aluminio >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.aluminio)) : '—'),
+                    (oscRs.chumbo != null ? (oscRs.chumbo >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.chumbo)) : '—'),
+                    (oscRs.estanho != null ? (oscRs.estanho >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.estanho)) : '—'),
+                    (oscRs.niquel != null ? (oscRs.niquel >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.niquel)) : '—'),
+                    (oscRs.dolar != null ? (oscRs.dolar >= 0 ? '▲ ' : '▼ ') + fmtBRL4(Math.abs(oscRs.dolar)) : '—'),
+                ]
+            ];
+            autoTable(doc, {
+                startY: afterMain,
+                head: SUMMARY_HEAD,
+                body: SUMMARY_BODY,
+                theme: 'grid',
+                styles: { fontSize: 7.5, cellPadding: 1.5, halign: 'center' },
+                headStyles: { fillColor: GREEN, textColor: 255, fontStyle: 'bold' },
+                columnStyles: { 0: { halign: 'left', fontStyle: 'bold', cellWidth: 38 } }
+            });
 
-            const baseHead = [['%', ...metals.map(m => metalLabels[m].toUpperCase())]];
+            // ─── GRÁFICOS DE BARRAS (chartjs-node-canvas) ────────────────────
+            const afterSummary = doc.lastAutoTable.finalY + 5;
+            
+            const buildChartBuffer = async (labels, dataAnt, dataLme) => {
+                const bgColors = labels.map((_, i) => {
+                    const valAtu = dataLme[i] || 0;
+                    const valAnt = dataAnt[i] || 0;
+                    return valAtu >= valAnt
+                        ? ['rgba(39,174,96,0.85)', 'rgba(231,76,60,0.85)']
+                        : ['rgba(231,76,60,0.85)', 'rgba(39,174,96,0.85)'];
+                });
+                const canvas = new ChartJSNodeCanvas({ width: 550, height: 280, backgroundColour: 'white' });
+                return canvas.renderToBuffer({
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: 'Semana Anterior',
+                                data: dataAnt,
+                                backgroundColor: bgColors.map(c => c[1]),
+                                borderColor: bgColors.map(c => c[1].replace('0.85', '1')),
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'LME Atual (100%)',
+                                data: dataLme,
+                                backgroundColor: bgColors.map(c => c[0]),
+                                borderColor: bgColors.map(c => c[0].replace('0.85', '1')),
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: false,
+                        animation: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 11 } } },
+                            title: { display: false }
+                        },
+                        scales: {
+                            y: { ticks: { font: { size: 9 } } },
+                            x: { ticks: { font: { size: 11, weight: 'bold' } } }
+                        }
+                    }
+                });
+            };
+
+            const group1Labels = ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO'];
+            const group1Keys   = ['cobre', 'zinco', 'aluminio', 'chumbo'];
+            const group2Labels = ['ESTANHO', 'NÍQUEL'];
+            const group2Keys   = ['estanho', 'niquel'];
+
+            const chart1Buf = await buildChartBuffer(
+                group1Labels,
+                group1Keys.map(k => ant[k] || 0),
+                group1Keys.map(k => lme[k] || 0)
+            );
+            const chart2Buf = await buildChartBuffer(
+                group2Labels,
+                group2Keys.map(k => ant[k] || 0),
+                group2Keys.map(k => lme[k] || 0)
+            );
+
+            // Nova página para os gráficos + tabela de base
+            doc.addPage();
+            let curY = 15;
+
+            doc.setFontSize(11); doc.setTextColor(...GREEN);
+            doc.text('Desempenho — Semana Anterior vs LME Atual', 14, curY);
+            curY += 5;
+
+            // Gráfico 1 (Cobre, Zinco, Alumínio, Chumbo)
+            const img1 = 'data:image/png;base64,' + chart1Buf.toString('base64');
+            doc.addImage(img1, 'PNG', 14, curY, 110, 60);
+
+            // Gráfico 2 (Estanho, Níquel)
+            const img2 = 'data:image/png;base64,' + chart2Buf.toString('base64');
+            doc.addImage(img2, 'PNG', 130, curY, 70, 60);
+            curY += 68;
+
+            // ─── TABELA VALORES BASE 90% a 110% ──────────────────────────────
+            doc.setFontSize(11); doc.setTextColor(...GREEN);
+            doc.text('VALORES BASE DE 90% A 110% × LME DA SEMANA × DÓLAR', 14, curY + 4);
+            curY += 8;
+
+            const baseHead = [['%', 'COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL']];
             const baseBody = [];
             for (let p = 90; p <= 110; p++) {
                 const row = [p === 100 ? '100%' : `${p}%`];
-                metals.forEach(m => {
-                    const lme = semana.computed['SEMANA ANTERIOR'] ? semana.computed['SEMANA ANTERIOR'][m] : null;
-                    if (!lme) row.push('-');
-                    else {
-                        const val = lme * (p / 100);
-                        row.push('R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }));
-                    }
+                metalKeys.forEach(m => {
+                    const lmeVal = semana.computed['SEMANA ANTERIOR']?.[m] ?? null;
+                    if (lmeVal === null) row.push('—');
+                    else row.push('R$ ' + (lmeVal * (p / 100)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }));
                 });
                 baseBody.push(row);
             }
 
             autoTable(doc, {
-                startY: currentY3 + 4,
+                startY: curY,
                 head: baseHead,
                 body: baseBody,
                 theme: 'grid',
-                headStyles: { fillColor: [30, 30, 30], textColor: 255, halign: 'center', fontSize: 8 },
-                bodyStyles: { halign: 'center', fontSize: 8, cellPadding: 1 },
-                createdCell: function (data) {
-                    if (data.row.index === 10) { // 100% row
-                        data.cell.styles.fillColor = [0, 0, 0];
-                        data.cell.styles.textColor = [255, 255, 255];
-                        data.cell.styles.fontStyle = 'bold';
-                    } else if (data.row.index < 10) {
-                        data.cell.styles.fillColor = [255, 240 + (data.row.index), 240 + (data.row.index)];
-                    } else {
-                        data.cell.styles.fillColor = [240 + (data.row.index - 10), 255, 240 + (data.row.index - 10)];
+                styles: { fontSize: 8, cellPadding: 1.5, halign: 'right' },
+                headStyles: { fillColor: [30, 30, 30], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 14 } },
+                didParseCell: function(data) {
+                    if (data.section === 'head') {
+                        const hColors = [[219,31,31],[230,184,183],[191,191,191],[201,168,232],[217,234,164],[238,246,216]];
+                        if (data.column.index > 0) data.cell.styles.fillColor = hColors[data.column.index - 1] || [50,50,50];
+                    }
+                    if (data.section === 'body') {
+                        if (data.row.index === 10) {
+                            data.cell.styles.fillColor = [0, 0, 0];
+                            data.cell.styles.textColor = [255, 255, 255];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (data.row.index < 10) {
+                            const shade = 255 - (10 - data.row.index) * 5;
+                            data.cell.styles.fillColor = [255, shade, shade];
+                        } else {
+                            const shade = 255 - (data.row.index - 10) * 5;
+                            data.cell.styles.fillColor = [shade, 255, shade];
+                        }
                     }
                 }
             });
 
             // Rodapé
-            const finalY3 = doc.lastAutoTable.finalY || currentY3 + 4;
-            doc.setFontSize(9);
-            doc.setTextColor(136, 136, 136);
-            doc.text("Apextech Metais - Indústria e Comércio de Resíduos Ltda  |  apextechmetais.com.br", 14, finalY3 + 15);
+            const lastY = doc.lastAutoTable.finalY + 8;
+            doc.setFontSize(8); doc.setTextColor(140, 140, 140);
+            doc.text('Apextech Metais — Indústria e Comércio de Resíduos Ltda  |  apextechmetais.com.br', 14, lastY);
 
             pdfBuffer = Buffer.from(doc.output('arraybuffer'));
 
         } catch (pdfErr) {
-            console.error('❌ [LME CRON] Erro fatal no gerador de PDF jsPDF:', pdfErr.message);
+            console.error('❌ [LME CRON] Erro fatal no gerador de PDF jsPDF+Chart:', pdfErr.message, pdfErr.stack);
         }
 
         const emailList = destinatarios.map(d => d.email);
