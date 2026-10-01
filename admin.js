@@ -1,4 +1,4 @@
-var _listMetasEstrategicas = [];
+﻿var _listMetasEstrategicas = [];
 var _listTabelaPrecosEstrategica = [];
 
 // DOMContentLoaded wrapper removed
@@ -5464,11 +5464,11 @@ var _listTabelaPrecosEstrategica = [];
     window.carregarPrecos = async function() {
         try {
             const res = await fetch('/api/tabela-precos', { cache: 'no-store' });
-            localPrecos = await res.json();
+            if(res.ok){localPrecos = await res.json();}else{localPrecos = [];}
             
             try {
                 const resSet = await fetch('/api/settings');
-                settingsPrecos = await resSet.json();
+                if(resSet.ok){settingsPrecos = await resSet.json();}else{settingsPrecos = {};}
             } catch (e) {
                 console.error('Erro ao carregar settings para precos:', e);
             }
@@ -6241,10 +6241,10 @@ var _listTabelaPrecosEstrategica = [];
     window.carregarPrecosResiduos = async function() {
         try {
             const res = await fetch('/api/tabela-precos-residuos', { cache: 'no-store' });
-            localPrecosResiduos = await res.json();
+            if(res.ok){localPrecosResiduos = await res.json();}else{localPrecosResiduos = [];}
             try {
                 const resSet = await fetch('/api/settings');
-                settingsPrecosResiduos = await resSet.json();
+                if(resSet.ok){settingsPrecosResiduos = await resSet.json();}else{settingsPrecosResiduos = {};}
             } catch(e) {}
             renderTabelaPrecosResiduos();
         } catch(err) { console.error('Erro carregarPrecosResiduos:', err); }
@@ -6592,10 +6592,10 @@ var _listTabelaPrecosEstrategica = [];
     window.carregarPrecosLigas = async function() {
         try {
             const res = await fetch('/api/tabela-precos-ligas', { cache: 'no-store' });
-            localPrecosLigas = await res.json();
+            if(res.ok){localPrecosLigas = await res.json();}else{localPrecosLigas = [];}
             try {
                 const resSet = await fetch('/api/settings');
-                settingsPrecosLigas = await resSet.json();
+                if(resSet.ok){settingsPrecosLigas = await resSet.json();}else{settingsPrecosLigas = {};}
             } catch(e) {}
             renderTabelaPrecosLigas();
         } catch(err) { console.error('Erro carregarPrecosLigas:', err); }
@@ -6920,10 +6920,10 @@ var _listTabelaPrecosEstrategica = [];
     window.carregarPrecosVolume = async function() {
         try {
             const res = await fetch('/api/tabela-precos-volume', { cache: 'no-store' });
-            localPrecosVolume = await res.json();
+            if(res.ok){localPrecosVolume = await res.json();}else{localPrecosVolume = [];}
             try {
                 const resSet = await fetch('/api/settings');
-                settingsPrecosVolume = await resSet.json();
+                if(resSet.ok){settingsPrecosVolume = await resSet.json();}else{settingsPrecosVolume = {};}
             } catch(e) {}
             renderTabelaPrecosVolume();
         } catch(err) { console.error('Erro carregarPrecosVolume:', err); }
@@ -7405,8 +7405,8 @@ var _listTabelaPrecosEstrategica = [];
     window.carregarPrecosFundicao = async function() {
         try {
             const res = await fetch('/api/tabela-precos-fundicao', { cache: 'no-store' });
-            localPrecosFundicao = await res.json();
-            try { const rs = await fetch('/api/settings'); settingsPrecosFundicao = await rs.json(); } catch(e) {}
+            if(res.ok){localPrecosFundicao = await res.json();}else{localPrecosFundicao = [];}
+            try { const rs = await fetch('/api/settings'); if(rs.ok){settingsPrecosFundicao = await rs.json();}else{settingsPrecosFundicao = {};} } catch(e) {}
             renderTabelaPrecosFundicao();
         } catch(err) { console.error('Erro carregarPrecosFundicao:', err); }
     };
@@ -9812,7 +9812,7 @@ var _listTabelaPrecosEstrategica = [];
             const planejamento = Array.isArray(planRaw) ? planRaw : [];
 
             const resEst = await fetch('/api/estoque');
-            const { estoque } = await resEst.json();
+            const _estObj = await resEst.json().catch(()=>({})); const estoque = _estObj.estoque || [];
 
             // ─── KPIs ───
             let pesoTotal = 0;
@@ -10456,3 +10456,5 @@ var _listTabelaPrecosEstrategica = [];
             }
         }
     };
+
+
