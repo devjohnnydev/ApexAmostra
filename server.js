@@ -1259,7 +1259,7 @@ app.use(express.static(__dirname, {
 
 // ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
-    const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje'];
+    const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje', '/api/lme/cron-trigger'];
     // Configurações do site são públicas (para temas, ocultar menus etc)
     if (req.path === '/settings' && req.method === 'GET') return next();
     // Rotas de cotação LME são públicas (usadas na página cotacoes.html sem login)
