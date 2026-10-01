@@ -5378,9 +5378,12 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
 
         const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
 
+        // 3.5 Deduplica dias que podem aparecer tanto no mês anterior quanto no atual (ex: virada de mês)
+        const uniqueDailyRows = Array.from(new Map(dailyRows.map(row => [row.data, row])).values());
+
         // 4. Agrupa por semana
         const weekMap = new Map();
-        dailyRows.forEach(row => {
+        uniqueDailyRows.forEach(row => {
             const wk = weekKey(row.dateObj);
             if (!weekMap.has(wk)) weekMap.set(wk, []);
             weekMap.get(wk).push(row);
@@ -5407,7 +5410,7 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
             const vals = Object.values(allWeekLME).map(e => e[m]).filter(v => v !== null);
             mediaMensalLME[m] = vals.length ? avg(vals) : null;
         });
-        mediaMensalLME.dolar = avg(dailyRows.map(d => d.dolar).filter(v => v !== null));
+        mediaMensalLME.dolar = avg(uniqueDailyRows.map(d => d.dolar).filter(v => v !== null));
 
         // 6. Monta blocos semanais com todos os cálculos
         const sortedWeekKeys = [...weekMap.keys()].sort();
