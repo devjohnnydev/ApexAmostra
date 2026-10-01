@@ -6001,11 +6001,60 @@ ${computedKeys.map(ck=>`<tr>
                 alternateRowStyles: { fillColor: [245, 245, 245] }
             });
 
-            // Rodapé
+            // Tabela 3: Valores Base 90% a 110%
             const finalY2 = doc.lastAutoTable.finalY || finalY + 16;
+            
+            // Adiciona nova página se não couber
+            if (finalY2 > 230) {
+                doc.addPage();
+            }
+
+            const currentY3 = finalY2 > 230 ? 20 : finalY2 + 12;
+            
+            doc.setFontSize(12);
+            doc.setTextColor(10, 74, 47);
+            doc.text("Valores Base de 90% a 110% X LME da Semana", 14, currentY3);
+
+            const baseHead = [['%', ...metals.map(m => metalLabels[m].toUpperCase())]];
+            const baseBody = [];
+            for (let p = 90; p <= 110; p++) {
+                const row = [p === 100 ? '100%' : `${p}%`];
+                metals.forEach(m => {
+                    const lme = semana.computed['SEMANA ANTERIOR'] ? semana.computed['SEMANA ANTERIOR'][m] : null;
+                    if (!lme) row.push('-');
+                    else {
+                        const val = lme * (p / 100);
+                        row.push('R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }));
+                    }
+                });
+                baseBody.push(row);
+            }
+
+            autoTable(doc, {
+                startY: currentY3 + 4,
+                head: baseHead,
+                body: baseBody,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 30, 30], textColor: 255, halign: 'center', fontSize: 8 },
+                bodyStyles: { halign: 'center', fontSize: 8, cellPadding: 1 },
+                createdCell: function (data) {
+                    if (data.row.index === 10) { // 100% row
+                        data.cell.styles.fillColor = [0, 0, 0];
+                        data.cell.styles.textColor = [255, 255, 255];
+                        data.cell.styles.fontStyle = 'bold';
+                    } else if (data.row.index < 10) {
+                        data.cell.styles.fillColor = [255, 240 + (data.row.index), 240 + (data.row.index)];
+                    } else {
+                        data.cell.styles.fillColor = [240 + (data.row.index - 10), 255, 240 + (data.row.index - 10)];
+                    }
+                }
+            });
+
+            // Rodapé
+            const finalY3 = doc.lastAutoTable.finalY || currentY3 + 4;
             doc.setFontSize(9);
             doc.setTextColor(136, 136, 136);
-            doc.text("Apextech Metais - Indústria e Comércio de Resíduos Ltda  |  apextechmetais.com.br", 14, finalY2 + 15);
+            doc.text("Apextech Metais - Indústria e Comércio de Resíduos Ltda  |  apextechmetais.com.br", 14, finalY3 + 15);
 
             pdfBuffer = Buffer.from(doc.output('arraybuffer'));
 
