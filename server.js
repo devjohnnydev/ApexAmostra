@@ -5933,8 +5933,8 @@ ${computedKeys.map(ck=>`<tr>
             <br>
             <p>Atenciosamente,<br><strong>Apextech Metais</strong></p>
         </div>`;
+        const { Resend } = require('resend');
         const resend = new Resend(resendKey);
-
 
         const emailList = destinatarios.map(d => d.email);
         const resultados = [];
