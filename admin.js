@@ -206,6 +206,9 @@ var _listTabelaPrecosEstrategica = [];
                 if (item.dataset.target === 'pedidos-venda-view' && window.initApexPedidos) {
                     window.initApexPedidos();
                 }
+                if (item.dataset.target === 'pedidos-compra-view' && window.initApexPedidosCompra) {
+                    window.initApexPedidosCompra();
+                }
                 if (item.dataset.target === 'residuos-view' && window.initApexPrecosResiduos) {
                     window.initApexPrecosResiduos();
                 }
@@ -296,6 +299,8 @@ var _listTabelaPrecosEstrategica = [];
         
         if (typeof initApexPedidos === 'function') initApexPedidos();
         else if (window.initApexPedidos) window.initApexPedidos();
+        if (typeof initApexPedidosCompra === 'function') initApexPedidosCompra();
+        else if (window.initApexPedidosCompra) window.initApexPedidosCompra();
         
         if (window.switchSimulatedRole) {
             window.switchSimulatedRole(sessionStorage.getItem('apex_user_role') || 'Administrador');
@@ -10456,5 +10461,6 @@ var _listTabelaPrecosEstrategica = [];
             }
         }
     };
+
 
 
