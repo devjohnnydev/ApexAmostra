@@ -2611,13 +2611,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.__lastLmeCronRun === horaAtual) return;
                 window.__lastLmeCronRun = horaAtual;
 
-                console.log(`[FRONTEND CRON] Horário LME atingido (${horaAtual}). Backend encarregado do envio.`);
+                console.log(`[FRONTEND CRON] Horário LME atingido (${horaAtual}). Tentando envio pelo frontend como fallback.`);
                 if (typeof _apexNotify === 'function') {
-                    _apexNotify('Sistema', `Horário programado atingido (${horaAtual}). Servidor gerando e enviando PDF...`, 'info');
+                    _apexNotify('Sistema', `Horário programado atingido (${horaAtual}). Iniciando envio de fallback...`, 'info');
                 }
                 
-                // Força o clique no botão que faz todo o processo do html2pdf (Desativado para evitar envio duplo)
-                // btnTest.click();
+                // Força o clique no botão que faz todo o processo do html2pdf
+                btnTest.click();
             }
         }, 15000); // Checa a cada 15 segundos
     }
