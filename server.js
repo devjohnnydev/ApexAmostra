@@ -5997,23 +5997,22 @@ ${computedKeys.map(ck=>`<tr>
             };
             const METAL_KEYS = ['cobre','zinco','aluminio','chumbo','estanho','niquel'];
 
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
             // ─── CABEÇALHO AMARELO (igual ao print do sistema) ───────────────
-            // Fundo amarelo da faixa de título
             doc.setFillColor(...h('#FFFF00'));
-            doc.rect(0, 0, 210, 22, 'F');
+            doc.rect(0, 0, 297, 22, 'F'); // 297mm width for landscape
             doc.setFontSize(9); doc.setTextColor(80, 80, 80);
-            doc.text('COTAÇÃO VÁLIDA PARA A SEMANA', 105, 7, { align: 'center' });
+            doc.text('COTAÇÃO VÁLIDA PARA A SEMANA', 148.5, 7, { align: 'center' });
             doc.setFontSize(14); doc.setTextColor(0, 0, 0); doc.setFont(undefined, 'bold');
             const firstDay = semana.days.filter(d => d.data && d.data !== '—')[0]?.data || '—';
             const lastDay  = semana.days.filter(d => d.data && d.data !== '—').pop()?.data  || '—';
-            doc.text(`${firstDay} → ${lastDay}`, 105, 16, { align: 'center' });
+            doc.text(`${firstDay} → ${lastDay}`, 148.5, 16, { align: 'center' });
             doc.setFont(undefined, 'normal');
 
             // Data de geração
             doc.setFontSize(7.5); doc.setTextColor(100, 100, 100);
-            doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')} — ApexTech Metais`, 105, 20, { align: 'center' });
+            doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')} — ApexTech Metais`, 148.5, 20, { align: 'center' });
 
             // ─── TABELA PRINCIPAL ─────────────────────────────────────────────
             const HEAD_ROW = ['DATA', 'Cobre US$/t', 'Zinco US$/t', 'Alumínio US$/t', 'Chumbo US$/t', 'Estanho US$/t', 'Níquel US$/t', 'Dólar US$'];
@@ -6078,21 +6077,20 @@ ${computedKeys.map(ck=>`<tr>
                 head: [HEAD_ROW],
                 body: tableBody,
                 theme: 'grid',
-                styles: { fontSize: 7.5, cellPadding: 1.5, halign: 'center', fontStyle: 'bold' },
-                columnStyles: { 0: { halign: 'left', cellWidth: 26 } },
+                styles: { fontSize: 8.5, cellPadding: 2, halign: 'center', fontStyle: 'bold' },
+                columnStyles: { 0: { halign: 'left', cellWidth: 35 } },
+                margin: { left: 10, right: 10 },
                 didParseCell: function(data) {
                     const ci = data.column.index;
                     const ri = data.row.index;
-                    const metalKey = colKeys[ci]; // data, cobre, zinco, ...
+                    const metalKey = colKeys[ci];
 
                     if (data.section === 'head') {
-                        // Cor do cabeçalho por coluna
                         data.cell.styles.fillColor = HDR[metalKey]?.bg || [50,50,50];
                         data.cell.styles.textColor = HDR[metalKey]?.fg || [255,255,255];
                         return;
                     }
 
-                    // Linhas de dias (0-4): cor por coluna de metal
                     if (ri < 5) {
                         if (ci === 0) {
                             data.cell.styles.fillColor = [240, 240, 240];
@@ -6104,15 +6102,13 @@ ${computedKeys.map(ck=>`<tr>
                         return;
                     }
 
-                    // Linha separadora (ri=5): branco
                     if (ri === 5) {
                         data.cell.styles.fillColor = [255, 255, 255];
                         data.cell.styles.textColor = [255, 255, 255];
                         return;
                     }
 
-                    // Linhas computadas (ri 6-12): cor da linha
-                    const compIdx = ri - 6; // 0=MÉDIA SEMANAL, 1=100%LME, etc.
+                    const compIdx = ri - 6;
                     if (ROW_BG[compIdx]) {
                         data.cell.styles.fillColor = ROW_BG[compIdx].bg;
                         data.cell.styles.textColor = ROW_BG[compIdx].fg;
@@ -6122,7 +6118,7 @@ ${computedKeys.map(ck=>`<tr>
             });
 
             // ─── MINI-TABELA RESUMO (Semana Ant × LME Atual × Oscilação) ─────
-            const afterMain = doc.lastAutoTable.finalY + 2;
+            const afterMain = doc.lastAutoTable.finalY + 4;
             const ant   = comp['SEMANA ANTERIOR'] || {};
             const lme   = comp['100% LME']        || {};
             const oscRs = comp['OSCILAÇÃO R$']     || {};
@@ -6137,9 +6133,10 @@ ${computedKeys.map(ck=>`<tr>
                 head: SUMMARY_HEAD,
                 body: SUMMARY_BODY,
                 theme: 'grid',
-                styles: { fontSize: 7.5, cellPadding: 1.5, halign: 'center', fontStyle: 'bold' },
+                styles: { fontSize: 8.5, cellPadding: 2, halign: 'center', fontStyle: 'bold' },
                 headStyles: { fillColor: [10,74,47], textColor: 255, fontStyle: 'bold' },
-                columnStyles: { 0: { halign: 'left', cellWidth: 36 } },
+                columnStyles: { 0: { halign: 'left', cellWidth: 45 } },
+                margin: { left: 10, right: 10 },
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index > 0) {
                         const metalKey = colKeys[data.column.index];
@@ -6151,9 +6148,9 @@ ${computedKeys.map(ck=>`<tr>
                 }
             });
 
-            // ─── GRÁFICOS DE BARRAS (chartjs-node-canvas) ────────────────────
+            // ─── GRÁFICOS DE BARRAS E TABELA DE 90-110% ────────────────────
             doc.addPage();
-            let curY = 10;
+            let curY = 15;
 
             const buildChartBuf = async (labels, dataAnt, dataLme) => {
                 const bgColors = labels.map((_, i) => {
@@ -6162,7 +6159,7 @@ ${computedKeys.map(ck=>`<tr>
                         ? { lme: 'rgba(39,174,96,0.85)', ant: 'rgba(231,76,60,0.85)' }
                         : { lme: 'rgba(231,76,60,0.85)', ant: 'rgba(39,174,96,0.85)' };
                 });
-                const cvs = new ChartJSNodeCanvas({ width: 560, height: 300, backgroundColour: 'white' });
+                const cvs = new ChartJSNodeCanvas({ width: 700, height: 350, backgroundColour: 'white' });
                 return cvs.renderToBuffer({
                     type: 'bar',
                     data: {
@@ -6173,8 +6170,8 @@ ${computedKeys.map(ck=>`<tr>
                         ]
                     },
                     options: { responsive: false, animation: false,
-                        plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
-                        scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 11, weight: 'bold' } } } }
+                        plugins: { legend: { position: 'top', labels: { font: { size: 13 } } } },
+                        scales: { y: { ticks: { font: { size: 11 } } }, x: { ticks: { font: { size: 14, weight: 'bold' } } } }
                     }
                 });
             };
@@ -6190,19 +6187,21 @@ ${computedKeys.map(ck=>`<tr>
                 ['estanho','niquel'].map(k => lme[k] || 0)
             );
 
-            doc.setFontSize(10); doc.setTextColor(10,74,47); doc.setFont(undefined,'bold');
-            doc.text('Desempenho — Semana Anterior vs LME Atual', 14, curY + 4);
+            doc.setFontSize(12); doc.setTextColor(10,74,47); doc.setFont(undefined,'bold');
+            doc.text('Desempenho — Semana Anterior vs LME Atual', 10, curY);
             doc.setFont(undefined,'normal');
-            curY += 8;
-            doc.addImage('data:image/png;base64,' + chart1.toString('base64'), 'PNG', 10, curY, 120, 65);
-            doc.addImage('data:image/png;base64,' + chart2.toString('base64'), 'PNG', 135, curY, 68, 65);
-            curY += 72;
+            curY += 6;
+            
+            // Gráficos lado a lado
+            doc.addImage('data:image/png;base64,' + chart1.toString('base64'), 'PNG', 10, curY, 150, 75);
+            doc.addImage('data:image/png;base64,' + chart2.toString('base64'), 'PNG', 170, curY, 100, 75);
+            curY += 85;
 
             // ─── TABELA VALORES BASE 90% a 110% ──────────────────────────────
-            doc.setFontSize(10); doc.setTextColor(10,74,47); doc.setFont(undefined,'bold');
-            doc.text('VALORES BASE DE 90% A 110% × LME DA SEMANA × DÓLAR', 14, curY + 4);
+            doc.setFontSize(12); doc.setTextColor(10,74,47); doc.setFont(undefined,'bold');
+            doc.text('VALORES BASE DE 90% A 110% × LME DA SEMANA × DÓLAR', 10, curY + 4);
             doc.setFont(undefined,'normal');
-            curY += 7;
+            curY += 8;
 
             const baseHead = [['%', 'COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL']];
             const baseBody = [];
@@ -6220,9 +6219,10 @@ ${computedKeys.map(ck=>`<tr>
                 head: baseHead,
                 body: baseBody,
                 theme: 'grid',
-                styles: { fontSize: 7.5, cellPadding: 1.2, halign: 'right', fontStyle: 'bold' },
+                margin: { left: 10, right: 10 },
+                styles: { fontSize: 8.5, cellPadding: 2, halign: 'right', fontStyle: 'bold' },
                 headStyles: { fillColor: [0,0,0], textColor: 255, fontStyle: 'bold', halign: 'center' },
-                columnStyles: { 0: { halign: 'center', cellWidth: 12 } },
+                columnStyles: { 0: { halign: 'center', cellWidth: 15 } },
                 didParseCell: function(data) {
                     if (data.section === 'head' && data.column.index > 0) {
                         const hColors = [HDR.cobre.bg, HDR.zinco.bg, HDR.aluminio.bg, HDR.chumbo.bg, HDR.estanho.bg, HDR.niquel.bg];
