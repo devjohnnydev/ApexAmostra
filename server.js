@@ -1259,14 +1259,14 @@ app.use(express.static(__dirname, {
 
 // ─── MIDDLEWARES DE SEGURANÇA (RBAC) ─────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
-    const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje', '/api/lme/cron-trigger'];
+    const publicRoutes = ['/login', '/solucoes', '/cotacoes-hoje', '/lme/cron-trigger'];
     // Configurações do site são públicas (para temas, ocultar menus etc)
     if (req.path === '/settings' && req.method === 'GET') return next();
     // Rotas de cotação LME são públicas (usadas na página cotacoes.html sem login)
     if (req.path.startsWith('/lme/tabela') || req.path.startsWith('/lme/graflme') || req.path.startsWith('/lme/varialme')) return next();
     if (publicRoutes.includes(req.path) || req.path.startsWith('/public')) return next();
     // Rota de imagem de fotos é pública: a tag <img> do HTML não pode enviar JWT
-    if (/^\/api\/amostras\/\d+\/fotos\/\d+\/img$/.test(req.path)) return next();
+    if (/^\/api\/amostras\/\d+\/fotos\/\d+\/img$/.test(req.path) || /^\/amostras\/\d+\/fotos\/\d+\/img$/.test(req.path)) return next();
 
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Token não fornecido. Acesso Negado.' });
