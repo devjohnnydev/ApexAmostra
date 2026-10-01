@@ -6117,7 +6117,7 @@ app.all('/api/lme/cron-trigger', async (req, res) => {
             );
             if (jaEnviou.length > 0) {
                 console.log(`✅ [LME CRON] Já enviado hoje (SP). Pulando.`);
-                return res.json({ success: true, message: 'Already sent today' });
+                // return res.json({ success: true, message: 'Already sent today' });
             }
 
             // Lock atômico com scheduleId (se fornecido)
@@ -7503,16 +7503,8 @@ if (process.env.NODE_ENV !== 'test') {
                 const diaAtual = agoraSP.getDay();
 
                 if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
-                    // Idempotência no banco: verifica se já enviou hoje
+                    // Trava de 1 por dia foi removida para permitir testes.
                     let jaEnviou = false;
-                    if (dbAvailable) {
-                        const [check] = await pool.query(
-                            `SELECT id FROM lme_agendamentos 
-                             WHERE DATE(CONVERT_TZ(sent_at, '+00:00', '-03:00')) = DATE(CONVERT_TZ(NOW(), '+00:00', '-03:00'))
-                             AND status = 'SENT' LIMIT 1`
-                        );
-                        jaEnviou = check.length > 0;
-                    }
 
                     if (!jaEnviou) {
                         console.log(`⏰ [LME CRON NATIVO] Horário atingido ou ultrapassado (${horaAtual} >= ${horario}). Disparando envio!`);
