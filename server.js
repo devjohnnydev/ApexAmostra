@@ -1599,7 +1599,7 @@ app.post('/api/fornecedores', async (req, res) => {
                  endereco, numero, bairro, cidade, uf, cep,
                  observacoes, condicao_pagamento, tabela, filial]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const newF = { 
             id: Date.now(), nome: razao_social, apelido: nome_fantasia, cnpj, cpf, ie, 
@@ -1637,7 +1637,7 @@ app.put('/api/fornecedores/:id', async (req, res) => {
                  observacoes, condicao_pagamento, tabela, filial, id]
             );
             if (result[0].length === 0) return res.status(404).json({ error: 'Fornecedor não encontrado.' });
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         res.status(503).json({ error: 'Banco indisponível.' });
     } catch (err) {
@@ -1777,7 +1777,7 @@ app.put('/api/materiais-catalogo/:id', async (req, res) => {
                  WHERE id=?`,
                 [nome, unidade, categoria, cor, ncm, observacoes, id]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             const idx = memStore.materiais_catalogo.findIndex(x => x.id === id);
             if (idx === -1) return res.status(404).json({ error: 'Material não encontrado.' });
@@ -1831,7 +1831,7 @@ app.post('/api/residuos-catalogo', async (req, res) => {
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
             if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
@@ -1854,7 +1854,7 @@ app.put('/api/residuos-catalogo/:id', async (req, res) => {
                  WHERE id=?`,
                 [nome, unidade, categoria, cor, ncm, observacoes, id]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             if (!memStore.residuos_catalogo) memStore.residuos_catalogo = [];
             const idx = memStore.residuos_catalogo.findIndex(x => x.id === id);
@@ -1906,7 +1906,7 @@ app.post('/api/ligas-catalogo', async (req, res) => {
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 [nome, unidade || 'kg', categoria, cor || '#ffffff', ncm, observacoes]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             const newM = { id: nextId++, nome, unidade: unidade || 'kg', categoria, cor: cor || '#ffffff', ncm, observacoes };
             if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
@@ -1929,7 +1929,7 @@ app.put('/api/ligas-catalogo/:id', async (req, res) => {
                  WHERE id=?`,
                 [nome, unidade, categoria, cor, ncm, observacoes, id]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             if (!memStore.ligas_catalogo) memStore.ligas_catalogo = [];
             const idx = memStore.ligas_catalogo.findIndex(x => x.id === id);
@@ -2020,7 +2020,7 @@ app.post('/api/tabela-precos', async (req, res) => {
                 [material_id, preco_entregar, preco_coletar, venda_ref, validade, comissao || 0, pis_cofins || 0, fidc || 0, icms || 0, frete_coleta || 0]
             );
             await atualizarDataUltimaModificacaoPrecos();
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             if (aplicar_todos && validade) {
                 memStore.tabela_precos.forEach(p => p.validade = validade);
@@ -2070,7 +2070,7 @@ app.put('/api/tabela-precos/:id', async (req, res) => {
                 [preco_entregar, preco_coletar, venda_ref, validade, comissao || 0, pis_cofins || 0, fidc || 0, icms || 0, frete_coleta || 0, id]
             );
             await atualizarDataUltimaModificacaoPrecos();
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             if (aplicar_todos && validade) {
                 memStore.tabela_precos.forEach(p => p.validade = validade);
@@ -2146,7 +2146,7 @@ app.post('/api/tabela-precos-residuos', async (req, res) => {
                  VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_residuos.push(newP);
@@ -2183,7 +2183,7 @@ app.put('/api/tabela-precos-residuos/:id', async (req, res) => {
                  pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const idx = memStore.tabela_precos_residuos.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -2236,7 +2236,7 @@ app.post('/api/tabela-precos-ligas', async (req, res) => {
                  VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_ligas.push(newP);
@@ -2273,7 +2273,7 @@ app.put('/api/tabela-precos-ligas/:id', async (req, res) => {
                  pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const idx = memStore.tabela_precos_ligas.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -2326,7 +2326,7 @@ app.post('/api/tabela-precos-volume', async (req, res) => {
                  VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_volume.push(newP);
@@ -2363,7 +2363,7 @@ app.put('/api/tabela-precos-volume/:id', async (req, res) => {
                  pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const idx = memStore.tabela_precos_volume.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -2416,7 +2416,7 @@ app.post('/api/tabela-precos-fundicao', async (req, res) => {
                  VALUES (?,?,?,?,?,?,?,?,?,?)`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const newP = { id: Date.now(), material_id: parseInt(material_id), preco_entregar: parseFloat(preco_entregar)||0, preco_coletar: parseFloat(preco_coletar)||0, venda_ref: parseFloat(venda_ref)||0, validade, comissao: parseFloat(comissao)||0, pis_cofins: parseFloat(pis_cofins)||0, fidc: parseFloat(fidc)||0, icms: parseFloat(icms)||0, frete_coleta: parseFloat(frete_coleta)||0 };
         memStore.tabela_precos_fundicao.push(newP);
@@ -2453,7 +2453,7 @@ app.put('/api/tabela-precos-fundicao/:id', async (req, res) => {
                  pis_cofins=?, fidc=?, icms=?, frete_coleta=? WHERE id=?`,
                 [material_id, preco_entregar||0, preco_coletar||0, venda_ref||0, validade, comissao||0, pis_cofins||0, fidc||0, icms||0, frete_coleta||0, id]
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const idx = memStore.tabela_precos_fundicao.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Não encontrado.' });
@@ -3163,7 +3163,7 @@ app.post('/api/planejamento-compras', async (req, res) => {
                 // Se vinculou a uma amostra, avança o status dela
                 await pool.query("UPDATE amostras SET status = 'Aguardando Liberação PCP' WHERE id = ? AND status = 'Aguardando Precificação'", [amostra_id]);
             }
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         } else {
             const newL = {
                 id: nextId++,
@@ -4890,7 +4890,7 @@ app.put('/api/solucoes/:id', async (req, res) => {
                 [nome, img, descricao, ordem || 0, id]
             );
             if (result.rowCount === 0) return res.status(404).json({ error: 'Solução não encontrada.' });
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         const idx = memStore.solucoes.findIndex(s => s.id == id);
         if (idx === -1) return res.status(404).json({ error: 'Solução não encontrada.' });
@@ -6944,7 +6944,7 @@ app.get('/api/clientes/:id', async (req, res) => {
         if (dbAvailable) {
             const result = await pool.query('SELECT * FROM clientes WHERE id = ?', [id]);
             if (result[0].length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         res.status(404).json({ error: 'Cliente não encontrado.' });
     } catch (err) {
@@ -6982,7 +6982,7 @@ app.post('/api/clientes', async (req, res) => {
                  pais || 'BR', cep, tipo_cliente, contato_comercial,
                  contato_financeiro, status || 'ATIVO', vendedor, dias !== undefined && dias !== null ? String(dias).trim() : '0', filial || '01']
             );
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
     } catch (err) {
@@ -7015,7 +7015,7 @@ app.put('/api/clientes/:id', async (req, res) => {
                  id]
             );
             if (result[0].length === 0) return res.status(404).json({ error: 'Cliente não encontrado.' });
-            return res.json(result[0][0]);
+            return res.json(Array.isArray(result[0]) ? result[0][0] : { success: true });
         }
         res.status(503).json({ error: 'Banco de dados indisponível.' });
     } catch (err) {
