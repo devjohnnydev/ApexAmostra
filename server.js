@@ -5127,7 +5127,13 @@ app.put('/api/settings', async (req, res) => {
                 const ativo = settings.lme_envio_ativo;
                 const horario = settings.lme_envio_horario || '14:00';
                 const diasAtivosStr = settings.lme_envio_dias || '1,2,3,4,5';
-                if (typeof syncQStashSchedule === 'function') await syncQStashSchedule(horario, diasAtivosStr.split(',').map(Number), ativo);
+                if (typeof syncQStashSchedule === 'function') {
+                    try {
+                        await syncQStashSchedule(horario, diasAtivosStr.split(',').map(Number), ativo);
+                    } catch (e) {
+                        console.warn('Aviso: syncQStashSchedule falhou mas as configs foram salvas.', e.message);
+                    }
+                }
             }
             return res.json({ success: true });
         }
