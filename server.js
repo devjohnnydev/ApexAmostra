@@ -5973,49 +5973,94 @@ app.post('/api/lme/enviar-agora', async (req, res) => {
     }
 });
 
-// ─── Rota: Gatilho Externo (Idempotente) para EventBridge ────────────────────
+// ─── Rota: Gatilho Externo QStash (Idempotente) ─────────────────────────────
 app.post('/api/lme/cron-trigger', async (req, res) => {
     const { scheduleId } = req.body;
-    
-    // Autenticação Bearer (Segurança exigida)
+
+    // Autenticação Bearer
     const authHeader = req.headers.authorization;
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     try {
-        console.log(`⏰ [HOSTINGER CRON] Gatilho recebido. ID: ${scheduleId || 'manual-trigger'}`);
-        
-        if (dbAvailable && scheduleId) {
-            // Lock atômico (Garante Idempotência)
-            const [updateResult] = await pool.query(
-                "UPDATE lme_agendamentos SET status = 'PROCESSING', processing_started_at = NOW(), attempts = attempts + 1 WHERE id = ? AND status IN ('PENDING', 'FAILED')",
-                [scheduleId]
+        console.log(`⏰ [LME CRON] Gatilho recebido. ID: ${scheduleId || 'manual-trigger'}`);
+
+        // ── Verificação de idempotência por DIA (usando fuso de SP) ──────────
+        // Garante que só dispara 1x por dia, mesmo que QStash chame 2x
+        if (dbAvailable) {
+            const [jaEnviou] = await pool.query(
+                `SELECT id FROM lme_agendamentos
+                 WHERE DATE(CONVERT_TZ(sent_at, '+00:00', '-03:00')) = DATE(CONVERT_TZ(NOW(), '+00:00', '-03:00'))
+                 AND status = 'SENT'
+                 LIMIT 1`
             );
-            
-            if (updateResult.affectedRows === 0) {
-                const [rows] = await pool.query("SELECT status FROM lme_agendamentos WHERE id = ?", [scheduleId]);
-                if (rows.length > 0 && rows[0].status === 'SENT') {
-                    console.log(`✅ [HOSTINGER CRON] Agendamento ${scheduleId} já foi enviado anteriormente.`);
-                    return res.json({ success: true, message: 'Already sent' });
+            if (jaEnviou.length > 0) {
+                console.log(`✅ [LME CRON] Já enviado hoje (SP). Pulando.`);
+                return res.json({ success: true, message: 'Already sent today' });
+            }
+
+            // Lock atômico com scheduleId (se fornecido)
+            if (scheduleId) {
+                const [upd] = await pool.query(
+                    "UPDATE lme_agendamentos SET status = 'PROCESSING', processing_started_at = NOW(), attempts = attempts + 1 WHERE id = ? AND status IN ('PENDING', 'FAILED')",
+                    [scheduleId]
+                );
+                if (upd.affectedRows === 0) {
+                    const [rows] = await pool.query('SELECT status FROM lme_agendamentos WHERE id = ?', [scheduleId]);
+                    if (rows.length > 0 && rows[0].status === 'SENT') {
+                        return res.json({ success: true, message: 'Already sent (by scheduleId)' });
+                    }
+                    return res.status(409).json({ error: 'Schedule already locked or unavailable.' });
                 }
-                return res.status(409).json({ error: 'Schedule not available for processing or already locked.' });
             }
         }
 
-        // Executa a função de envio exatamente igual ao manual
-        const result = await disparaEmailLME(); 
-        
-        if (dbAvailable && scheduleId) {
-            await pool.query(
-                "UPDATE lme_agendamentos SET status = 'SENT', sent_at = NOW(), resend_message_id = ? WHERE id = ?",
-                [result ? result.resend_id : 'ok', scheduleId]
-            );
+        // ── Verifica se hoje é dia útil configurado ───────────────────────────
+        if (dbAvailable) {
+            const [settRows] = await pool.query('SELECT `key`, value FROM settings');
+            const settObj = {};
+            settRows.forEach(r => { settObj[r['key']] = r.value; });
+            const ativo = settObj.lme_envio_ativo === 'true';
+            const diasStr = settObj.lme_envio_dias || process.env.LME_ENVIO_DIAS || '1,2,3,4,5';
+            const diasAtivos = diasStr.split(',').map(Number);
+
+            if (!ativo) {
+                console.log('⚠️ [LME CRON] Envio automático desativado nas configurações.');
+                return res.json({ success: true, message: 'LME sending disabled' });
+            }
+
+            // Dia da semana atual em SP
+            const agoraSP = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+            const diaSP = agoraSP.getDay(); // 0=Dom
+            if (!diasAtivos.includes(diaSP)) {
+                console.log(`⚠️ [LME CRON] Hoje (dia ${diaSP}) não está nos dias ativos [${diasStr}]. Pulando.`);
+                return res.json({ success: true, message: `Not an active day (${diaSP})` });
+            }
         }
 
-        res.json({ success: true, message: 'Gatilho LME executado e processado com sucesso.' });
+        // ── Dispara o envio ───────────────────────────────────────────────────
+        const result = await disparaEmailLME();
+
+        if (dbAvailable) {
+            const cronId = scheduleId || require('crypto').randomUUID();
+            await pool.query(
+                `INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana, status, sent_at, resend_message_id)
+                 VALUES (?, ?, ?, 'SENT', NOW(), ?)
+                 ON DUPLICATE KEY UPDATE status='SENT', sent_at=NOW(), resend_message_id=?`,
+                [
+                    cronId,
+                    new Date().toLocaleTimeString('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hour12: false }),
+                    '1,2,3,4,5',
+                    result ? (result.resend_id || 'sent') : 'sent',
+                    result ? (result.resend_id || 'sent') : 'sent'
+                ]
+            ).catch(e => console.warn('[LME CRON] Erro ao registrar envio:', e.message));
+        }
+
+        res.json({ success: true, message: 'LME enviado com sucesso.' });
     } catch (err) {
-        console.error('❌ [HOSTINGER CRON] Erro:', err.message);
+        console.error('❌ [LME CRON] Erro:', err.message);
         if (dbAvailable && scheduleId) {
             await pool.query(
                 "UPDATE lme_agendamentos SET status = 'FAILED', last_error = ? WHERE id = ?",
@@ -6025,6 +6070,60 @@ app.post('/api/lme/cron-trigger', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// ─── Rota: Status/Diagnóstico do Agendamento LME ─────────────────────────────
+app.get('/api/lme/cron-status', async (req, res) => {
+    try {
+        let settingsObj = {};
+        let ultimoEnvio = null;
+        let proximoDisparo = null;
+
+        if (dbAvailable) {
+            const [rows] = await pool.query('SELECT `key`, value FROM settings');
+            rows.forEach(r => { settingsObj[r['key']] = r.value; });
+
+            const [hist] = await pool.query(
+                "SELECT horario_agendado, dias_semana, status, sent_at, resend_message_id, last_error FROM lme_agendamentos ORDER BY sent_at DESC LIMIT 10"
+            );
+            ultimoEnvio = hist;
+        } else {
+            settingsObj = memStore.settings || {};
+        }
+
+        const ativo = settingsObj.lme_envio_ativo === 'true';
+        const horario = settingsObj.lme_envio_horario || '14:00';
+        const diasStr = settingsObj.lme_envio_dias || '1,2,3,4,5';
+        const diasNomes = { 0: 'Dom', 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sáb' };
+        const diasLabel = diasStr.split(',').map(d => diasNomes[d] || d).join(', ');
+
+        // Calcular próximo disparo
+        const agoraSP = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+        const [hh, mm] = horario.split(':').map(Number);
+        const diasAtivos = diasStr.split(',').map(Number);
+        for (let i = 0; i <= 7; i++) {
+            const candidato = new Date(agoraSP);
+            candidato.setDate(candidato.getDate() + i);
+            candidato.setHours(hh, mm, 0, 0);
+            if (candidato > agoraSP && diasAtivos.includes(candidato.getDay())) {
+                proximoDisparo = candidato.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+                break;
+            }
+        }
+
+        res.json({
+            agendamento_ativo: ativo,
+            horario_brasilia: horario,
+            dias_ativos: diasLabel,
+            proximo_disparo_sp: proximoDisparo,
+            qstash_configurado: !!(process.env.QSTASH_TOKEN && process.env.QSTASH_TARGET_URL),
+            target_url: process.env.QSTASH_TARGET_URL || '(não configurado)',
+            historico_envios: ultimoEnvio || []
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 app.post('/api/lme/enviar-agora-pdf', async (req, res) => {
     try {
@@ -7253,77 +7352,20 @@ if (process.env.NODE_ENV !== 'test') {
             console.log(`📦 Modo de dados: MySQL`);
         });
 
-        // ─── CRON: Agendador LME em memória (verifica a cada minuto) ─────────────
-        // Este cron é o mecanismo PRINCIPAL. O QStash é um reforço externo opcional.
-        cron.schedule('* * * * *', async () => {
-            try {
-                let settingsObj = {};
-                if (dbAvailable) {
-                    const [rows] = await pool.query('SELECT `key`, value FROM settings');
-                    rows.forEach(r => { settingsObj[r.key] = r.value; });
-                } else {
-                    settingsObj = memStore.settings || {};
-                }
+        // ─── AGENDAMENTO LME: QStash é o ÚNICO disparador ─────────────────────
+        // node-cron foi REMOVIDO pois é instável em containers efêmeros (Railway).
+        // O QStash (Upstash) chama /api/lme/cron-trigger via HTTP externo,
+        // sobrevivendo a reboots, deploys e hibernação do processo.
+        // A rota /api/lme/cron-trigger já faz toda a verificação de idempotência.
+        console.log('✅ [LME] Agendamento via QStash (externo). node-cron local removido.');
 
-                const ativo = settingsObj.lme_envio_ativo === 'true' || settingsObj.lme_envio_ativo === true;
-                if (!ativo) return;
-
-                const horario = settingsObj.lme_envio_horario || '14:00';
-                const diasStr = settingsObj.lme_envio_dias || '1,2,3,4,5';
-                const diasAtivos = diasStr.split(',').map(Number);
-
-                // Hora atual no fuso de Brasília
-                const agora = new Date();
-                const spTime = new Date(agora.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-                const horaAtual = `${String(spTime.getHours()).padStart(2, '0')}:${String(spTime.getMinutes()).padStart(2, '0')}`;
-                const diaAtual = spTime.getDay(); // 0=Dom, 1=Seg...
-
-                if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
-                    // Verificar se já foi enviado hoje (idempotência via banco)
-                    let jaEnviou = false;
-                    if (dbAvailable) {
-                        // Usa data local de SP (não UTC)
-                        const ano = spTime.getFullYear();
-                        const mes = String(spTime.getMonth() + 1).padStart(2, '0');
-                        const dia = String(spTime.getDate()).padStart(2, '0');
-                        const hoje = `${ano}-${mes}-${dia}`;
-                        const [check] = await pool.query(
-                            "SELECT id FROM lme_agendamentos WHERE DATE(sent_at) = ? AND status = 'SENT' LIMIT 1",
-                            [hoje]
-                        );
-                        jaEnviou = check.length > 0;
-                    }
-
-                    if (!jaEnviou) {
-                        console.log(`⏰ [LME CRON] Disparando envio automático — ${horaAtual} | Dia: ${diaAtual}`);
-                        try {
-                            const result = await disparaEmailLME();
-                            if (dbAvailable) {
-                                const cronId = require('crypto').randomUUID();
-                                await pool.query(
-                                    "INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana, status, sent_at, resend_message_id) VALUES (?, ?, ?, 'SENT', NOW(), ?)",
-                                    [cronId, horario, diasStr, result ? result.resend_id : 'cron_sent']
-                                ).catch(() => {});
-                            }
-                        } catch (sendErr) {
-                            console.error('❌ [LME CRON] Falha no envio automático:', sendErr.message);
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('❌ [LME CRON] Erro na rotina de verificação:', err.message);
-            }
-        }, { timezone: 'America/Sao_Paulo' });
-
-        console.log('✅ [LME CRON] Agendador em memória ativo (verifica a cada minuto | fuso: America/Sao_Paulo)');
-
-        // ─── Re-sincronizar QStash no boot (recria schedule se perdido) ─────────
+        // ─── Re-sincronizar QStash no boot (recria schedule se perdido) ────────
         try {
             if (process.env.QSTASH_TOKEN && process.env.QSTASH_TARGET_URL) {
                 let settingsObj = {};
                 if (dbAvailable) {
                     const [rows] = await pool.query('SELECT `key`, value FROM settings');
-                    rows.forEach(r => { settingsObj[r.key] = r.value; });
+                    rows.forEach(r => { settingsObj[r['key']] = r.value; });
                 } else {
                     settingsObj = memStore.settings || {};
                 }
@@ -7331,10 +7373,13 @@ if (process.env.NODE_ENV !== 'test') {
                 const horario = settingsObj.lme_envio_horario || process.env.LME_ENVIO_HORARIO || '14:00';
                 const diasStr = settingsObj.lme_envio_dias || process.env.LME_ENVIO_DIAS || '1,2,3,4,5';
                 await syncQStashSchedule(horario, diasStr.split(',').map(Number), ativo);
-                console.log('✅ [QSTASH] Re-sincronização de schedule executada no boot.');
+                console.log(`✅ [QSTASH] Schedule sincronizado no boot: ${horario} BRT | Dias: ${diasStr} | Ativo: ${ativo}`);
+            } else {
+                console.warn('⚠️ [QSTASH] QSTASH_TOKEN ou QSTASH_TARGET_URL não configurados — envio automático LME desativado.');
+                console.warn('   Configure as variáveis de ambiente no Railway para ativar o envio agendado.');
             }
         } catch (bootErr) {
-            console.warn('⚠️ [QSTASH] Falha na re-sincronização no boot:', bootErr.message);
+            console.warn('⚠️ [QSTASH] Falha na sincronização no boot:', bootErr.message);
         }
 
         // ─── CRON: Forecast Estratégico Semanal (Passo 8) ─────────────────────
@@ -7350,72 +7395,83 @@ module.exports = { app, initDatabase, pool };
 
 
 
-// Helper: Integração do LME com Upstash QStash (Agendador Gratuito)
+// Helper: Integração do LME com Upstash QStash (Agendador Externo Confiável)
+// QStash é o ÚNICO mecanismo de agendamento — sobrevive a reboots e deploys.
 async function syncQStashSchedule(horario, diasAtivos, ativo) {
     if (!process.env.QSTASH_TOKEN || !process.env.QSTASH_TARGET_URL) {
-        console.warn('⚠️ [QSTASH] Token ou Target URL não configurados. Abortando criação do agendamento.');
+        console.warn('⚠️ [QSTASH] QSTASH_TOKEN ou QSTASH_TARGET_URL não configurados.');
         return;
     }
-    
-    const client = new Client({ token: process.env.QSTASH_TOKEN, baseUrl: process.env.QSTASH_URL || undefined });
-    
+
+    const client = new Client({ token: process.env.QSTASH_TOKEN });
+
     try {
-        // Obter todos os agendamentos e deletar (limpeza)
+        // 1. Deletar todos os schedules antigos
         const schedules = await client.schedules.list();
         for (const sch of schedules) {
             await client.schedules.delete({ id: sch.scheduleId }).catch(() => {});
         }
-        
-        if (ativo !== 'true') {
-            await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'");
+
+        if (String(ativo) !== 'true') {
+            if (dbAvailable) {
+                await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'").catch(() => {});
+            }
+            console.log('⏸️ [QSTASH] Envio desativado — schedules removidos.');
             return;
         }
 
-        // QStash usa UTC. Precisamos converter o horário de Brasília (UTC-3) para UTC (+3)
+        // 2. Converter horário de Brasília (UTC-3) → UTC
+        // Brasília é sempre UTC-3 (sem horário de verão desde 2019)
         let [h, m] = horario.split(':').map(Number);
-        
         let shiftDay = false;
-        h = h + 3;
+        h = h + 3; // BRT → UTC
         if (h >= 24) {
             h = h - 24;
-            shiftDay = true;
+            shiftDay = true; // Passou da meia-noite
         }
 
-        // JS Days: 0=Sun, 1=Mon... 
-        let convertedDays = diasAtivos.map(d => {
-            if (shiftDay) {
-                return (d + 1) > 6 ? 0 : d + 1;
-            }
+        // 3. Converter dias JS (0=Dom) para dias do cron
+        // Se o horário passou da meia-noite em UTC, avança o dia
+        const convertedDays = diasAtivos.map(d => {
+            if (shiftDay) return (d + 1) > 6 ? 0 : d + 1;
             return d;
         });
+        const cronDays = convertedDays.join(',');
 
-        const ebDays = convertedDays.join(',');
+        // 4. Criar novo schedule
         const scheduleId = crypto.randomUUID();
-        
-        await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'");
-        await pool.query(
-            "INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana) VALUES (?, ?, ?)",
-            [scheduleId, horario, diasAtivos.join(',')]
-        );
-        
+        const targetUrl = process.env.QSTASH_TARGET_URL;
+        const cronSecret = process.env.CRON_SECRET || 'secret';
+
+        if (dbAvailable) {
+            await pool.query("UPDATE lme_agendamentos SET status = 'CANCELLED' WHERE status = 'PENDING'").catch(() => {});
+            await pool.query(
+                "INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana) VALUES (?, ?, ?)",
+                [scheduleId, horario, diasAtivos.join(',')]
+            ).catch(() => {});
+        }
+
+        const cronExpr = `${m} ${h} * * ${cronDays}`;
         const response = await client.schedules.create({
-            destination: 'https://apextechmetais.com.br/api/lme/cron-trigger',
-            cron: `${m} ${h} * * ${ebDays}`,
+            destination: targetUrl,
+            cron: cronExpr,
             body: JSON.stringify({ scheduleId, source: 'qstash' }),
             headers: {
-                "Authorization": `Bearer ${process.env.CRON_SECRET || 'secret'}`,
-                "Content-Type": "application/json"
+                'Authorization': `Bearer ${cronSecret}`,
+                'Content-Type': 'application/json'
             }
         });
-        
-        if (response.scheduleId) {
+
+        if (response.scheduleId && dbAvailable) {
             await pool.query(
                 "UPDATE lme_agendamentos SET eventbridge_schedule_arn = ? WHERE id = ?",
                 [response.scheduleId, scheduleId]
-            );
+            ).catch(() => {});
         }
-        console.log(`✅ [QSTASH] Schedule criado: ${response.scheduleId} (UTC: ${h}:${m} | Dias: ${ebDays})`);
+
+        console.log(`✅ [QSTASH] Schedule criado — cron: "${cronExpr}" (UTC) | BRT: ${horario} | Dias: ${diasAtivos.join(',')} | URL: ${targetUrl}`);
     } catch (err) {
-        console.error('❌ [QSTASH] Erro criando schedule:', err.message);
+        console.error('❌ [QSTASH] Erro ao criar schedule:', err.message);
+        throw err;
     }
 }
