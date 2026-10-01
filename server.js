@@ -6045,11 +6045,11 @@ app.post('/api/lme/cron-trigger', async (req, res) => {
                 return res.json({ success: true, message: `Not an active day (${diaSP})` });
             }
 
-            if (horaAtual < horario) {
-                return res.json({ success: true, message: `Skipped. Time is ${horaAtual}, expected at least ${horario}` });
+            if (horaAtual !== horario) {
+                return res.json({ success: true, message: `Skipped. Time is ${horaAtual}, expected ${horario}` });
             }
             
-            console.log(`⏰ [LME CRON] Gatilho confirmado! Hora (${horaAtual} >= ${horario}).`);
+            console.log(`⏰ [LME CRON] Gatilho confirmado! Hora (${horaAtual}) bate com configuração.`);
         }
         // ── Dispara o envio ───────────────────────────────────────────────────
         const result = await disparaEmailLME();
@@ -7388,7 +7388,7 @@ if (process.env.NODE_ENV !== 'test') {
                 const horaAtual = `${String(agoraSP.getHours()).padStart(2, '0')}:${String(agoraSP.getMinutes()).padStart(2, '0')}`;
                 const diaAtual = agoraSP.getDay();
 
-                if (horaAtual >= horario && diasAtivos.includes(diaAtual)) {
+                if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
                     // Idempotência no banco: verifica se já enviou hoje
                     let jaEnviou = false;
                     if (dbAvailable) {
