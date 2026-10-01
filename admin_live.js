@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
 
     window.getJsPDFClass = function() {
         if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
@@ -4302,6 +4302,10 @@
             }
             if (resAmo.status === 'fulfilled' && resAmo.value.ok) {
                 localAmostras = await resAmo.value.json();
+                // Garante que a ultima amostra cadastrada apareca sempre no topo
+                if (Array.isArray(localAmostras)) {
+                    localAmostras.sort((a, b) => b.id - a.id);
+                }
             }
             renderFornecedores();
             popularSeletoresFornecedores();
@@ -6568,6 +6572,8 @@
             const res = await fetch('/api/amostras');
             const data = await res.json();
             localAmostras = Array.isArray(data) ? data : [];
+            // Garante que a ultima amostra cadastrada apareca sempre no topo (por ID desc)
+            localAmostras.sort((a, b) => b.id - a.id);
             renderAmostras();
             popularSeletoresAmostras();
             atualizarNotificacoesAprovacao();

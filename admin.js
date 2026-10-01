@@ -1,4 +1,4 @@
-﻿var _listMetasEstrategicas = [];
+var _listMetasEstrategicas = [];
 var _listTabelaPrecosEstrategica = [];
 
 // DOMContentLoaded wrapper removed
@@ -4466,6 +4466,10 @@ var _listTabelaPrecosEstrategica = [];
             }
             if (resAmo.status === 'fulfilled' && resAmo.value.ok) {
                 localAmostras = await resAmo.value.json();
+                // Garante que a ultima amostra cadastrada apareca sempre no topo
+                if (Array.isArray(localAmostras)) {
+                    localAmostras.sort((a, b) => b.id - a.id);
+                }
             }
             renderFornecedores();
             popularSeletoresFornecedores();

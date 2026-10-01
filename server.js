@@ -2479,7 +2479,7 @@ app.get('/api/amostras', async (req, res) => {
                 SELECT a.*, COALESCE(f.apelido, f.nome) as fornecedor_nome
                 FROM amostras a
                 LEFT JOIN fornecedores f ON a.fornecedor_id = f.id
-                ORDER BY a.data DESC, a.id DESC
+                ORDER BY a.id DESC
             `);
             return res.json(result[0]);
         }
@@ -2734,8 +2734,8 @@ app.patch('/api/amostras/:id/decisao', async (req, res) => {
                     decisao_diretoria === 'Aprovado' ? preco_validade || null : null,
                     user_nome || 'Admin',
                     obs_diretoria || '',
-                    id,
-                    user_nome || 'Admin'
+                    user_nome || 'Admin',
+                    id
                 ]
             );
         } else {
@@ -2875,8 +2875,8 @@ app.post('/api/tabela-precos/enviar-email', async (req, res) => {
         
         let settingsObj = {};
         if (dbAvailable) {
-            const sr = await pool.query('SELECT key, value FROM settings');
-            sr[0].forEach(r => { settingsObj[r.key] = r.value; });
+            const sr = await pool.query('SELECT `key`, value FROM settings');
+            sr[0].forEach(r => { settingsObj[r['key']] = r.value; });
         } else {
             Object.assign(settingsObj, memStore.settings || {});
         }
@@ -2999,8 +2999,8 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
         // Verificar se há configuração de e-mail
         const settingsObj = {};
         if (dbAvailable) {
-            const sr = await pool.query('SELECT key, value FROM settings');
-            sr[0].forEach(r => { settingsObj[r.key] = r.value; });
+            const sr = await pool.query('SELECT `key`, value FROM settings');
+            sr[0].forEach(r => { settingsObj[r['key']] = r.value; });
         } else {
             Object.assign(settingsObj, memStore.settings || {});
         }
