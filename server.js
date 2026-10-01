@@ -1970,8 +1970,8 @@ async function atualizarDataUltimaModificacaoPrecos() {
         
         if (dbAvailable) {
             await pool.query(
-                'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = ?',
-                ['tabela_precos_ultima_atualizacao', formatted]
+                'INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?',
+                ['tabela_precos_ultima_atualizacao', formatted, formatted]
             );
         } else {
             memStore.settings.tabela_precos_ultima_atualizacao = formatted;
