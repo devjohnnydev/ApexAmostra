@@ -8196,7 +8196,7 @@ var _listTabelaPrecosEstrategica = [];
                 <td style="padding:12px;">${a.fornecedor_nome}</td>
                 <td style="padding:12px; color:#2AD07A; font-weight:600; cursor:pointer;" onclick="abrirAnaliseDesmonte(${a.id})" title="Clique para ver os detalhes">${a.nome_material || '-'}</td>
                 <td style="padding:12px;">${a.responsavel}</td>
-                <td style="padding:12px; text-align:right;">${parseFloat(a.peso_inicial).toFixed(3)} kg</td>
+                <td style="padding:12px; text-align:right;">${parseFloat(a.peso_inicial || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} kg</td>
                 <td style="padding:12px; text-align:center;">${statusBadgeHtml}</td>
                 <td style="padding:12px; text-align:center;">
                     <button class="btn-refresh" style="background:none; border:none; color:#2AD07A;" onclick="window.gerarLaudoPDF(${a.id})" title="Baixar Laudo PDF"><i class="fa-solid fa-file-pdf"></i> PDF</button>

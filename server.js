@@ -2968,7 +2968,7 @@ app.post('/api/amostras/:id/enviar-laudo-email', async (req, res) => {
                 <table style="width:100%;border-collapse:collapse;margin-bottom:15px">
                     <tr><td style="width:40%;color:#555;font-size:13px"><strong>Nº Amostra</strong></td><td style="color:#222">${amostra.numero_amostra}</td></tr>
                     <tr><td style="color:#555;font-size:13px"><strong>Fornecedor</strong></td><td style="color:#222">${amostra.fornecedor_nome}</td></tr>
-                    <tr><td style="color:#555;font-size:13px"><strong>Peso Inicial</strong></td><td style="color:#222">${parseFloat(amostra.peso_inicial).toLocaleString('pt-BR')} kg</td></tr>
+                    <tr><td style="color:#555;font-size:13px"><strong>Peso Inicial</strong></td><td style="color:#222">${parseFloat(amostra.peso_inicial || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} kg</td></tr>
                     <tr><td style="color:#555;font-size:13px"><strong>Responsável</strong></td><td style="color:#222">${amostra.responsavel}</td></tr>
                     <tr><td style="color:#555;font-size:13px"><strong>Data</strong></td><td style="color:#222">${new Date(amostra.data).toLocaleDateString('pt-BR')}</td></tr>
                 </table>
