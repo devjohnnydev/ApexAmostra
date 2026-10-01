@@ -5324,44 +5324,57 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
         const mes = req.query.mes; // ex: "6-2026"
         if (!mes) return res.status(400).json({ error: 'Parâmetro mes obrigatório. Ex: ?mes=6-2026' });
 
-        // 1. Busca dados do mês atual
-        const targetUrl = mes === 'atual' ? 'https://shockmetais.com.br/lme/' : `https://shockmetais.com.br/lme/${mes}`;
-        const html = await fetchLMEWithCache(targetUrl);
-        const $ = cheerio.load(html);
+        const reqYear = parseInt(mes.split('-')[1]);
+        const reqMonthNum = parseInt(mes.split('-')[0]);
 
-        // 2. Extrai opções de meses disponíveis
-        const mesesDisponiveis = [];
-        $('#meslme option').each((i, el) => {
-            mesesDisponiveis.push({ valor: $(el).val(), texto: $(el).text().trim() });
-        });
-
-        const reqYear = mes.split('-')[1];
-
-        // 3. Extrai linhas diárias
-        const dailyRows = [];
-        $('#boxtabela table tbody tr').each((i, el) => {
-            const tds = $(el).find('td');
-            if (tds.length < 8) return;
-            const isMedia   = $(tds[0]).hasClass('lmemedia');
-            const isMensal  = $(tds[0]).hasClass('lmemensal');
-            if (isMedia || isMensal) return; // pula médias do site externo
-
-            const diaStr = $(tds[0]).text().trim();
-            const dateObj = parseDate(diaStr, reqYear);
-            if (!dateObj) return;
-
-            dailyRows.push({
-                data:     diaStr,
-                dateObj,
-                cobre:    parseNum($(tds[1]).text()),
-                zinco:    parseNum($(tds[2]).text()),
-                aluminio: parseNum($(tds[3]).text()),
-                chumbo:   parseNum($(tds[4]).text()),
-                estanho:  parseNum($(tds[5]).text()),
-                niquel:   parseNum($(tds[6]).text()),
-                dolar:    parseNum($(tds[7]).text()),
+        async function fetchDays(mesStr, yearStr) {
+            const targetUrl = mesStr === 'atual' ? 'https://shockmetais.com.br/lme/' : `https://shockmetais.com.br/lme/${mesStr}`;
+            let html;
+            try { html = await fetchLMEWithCache(targetUrl); } catch(e) { return []; }
+            const $ = cheerio.load(html);
+            const rows = [];
+            $('#boxtabela table tbody tr').each((i, el) => {
+                const tds = $(el).find('td');
+                if (tds.length < 8) return;
+                const isMedia   = $(tds[0]).hasClass('lmemedia');
+                const isMensal  = $(tds[0]).hasClass('lmemensal');
+                if (isMedia || isMensal) return;
+                const diaStr = $(tds[0]).text().trim();
+                const dateObj = parseDate(diaStr, yearStr);
+                if (!dateObj) return;
+                rows.push({
+                    data: diaStr, dateObj,
+                    cobre: parseNum($(tds[1]).text()), zinco: parseNum($(tds[2]).text()),
+                    aluminio: parseNum($(tds[3]).text()), chumbo: parseNum($(tds[4]).text()),
+                    estanho: parseNum($(tds[5]).text()), niquel: parseNum($(tds[6]).text()),
+                    dolar: parseNum($(tds[7]).text()),
+                });
             });
-        });
+            return { rows, $ };
+        }
+
+        const currentData = await fetchDays(mes, reqYear);
+        const dailyRows = currentData.rows;
+        
+        // Extrai opções de meses disponíveis apenas do html atual
+        const mesesDisponiveis = [];
+        if (currentData.$) {
+            currentData.$('#meslme option').each((i, el) => {
+                mesesDisponiveis.push({ valor: currentData.$(el).val(), texto: currentData.$(el).text().trim() });
+            });
+        }
+
+        // Busca o mês anterior para preencher a "Semana Anterior" da 1ª semana deste mês
+        let prevMonthNum = reqMonthNum - 1;
+        let prevYear = reqYear;
+        if (prevMonthNum === 0) { prevMonthNum = 12; prevYear--; }
+        const prevMesStr = `${prevMonthNum}-${prevYear}`;
+        const prevData = await fetchDays(prevMesStr, prevYear);
+        
+        // Mescla os dias do mês anterior no início da lista para que o agrupamento por semana seja contínuo
+        if (prevData.rows.length > 0) {
+            dailyRows.unshift(...prevData.rows);
+        }
 
         const METALS = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
 
@@ -5491,7 +5504,13 @@ app.get('/api/lme/relatorio-semanal', async (req, res) => {
             };
         });
 
-        res.json({ semanas: weekBlocks.reverse(), mesesDisponiveis });
+        // Remove os blocos das semanas que pertencem exclusivamente ao mês anterior (que foram injetados apenas para cálculo base)
+        const currentMonthBlocks = weekBlocks.filter(block => {
+            return block.weekKey.startsWith(`${reqYear}-`) && 
+                   block.days.some(d => d.data !== '—' && parseDate(d.data, reqYear).getMonth() + 1 === reqMonthNum);
+        });
+
+        res.json({ semanas: currentMonthBlocks.reverse(), mesesDisponiveis });
     } catch (err) {
         console.error('Erro GET /api/lme/relatorio-semanal:', err.message);
         res.status(500).json({ error: 'Erro ao gerar relatório semanal LME: ' + err.message });
