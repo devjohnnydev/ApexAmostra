@@ -5925,7 +5925,7 @@ ${computedKeys.map(ck=>`<tr>
 
         let emailHtml = `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.6;">
             <p>Olá,</p>
-            <p>Segue abaixo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>:</p>
+            <p>Segue em anexo o Relatório Diário LME referente à semana <strong>${semana.label}</strong>.</p>
             <br>
             <div style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff;">
                 ${pdfHtml.replace('<!DOCTYPE html>', '').replace('<html lang="pt-BR"><head><meta charset="UTF-8">', '').replace('</head>', '').replace('<body>', '').replace('</body></html>', '')}
@@ -5936,18 +5936,41 @@ ${computedKeys.map(ck=>`<tr>
         const { Resend } = require('resend');
         const resend = new Resend(resendKey);
 
+        let pdfBuffer = null;
+        try {
+            const puppeteer = require('puppeteer');
+            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: true });
+            const page = await browser.newPage();
+            await page.setContent(pdfHtml, { waitUntil: 'load' });
+            pdfBuffer = await page.pdf({ format: 'A4', margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' } });
+            await browser.close();
+        } catch (pdfErr) {
+            console.error('❌ [LME CRON] Erro ao gerar PDF via Puppeteer:', pdfErr.message);
+        }
+
         const emailList = destinatarios.map(d => d.email);
         const resultados = [];
         
         // Chunk de 100 emails por vez (limite da API do Resend)
         for (let i = 0; i < emailList.length; i += 100) {
             const lote = emailList.slice(i, i + 100);
-            const batchPayload = lote.map(email => ({
-                from: fromEmail,
-                to: [email],
-                subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
-                html: emailHtml
-            }));
+            const batchPayload = lote.map(email => {
+                const payload = {
+                    from: fromEmail,
+                    to: [email],
+                    subject: `📊 Relatório Diário Cotações LME - Apextech Metais - ${dateStr}`,
+                    html: emailHtml
+                };
+                if (pdfBuffer) {
+                    payload.attachments = [
+                        {
+                            filename: fileName,
+                            content: pdfBuffer
+                        }
+                    ];
+                }
+                return payload;
+            });
 
             let batchResendId = null;
             try {
