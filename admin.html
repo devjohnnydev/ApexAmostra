@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -2275,9 +2275,15 @@
 
                         <div style="display:flex; gap:6px; align-items:center; flex:1; min-width:260px;">
                             <span style="font-size:0.8rem; color:#aaa;">De:</span>
-                            <input type="date" id="amostras-data-inicio" class="noble-input" style="padding:6px; font-size:0.82rem;" onchange="filtrarAmostras()">
+                            <div style="position:relative;">
+                                <input type="date" id="amostras-data-inicio" class="noble-input" onclick="this.showPicker()" style="padding:6px 30px 6px 8px; font-size:0.82rem; cursor:pointer;" onchange="filtrarAmostras()">
+                                <i class="fa-solid fa-calendar-days" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); color:#2AD07A; pointer-events:none; font-size:0.75rem;"></i>
+                            </div>
                             <span style="font-size:0.8rem; color:#aaa;">Até:</span>
-                            <input type="date" id="amostras-data-fim" class="noble-input" style="padding:6px; font-size:0.82rem;" onchange="filtrarAmostras()">
+                            <div style="position:relative;">
+                                <input type="date" id="amostras-data-fim" class="noble-input" onclick="this.showPicker()" style="padding:6px 30px 6px 8px; font-size:0.82rem; cursor:pointer;" onchange="filtrarAmostras()">
+                                <i class="fa-solid fa-calendar-days" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); color:#2AD07A; pointer-events:none; font-size:0.75rem;"></i>
+                            </div>
                         </div>
 
                         <button class="btn-secondary" onclick="exportarLaudosEmLoteZip()" style="background:#1e3a5f; color:#fff; border-color:#3e7cb1; padding:7px 12px; font-size:0.82rem;" title="Baixar todos os PDFs selecionados em um arquivo ZIP">
@@ -2567,8 +2573,11 @@
                                             <input type="number" step="0.01" id="dir-preco-coletar" class="noble-input" style="padding:6px; font-size:0.85rem;" placeholder="Ex: 38.50">
                                         </div>
                                         <div class="form-group" style="margin:0;">
-                                            <label style="font-size:0.72rem; color:#aaa; display:block; margin-bottom:2px;">Validade *</label>
-                                            <input type="date" id="dir-preco-validade" class="noble-input" style="padding:6px; font-size:0.85rem;">
+                                            <label style="font-size:0.72rem; color:#aaa; display:block; margin-bottom:2px;"><i class="fa-solid fa-calendar-days" style="color:#e07b39;"></i> Validade *</label>
+                                            <div style="position:relative;">
+                                                <input type="date" id="dir-preco-validade" class="noble-input" onclick="this.showPicker()" style="padding:6px 32px 6px 8px; font-size:0.85rem; cursor:pointer;">
+                                                <i class="fa-solid fa-calendar-check" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); color:#e07b39; pointer-events:none; font-size:0.8rem;"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -4921,75 +4930,102 @@
     </div>
 
     <!-- Modal Receber Amostra -->
-    <div id="modal-amostra" class="fullscreen-overlay" style="display:none; align-items:center; justify-content:center; z-index: 1000;">
-        <div class="login-box" style="width:520px; padding:25px; background:#101a24; border:1px solid #1e4e8c; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,0.6);">
-            <h3 style="margin-top:0; border-bottom:1px solid #223547; padding-bottom:12px; color:#fff; display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-flask" style="color:#2AD07A;"></i> Recebimento de Lote / Amostra
-            </h3>
-            <form id="form-amostra-apex" onsubmit="salvarAmostra(event)">
+    <div id="modal-amostra" class="fullscreen-overlay" style="display:none; align-items:flex-start; justify-content:center; z-index: 1000; padding:24px 0; overflow-y:auto;">
+        <div style="width:820px; max-width:97vw; padding:0; background:#0d1520; border:1px solid #1e4e8c; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,0.75); overflow:hidden; margin:auto;">
+            <!-- Cabeçalho Premium -->
+            <div style="background:linear-gradient(90deg,#0d2035 0%,#101a24 100%); border-bottom:2px solid #1e4e8c; padding:18px 24px; display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="background:rgba(42,208,122,0.15); border:1px solid #2AD07A; border-radius:8px; width:42px; height:42px; display:flex; align-items:center; justify-content:center;">
+                        <i class="fa-solid fa-flask" style="color:#2AD07A; font-size:1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; color:#fff; font-size:1.15rem; font-weight:700;">Recebimento de Lote / Amostra</h3>
+                        <span style="color:#6a8caa; font-size:0.78rem;">Preencha todos os dados do lote recebido</span>
+                    </div>
+                </div>
+                <button type="button" onclick="fecharModalAmostra()" style="background:rgba(255,255,255,0.05); border:1px solid #2a3d50; color:#aaa; width:34px; height:34px; border-radius:8px; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center;" title="Fechar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="form-amostra-apex" onsubmit="salvarAmostra(event)" style="padding:24px;">
                 <input type="hidden" id="amo-id" value="">
-                <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:10px;">
-                    <div class="form-group">
-                        <label>Código da Amostra *</label>
-                        <input type="text" id="amo-numero" required class="noble-input" placeholder="Ex: AM-004">
+
+                <!-- Linha 1: Código + Data -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;"><i class="fa-solid fa-hashtag" style="color:#2AD07A;"></i> Código da Amostra *</label>
+                        <input type="text" id="amo-numero" required class="noble-input" placeholder="Ex: AM-004" style="font-weight:700; font-size:1rem; letter-spacing:1px;">
                     </div>
-                    <div class="form-group">
-                        <label>Data de Recebimento *</label>
-                        <input type="date" id="amo-data" required class="noble-input">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;"><i class="fa-solid fa-calendar-days" style="color:#2AD07A;"></i> Data de Recebimento *</label>
+                        <div style="position:relative;">
+                            <input type="date" id="amo-data" required class="noble-input" onclick="this.showPicker()" style="padding-right:36px; cursor:pointer;">
+                            <i class="fa-solid fa-calendar-check" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#2AD07A; pointer-events:none; font-size:0.9rem;"></i>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top:4px;">
-                    <label style="color:#2AD07A; font-weight:bold;"><i class="fa-solid fa-box-archive"></i> Nome do Material *</label>
-                    <input type="text" id="amo-nome-material" required class="noble-input" placeholder="Ex: Fio de Instalação 1.5mm, Cobre Misto..." style="border-color:#1e4e8c; font-size:0.95rem;">
+                <!-- Linha 2: Nome do Material (full-width) -->
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;"><i class="fa-solid fa-box-archive" style="color:#2AD07A;"></i> Nome do Material *</label>
+                    <input type="text" id="amo-nome-material" required class="noble-input" placeholder="Ex: Fio de Instalação 1.5mm, Cobre Misto, Sucata de Motor..." style="border-color:#1e4e8c; font-size:0.95rem;">
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="form-group">
-                        <label>Fornecedor *</label>
+                <!-- Linha 3: Fornecedor + Representante -->
+                <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;">
+                            <i class="fa-solid fa-truck" style="color:#2AD07A;"></i> Fornecedor *
+                            <button type="button" id="btn-refresh-forn-amostra" onclick="recarregarFornecedoresModal()" title="Atualizar lista de fornecedores" style="background:none; border:none; color:#2AD07A; cursor:pointer; font-size:0.82rem; margin-left:6px; padding:0;"><i class="fa-solid fa-rotate"></i></button>
+                        </label>
                         <select id="amo-fornecedor" required class="noble-input"></select>
                     </div>
-                    <div class="form-group">
-                        <label>Representante</label>
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;"><i class="fa-solid fa-user" style="color:#2AD07A;"></i> Representante</label>
                         <input type="text" id="amo-representante" class="noble-input" placeholder="Nome do representante (opcional)">
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="form-group">
-                        <label>Responsável *</label>
+                <!-- Linha 4: Responsável + Peso -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;"><i class="fa-solid fa-user-check" style="color:#2AD07A;"></i> Responsável pelo Recebimento *</label>
                         <input type="text" id="amo-responsavel" required class="noble-input" value="Eng. Roberto">
                     </div>
-                    <div class="form-group">
-                        <label>Peso Inicial (kg) *</label>
-                        <input type="number" step="0.0001" id="amo-peso" required class="noble-input" placeholder="0.0000">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;"><i class="fa-solid fa-weight-hanging" style="color:#2AD07A;"></i> Peso Inicial (kg) *</label>
+                        <input type="number" step="0.0001" id="amo-peso" required class="noble-input" placeholder="0.0000" style="font-size:1.05rem; font-weight:700;">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label><i class="fa-solid fa-camera"></i> Fotos do Recebimento (Etapa 1) — Tire quantas quiser</label>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                        <label class="btn-secondary" style="cursor:pointer; font-size:0.82rem; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; background:#1e3a5f; color:#fff; border-radius:6px;">
-                            <i class="fa-solid fa-upload"></i> Anexar Arquivo(s)
-                            <input type="file" id="amo-foto-input" accept="image/*" multiple style="display:none;" onchange="adicionarFotosRecebimento(this)">
-                        </label>
-                        <button type="button" class="btn-primary" style="background:#2AD07A; color:#000; font-weight:bold; padding:7px 14px; font-size:0.82rem; border-radius:6px;" onclick="abrirWebcamRecebimento()">
-                            <i class="fa-solid fa-video"></i> Capturar com Webcam
-                        </button>
+                <!-- Linha 5: Fotos -->
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:8px;"><i class="fa-solid fa-camera" style="color:#2AD07A;"></i> Fotos do Recebimento (Etapa 1)</label>
+                    <div style="background:#0a1520; border:1px dashed #1e4e8c; border-radius:8px; padding:14px;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                            <label class="btn-secondary" style="cursor:pointer; font-size:0.82rem; padding:8px 16px; display:inline-flex; align-items:center; gap:6px; background:#1e3a5f; color:#fff; border-radius:6px; border:1px solid #1e4e8c;">
+                                <i class="fa-solid fa-upload"></i> Anexar Arquivo(s)
+                                <input type="file" id="amo-foto-input" accept="image/*" multiple style="display:none;" onchange="adicionarFotosRecebimento(this)">
+                            </label>
+                            <button type="button" class="btn-primary" style="background:#2AD07A; color:#000; font-weight:bold; padding:8px 16px; font-size:0.82rem; border-radius:6px;" onclick="abrirWebcamRecebimento()">
+                                <i class="fa-solid fa-video"></i> Capturar com Webcam
+                            </button>
+                        </div>
+                        <div id="amo-fotos-preview" style="display:flex; flex-wrap:wrap; gap:8px; min-height:0;"></div>
                     </div>
-                    <!-- Galeria de miniaturas das fotos do recebimento -->
-                    <div id="amo-fotos-preview" style="display:flex; flex-wrap:wrap; gap:8px; min-height:0;"></div>
                 </div>
 
-
-                <div class="form-group">
-                    <label>Observações</label>
-                    <textarea id="amo-obs" class="noble-input" rows="2" style="height:auto;" placeholder="Observações de entrada, condição da embalagem..."></textarea>
+                <!-- Linha 6: Observações -->
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="font-size:0.8rem; color:#7eb8e0; font-weight:600; display:block; margin-bottom:6px;"><i class="fa-solid fa-note-sticky" style="color:#2AD07A;"></i> Observações de Entrada</label>
+                    <textarea id="amo-obs" class="noble-input" rows="3" style="height:auto; resize:vertical;" placeholder="Estado da embalagem, condições de transporte, contaminações visuais, urgência..."></textarea>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button type="submit" class="btn-primary" style="flex:1;"><i class="fa-solid fa-save"></i> Salvar Recebimento</button>
-                    <button type="button" class="btn-secondary" onclick="fecharModalAmostra()" style="flex:1;">Cancelar</button>
+                <!-- Botões de ação -->
+                <div style="display:flex; gap:12px; padding-top:16px; border-top:1px solid #1a2e3f;">
+                    <button type="submit" class="btn-primary" style="flex:2; padding:12px; font-size:0.95rem; font-weight:700;"><i class="fa-solid fa-save"></i> Salvar Recebimento</button>
+                    <button type="button" class="btn-secondary" onclick="fecharModalAmostra()" style="flex:1; padding:12px; font-size:0.95rem;"><i class="fa-solid fa-xmark"></i> Cancelar</button>
                 </div>
             </form>
         </div>

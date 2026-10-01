@@ -8070,44 +8070,85 @@ var _listTabelaPrecosEstrategica = [];
     }, 10000);
 
     async function popularSeletoresAmostras() {
-        const selFornModal = document.getElementById('amo-fornecedor');
         const selFornFiltro = document.getElementById('amostras-filtro-fornecedor');
-        if (!selFornModal) return;
-
         try {
-            if (selFornModal && selFornModal.tomselect) selFornModal.tomselect.destroy();
             if (selFornFiltro && selFornFiltro.tomselect) selFornFiltro.tomselect.destroy();
 
-            const res = await fetch('/api/fornecedores?limit=9999');
+            const res = await fetch('/api/fornecedores?limit=9999&_t=' + Date.now());
             if (!res.ok) return;
             const data = await res.json();
             const todos = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
 
-            selFornModal.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
-            if (selFornFiltro) selFornFiltro.innerHTML = '<option value="">Todos os Fornecedores</option>';
-
-            todos.forEach(f => {
-                const fnome = f.apelido || f.nome || f.razao_social;
-                const opt = document.createElement('option');
-                opt.value = f.id;
-                opt.textContent = fnome + (f.cnpj ? ` (${f.cnpj})` : '');
-                selFornModal.appendChild(opt);
-
-                if (selFornFiltro) {
+            if (selFornFiltro) {
+                selFornFiltro.innerHTML = '<option value="">Todos os Fornecedores</option>';
+                todos.forEach(f => {
+                    const fnome = f.apelido || f.nome || f.razao_social;
                     const optF = document.createElement('option');
                     optF.value = f.id;
                     optF.textContent = fnome;
                     selFornFiltro.appendChild(optF);
-                }
-            });
-
-            new TomSelect(selFornModal, { create: false, sortField: { field: "text", direction: "asc" } });
-            if (selFornFiltro) new TomSelect(selFornFiltro, { create: false, sortField: { field: "text", direction: "asc" } });
-
+                });
+                new TomSelect(selFornFiltro, { create: false, sortField: { field: "text", direction: "asc" } });
+            }
         } catch (e) {
             console.error('Erro popularSeletoresAmostras', e);
         }
     }
+
+    // Carrega fornecedores direto no select do modal de amostra (em tempo real, a cada abertura)
+    async function carregarFornecedoresNoModal(valorSelecionado) {
+        const sel = document.getElementById('amo-fornecedor');
+        if (!sel) return;
+
+        try {
+            // Destroi TomSelect anterior se existir
+            if (sel.tomselect) {
+                sel.tomselect.destroy();
+            }
+        } catch(e) {}
+
+        sel.innerHTML = '<option value="">⏳ Carregando fornecedores...</option>';
+
+        try {
+            const res = await fetch('/api/fornecedores?limit=9999&_t=' + Date.now());
+            if (!res.ok) throw new Error('Falha na busca');
+            const data = await res.json();
+            const todos = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+
+            sel.innerHTML = '<option value="">Selecione o Fornecedor...</option>';
+            todos.sort((a, b) => {
+                const na = (a.apelido || a.nome || a.razao_social || '').toLowerCase();
+                const nb = (b.apelido || b.nome || b.razao_social || '').toLowerCase();
+                return na.localeCompare(nb);
+            }).forEach(f => {
+                const fnome = f.apelido || f.nome || f.razao_social;
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = fnome + (f.cnpj ? ' (' + f.cnpj + ')' : '');
+                if (valorSelecionado && String(f.id) === String(valorSelecionado)) opt.selected = true;
+                sel.appendChild(opt);
+            });
+
+            new TomSelect(sel, {
+                create: false,
+                sortField: { field: 'text', direction: 'asc' },
+                placeholder: 'Selecione o Fornecedor...'
+            });
+        } catch (e) {
+            sel.innerHTML = '<option value="">Erro ao carregar. Clique em ↺ para tentar novamente</option>';
+            console.error('Erro carregarFornecedoresNoModal', e);
+        }
+    }
+
+    // Botão de reload do select de fornecedor no modal
+    window.recarregarFornecedoresModal = async function() {
+        const btn = document.getElementById('btn-refresh-forn-amostra');
+        const icon = btn ? btn.querySelector('i') : null;
+        if (icon) { icon.style.animation = 'spin 0.8s linear infinite'; }
+        await carregarFornecedoresNoModal();
+        if (icon) { icon.style.animation = ''; }
+        _apexNotify && _apexNotify('Fornecedores', 'Lista de fornecedores atualizada!', 'info');
+    };
 
     function renderAmostras() {
         const body = document.getElementById('amostras-table-body');
@@ -8231,6 +8272,7 @@ var _listTabelaPrecosEstrategica = [];
         const idEl = document.getElementById('amo-id');
         if (idEl) idEl.value = '';
         
+        // Auto-numerar próxima amostra
         let nextNumber = 1;
         if (typeof localAmostras !== 'undefined' && localAmostras.length > 0) {
             let maxNum = 0;
@@ -8246,18 +8288,24 @@ var _listTabelaPrecosEstrategica = [];
             nextNumber = maxNum + 1;
         }
         const numEl = document.getElementById('amo-numero');
-        if (numEl) numEl.value = "AM-" + nextNumber.toString().padStart(3, '0');
+        if (numEl) numEl.value = 'AM-' + nextNumber.toString().padStart(3, '0');
         
-        const modal = document.getElementById('modal-amostra');
-        if (modal) modal.style.display = 'flex';
+        // Define data atual (fuso local -03:00 correto)
+        const dataEl = document.getElementById('amo-data');
         if (dataEl) {
-            // Usa horário local (não UTC) para evitar erro de data com fuso -03:00
             const hoje = new Date();
             const ano  = hoje.getFullYear();
             const mes  = String(hoje.getMonth() + 1).padStart(2, '0');
             const dia  = String(hoje.getDate()).padStart(2, '0');
             dataEl.value = `${ano}-${mes}-${dia}`;
         }
+
+        const modal = document.getElementById('modal-amostra');
+        if (modal) modal.style.display = 'flex';
+
+        // ✅ Busca fornecedores em tempo real (inclui novos cadastrados na hora)
+        carregarFornecedoresNoModal();
+
         // Limpa fotos acumuladas de sessões anteriores
         if (typeof window._limparFotosRecebimento === 'function') window._limparFotosRecebimento();
     };
@@ -8404,9 +8452,11 @@ var _listTabelaPrecosEstrategica = [];
         if (!targetId) return;
 
         // Etapa 4: acesso restrito
+        // Etapa 4: acesso restrito - Administrador tem os mesmos poderes que Diretoria
         if (etapaNum === 4) {
-            if (currentSimulatedRole !== 'Administrador' && currentSimulatedRole !== 'Diretoria') {
-                _apexNotify('Sistema', '­Æ’öÃ† Acesso Restrito ao Nível de Diretoria / Administrador (ERP Security Level).\n\nUsuários operacionais do laboratório não possuem permissão para visualizar ou definir preços estratégicos.', 'info');
+            const podeAcessar = (currentSimulatedRole === 'Administrador' || currentSimulatedRole === 'Diretoria');
+            if (!podeAcessar) {
+                _apexNotify('Sistema', 'Acesso Restrito - Somente Administrador ou Diretoria podem acessar o Painel de Decisao de Compra.\n\nUsuarios operacionais do laboratorio nao possuem permissao para visualizar ou definir precos estrategicos.', 'info');
                 return;
             }
             // Revela a tela 4 para Admin/Diretoria
