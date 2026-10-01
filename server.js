@@ -5945,227 +5945,272 @@ ${computedKeys.map(ck=>`<tr>
             const autoTable = require('jspdf-autotable').default;
             const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-            const GREEN = [10, 74, 47];
-            const fmtBRL3 = (v) => v !== null && v !== undefined ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—';
-            const fmtUSD  = (v) => v !== null && v !== undefined ? '$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—';
-            const fmtPct  = (v) => v !== null && v !== undefined ? (v*100).toFixed(3)+'%' : '—';
-            const fmtBRL4 = (v) => v !== null && v !== undefined ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : '—';
-
-            // ─── CABEÇALHO ────────────────────────────────────────────────────
-            doc.setFontSize(18); doc.setTextColor(...GREEN);
-            doc.text('APEXTECH METAIS', 14, 18);
-            doc.setFontSize(11); doc.setTextColor(80, 80, 80);
-            const mesLabel = new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-            doc.text(`${mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1)} — Semana de ${semana.days[0]?.data || '—'} a ${semana.days.filter(d => d.data && d.data !== '—').pop()?.data || '—'}`, 14, 26);
-            doc.setFontSize(8); doc.setTextColor(120, 120, 120);
-            doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')} — ApexTech Metais`, 14, 32);
-
-            // ─── TABELA PRINCIPAL (Cotações + Computadas) ─────────────────────
-            const COLS_HEAD  = ['DATA', 'COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL', 'DÓLAR'];
-            const COL_COLORS = {
-                cobre: [219, 31, 31], zinco: [230, 184, 183], aluminio: [191, 191, 191],
-                chumbo: [201, 168, 232], estanho: [217, 234, 164], niquel: [238, 246, 216], dolar: [193, 225, 193]
+            // ─── Utilitários ──────────────────────────────────────────────────
+            const h = (hex) => {
+                const r = parseInt(hex.slice(1,3),16);
+                const g = parseInt(hex.slice(3,5),16);
+                const b = parseInt(hex.slice(5,7),16);
+                return [r, g, b];
             };
-            const metalKeys = ['cobre', 'zinco', 'aluminio', 'chumbo', 'estanho', 'niquel'];
+            const fmtUSD  = (v) => v !== null && v !== undefined ? '$ '  + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—';
+            const fmtBRL3 = (v) => v !== null && v !== undefined ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—';
+            const fmtBRL4 = (v) => v !== null && v !== undefined ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : '—';
+            const fmtPct  = (v) => v !== null && v !== undefined ? (v >= 0 ? '▲ ' : '▼ ') + (Math.abs(v)*100).toFixed(3)+'%' : '—';
+            const fmtOscRS= (v) => v !== null && v !== undefined ? (v >= 0 ? '▲ R$ ' : '▼ R$ ') + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—';
 
-            const mainHead = [COLS_HEAD];
-            const mainBody = [];
+            // ─── Paleta de cores exatas do sistema ───────────────────────────
+            // Cabeçalhos de coluna
+            const HDR = {
+                data:     { bg: h('#000000'), fg: [255,255,255] },
+                cobre:    { bg: h('#db1f1f'), fg: [255,255,255] },
+                zinco:    { bg: h('#E6B8B7'), fg: [255,255,255] },
+                aluminio: { bg: h('#BFBFBF'), fg: [255,255,255] },
+                chumbo:   { bg: h('#C9A8E8'), fg: [255,255,255] },
+                estanho:  { bg: h('#B5B059'), fg: [255,255,255] },
+                niquel:   { bg: [255,255,255], fg: [0,0,0] },
+                dolar:    { bg: h('#70AD47'), fg: [255,255,255] },
+            };
+            // Células de dados (cor de fundo por metal)
+            const CELL_BG = {
+                cobre:    h('#FF8B9B'),
+                zinco:    h('#E6B8B7'),
+                aluminio: h('#BFBFBF'),
+                chumbo:   h('#C9A8E8'),
+                estanho:  h('#B5B059'),
+                niquel:   [255,255,255],
+                dolar:    h('#70AD47'),
+            };
+            const CELL_FG = {
+                cobre:    [0,0,0],   zinco:    [61,26,26],  aluminio: [17,17,17],
+                chumbo:   [45,0,96], estanho:  [58,48,0],   niquel:   [34,34,34],
+                dolar:    [26,64,0],
+            };
+            // Linhas computadas (cor de fundo da linha inteira)
+            const ROW_BG = {
+                0: { bg: h('#A6A6A6'), fg: [51,51,51]   },   // MÉDIA SEMANAL
+                1: { bg: h('#FFFF00'), fg: [51,51,51]   },   // 100% LME
+                2: { bg: h('#1a1a1a'), fg: [255,255,255] },  // SEMANA ANTERIOR
+                3: { bg: h('#E2EFDA'), fg: [0,0,0]       },  // FECHAMENTO %
+                4: { bg: h('#00B0F0'), fg: [255,255,255] },  // OSCILAÇÃO %
+                5: { bg: h('#F2F2F2'), fg: [0,0,0]       },  // OSCILAÇÃO R$
+                6: { bg: h('#A6A6A6'), fg: [51,51,51]   },   // MÉDIA MENSAL
+            };
+            const METAL_KEYS = ['cobre','zinco','aluminio','chumbo','estanho','niquel'];
 
-            // Linhas de cotação diária (US$)
-            semana.days.forEach(d => {
-                mainBody.push([
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            // ─── CABEÇALHO AMARELO (igual ao print do sistema) ───────────────
+            // Fundo amarelo da faixa de título
+            doc.setFillColor(...h('#FFFF00'));
+            doc.rect(0, 0, 210, 22, 'F');
+            doc.setFontSize(9); doc.setTextColor(80, 80, 80);
+            doc.text('COTAÇÃO VÁLIDA PARA A SEMANA', 105, 7, { align: 'center' });
+            doc.setFontSize(14); doc.setTextColor(0, 0, 0); doc.setFont(undefined, 'bold');
+            const firstDay = semana.days.filter(d => d.data && d.data !== '—')[0]?.data || '—';
+            const lastDay  = semana.days.filter(d => d.data && d.data !== '—').pop()?.data  || '—';
+            doc.text(`${firstDay} → ${lastDay}`, 105, 16, { align: 'center' });
+            doc.setFont(undefined, 'normal');
+
+            // Data de geração
+            doc.setFontSize(7.5); doc.setTextColor(100, 100, 100);
+            doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')} — ApexTech Metais`, 105, 20, { align: 'center' });
+
+            // ─── TABELA PRINCIPAL ─────────────────────────────────────────────
+            const HEAD_ROW = ['DATA', 'Cobre US$/t', 'Zinco US$/t', 'Alumínio US$/t', 'Chumbo US$/t', 'Estanho US$/t', 'Níquel US$/t', 'Dólar US$'];
+            const colKeys  = ['data','cobre','zinco','aluminio','chumbo','estanho','niquel','dolar'];
+
+            const tableBody = [];
+            // 5 linhas de dias
+            for (let i = 0; i < 5; i++) {
+                const d = semana.days[i] || {};
+                tableBody.push([
                     d.data || '—',
                     fmtUSD(d.cobre), fmtUSD(d.zinco), fmtUSD(d.aluminio),
                     fmtUSD(d.chumbo), fmtUSD(d.estanho), fmtUSD(d.niquel),
                     fmtBRL4(d.dolar)
                 ]);
-            });
-
-            // Espaçador
-            mainBody.push(Array(8).fill(''));
-
+            }
+            // Linha vazia separadora
+            tableBody.push(Array(8).fill(''));
             // Linhas computadas
-            const COMP_ROWS_CFG = [
-                { lbl: 'MÉDIA SEMANAL',                  key: 'MEDIA SEMANAL',                    mFmt: fmtUSD,  dFmt: fmtBRL4, dark: false },
-                { lbl: '100% LME (R$)',                  key: '100% LME',                         mFmt: fmtBRL3, dFmt: fmtBRL4, dark: false },
-                { lbl: 'SEMANA ANTERIOR',                key: 'SEMANA ANTERIOR',                  mFmt: fmtBRL3, dFmt: fmtBRL4, dark: true  },
-                { lbl: 'FECHAMENTO % (SEMANA ANTERIOR)', key: 'FECHAMENTO % ( SEMANA ANTERIOR )', mFmt: fmtPct,  dFmt: fmtPct,  dark: false },
-                { lbl: 'OSCILAÇÃO %',                    key: 'OSCILAÇÃO %',                      mFmt: fmtPct,  dFmt: fmtPct,  dark: false },
-                { lbl: 'OSCILAÇÃO R$',                   key: 'OSCILAÇÃO R$',                     mFmt: fmtBRL4, dFmt: fmtBRL4, dark: false },
-                { lbl: 'MÉDIA MENSAL',                   key: 'MEDIA MENSAL',                     mFmt: fmtBRL3, dFmt: fmtBRL4, dark: false },
-            ];
-            const darkRows = [];
-            COMP_ROWS_CFG.forEach((r, i) => {
-                const vals = semana.computed[r.key] || {};
-                mainBody.push([
-                    r.lbl,
-                    r.mFmt(vals.cobre), r.mFmt(vals.zinco), r.mFmt(vals.aluminio),
-                    r.mFmt(vals.chumbo), r.mFmt(vals.estanho), r.mFmt(vals.niquel),
-                    r.dFmt(vals.dolar)
-                ]);
-                if (r.dark) darkRows.push(mainBody.length - 1); // track dark rows
-            });
+            const comp = semana.computed;
+            tableBody.push([
+                'MÉDIA SEMANAL',
+                fmtUSD(comp['MEDIA SEMANAL']?.cobre),   fmtUSD(comp['MEDIA SEMANAL']?.zinco),   fmtUSD(comp['MEDIA SEMANAL']?.aluminio),
+                fmtUSD(comp['MEDIA SEMANAL']?.chumbo),  fmtUSD(comp['MEDIA SEMANAL']?.estanho),  fmtUSD(comp['MEDIA SEMANAL']?.niquel),  fmtBRL4(comp['MEDIA SEMANAL']?.dolar)
+            ]);
+            tableBody.push([
+                '100% LME (R$)',
+                fmtBRL3(comp['100% LME']?.cobre),   fmtBRL3(comp['100% LME']?.zinco),   fmtBRL3(comp['100% LME']?.aluminio),
+                fmtBRL3(comp['100% LME']?.chumbo),  fmtBRL3(comp['100% LME']?.estanho),  fmtBRL3(comp['100% LME']?.niquel),  fmtBRL4(comp['100% LME']?.dolar)
+            ]);
+            tableBody.push([
+                'SEMANA ANTERIOR',
+                fmtBRL3(comp['SEMANA ANTERIOR']?.cobre),   fmtBRL3(comp['SEMANA ANTERIOR']?.zinco),   fmtBRL3(comp['SEMANA ANTERIOR']?.aluminio),
+                fmtBRL3(comp['SEMANA ANTERIOR']?.chumbo),  fmtBRL3(comp['SEMANA ANTERIOR']?.estanho),  fmtBRL3(comp['SEMANA ANTERIOR']?.niquel),  fmtBRL4(comp['SEMANA ANTERIOR']?.dolar)
+            ]);
+            tableBody.push([
+                'FECHAMENTO % (SEMANA ANTERIOR)',
+                fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.cobre),   fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.zinco),
+                fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.aluminio), fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.chumbo),
+                fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.estanho),  fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.niquel),
+                fmtPct(comp['FECHAMENTO % ( SEMANA ANTERIOR )']?.dolar)
+            ]);
+            tableBody.push([
+                'OSCILAÇÃO %',
+                fmtPct(comp['OSCILAÇÃO %']?.cobre),   fmtPct(comp['OSCILAÇÃO %']?.zinco),   fmtPct(comp['OSCILAÇÃO %']?.aluminio),
+                fmtPct(comp['OSCILAÇÃO %']?.chumbo),  fmtPct(comp['OSCILAÇÃO %']?.estanho),  fmtPct(comp['OSCILAÇÃO %']?.niquel),  fmtPct(comp['OSCILAÇÃO %']?.dolar)
+            ]);
+            tableBody.push([
+                'OSCILAÇÃO R$',
+                fmtOscRS(comp['OSCILAÇÃO R$']?.cobre),   fmtOscRS(comp['OSCILAÇÃO R$']?.zinco),   fmtOscRS(comp['OSCILAÇÃO R$']?.aluminio),
+                fmtOscRS(comp['OSCILAÇÃO R$']?.chumbo),  fmtOscRS(comp['OSCILAÇÃO R$']?.estanho),  fmtOscRS(comp['OSCILAÇÃO R$']?.niquel),
+                fmtOscRS(comp['OSCILAÇÃO R$']?.dolar)
+            ]);
+            tableBody.push([
+                'MÉDIA MENSAL',
+                fmtBRL3(comp['MEDIA MENSAL']?.cobre),   fmtBRL3(comp['MEDIA MENSAL']?.zinco),   fmtBRL3(comp['MEDIA MENSAL']?.aluminio),
+                fmtBRL3(comp['MEDIA MENSAL']?.chumbo),  fmtBRL3(comp['MEDIA MENSAL']?.estanho),  fmtBRL3(comp['MEDIA MENSAL']?.niquel),  fmtBRL4(comp['MEDIA MENSAL']?.dolar)
+            ]);
 
             autoTable(doc, {
-                startY: 36,
-                head: mainHead,
-                body: mainBody,
+                startY: 24,
+                head: [HEAD_ROW],
+                body: tableBody,
                 theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 1.5, halign: 'center' },
-                headStyles: { fillColor: GREEN, textColor: 255, fontStyle: 'bold', halign: 'center' },
-                columnStyles: { 0: { halign: 'left', cellWidth: 22 } },
-                didParseCell: function (data) {
+                styles: { fontSize: 7.5, cellPadding: 1.5, halign: 'center', fontStyle: 'bold' },
+                columnStyles: { 0: { halign: 'left', cellWidth: 26 } },
+                didParseCell: function(data) {
+                    const ci = data.column.index;
+                    const ri = data.row.index;
+                    const metalKey = colKeys[ci]; // data, cobre, zinco, ...
+
                     if (data.section === 'head') {
-                        const colMetal = ['cobre','zinco','aluminio','chumbo','estanho','niquel','dolar'];
-                        const metal = colMetal[data.column.index - 1];
-                        if (metal && COL_COLORS[metal]) data.cell.styles.fillColor = COL_COLORS[metal];
+                        // Cor do cabeçalho por coluna
+                        data.cell.styles.fillColor = HDR[metalKey]?.bg || [50,50,50];
+                        data.cell.styles.textColor = HDR[metalKey]?.fg || [255,255,255];
+                        return;
                     }
-                    // Linhas diárias — alternado claro
-                    if (data.section === 'body' && data.row.index < 5) {
-                        if (data.row.index % 2 === 1) data.cell.styles.fillColor = [248, 248, 248];
+
+                    // Linhas de dias (0-4): cor por coluna de metal
+                    if (ri < 5) {
+                        if (ci === 0) {
+                            data.cell.styles.fillColor = [240, 240, 240];
+                            data.cell.styles.textColor = [0, 0, 0];
+                        } else if (CELL_BG[metalKey]) {
+                            data.cell.styles.fillColor = CELL_BG[metalKey];
+                            data.cell.styles.textColor = CELL_FG[metalKey];
+                        }
+                        return;
                     }
-                    // Linha SEMANA ANTERIOR — fundo escuro
-                    if (data.section === 'body' && darkRows.includes(data.row.index)) {
-                        data.cell.styles.fillColor = [26, 26, 26];
-                        data.cell.styles.textColor = [255, 255, 255];
-                        data.cell.styles.fontStyle = 'bold';
-                    }
-                    // Espaçador
-                    if (data.section === 'body' && data.row.index === 5) {
+
+                    // Linha separadora (ri=5): branco
+                    if (ri === 5) {
                         data.cell.styles.fillColor = [255, 255, 255];
+                        data.cell.styles.textColor = [255, 255, 255];
+                        return;
                     }
-                    // Label col nas computadas
-                    if (data.section === 'body' && data.row.index > 5 && data.column.index === 0) {
-                        data.cell.styles.fontStyle = 'bold';
-                        data.cell.styles.halign = 'left';
+
+                    // Linhas computadas (ri 6-12): cor da linha
+                    const compIdx = ri - 6; // 0=MÉDIA SEMANAL, 1=100%LME, etc.
+                    if (ROW_BG[compIdx]) {
+                        data.cell.styles.fillColor = ROW_BG[compIdx].bg;
+                        data.cell.styles.textColor = ROW_BG[compIdx].fg;
                     }
+                    if (ci === 0) data.cell.styles.halign = 'left';
                 }
             });
 
-            // ─── MINI-TABELA RESUMO (Semana Ant R$/kg × LME Atual R$/kg) ─────
-            const afterMain = doc.lastAutoTable.finalY + 3;
-            const SUMMARY_HEAD = [['TIPO', 'COBRE (R$/kg)', 'ZINCO (R$/kg)', 'ALUMÍNIO (R$/kg)', 'CHUMBO (R$/kg)', 'ESTANHO (R$/kg)', 'NÍQUEL (R$/kg)', 'DÓLAR (R$)']];
-            const ant = semana.computed['SEMANA ANTERIOR'] || {};
-            const lme = semana.computed['100% LME'] || {};
-            const oscRs = semana.computed['OSCILAÇÃO R$'] || {};
+            // ─── MINI-TABELA RESUMO (Semana Ant × LME Atual × Oscilação) ─────
+            const afterMain = doc.lastAutoTable.finalY + 2;
+            const ant   = comp['SEMANA ANTERIOR'] || {};
+            const lme   = comp['100% LME']        || {};
+            const oscRs = comp['OSCILAÇÃO R$']     || {};
+            const SUMMARY_HEAD = [['TIPO', 'Cobre R$/kg', 'Zinco R$/kg', 'Alumínio R$/kg', 'Chumbo R$/kg', 'Estanho R$/kg', 'Níquel R$/kg', 'Dólar R$']];
             const SUMMARY_BODY = [
                 ['SEMANA ANTERIOR (R$/kg)', fmtBRL3(ant.cobre), fmtBRL3(ant.zinco), fmtBRL3(ant.aluminio), fmtBRL3(ant.chumbo), fmtBRL3(ant.estanho), fmtBRL3(ant.niquel), fmtBRL4(ant.dolar)],
                 ['LME ATUAL (R$/kg)',       fmtBRL3(lme.cobre), fmtBRL3(lme.zinco), fmtBRL3(lme.aluminio), fmtBRL3(lme.chumbo), fmtBRL3(lme.estanho), fmtBRL3(lme.niquel), fmtBRL4(lme.dolar)],
-                ['Oscilação R$/kg',
-                    (oscRs.cobre != null ? (oscRs.cobre >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.cobre)) : '—'),
-                    (oscRs.zinco != null ? (oscRs.zinco >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.zinco)) : '—'),
-                    (oscRs.aluminio != null ? (oscRs.aluminio >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.aluminio)) : '—'),
-                    (oscRs.chumbo != null ? (oscRs.chumbo >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.chumbo)) : '—'),
-                    (oscRs.estanho != null ? (oscRs.estanho >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.estanho)) : '—'),
-                    (oscRs.niquel != null ? (oscRs.niquel >= 0 ? '▲ ' : '▼ ') + fmtBRL3(Math.abs(oscRs.niquel)) : '—'),
-                    (oscRs.dolar != null ? (oscRs.dolar >= 0 ? '▲ ' : '▼ ') + fmtBRL4(Math.abs(oscRs.dolar)) : '—'),
-                ]
+                ['Oscilação R$/kg',         fmtOscRS(oscRs.cobre), fmtOscRS(oscRs.zinco), fmtOscRS(oscRs.aluminio), fmtOscRS(oscRs.chumbo), fmtOscRS(oscRs.estanho), fmtOscRS(oscRs.niquel), fmtOscRS(oscRs.dolar)],
             ];
             autoTable(doc, {
                 startY: afterMain,
                 head: SUMMARY_HEAD,
                 body: SUMMARY_BODY,
                 theme: 'grid',
-                styles: { fontSize: 7.5, cellPadding: 1.5, halign: 'center' },
-                headStyles: { fillColor: GREEN, textColor: 255, fontStyle: 'bold' },
-                columnStyles: { 0: { halign: 'left', fontStyle: 'bold', cellWidth: 38 } }
+                styles: { fontSize: 7.5, cellPadding: 1.5, halign: 'center', fontStyle: 'bold' },
+                headStyles: { fillColor: [10,74,47], textColor: 255, fontStyle: 'bold' },
+                columnStyles: { 0: { halign: 'left', cellWidth: 36 } },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index > 0) {
+                        const metalKey = colKeys[data.column.index];
+                        if (CELL_BG[metalKey]) {
+                            data.cell.styles.fillColor = CELL_BG[metalKey];
+                            data.cell.styles.textColor = CELL_FG[metalKey];
+                        }
+                    }
+                }
             });
 
             // ─── GRÁFICOS DE BARRAS (chartjs-node-canvas) ────────────────────
-            const afterSummary = doc.lastAutoTable.finalY + 5;
-            
-            const buildChartBuffer = async (labels, dataAnt, dataLme) => {
+            doc.addPage();
+            let curY = 10;
+
+            const buildChartBuf = async (labels, dataAnt, dataLme) => {
                 const bgColors = labels.map((_, i) => {
-                    const valAtu = dataLme[i] || 0;
-                    const valAnt = dataAnt[i] || 0;
+                    const valAtu = dataLme[i] || 0, valAnt = dataAnt[i] || 0;
                     return valAtu >= valAnt
-                        ? ['rgba(39,174,96,0.85)', 'rgba(231,76,60,0.85)']
-                        : ['rgba(231,76,60,0.85)', 'rgba(39,174,96,0.85)'];
+                        ? { lme: 'rgba(39,174,96,0.85)', ant: 'rgba(231,76,60,0.85)' }
+                        : { lme: 'rgba(231,76,60,0.85)', ant: 'rgba(39,174,96,0.85)' };
                 });
-                const canvas = new ChartJSNodeCanvas({ width: 550, height: 280, backgroundColour: 'white' });
-                return canvas.renderToBuffer({
+                const cvs = new ChartJSNodeCanvas({ width: 560, height: 300, backgroundColour: 'white' });
+                return cvs.renderToBuffer({
                     type: 'bar',
                     data: {
                         labels,
                         datasets: [
-                            {
-                                label: 'Semana Anterior',
-                                data: dataAnt,
-                                backgroundColor: bgColors.map(c => c[1]),
-                                borderColor: bgColors.map(c => c[1].replace('0.85', '1')),
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'LME Atual (100%)',
-                                data: dataLme,
-                                backgroundColor: bgColors.map(c => c[0]),
-                                borderColor: bgColors.map(c => c[0].replace('0.85', '1')),
-                                borderWidth: 1
-                            }
+                            { label: 'Semana Anterior', data: dataAnt, backgroundColor: bgColors.map(c => c.ant), borderWidth: 1 },
+                            { label: 'LME Atual (100%)', data: dataLme, backgroundColor: bgColors.map(c => c.lme), borderWidth: 1 }
                         ]
                     },
-                    options: {
-                        responsive: false,
-                        animation: false,
-                        plugins: {
-                            legend: { position: 'top', labels: { font: { size: 11 } } },
-                            title: { display: false }
-                        },
-                        scales: {
-                            y: { ticks: { font: { size: 9 } } },
-                            x: { ticks: { font: { size: 11, weight: 'bold' } } }
-                        }
+                    options: { responsive: false, animation: false,
+                        plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
+                        scales: { y: { ticks: { font: { size: 9 } } }, x: { ticks: { font: { size: 11, weight: 'bold' } } } }
                     }
                 });
             };
 
-            const group1Labels = ['COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO'];
-            const group1Keys   = ['cobre', 'zinco', 'aluminio', 'chumbo'];
-            const group2Labels = ['ESTANHO', 'NÍQUEL'];
-            const group2Keys   = ['estanho', 'niquel'];
-
-            const chart1Buf = await buildChartBuffer(
-                group1Labels,
-                group1Keys.map(k => ant[k] || 0),
-                group1Keys.map(k => lme[k] || 0)
+            const chart1 = await buildChartBuf(
+                ['COBRE','ZINCO','ALUMÍNIO','CHUMBO'],
+                ['cobre','zinco','aluminio','chumbo'].map(k => ant[k] || 0),
+                ['cobre','zinco','aluminio','chumbo'].map(k => lme[k] || 0)
             );
-            const chart2Buf = await buildChartBuffer(
-                group2Labels,
-                group2Keys.map(k => ant[k] || 0),
-                group2Keys.map(k => lme[k] || 0)
+            const chart2 = await buildChartBuf(
+                ['ESTANHO','NÍQUEL'],
+                ['estanho','niquel'].map(k => ant[k] || 0),
+                ['estanho','niquel'].map(k => lme[k] || 0)
             );
 
-            // Nova página para os gráficos + tabela de base
-            doc.addPage();
-            let curY = 15;
-
-            doc.setFontSize(11); doc.setTextColor(...GREEN);
-            doc.text('Desempenho — Semana Anterior vs LME Atual', 14, curY);
-            curY += 5;
-
-            // Gráfico 1 (Cobre, Zinco, Alumínio, Chumbo)
-            const img1 = 'data:image/png;base64,' + chart1Buf.toString('base64');
-            doc.addImage(img1, 'PNG', 14, curY, 110, 60);
-
-            // Gráfico 2 (Estanho, Níquel)
-            const img2 = 'data:image/png;base64,' + chart2Buf.toString('base64');
-            doc.addImage(img2, 'PNG', 130, curY, 70, 60);
-            curY += 68;
+            doc.setFontSize(10); doc.setTextColor(10,74,47); doc.setFont(undefined,'bold');
+            doc.text('Desempenho — Semana Anterior vs LME Atual', 14, curY + 4);
+            doc.setFont(undefined,'normal');
+            curY += 8;
+            doc.addImage('data:image/png;base64,' + chart1.toString('base64'), 'PNG', 10, curY, 120, 65);
+            doc.addImage('data:image/png;base64,' + chart2.toString('base64'), 'PNG', 135, curY, 68, 65);
+            curY += 72;
 
             // ─── TABELA VALORES BASE 90% a 110% ──────────────────────────────
-            doc.setFontSize(11); doc.setTextColor(...GREEN);
+            doc.setFontSize(10); doc.setTextColor(10,74,47); doc.setFont(undefined,'bold');
             doc.text('VALORES BASE DE 90% A 110% × LME DA SEMANA × DÓLAR', 14, curY + 4);
-            curY += 8;
+            doc.setFont(undefined,'normal');
+            curY += 7;
 
             const baseHead = [['%', 'COBRE', 'ZINCO', 'ALUMÍNIO', 'CHUMBO', 'ESTANHO', 'NÍQUEL']];
             const baseBody = [];
             for (let p = 90; p <= 110; p++) {
                 const row = [p === 100 ? '100%' : `${p}%`];
-                metalKeys.forEach(m => {
-                    const lmeVal = semana.computed['SEMANA ANTERIOR']?.[m] ?? null;
-                    if (lmeVal === null) row.push('—');
-                    else row.push('R$ ' + (lmeVal * (p / 100)).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }));
+                METAL_KEYS.forEach(m => {
+                    const lmeVal = comp['SEMANA ANTERIOR']?.[m] ?? null;
+                    row.push(lmeVal !== null ? 'R$ ' + (lmeVal * p / 100).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '—');
                 });
                 baseBody.push(row);
             }
@@ -6175,39 +6220,38 @@ ${computedKeys.map(ck=>`<tr>
                 head: baseHead,
                 body: baseBody,
                 theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 1.5, halign: 'right' },
-                headStyles: { fillColor: [30, 30, 30], textColor: 255, fontStyle: 'bold', halign: 'center' },
-                columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 14 } },
+                styles: { fontSize: 7.5, cellPadding: 1.2, halign: 'right', fontStyle: 'bold' },
+                headStyles: { fillColor: [0,0,0], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                columnStyles: { 0: { halign: 'center', cellWidth: 12 } },
                 didParseCell: function(data) {
-                    if (data.section === 'head') {
-                        const hColors = [[219,31,31],[230,184,183],[191,191,191],[201,168,232],[217,234,164],[238,246,216]];
-                        if (data.column.index > 0) data.cell.styles.fillColor = hColors[data.column.index - 1] || [50,50,50];
+                    if (data.section === 'head' && data.column.index > 0) {
+                        const hColors = [HDR.cobre.bg, HDR.zinco.bg, HDR.aluminio.bg, HDR.chumbo.bg, HDR.estanho.bg, HDR.niquel.bg];
+                        data.cell.styles.fillColor = hColors[data.column.index - 1] || [50,50,50];
+                        data.cell.styles.textColor = (data.column.index === 6) ? [0,0,0] : [255,255,255];
                     }
                     if (data.section === 'body') {
                         if (data.row.index === 10) {
-                            data.cell.styles.fillColor = [0, 0, 0];
-                            data.cell.styles.textColor = [255, 255, 255];
-                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.fillColor = [0,0,0]; data.cell.styles.textColor = [255,255,255];
                         } else if (data.row.index < 10) {
-                            const shade = 255 - (10 - data.row.index) * 5;
-                            data.cell.styles.fillColor = [255, shade, shade];
+                            const s = 255 - (10 - data.row.index) * 6;
+                            data.cell.styles.fillColor = [255, s, s];
                         } else {
-                            const shade = 255 - (data.row.index - 10) * 5;
-                            data.cell.styles.fillColor = [shade, 255, shade];
+                            const s = 255 - (data.row.index - 10) * 6;
+                            data.cell.styles.fillColor = [s, 255, s];
                         }
                     }
                 }
             });
 
             // Rodapé
-            const lastY = doc.lastAutoTable.finalY + 8;
-            doc.setFontSize(8); doc.setTextColor(140, 140, 140);
-            doc.text('Apextech Metais — Indústria e Comércio de Resíduos Ltda  |  apextechmetais.com.br', 14, lastY);
+            const lastY = doc.lastAutoTable.finalY + 6;
+            doc.setFontSize(7.5); doc.setTextColor(140,140,140);
+            doc.text('Apextech Metais — Indústria e Comércio de Resíduos Ltda  |  apextechmetais.com.br', 105, lastY, { align: 'center' });
 
             pdfBuffer = Buffer.from(doc.output('arraybuffer'));
 
         } catch (pdfErr) {
-            console.error('❌ [LME CRON] Erro fatal no gerador de PDF jsPDF+Chart:', pdfErr.message, pdfErr.stack);
+            console.error('❌ [LME CRON] Erro fatal no gerador de PDF:', pdfErr.message, pdfErr.stack);
         }
 
         const emailList = destinatarios.map(d => d.email);
@@ -7700,10 +7744,7 @@ if (process.env.NODE_ENV !== 'test') {
                 const diaAtual = agoraSP.getDay();
 
                 if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
-                    // Trava de 1 por dia foi removida para permitir testes.
-                    let jaEnviou = false;
-
-                    if (!jaEnviou) {
+                    {
                         console.log(`⏰ [LME CRON NATIVO] Horário atingido ou ultrapassado (${horaAtual} >= ${horario}). Disparando envio!`);
                         try {
                             const result = await disparaEmailLME();
