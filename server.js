@@ -5941,22 +5941,76 @@ ${computedKeys.map(ck=>`<tr>
 
         let pdfBuffer = null;
         try {
-            const pdf = require('html-pdf');
-            pdfBuffer = await new Promise((resolve) => {
-                pdf.create(pdfHtml, { 
-                    format: 'A4', 
-                    border: { top: '20px', bottom: '20px', left: '20px', right: '20px' } 
-                }).toBuffer(function(err, buffer) {
-                    if (err) {
-                        console.error('❌ [LME CRON] Erro ao gerar PDF via html-pdf:', err.message);
-                        resolve(null);
-                    } else {
-                        resolve(buffer);
-                    }
-                });
+            const { jsPDF } = require('jspdf');
+            const autoTable = require('jspdf-autotable').default;
+
+            const doc = new jsPDF();
+            
+            // Título e Subtítulo
+            doc.setFontSize(16);
+            doc.setTextColor(10, 74, 47);
+            doc.text("Relatório LME - Apextech Metais", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(85, 85, 85);
+            doc.text(`Semana: ${semana.label}   |   Gerado em: ${dateStr}`, 14, 28);
+
+            // Tabela 1: Cotações Diárias
+            doc.setFontSize(12);
+            doc.setTextColor(10, 74, 47);
+            doc.text("Cotações Diárias (US$/t)", 14, 38);
+
+            const head1 = [['Data', ...metals.map(m => metalLabels[m]), 'Dólar']];
+            const body1 = semana.days.map(d => [
+                d.data,
+                ...metals.map(m => fmt(d[m])),
+                fmt(d.dolar)
+            ]);
+
+            autoTable(doc, {
+                startY: 42,
+                head: head1,
+                body: body1,
+                theme: 'striped',
+                headStyles: { fillColor: [10, 74, 47], textColor: 255, halign: 'center', fontSize: 9 },
+                bodyStyles: { halign: 'center', fontSize: 9, cellPadding: 2 },
+                alternateRowStyles: { fillColor: [245, 245, 245] }
             });
+
+            // Tabela 2: Consolidado Semanal
+            const finalY = doc.lastAutoTable.finalY || 42;
+            doc.setFontSize(12);
+            doc.setTextColor(10, 74, 47);
+            doc.text("Consolidado Semanal", 14, finalY + 12);
+
+            const head2 = [['Indicador', ...metals.map(m => metalLabels[m]), 'Dólar']];
+            const body2 = computedKeys.map(ck => [
+                ck.label,
+                ...metals.map(m => ck.fmt(semana.computed[ck.key] ? semana.computed[ck.key][m] : null)),
+                ck.fmt(semana.computed[ck.key] ? semana.computed[ck.key].dolar : null)
+            ]);
+
+            autoTable(doc, {
+                startY: finalY + 16,
+                head: head2,
+                body: body2,
+                theme: 'striped',
+                headStyles: { fillColor: [10, 74, 47], textColor: 255, halign: 'center', fontSize: 9 },
+                bodyStyles: { halign: 'center', fontSize: 9, cellPadding: 2 },
+                columnStyles: { 0: { fontStyle: 'bold', fillColor: [232, 245, 238], halign: 'left' } },
+                alternateRowStyles: { fillColor: [245, 245, 245] }
+            });
+
+            // Rodapé
+            const finalY2 = doc.lastAutoTable.finalY || finalY + 16;
+            doc.setFontSize(9);
+            doc.setTextColor(136, 136, 136);
+            doc.text("Apextech Metais - Indústria e Comércio de Resíduos Ltda  |  apextechmetais.com.br", 14, finalY2 + 15);
+
+            pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+
         } catch (pdfErr) {
-            console.error('❌ [LME CRON] Erro fatal no gerador de PDF:', pdfErr.message);
+            console.error('❌ [LME CRON] Erro fatal no gerador de PDF jsPDF:', pdfErr.message);
         }
 
         const emailList = destinatarios.map(d => d.email);
