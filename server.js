@@ -5941,14 +5941,22 @@ ${computedKeys.map(ck=>`<tr>
 
         let pdfBuffer = null;
         try {
-            const puppeteer = require('puppeteer');
-            const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: true });
-            const page = await browser.newPage();
-            await page.setContent(pdfHtml, { waitUntil: 'load' });
-            pdfBuffer = await page.pdf({ format: 'A4', margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' } });
-            await browser.close();
+            const pdf = require('html-pdf');
+            pdfBuffer = await new Promise((resolve) => {
+                pdf.create(pdfHtml, { 
+                    format: 'A4', 
+                    border: { top: '20px', bottom: '20px', left: '20px', right: '20px' } 
+                }).toBuffer(function(err, buffer) {
+                    if (err) {
+                        console.error('❌ [LME CRON] Erro ao gerar PDF via html-pdf:', err.message);
+                        resolve(null);
+                    } else {
+                        resolve(buffer);
+                    }
+                });
+            });
         } catch (pdfErr) {
-            console.error('❌ [LME CRON] Erro ao gerar PDF via Puppeteer:', pdfErr.message);
+            console.error('❌ [LME CRON] Erro fatal no gerador de PDF:', pdfErr.message);
         }
 
         const emailList = destinatarios.map(d => d.email);
