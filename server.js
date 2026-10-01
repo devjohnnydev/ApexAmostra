@@ -7363,14 +7363,64 @@ if (process.env.NODE_ENV !== 'test') {
             console.log(`🌿 Servidor da ApexTech Metais rodando em http://localhost:${PORT}`);
             console.log(`📦 Modo de dados: MySQL`);
         });
-        // ─── CRON: Desativado internamente para uso no Hostinger ───────────────
-        // Em hospedagens compartilhadas/cPanel (Hostinger), o processo Node.js
-        // dorme quando não há requisições. O `node-cron` interno não funciona.
-        // SOLUÇÃO: O usuário deve configurar um Cron Job no painel do Hostinger
-        // rodando a cada minuto (* * * * *). Esse cron vai chamar a rota
-        // POST /api/lme/cron-trigger, que agora verifica a hora salva no banco.
-        console.log('✅ [LME] Agendador interno desativado. Aguardando chamadas do Cron do Hostinger (a cada minuto).');
+        // ─── CRON: Agendador LME Nativo (Verifica a cada minuto) ─────────────
+        // Como o painel do Hostinger não possui a opção de Cron Jobs para este plano,
+        // dependemos do processo Node.js rodar continuamente para fazer a checagem.
+        cron.schedule('* * * * *', async () => {
+            try {
+                let settingsObj = {};
+                if (dbAvailable) {
+                    const [rows] = await pool.query('SELECT `key`, value FROM settings');
+                    rows.forEach(r => { settingsObj[r['key']] = r.value; });
+                } else {
+                    settingsObj = memStore.settings || {};
+                }
 
+                const ativo = settingsObj.lme_envio_ativo === 'true' || settingsObj.lme_envio_ativo === true;
+                if (!ativo) return;
+
+                const horario = settingsObj.lme_envio_horario || '14:00';
+                const diasStr = settingsObj.lme_envio_dias || '1,2,3,4,5';
+                const diasAtivos = diasStr.split(',').map(Number);
+
+                // Hora atual no fuso de São Paulo
+                const agoraSP = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+                const horaAtual = `${String(agoraSP.getHours()).padStart(2, '0')}:${String(agoraSP.getMinutes()).padStart(2, '0')}`;
+                const diaAtual = agoraSP.getDay();
+
+                if (horaAtual === horario && diasAtivos.includes(diaAtual)) {
+                    // Idempotência no banco: verifica se já enviou hoje
+                    let jaEnviou = false;
+                    if (dbAvailable) {
+                        const [check] = await pool.query(
+                            `SELECT id FROM lme_agendamentos 
+                             WHERE DATE(CONVERT_TZ(sent_at, '+00:00', '-03:00')) = DATE(CONVERT_TZ(NOW(), '+00:00', '-03:00'))
+                             AND status = 'SENT' LIMIT 1`
+                        );
+                        jaEnviou = check.length > 0;
+                    }
+
+                    if (!jaEnviou) {
+                        console.log(`⏰ [LME CRON NATIVO] Disparando envio automático — ${horaAtual} | Dia: ${diaAtual}`);
+                        try {
+                            const result = await disparaEmailLME();
+                            if (dbAvailable) {
+                                const cronId = require('crypto').randomUUID();
+                                await pool.query(
+                                    "INSERT INTO lme_agendamentos (id, horario_agendado, dias_semana, status, sent_at, resend_message_id) VALUES (?, ?, ?, 'SENT', NOW(), ?)",
+                                    [cronId, horario, diasStr, result ? (result.resend_id || 'sent') : 'cron_sent']
+                                ).catch(() => {});
+                            }
+                        } catch (sendErr) {
+                            console.error('❌ [LME CRON NATIVO] Falha no envio automático:', sendErr.message);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('❌ [LME CRON NATIVO] Erro na rotina de verificação:', err.message);
+            }
+        });
+        console.log('✅ [LME] Agendador Nativo (node-cron) ativado (Fuso: America/Sao_Paulo).');
 
         // ─── CRON: Forecast Estratégico Semanal (Passo 8) ─────────────────────
         if (pool) {
